@@ -139,6 +139,7 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 .field { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
 .det { font-family: var(--mono); font-size: .85rem; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; }
 .det b { color: var(--fg); }
+#tapInfo { flex-wrap: wrap; } #tapInfo .mini { white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 .note { font-size: .82rem; color: var(--muted); margin: 0; max-width: 70ch; line-height: 1.45; }
 
@@ -285,9 +286,24 @@ body.write .wrap { max-width: 1240px; }
 .ed-in { flex: 1; min-width: 12em; font: inherit; font-size: .95rem; padding: 6px 8px; border: 1px solid var(--accent); border-radius: 6px; background: var(--bg); color: var(--fg); }
 .chip .x { margin-left: 4px; color: var(--muted); font-family: var(--mono); font-size: .7rem; }
 .vp { display: grid; gap: 20px; min-width: 0; }
+/* Beat strip: a slim row of beat pills pinned to the top while the click runs and the big tiles are off screen
+   (the Write tab, or scrolled down on a phone). The pill on the beat fills at once, no fade: beat 1 red, the rest ink. */
+.strip { position: fixed; inset: 0 0 auto 0; z-index: 30; display: flex; justify-content: center; align-items: center; gap: 8px;
+  padding: 8px 16px calc(8px); padding-top: max(8px, env(safe-area-inset-top)); background: color-mix(in srgb, var(--bg) 90%, transparent);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); pointer-events: none; }
+.strip[hidden] { display: none; }
+.strip i { font-style: normal; width: 30px; height: 30px; flex: 0 0 auto; border-radius: 50%; display: grid; place-items: center;
+  font: 600 .78rem var(--mono); background: var(--cell); color: var(--muted); border: 1px solid var(--line); }
+.strip i.one { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); }
+.strip i.on { background: var(--hit); color: var(--bg); border-color: var(--hit); }
+.strip i.one.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.strip i.cnt { opacity: .55; }
+.strip span { font: .75rem var(--mono); color: var(--muted); margin-left: 6px; white-space: nowrap; }
+@media (max-width: 420px) { .strip { gap: 5px; } .strip i { width: 24px; height: 24px; font-size: .68rem; } }
 </style>
 </head>
 <body>
+<div class="strip" id="beatStrip" aria-hidden="true" hidden><span id="stripInfo"></span></div>
 <div class="wrap">
   <header>
     <div class="logo" role="img" aria-label="MetroBar">
@@ -329,12 +345,14 @@ body.write .wrap { max-width: 1240px; }
       <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
       <button id="plus" aria-label="Faster">+</button>
     </div>
-    <span class="det" id="detBox"><span id="det">No beat loaded</span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span>
+    <span class="det" id="detBox"><span id="det">No beat loaded</span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
     <button class="btn" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button><span class="det" id="tapInfo"></span>
     <label class="field"><input type="checkbox" id="eighths" checked> 8th ticks</label>
     <label class="field"><input type="checkbox" id="countIn" checked> Count-in bar</label>
     <label class="field"><input type="checkbox" id="secTick" checked> 1s ticks</label>
     <label class="field"><input type="checkbox" id="clicks" checked> Clicks</label>
+    <label class="field" title="Tempo change: play the beat and the click slower to practise a fast verse, or a bit faster to push yourself. Keep pitch stops the beat sounding deeper or higher (it takes a second to prepare). The Tempo trainer in Fit does its own speed, so this waits while the trainer runs.">Speed <select id="speed" class="num-in" style="width:auto"><option value="70">70%</option><option value="75">75%</option><option value="80">80%</option><option value="85">85%</option><option value="90">90%</option><option value="95">95%</option><option value="100" selected>100%</option><option value="105">105%</option><option value="110">110%</option></select></label>
+    <label class="field"><input type="checkbox" id="keepPitch" checked> Keep pitch</label><span class="det" id="speedInfo"></span>
     <label class="field" title="Meter of every bar. In lyrics, a tag like [7/8] or [7/8:3+2+2] at the start of a line switches the meter from that bar on. BPM always counts quarter notes, so a 16th keeps its length when the meter changes.">Meter <select id="beats" class="num-in" style="width:auto">
       <option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="5/4">5/4</option><option value="6/4">6/4</option><option value="7/4">7/4</option>
       <option value="5/8:3+2">5/8 (3+2)</option><option value="5/8:2+3">5/8 (2+3)</option><option value="6/8:3+3">6/8 (3+3)</option>
@@ -1158,10 +1176,93 @@ function detectBpm(chs, sr) {
   let bpm = best;
   while (bpm < 80 && bpm * 2 <= 200) bpm *= 2;     // resolve octave errors toward 80-180
   while (bpm > 180 && bpm / 2 >= 60) bpm /= 2;
+  // octave check: fold the onsets on the candidate beat, four beats to a bar. If every "and" between two beats hits
+  // about as hard as the beats themselves (a snare on each one), the real beat is twice as fast: 174 drum & bass, not
+  // 87 half time. One kick on one "and" (boom bap) is not enough: the quietest "and" decides.
+  // Linear loudness here (not the log used above), so a quiet hat cannot pass for a snare.
+  const lin = new Float32Array(F); for (let f = 1; f < F; f++) lin[f] = Math.max(0, Math.expm1(e[f]) - Math.expm1(e[f - 1]));
+  const pkAt = t => { const i = Math.round(t); return Math.max(lin[i - 1] || 0, lin[i] || 0, lin[i + 1] || 0); };
+  const andRatio = b => { const T = 6000 / b; let best = 0, ratio = 0;
+    for (let p = 0; p < T; p += 0.5) {
+      const on = [0, 0, 0, 0], and = [0, 0, 0, 0], n = [0, 0, 0, 0];
+      for (let k = 0, t = p + 1; t + T / 2 + 1 < F; k++, t += T) { on[k % 4] += pkAt(t); and[k % 4] += pkAt(t + T / 2); n[k % 4]++; }
+      if (!n[3]) continue;
+      const onAvg = on.reduce((a, v, i) => a + v / n[i], 0) / 4, andMin = Math.min(...and.map((v, i) => v / n[i]));
+      if (onAvg > best) { best = onAvg; ratio = andMin / onAvg; }
+    }
+    return ratio; };
+  if (bpm * 2 <= 200 && andRatio(bpm) > 0.45) bpm *= 2;
   let mx = 0; const W = Math.min(F, 2000);
   for (let f = 1; f < W; f++) mx = Math.max(mx, on[f]);
   let first = 0; for (let f = 1; f < W; f++) if (on[f] >= 0.35 * mx) { first = f * hop / sr; break; }
   return { bpm: Math.round(bpm * 10) / 10, first: Math.round(first * 100) / 100, conf: ac[0] ? bs / (4 * ac[0]) : 0 };
+}
+/* Key finder, all in the browser: mono at about 11 kHz, 4096-point FFT frames, every bin from 55 Hz to 2 kHz added to its
+   pitch class (log loudness, so one loud bass note cannot decide alone), the 12-note profile summed over the song, then
+   matched against the 24 major and minor key profiles (Krumhansl and Kessler's listening tests). conf = how far the best
+   key beats the runner-up that is not its relative. */
+const KEY_SHARP = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'], KEY_FLAT = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+const keyNames = (tonic, minor) => (minor ? [0, 2, 3, 5, 7, 10] : [1, 3, 5, 8, 10]).includes(tonic) ? KEY_FLAT : KEY_SHARP;   // F minor has A♭, not G♯
+const KEY_MAJ = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+const KEY_MIN = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+function fftMag(re) {   // in-place radix-2 FFT of a real frame, returns |X| for bins 0..n/2
+  const n = re.length, im = new Float32Array(n);
+  for (let i = 1, j = 0; i < n; i++) { let b = n >> 1; for (; j & b; b >>= 1) j ^= b; j ^= b; if (i < j) { const t = re[i]; re[i] = re[j]; re[j] = t; } }
+  for (let len = 2; len <= n; len <<= 1) { const a = -2 * Math.PI / len, wr = Math.cos(a), wi = Math.sin(a);
+    for (let i = 0; i < n; i += len) { let cr = 1, ci = 0;
+      for (let k = 0; k < len / 2; k++) { const p = i + k, q = p + len / 2, tr = re[q] * cr - im[q] * ci, ti = re[q] * ci + im[q] * cr;
+        re[q] = re[p] - tr; im[q] = im[p] - ti; re[p] += tr; im[p] += ti; const nr = cr * wr - ci * wi; ci = cr * wi + ci * wr; cr = nr; } } }
+  const m = new Float32Array(n / 2 + 1); for (let i = 0; i <= n / 2; i++) m[i] = Math.hypot(re[i], im[i]); return m;
+}
+function detectKey(chs, sr) {
+  const step = Math.max(1, Math.round(sr / 11025)), fs = sr / step, n = Math.floor(Math.min(chs[0].length, sr * 180) / step);
+  const x = new Float32Array(n); for (let i = 0; i < n; i++) { let v = 0; for (const c of chs) v += c[i * step]; x[i] = v / chs.length; }
+  const N = 4096, hop = 2048, win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+  const binPc = new Int8Array(N / 2 + 1).fill(-1);
+  for (let k = 1; k <= N / 2; k++) { const f = k * fs / N; if (f >= 55 && f <= 2000) binPc[k] = ((Math.round(12 * Math.log2(f / 440)) + 9) % 12 + 12) % 12; }
+  const chroma = new Float64Array(12), fr = new Float32Array(N);
+  for (let o = 0; o + N <= n; o += hop) {
+    for (let i = 0; i < N; i++) fr[i] = x[o + i] * win[i];
+    const m = fftMag(fr); let tot = 0; const c = new Float64Array(12);
+    for (let k = 1; k <= N / 2; k++) if (binPc[k] >= 0) { const v = Math.log1p(100 * m[k]); c[binPc[k]] += v; tot += v; }
+    if (tot > 1e-6) for (let p = 0; p < 12; p++) chroma[p] += c[p] / tot;   // every frame counts the same, loud or soft
+  }
+  const corr = (prof, r) => { const mx = chroma.reduce((a, v) => a + v, 0) / 12, mp = prof.reduce((a, v) => a + v, 0) / 12; let s = 0, a2 = 0, b2 = 0;
+    for (let p = 0; p < 12; p++) { const a = chroma[(p + r) % 12] - mx, b = prof[p] - mp; s += a * b; a2 += a * a; b2 += b * b; } return a2 && b2 ? s / Math.sqrt(a2 * b2) : 0; };
+  const all = []; for (let r = 0; r < 12; r++) { all.push({ tonic: r, minor: false, r: corr(KEY_MAJ, r) }); all.push({ tonic: r, minor: true, r: corr(KEY_MIN, r) }); }
+  all.sort((a, b) => b.r - a.r);
+  const best = all[0], rel = best.minor ? (best.tonic + 3) % 12 : (best.tonic + 9) % 12;
+  const next = all.find(k => k !== best && !(k.tonic === rel && k.minor !== best.minor)) || all[1];
+  const nm = keyNames(best.tonic, best.minor), scale = (best.minor ? [0, 2, 3, 5, 7, 8, 10] : [0, 2, 4, 5, 7, 9, 11]).map(i => nm[(best.tonic + i) % 12]);
+  return { name: nm[best.tonic] + (best.minor ? ' minor' : ' major'), relative: nm[rel] + (best.minor ? ' major' : ' minor'),
+    tonic: best.tonic, minor: best.minor, scale, conf: Math.max(0, Math.round(100 * (best.r - next.r) / Math.max(1e-6, best.r))), chroma: [...chroma] };
+}
+/* Tempo change that keeps the pitch (WSOLA): cut the audio in 46 ms windows, lay them down at a new spacing, and nudge
+   each window (up to 6 ms) to where it lines up best with the one before, so the beat gets slower or faster but not
+   deeper or higher. speed 0.8 = 80% tempo (the result is 1/0.8 as long). chs = Float32Array per channel. */
+function timeStretch(chs, sr, speed) {
+  if (Math.abs(speed - 1) < 1e-3) return chs.map(c => c.slice());
+  const N = 2048, Hs = 512, tol = Math.round(sr * 0.006), L = 512, n = chs[0].length, outLen = Math.floor(n / speed);
+  const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
+  const mono = new Float32Array(n); for (const c of chs) for (let i = 0; i < n; i++) mono[i] += c[i] / chs.length;
+  const out = chs.map(() => new Float32Array(outLen + N)), norm = new Float32Array(outLen + N);
+  const corr = (a, b) => { let s = 0; for (let i = 0; i < L; i += 2) s += mono[a + i] * mono[b + i]; return s; };
+  let prev = -1;
+  for (let o = 0; o < outLen; o += Hs) {
+    const nominal = Math.min(n - N, Math.round(o * speed));
+    if (nominal < 0) break;
+    let pos = nominal;
+    if (prev >= 0 && prev + Hs + L < n) {   // the window that would naturally follow the last one: match it
+      const ref = prev + Hs; let best = -Infinity;
+      const lo = Math.max(0, nominal - tol), hi = Math.min(n - N, nominal + tol);
+      for (let c = lo; c <= hi; c += 4) { const v = corr(ref, c); if (v > best) { best = v; pos = c; } }
+      for (let c = Math.max(lo, pos - 3), e = Math.min(hi, pos + 3); c <= e; c++) { const v = corr(ref, c); if (v > best) { best = v; pos = c; } }
+    }
+    for (let k = 0; k < chs.length; k++) { const x = chs[k], y = out[k]; for (let i = 0; i < N; i++) y[o + i] += x[pos + i] * win[i]; }
+    for (let i = 0; i < N; i++) norm[o + i] += win[i];
+    prev = pos;
+  }
+  return out.map(y => { const r = y.subarray(0, outLen); for (let i = 0; i < outLen; i++) if (norm[i] > 1e-3) r[i] /= norm[i]; return r; });
 }
 /* Song analysis from an acapella / vocal stem.
    vocalOnsets: band-pass the voice (about 300-3000 Hz), 5 ms loudness frames in dB, peaks = syllable nuclei
@@ -1486,7 +1587,8 @@ let landTimes = [], tapOffs = [];
 let ctx = null, running = false, timer = null, nextTime = 0, nextSec = 0, step = 0, bar = 0, queue = [], raf = 0;
 let lastBar = -2, playedBars = 0, nativeBpm = 145, trainerOn = false, trainerTarget = 145, curBpm = 145, rateDirty = false;
 function bpm() { return Math.min(200, Math.max(60, +$('bpm').value || 145)); }
-function tempoNow() { return trainerOn ? curBpm : bpm(); }
+let speed = 1, stretched = { sp: 1, buf: null }, stretchJob = 0;   // Speed control (tempo change); stretched = pitch-kept copy of the beat
+function tempoNow() { return trainerOn ? curBpm : bpm() * speed; }
 function click(t, freq, amp, dur) {
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.frequency.value = freq; g.gain.setValueAtTime(amp, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
@@ -1496,10 +1598,12 @@ let beatBuf = null, beatSrc = null, beatGain = null;
 function startBeat(at, songBar, rate) {   // (re)start the beat file at the right place for song bar `songBar`
   if (!beatBuf) return;
   const old = beatSrc, s = ctx.createBufferSource(), g = ctx.createGain();
-  s.buffer = beatBuf; s.loop = true; s.playbackRate.value = rate; g.gain.value = +$('beatVol').value;
+  const st = !trainerOn && speed !== 1 && $('keepPitch').checked && stretched.sp === speed && stretched.buf;   // play the pitch-kept copy at rate 1
+  s.buffer = st ? stretched.buf : beatBuf; s.loop = true; s.playbackRate.value = st ? 1 : rate; g.gain.value = +$('beatVol').value;
   s.connect(g).connect(ctx.destination);
   const d = beatBuf.duration;
-  const pos = (((+$('beatOffset').value || 0) + barStartQ(songBar) * 60 / nativeBpm) % d + d) % d;
+  let pos = (((+$('beatOffset').value || 0) + barStartQ(songBar) * 60 / nativeBpm) % d + d) % d;
+  if (st) pos = Math.min(s.buffer.duration - 0.001, pos / speed);
   s.start(at, pos);
   if (old) { try { old.stop(at); } catch {} }
   beatSrc = s; beatGain = g;
@@ -1522,7 +1626,7 @@ function schedule() {
       if (counting) lastBar = -1;
       else {
         if (trainerOn && playedBars > 0 && playedBars % 4 === 0 && curBpm < trainerTarget) { curBpm = Math.min(trainerTarget, curBpm + 5); rateDirty = true; }
-        if (!beatSrc || bar !== lastBar + 1 || rateDirty) { startBeat(nextTime, bar, trainerOn ? curBpm / nativeBpm : 1); rateDirty = false; }
+        if (!beatSrc || bar !== lastBar + 1 || rateDirty) { startBeat(nextTime, bar, trainerOn ? curBpm / nativeBpm : speed); rateDirty = false; }
         lastBar = bar; playedBars++;
       }
     }
@@ -1551,12 +1655,26 @@ function schedule() {
     if (++step >= lay.G) { step = 0; bar = nextBar(bar); }
   }
 }
+// ---- beat strip (see .strip)
+const strip = $('beatStrip'); let stripEls = [], tilesSeen = true;
+function stripBar(barIdx, tp) {
+  const lay = barLay(barIdx), counting = barIdx < 0;
+  if (stripEls.length !== lay.nb) {
+    stripEls.forEach(e => e.remove()); stripEls = [];
+    for (let b = 0; b < lay.nb; b++) { const e = h('i', b === 0 ? 'one' : '', b + 1); strip.insertBefore(e, $('stripInfo')); stripEls.push(e); }
+  }
+  stripEls.forEach(e => e.classList.toggle('cnt', counting));
+  $('stripInfo').textContent = `${counting ? 'count-in' : 'bar ' + (barIdx + 1)} · ${Math.round(tp || bpm())}`;
+}
+function stripVis() { strip.hidden = !(running && !tilesSeen); }
+if ('IntersectionObserver' in window) new IntersectionObserver(es => { tilesSeen = es[es.length - 1].isIntersecting; stripVis(); }).observe($('bar'));
 function draw() {
   while (queue.length && queue[0].t <= ctx.currentTime) {
     const q = queue.shift(), b = q.beat;
     subEls.forEach((e, i) => e.classList.toggle('on', i === q.idx));
     beatEls.forEach((e, i) => e.num.classList.toggle('on', i === b && q.sub < 2));
-    if (q.step === 0) showBar(q.bar, q.tp);
+    if (q.step === 0) { showBar(q.bar, q.tp); stripBar(q.bar, q.tp); }
+    stripEls.forEach((e, i) => e.classList.toggle('on', i === b && q.sub < 2));
     if (practice && q.bar >= 0 && lines[q.bar]) {
       const w = lines[q.bar].slotWord[q.step];
       if (w >= 0) teleEls.forEach((e, i) => e.classList.toggle('cur', i === w));
@@ -1575,7 +1693,7 @@ function start() {
   lastBar = -2; playedBars = 0; rateDirty = false; stopBeat(); landTimes = []; tapOffs = [];
   step = 0; bar = $('countIn').checked ? -1 : loopRange().lo; queue = []; nextTime = ctx.currentTime + 0.08; nextSec = nextTime;
   timer = setInterval(schedule, 25); schedule(); raf = requestAnimationFrame(draw);
-  running = true; $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
+  running = true; stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
 }
 function tapLanding() {
   const lat = ctx.outputLatency || ctx.baseLatency || 0, t = ctx.currentTime - lat;
@@ -1592,6 +1710,7 @@ $('bar').addEventListener('click', e => { if (running && $('tapTest').checked) {
 function stop() {
   clearInterval(timer); cancelAnimationFrame(raf); running = false; queue = []; stopBeat();
   subEls.forEach(e => e.classList.remove('on')); beatEls.forEach(e => e.num.classList.remove('on'));
+  stripEls.forEach(e => e.classList.remove('on')); stripVis();
   $('go').textContent = 'Start'; $('go').setAttribute('aria-pressed', 'false'); $('state').textContent = 'stopped'; $('wrPlay').textContent = '▶ Beat'; $('wrPlay').setAttribute('aria-pressed', 'false');
   showBar(practice ? loopRange().lo : 0);
 }
@@ -1606,7 +1725,7 @@ $('bpm').addEventListener('change', () => setBpm(bpm()));
 $('beatFile').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-  detected = null; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
+  detected = null; $('keyInfo').textContent = ''; $('keyNotes').hidden = true; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
   try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); }
   catch { beatBuf = null; $('det').textContent = 'Could not read that file'; return; }
   $('det').textContent = 'Detecting…';
@@ -1617,21 +1736,51 @@ $('beatFile').addEventListener('change', async e => {
   $('det').innerHTML = ''; $('det').append('Detected ', h('b', '', r + ' BPM'), ` · first beat ${detected.first.toFixed(2)} s`);
   $('useDet').hidden = false; showOct();
   $('beatOffset').value = detected.first.toFixed(2);   // offset is prefilled; the BPM never is
-  persist();
+  persist(); stretched = { sp: 1, buf: null }; makeStretch();
+  // Key finder: after the BPM, so the BPM shows first
+  $('keyInfo').textContent = 'finding the key…'; await new Promise(r => setTimeout(r, 30));
+  const k = detectKey(chs, beatBuf.sampleRate);
+  $('keyInfo').replaceChildren('· key ', h('b', '', k.name), k.conf < 8 ? ' (not sure)' : '');
+  $('keyInfo').title = `Key of the beat: ${k.name}, same notes as ${k.relative}. Notes that sit right for a sung hook: ${k.scale.join(' ')}. ${k.conf < 8 ? 'The beat does not lean clearly to one key, so take this as a guess.' : ''}`;
+  $('keyNotes').textContent = `notes ${k.scale.join(' ')} · same notes as ${k.relative}`; $('keyNotes').hidden = false;
 });
-function showOct() { $('halfDet').hidden = !detected || detected.bpm / 2 < 60; $('dblDet').hidden = !detected || detected.bpm * 2 > 200; }
+// Speed (tempo change): the click follows at once, the beat from the next bar line (so it stays on the grid)
+async function makeStretch() {
+  rateDirty = true;
+  if (!beatBuf || speed === 1 || !$('keepPitch').checked || stretched.sp === speed) { $('speedInfo').textContent = ''; return; }
+  const job = ++stretchJob, sp = speed; $('speedInfo').textContent = 'keeping pitch…';
+  await new Promise(r => setTimeout(r, 30));
+  const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
+  const out = timeStretch(chs, beatBuf.sampleRate, sp);
+  if (job !== stretchJob) return;   // speed changed again meanwhile
+  const b = ctx.createBuffer(out.length, out[0].length, beatBuf.sampleRate); out.forEach((y, c) => b.copyToChannel(y, c));
+  stretched = { sp, buf: b }; rateDirty = true; $('speedInfo').textContent = '';
+}
+$('speed').addEventListener('change', () => { speed = (+$('speed').value || 100) / 100; makeStretch(); if (!running) $('bpmOut').textContent = Math.round(tempoNow()); });
+$('keepPitch').addEventListener('change', makeStretch);
+function showOct() { $('halfDet').hidden = !detected || detected.bpm / 2 < 60; $('dblDet').hidden = !detected || detected.bpm * 2 > 200;
+  if (detected) { $('halfDet').textContent = `½ → ${Math.round(detected.bpm / 2)}`; $('dblDet').textContent = `×2 → ${Math.round(detected.bpm * 2)}`; } }
 function setDet(v) { detected.bpm = Math.round(v * 10) / 10; $('det').querySelector('b').textContent = Math.round(detected.bpm) + ' BPM'; showOct(); }
 $('useDet').addEventListener('click', () => { if (detected) setBpm(detected.bpm); });
 $('halfDet').addEventListener('click', () => { if (detected) setDet(detected.bpm / 2); });
 $('dblDet').addEventListener('click', () => { if (detected) setDet(detected.bpm * 2); });
 let taps = [];
+// Tap tempo: 4 taps to count (dots fill until then), then the BPM, how steady the taps were (100% = every gap the same)
+// and the gap in ms. ½ and ×2 show the number they give, so you can see which one is the real beat before you pick.
+function tapSteady(t) { const g = t.slice(1).map((v, i) => v - t[i]), m = g.reduce((a, v) => a + v, 0) / g.length;
+  const sd = Math.sqrt(g.reduce((a, v) => a + (v - m) * (v - m), 0) / g.length); return { gap: m, steady: Math.max(0, Math.round(100 * (1 - sd / m))) }; }
+function tapShow(text, alt) {
+  const box = $('tapInfo'); box.replaceChildren(text);
+  for (const [f, lab] of alt ? [[0.5, '½'], [2, '×2']] : []) { const v = Math.round(alt * f); if (v < 60 || v > 200) continue;
+    const b = h('button', 'mini', `${lab} → ${v}`); b.title = `Use ${v} BPM`; b.addEventListener('click', () => { setBpm(v); tapShow(`tap tempo ${bpm()} BPM`, bpm()); }); box.append(b); }
+}
 function tap() {
   if (running) return;
   const now = performance.now();
   if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];
   taps.push(now); if (taps.length > 8) taps.shift();
-  if (taps.length >= 4) { setBpm(60000 / ((taps[taps.length - 1] - taps[0]) / (taps.length - 1))); $('tapInfo').textContent = `tap tempo ${bpm()} BPM`; }
-  else $('tapInfo').textContent = `${taps.length} tap${taps.length > 1 ? 's' : ''}`;
+  if (taps.length >= 4) { const st = tapSteady(taps); setBpm(60000 / st.gap); tapShow(`tap tempo ${bpm()} BPM · steady ${st.steady}% · ${Math.round(st.gap)} ms`, bpm()); }
+  else tapShow('●'.repeat(taps.length) + '○'.repeat(4 - taps.length) + ' keep tapping');
 }
 $('tapBtn').addEventListener('click', tap);
 
