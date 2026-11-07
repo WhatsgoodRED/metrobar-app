@@ -65,6 +65,26 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .readout { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
 .readout b { color: var(--fg); font-weight: 600; }
 
+/* Deck: the beat tiles and, centred under them, a pendulum metronome, all inside one glowing panel. Both run off the Web Audio clock in draw():
+   the rod reaches its extreme exactly on each beat (where you hear the click) and swings across in between,
+   and the red record glow (--g, 0..1) flashes on the tick and decays per frame. Beat 1 glows strongest. */
+.deck { --g: 0; position: relative; display: grid; gap: 14px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.deck::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; opacity: var(--g);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 85%, #fff), 0 0 48px 6px color-mix(in srgb, var(--accent) 80%, transparent), inset 0 0 44px color-mix(in srgb, var(--accent) 30%, transparent); }
+.metro { width: 180px; justify-self: center; }
+.metro svg { display: block; width: 100%; height: auto; overflow: visible; }
+.metro .m-body { fill: var(--cell); stroke: var(--line); }
+.metro .m-face { fill: var(--bg); }
+.metro .m-scale { stroke: var(--muted); stroke-width: 1; opacity: .7; }
+.metro .m-rod { stroke: var(--fg); stroke-width: 2.4; stroke-linecap: round; }
+.metro .m-weight { fill: var(--fg); }
+.metro .m-pivot { fill: var(--accent); }
+.metro .m-led { fill: var(--accent); opacity: calc(.35 + .65 * var(--g)); }
+.metro .m-halo { fill: color-mix(in srgb, var(--accent) 75%, #ff5a4a); opacity: var(--g); }
+.metro .m-label { fill: var(--muted); font: 600 7px var(--mono); letter-spacing: .18em; }
+.metro .m-pend { transform-box: view-box; transform-origin: 60px 138px; }
+@media (max-width: 560px) { .deck { padding: 10px; } .metro { width: 132px; } }
 .bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .beat { display: grid; gap: 6px; align-content: start; }
 .beat .num { font-family: var(--display); font-weight: 900; font-size: clamp(3rem, 14vw, 6rem); line-height: .85; text-align: center;
@@ -139,6 +159,25 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 .field { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
 .det { font-family: var(--mono); font-size: .85rem; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; }
 .det b { color: var(--fg); }
+.det .sure.low { color: var(--accent); }
+#micBtn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+.studio { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 10px; }
+.studio summary { cursor: pointer; font-weight: 600; }
+.studio h3 { font-size: .9rem; margin: 12px 0 4px; }
+.st-wrap { overflow-x: auto; }
+.st { border-collapse: collapse; font-family: var(--mono); font-size: .8rem; min-width: 100%; }
+.st th, .st td { padding: 3px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.st th:first-child, .st td:first-child { text-align: left; }
+.st th { color: var(--muted); font-weight: 500; }
+.streak-n { font-size: 1.4rem; font-weight: 700; }
+.streak-dots { display: flex; gap: 4px; margin: 6px 0 2px; }
+.streak-dots i { width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--line); }
+.streak-dots i.on { background: var(--accent); border-color: var(--accent); }
+.streak-dots i.today { outline: 2px solid var(--fg); outline-offset: 1px; }
+.stash { display: grid; gap: 4px; margin-top: 6px; max-height: 260px; overflow-y: auto; }
+.stash div { display: flex; gap: 4px; align-items: center; }
+.stash button.t { flex: 1; text-align: left; font: inherit; font-size: .85rem; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.stash button.x { font: inherit; border: 0; background: none; color: var(--muted); cursor: pointer; padding: 2px 6px; }
 #tapInfo { flex-wrap: wrap; } #tapInfo .mini { white-space: nowrap; }
 :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 .note { font-size: .82rem; color: var(--muted); margin: 0; max-width: 70ch; line-height: 1.45; }
@@ -319,6 +358,59 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 .info-grid h3 { margin: 0 0 6px; font-size: .78rem; font-family: var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
 .info-grid p { margin: 0 0 6px; font-size: .88rem; line-height: 1.45; }
 .info-grid p:last-child { margin-bottom: 0; }
+/* Focus view: Start pops the deck (tiles + metronome, same layout) out full screen with nothing else; Stop, Space or Esc puts it back */
+.focus { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: grid; place-items: center; overflow: auto;
+  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.focus .deck { width: min(1100px, 100%); gap: clamp(14px, 3vh, 28px); padding: clamp(14px, 2.4vw, 28px); }
+.focus .bar { gap: clamp(8px, 1.4vw, 14px); }
+.focus .beat .num { font-size: clamp(4rem, 17vw, 11rem); height: clamp(6rem, 30vh, 16rem); border-radius: 10px; }
+.focus .bar.many .num { font-size: clamp(2.6rem, 10vw, 7rem); }
+.focus .bar.dense .num { font-size: clamp(2.2rem, 8vw, 6rem); }
+.focus .bar.practice .num { font-size: clamp(1.1rem, 4.4vw, 3rem); }
+.focus .metro { width: clamp(132px, 22vh, 240px); }
+.focus { align-content: center; gap: clamp(12px, 3vh, 24px); }
+.focus .drop { width: min(1100px, 100%); }
+.fc-x { position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); width: 44px; height: 44px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; display: grid; place-items: center; padding: 0; }
+.fc-x:hover, .fc-x:focus-visible { border-color: var(--accent); outline: none; }
+.fc-x::before { content: ""; width: 14px; height: 14px; border-radius: 2px; background: currentColor; }
+/* Rhyme strength badge + "why it rhymes" strip */
+.rmap button.er.tier { font: inherit; font-family: var(--mono); font-size: .7rem; margin-left: 6px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--line); background: none; color: var(--muted); cursor: pointer; }
+.rmap button.er.t-perfect { color: var(--fg); border-color: var(--accent); }
+.rmap button.er.t-multi { color: var(--fg); border-color: var(--muted); }
+.rmap button.er.tier:hover, .rmap button.er.tier:focus-visible { border-color: var(--accent); color: var(--accent-text); }
+.proof { display: grid; gap: 4px; margin: 2px 0 8px 2.2em; padding: 8px 10px; border-left: 3px solid var(--accent); background: var(--bg); border-radius: 0 6px 6px 0; font-family: var(--mono); font-size: .8rem; }
+.proof .pr { display: flex; flex-wrap: wrap; align-items: center; gap: 3px; }
+.proof .pr b { min-width: 7em; font-family: var(--body); }
+.proof .pv, .proof .pc { padding: 1px 6px; border-radius: 4px; border: 1px solid var(--line); color: var(--muted); }
+.proof .pv.st { font-weight: 700; }
+.proof .pv.m { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.proof .pc.m { color: var(--fg); border-color: var(--fg); }
+.proof .pt { color: var(--muted); font-family: var(--body); font-size: .8rem; }
+#wrProof .proof { margin-left: 0; }
+/* Word drops */
+.drop { display: grid; justify-items: center; gap: 2px; padding: 10px; border: 1px dashed var(--line); border-radius: 8px; }
+.drop small { font-family: var(--mono); font-size: .72rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+.drop b { font-family: var(--display); font-size: clamp(2rem, 9vw, 3.4rem); line-height: 1; text-transform: uppercase; color: var(--accent-text); overflow-wrap: anywhere; text-align: center; }
+.drop.pop b { animation: dropIn .25s ease-out; }
+@keyframes dropIn { from { transform: scale(.85); opacity: .3; } to { transform: none; opacity: 1; } }
+/* Resume note + guide spotlight */
+.resume { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 10px 12px; }
+.resume .rs-t { flex: 1 1 16em; min-width: 0; }
+.spot { outline: 3px solid var(--accent) !important; outline-offset: 3px; transition: outline-color .3s; }
+/* Write tools */
+.wtool summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
+.wtool { border-top: 1px solid var(--line); padding-top: 6px; }
+.wtool p.note { margin: 0; }
+.wtool[open] { display: grid; gap: 8px; }
+.sp-rows { display: grid; gap: 6px; }
+.sp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.sp-row input:first-child { flex: 1 1 8em; min-width: 0; text-align: left; }
+.sp-row select { width: auto; max-width: 11em; }
+.sp-row input[type=number] { width: 70px; }
+.roy-rows { display: grid; grid-template-columns: minmax(0, 1fr) 96px 80px; gap: 6px; align-items: center; }
+.roy-rows input { width: 100%; }
+#spTotal.warn { color: var(--accent-text); }
 </style>
 </head>
 <body>
@@ -362,31 +454,71 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
       <section><h3>Rhymes &amp; Bar heel</h3>
         <p><b>Rhymes</b> colours stressed syllables that share a vowel sound within two bars.</p>
         <p><b>Bar heel</b> slides every line and its landing a 16th or 8th earlier or later: same words, different syncopation.</p></section>
+      <section><h3>Pronunciation</h3>
+        <p class="dict-note">Pronunciation dictionary off: using the spelling rules.</p>
+        <p>Syllables, stress and vowel sounds come from the CMU Pronouncing Dictionary (125,000 words, free). Words it does not know, and words you corrected, use the spelling rules.</p></section>
+      <section><h3>Writing habit</h3>
+        <p>When you open MetroBar it offers the song you were last writing, at the line where you stopped.</p>
+        <p><label class="field"><input type="checkbox" id="remOn"> Daily reminder at</label> <input type="time" id="remAt" class="num-in" value="20:00" style="width:auto" aria-label="Reminder time"></p>
+        <p class="note" id="remNote">Only on this device. It fires while MetroBar is open in a tab or as an installed app, and only on days you have not written.</p>
+        <p><button class="btn" id="guideAgain">Show the 3-step guide again</button></p></section>
       <section><h3>Polymeter</h3>
         <p>After Mazbou Q's <i>Science of Rap</i>. A cell of N steps (e.g. 7 triplet steps) repeats across the bar line, so its accents (outlined tiles, high click) land somewhere new every bar until they line up with beat 1 again.</p></section>
       <section><h3>Vocal</h3>
         <p>Load an acapella or vocal stem (load the beat first so the BPM and offset match). MetroBar finds every syllable, puts it on the grid, names each bar's flow and shows how early or late the voice is.</p>
         <p>Paste the lyrics to see the words under the dots, then <b>Use as bars</b> to cut them the way they are rapped.</p></section>
     </div>
+    <details class="studio" id="studio"><summary>Studio timings at <b id="stBpm">145</b> BPM</summary>
+      <p class="note">Delay and reverb times locked to the tempo, for when you mix your vocal over the beat. Dotted = 1.5 times the note, triplet = 2/3.</p>
+      <div class="st-wrap"><table class="st" id="stNotes"></table></div>
+      <h3>Reverb that ends on the beat</h3>
+      <div class="st-wrap"><table class="st" id="stVerb"></table></div>
+      <h3>Move to another tempo</h3>
+      <p class="row" style="gap:6px"><label class="field">New BPM <input id="stTo" class="num-in" type="number" min="40" max="300" value="145" style="width:70px"></label><span class="det" id="stMatch"></span></p>
+      <p class="note" id="stStyles"></p>
+      <button class="btn" id="stCsv">Download as CSV</button>
+    </details>
   </dialog>
   <section class="intro" id="intro" hidden>
     <div><b class="tag">Land every bar.</b> Three steps to drill a verse on the beat:</div>
     <ol>
-      <li><b>Load a beat</b> (mp3 or wav). MetroBar finds the tempo; press <b>Use</b>. No beat? Tap the tempo with <b>Tap</b>.</li>
-      <li><b>Paste your lyrics</b> in Fit, one line per bar, and press <b>Fit</b>. You see syllables, flow and where each bar lands.</li>
-      <li>Press <b>Practice</b>, then <b>Start</b> (or Space). Your words run over the tiles at tempo; the red tile is the landing.</li>
+      <li><b>Load a beat</b> (mp3 or wav). MetroBar finds the tempo; press <b>Use</b>. No beat? Tap the tempo with <b>Tap</b>. <button class="mini" data-show="beatBtn">Show me</button></li>
+      <li><b>Paste your lyrics</b> in Fit, one line per bar, and press <b>Fit</b>. You see syllables, flow and where each bar lands. <button class="mini" data-show="lyrics">Show me</button></li>
+      <li>Press <b>Practice</b>, then <b>Start</b> (or Space). Your words run over the tiles at tempo; the red tile is the landing. <button class="mini" data-show="practiceBtn">Show me</button></li>
     </ol>
-    <button class="btn" id="introClose">Got it</button>
+    <div class="row" style="gap:8px"><button class="btn pri" id="introTry" title="Loads four example bars, fits them and opens Practice">Try it with the example</button><button class="btn" id="introClose">Got it</button></div>
   </section>
+  <div class="resume" id="resume" role="status" hidden></div>
   <div id="viewPractice" class="vp">
 
-  <div class="bar" id="bar"></div>
+  <div class="deck" id="deck">
+    <div class="bar" id="bar"></div>
+    <div class="metro" id="metro" aria-hidden="true">
+      <svg viewBox="0 0 120 172">
+        <defs><filter id="mGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="4"/></filter></defs>
+        <path class="m-body" d="M20 160 L100 160 L77 14 L43 14 Z"/>
+        <path class="m-face" d="M33 146 L87 146 L71 30 L49 30 Z"/>
+        <g class="m-scale"><path d="M74 44h6M75 58h4M76 72h6M77 86h4M78 100h6M79 114h4M80 128h6"/></g>
+        <g class="m-pend" id="mPend">
+          <line class="m-rod" x1="60" y1="138" x2="60" y2="22"/>
+          <rect class="m-weight" id="mWeight" x="52" y="60" width="16" height="11" rx="2"/>
+        </g>
+        <circle class="m-pivot" cx="60" cy="138" r="3.6"/>
+        <text class="m-label" x="60" y="156" text-anchor="middle">REC</text>
+        <circle class="m-halo" cx="60" cy="8" r="9" filter="url(#mGlow)"/>
+        <circle class="m-led" cx="60" cy="8" r="4.2"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="focus" id="focus" hidden role="dialog" aria-modal="true" aria-label="Metronome running"><button class="fc-x" id="fcStop" aria-label="Stop (Space or Esc)"></button></div>
 
   <div class="now">
     <span class="label">Section</span><span class="sec" id="secName">Metronome</span>
     <span class="label">Drill</span><p id="secDrill"></p>
   </div>
   <div class="tele" id="tele" hidden></div>
+  <div class="drop" id="drop" aria-live="polite" hidden></div>
 
   <div><div class="map" id="map" aria-label="Bar map"></div></div>
   <div class="legend" id="legend"></div>
@@ -399,12 +531,16 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
       <button id="plus" aria-label="Faster">+</button>
     </div>
     <button class="btn pri beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
+    <button class="btn" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
     <span class="det" id="detBox"><span id="det">No beat loaded</span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
     <button class="btn" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button><span class="det" id="tapInfo"></span>
     <label class="field"><input type="checkbox" id="eighths" checked> 8th ticks</label>
     <label class="field"><input type="checkbox" id="countIn" checked> Count-in bar</label>
+    <label class="field" title="Start pops the tiles and the metronome out full screen with nothing else on it. Space, Esc or the stop button closes it."><input type="checkbox" id="focusOn" checked> Full view</label>
     <label class="field"><input type="checkbox" id="secTick" checked> 1s ticks</label>
     <label class="field"><input type="checkbox" id="clicks" checked> Clicks</label>
+    <label class="field" title="Freestyle drill: a random word to rap about shows up every few bars while the metronome runs. Works with or without lyrics."><input type="checkbox" id="drops"> Word drops</label>
+    <select id="dropsN" class="num-in" style="width:auto" aria-label="New word every"><option value="2">every 2 bars</option><option value="4" selected>every 4 bars</option><option value="8">every 8 bars</option></select>
     <label class="field" title="Tempo change: play the beat and the click slower to practise a fast verse, or a bit faster to push yourself. Keep pitch stops the beat sounding deeper or higher (it takes a second to prepare). The Tempo trainer in Fit does its own speed, so this waits while the trainer runs.">Speed <select id="speed" class="num-in" style="width:auto"><option value="70">70%</option><option value="75">75%</option><option value="80">80%</option><option value="85">85%</option><option value="90">90%</option><option value="95">95%</option><option value="100" selected>100%</option><option value="105">105%</option><option value="110">110%</option></select></label>
     <label class="field"><input type="checkbox" id="keepPitch" checked> Keep pitch</label><span class="det" id="speedInfo"></span>
     <label class="field" title="Meter of every bar. In lyrics, a tag like [7/8] or [7/8:3+2+2] at the start of a line switches the meter from that bar on. BPM always counts quarter notes, so a 16th keeps its length when the meter changes.">Meter <select id="beats" class="num-in" style="width:auto">
@@ -514,6 +650,7 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
         <p class="note" id="wrRhNote">Click a word in your lyrics, or type one here.</p>
         <div class="row" style="gap:6px"><input id="wrFind" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="Find rhymes for…" aria-label="Find rhymes for a word"><button class="btn" id="wrFindBtn">Find</button></div>
         <div id="wrRh"></div>
+        <div id="wrProof" aria-live="polite"></div>
         <button class="btn" id="wrOnline" title="Looks the word up in the free Datamuse word list on the internet. Only the word is sent.">More rhymes online</button>
       </section>
       <section class="wr-card" aria-label="Checks"><h3>Checks</h3><div class="wr-chk" id="wrChecks"><span class="note">Write a few bars. Headings like "# Monorhyme" or "# Fixed end tag" get their own check.</span></div></section>
@@ -525,6 +662,31 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
           <div class="wr-rh" id="wrClList"></div>
         </details></section>
       <section class="wr-card" aria-label="Techniques"><h3>Techniques</h3><div class="wr-tech" id="wrTech"></div></section>
+      <section class="wr-card" aria-label="Writing streak"><h3>Streak</h3><div id="wrStreak"></div></section>
+      <section class="wr-card" aria-label="Stash"><h3>Stash</h3>
+        <p class="note">Loose bars that don't fit this song yet. Stash the line you're on (or what you selected), and drop it into any song later.</p>
+        <div class="row" style="gap:6px"><button class="btn" id="stashAdd">Stash this line</button><span class="det" id="stashN"></span></div>
+        <div class="stash" id="stashList"></div></section>
+      <section class="wr-card" aria-label="Tools"><h3>Tools</h3>
+        <details class="wtool" id="tlRhyme"><summary>Does it rhyme?</summary>
+          <p class="note">Type two words or two line endings. MetroBar compares the last word of each, sound by sound.</p>
+          <div class="row" style="gap:6px"><input id="drA" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="first word" aria-label="First word"><input id="drB" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="second word" aria-label="Second word"><button class="btn" id="drGo">Check</button></div>
+          <div id="drOut" aria-live="polite"></div></details>
+        <details class="wtool" id="tlSplit"><summary>Split sheet</summary>
+          <p class="note">Who wrote what share of this song. Agree it with everyone who wrote, then all sign it. This is a starting point, not legal advice.</p>
+          <div id="spRows" class="sp-rows"></div>
+          <div class="row" style="gap:6px"><button class="btn" id="spAdd">Add writer</button><button class="btn" id="spEven">Split evenly</button><span class="det" id="spTotal"></span></div>
+          <button class="btn" id="spDl">Download split sheet</button></details>
+        <details class="wtool" id="tlRoy"><summary>Streaming royalties</summary>
+          <p class="note">Rough pay per 1,000 streams. Rates change by country, year and deal, so type in what your distributor reports.</p>
+          <div id="royRows" class="roy-rows"></div>
+          <label class="field">Your share after the label or distributor <input id="royShare" class="num-in" type="number" min="0" max="100" value="100" style="width:64px"> %</label>
+          <p class="sum" id="royOut"></p></details>
+        <details class="wtool" id="tlName"><summary>Title ideas</summary>
+          <p class="note">Song and album titles built from the words in this song. Nothing is sent anywhere.</p>
+          <div class="row" style="gap:6px"><select id="nmKind" class="num-in" style="width:auto" aria-label="Kind of title"><option value="song">Song titles</option><option value="album">Album titles</option><option value="rap">Rap names</option></select><button class="btn" id="nmGo">New ideas</button></div>
+          <div class="wr-rh" id="nmOut"></div></details>
+      </section>
     </aside>
   </div>
 </div>
@@ -541,6 +703,140 @@ function numWords(n) {
   return String(n).split('').map(d => ONES[+d]).join(' ');
 }
 // Exception list: starts small, grows through the user's corrections (stored separately and merged in sylCount).
+// ---- Pronunciation dictionary (CMU Pronouncing Dictionary, BSD licence, see cmudict-LICENSE.txt). Optional: without it the spelling rules below run.
+// setDict(text) takes "word PH1 PH2 ..." lines (ARPAbet, stress digits on vowels). Lookups prefer the user's corrections, then EXC, then the dictionary.
+let DICT = null, DICT_COMMON = Infinity; const DICT_MEMO = new Map();   // lines come most common word first; DICT_COMMON = how many are everyday words
+function setDict(text) {
+  const m = new Map(); DICT_COMMON = Infinity;
+  if (text) for (const line of String(text).split('\n')) { if (line[0] === '#') { const c = line.match(/^#common (\d+)/); if (c) DICT_COMMON = +c[1]; continue; }
+    const sp = line.indexOf(' '); if (sp > 0) m.set(line.slice(0, sp), line.slice(sp + 1).trim()); }
+  DICT = m.size ? m : null; DICT_MEMO.clear(); return DICT ? DICT.size : 0;
+}
+const ARPA_V = /^(AA|AE|AH|AO|AW|AY|EH|ER|EY|IH|IY|OW|OY|UH|UW)([012])$/;
+function dictPhones(key) {   // the dictionary's phones for a word, or null: [{p:'AY', s:'1'} | {p:'T'}...]
+  if (!DICT) return null;
+  if (DICT_MEMO.has(key)) return DICT_MEMO.get(key);
+  let raw = DICT.get(key);
+  if (raw == null && key.includes("'")) raw = DICT.get(key.replace(/'/g, ''));
+  if (raw == null && /in'$/.test(key)) { const g = DICT.get(key.slice(0, -1) + 'g'); if (g) raw = g.replace(/ NG$/, ' N'); }   // runnin' = running with N
+  const out = raw == null ? null : parsePhones(raw);
+  DICT_MEMO.set(key, out); return out;
+}
+function parsePhones(raw) {
+  const ph = raw.split(' ').map(t => { const m = t.match(ARPA_V); return m ? { p: m[1], s: m[2] } : { p: t }; });
+  for (let i = 1; i < ph.length; i++) if (ph[i].p === 'ER' && ph[i].s === '0' && ph[i - 1].p === 'AY') ph[i] = { p: 'R' };   // fire, tired, desire: one syllable, as rapped
+  return ph;
+}
+const dictVowels = key => { const ph = dictPhones(key); return ph ? ph.filter(x => x.s != null) : null; };
+// ARPAbet vowel (+ a following R) -> MetroBar's vowel classes (the same ones vowelClass returns)
+function arpaClass(p, nextR) {
+  if (nextR) { const r = { AA: 'ar', AO: 'or', OW: 'or', UH: 'or', UW: 'or', EH: 'air', EY: 'air', AE: 'air', IH: 'eer', IY: 'eer', AY: 'eye', AW: 'ow', ER: 'er', AH: 'er' }[p]; if (r) return r; }
+  return { AA: 'aw', AE: 'a', AH: 'uh', AO: 'aw', AW: 'ow', AY: 'eye', EH: 'eh', ER: 'er', EY: 'ay', IH: 'ih', IY: 'ee', OW: 'oh', OY: 'oy', UH: 'u', UW: 'oo' }[p];
+}
+function dictClass(key, si) {
+  const ph = dictPhones(key); if (!ph) return null;
+  let k = -1;
+  for (let i = 0; i < ph.length; i++) if (ph[i].s != null && ++k === si) return arpaClass(ph[i].p, ph[i + 1] && ph[i + 1].p === 'R' && !(ph[i + 2] && ph[i + 2].s != null));
+  return null;
+}
+// ---- Rhyme strength. A word's rhyme tail = its sounds from the last stressed vowel to the end.
+// Tiers, strongest first: perfect (same sounds), multi (2+ vowel sounds in a row match, consonants differ), slant (same stressed vowel, other ending), weak (only the ending consonants or a soft last vowel match).
+const TIERS = ['perfect', 'multi', 'slant', 'weak'];
+const TIER_LABEL = { perfect: 'perfect rhyme', multi: 'multi rhyme', slant: 'slant rhyme', weak: 'weak rhyme' };
+const SAY = { AA: 'ah', AE: 'a', AH: 'uh', AO: 'aw', AW: 'ow', AY: 'eye', EH: 'eh', ER: 'er', EY: 'ay', IH: 'ih', IY: 'ee', OW: 'oh', OY: 'oy', UH: 'oo', UW: 'oo',
+  B: 'b', CH: 'ch', D: 'd', DH: 'th', F: 'f', G: 'g', HH: 'h', JH: 'j', K: 'k', L: 'l', M: 'm', N: 'n', NG: 'ng', P: 'p', R: 'r', S: 's', SH: 'sh', T: 't', TH: 'th', V: 'v', W: 'w', Y: 'y', Z: 'z', ZH: 'zh' };
+// Segments of the tail: [{v: class, say, soft}, {c: 'nd', say}] alternating, starting at the stressed vowel.
+function rhymeTail(key, ph0) {
+  if (!ph0) { key = cleanKey(key); if (!/[a-z]/.test(key)) return null; }
+  const ph = ph0 || dictPhones(key);
+  if (ph) {
+    let at = -1; for (let i = ph.length - 1; i >= 0; i--) if (ph[i].s === '1') { at = i; break; }
+    if (at < 0) for (let i = ph.length - 1; i >= 0; i--) if (ph[i].s === '2') { at = i; break; }
+    if (at < 0) for (let i = ph.length - 1; i >= 0; i--) if (ph[i].s != null) { at = i; break; }
+    if (at < 0) return null;
+    const seg = []; let cs = [];
+    for (let i = at; i < ph.length; i++) {
+      const x = ph[i];
+      if (x.s != null) {
+        if (seg.length) seg.push({ c: cs.join(' '), say: cs.map(c => SAY[c] || c.toLowerCase()).join('') }); cs = [];
+        const soft = x.s === '0' && (x.p === 'AH' || x.p === 'IH' || x.p === 'ER');
+        seg.push({ v: soft ? (x.p === 'ER' ? 'er' : 'ə') : arpaClass(x.p, ph[i + 1] && ph[i + 1].p === 'R' && !(ph[i + 2] && ph[i + 2].s != null)), say: SAY[x.p], soft, st: x.s !== '0' });
+        if (!soft && ph[i + 1] && ph[i + 1].p === 'R' && !(ph[i + 2] && ph[i + 2].s != null) && arpaClass(x.p, true) !== arpaClass(x.p, false)) { seg[seg.length - 1].say = arpaClass(x.p, true); i++; }
+      } else cs.push(x.p);
+    }
+    seg.push({ c: cs.join(' '), say: cs.map(c => SAY[c] || c.toLowerCase()).join('') });
+    return { key, seg, dict: true };
+  }
+  // no dictionary entry: spelling rules
+  const n = sylCount(key, {}), st = wordStress(key, n); let k = st.lastIndexOf(true); if (k < 0) k = n - 1;
+  const parts = splitSyl(key, n), seg = [], fold = c => c.replace(/e$/, '').replace(/(.)\1+/g, '$1').replace(/ck/g, 'k').replace(/ph/g, 'f');
+  let trail = '';
+  for (let i = k; i < n; i++) {
+    const t = (parts[i] || '').replace(/'/g, ''), m = t.match(/^([^aeiouy]*)([aeiouy]+)(.*)$/) || ['', '', t, ''];
+    if (i > k) seg.push({ c: fold(trail + m[1]), say: trail + m[1] });
+    const v = i > k && /^[aeiou]$/.test(m[2]) && i === n - 1 && /^(n|l|r|m|s|d|t|nt|ns|st|ng|r?s)?$/.test(m[3]) ? 'ə' : vowelClass(key, i);
+    const rv = /^(ar|or|er|air|eer)$/.test(v || '') && /^r/.test(m[3]);   // the r belongs to the vowel (car, door), as in the dictionary
+    seg.push({ v, say: m[2] + (rv ? 'r' : ''), soft: v === 'ə', st: i === k });
+    trail = rv ? m[3].slice(1) : m[3];
+  }
+  seg.push({ c: fold(trail), say: trail.replace(/e$/, '') });
+  return { key, seg, dict: false };
+}
+const vowSegs = t => t.seg.filter(s => s.v != null), conSegs = t => t.seg.filter(s => s.c != null);
+function rhymeTier(a, b) {
+  const ta = typeof a === 'string' ? rhymeTail(a) : a, tb = typeof b === 'string' ? rhymeTail(b) : b;
+  if (!ta || !tb || ta.key === tb.key) return null;
+  const va = vowSegs(ta).map(s => s.v), vb = vowSegs(tb).map(s => s.v), ca = conSegs(ta).map(s => s.c), cb = conSegs(tb).map(s => s.c);
+  if (va[0] !== vb[0]) {
+    const lastA = ca[ca.length - 1], lastB = cb[cb.length - 1];
+    return (lastA && lastA === lastB) || (va.length > 1 && vb.length > 1 && va[va.length - 1] === vb[vb.length - 1] && va[va.length - 1] !== 'ə') ? 'weak' : null;
+  }
+  if (va.join('|') === vb.join('|') && ca.join('|') === cb.join('|')) return 'perfect';
+  let run = 0; while (run < va.length && run < vb.length && va[run] === vb[run]) run++;
+  if (run >= 2) return 'multi';
+  return 'slant';
+}
+// The "why it rhymes" strip: both tails side by side, each segment marked when it matches the other word's segment in the same place.
+function rhymeProof(a, b) {
+  const ta = rhymeTail(a), tb = rhymeTail(b); if (!ta || !tb) return null;
+  const mark = (t, o) => t.seg.map((s, i) => ({ ...s, m: !!o.seg[i] && (s.v != null ? s.v === o.seg[i].v : s.c === o.seg[i].c) && (s.v != null || s.c !== '') }));
+  return { tier: rhymeTier(ta, tb), a: { key: ta.key, seg: mark(ta, tb) }, b: { key: tb.key, seg: mark(tb, ta) } };
+}
+// Rhymes from the dictionary for one word, best first, at most `max` per tier
+const V0P = { a: 'AE', eh: 'EH', ih: 'IH', aw: 'A', uh: 'AH', u: 'UH', ay: 'EY', ee: 'IY', eye: 'AY', oh: 'OW', oo: 'UW', ow: 'AW', oy: 'OY', ar: 'AA', er: 'ER', or: 'R', air: 'R', eer: 'R' };   // a phone (prefix) that every word with that stressed vowel contains
+function dictRhymes(word, max = 40) {
+  const me = rhymeTail(word); if (!me || !DICT) return null;
+  const v0 = vowSegs(me)[0].v, out = { perfect: [], multi: [], slant: [] }, rank = new Map(); let i = -1;
+  for (const w of DICT.keys()) {
+    i++;
+    if (i >= DICT_COMMON && Object.values(out).every(l => l.length >= 5)) break;   // rare words and names only when the common ones run short
+    if (w === me.key || w.length > 14 || !/^[a-z][a-z']*[a-z]$/.test(w) || /'s$/.test(w)) continue;
+    const raw = DICT.get(w); if (V0P[v0] && !(' ' + raw).includes(' ' + V0P[v0])) continue;   // quick reject on the stressed vowel
+    const ph = parsePhones(raw); if (!ph.some(x => x.s != null)) continue;
+    const tw = rhymeTail(w, ph); if (!tw) continue; tw.key = w;
+    const t = rhymeTier(me, tw);
+    if (t && out[t] && out[t].length < (i >= DICT_COMMON ? 5 : max * 3)) { out[t].push(w); rank.set(w, i); }   // rare words only fill a nearly empty tier
+  }
+  const n = sylCount(me.key, {});
+  for (const t in out) out[t] = out[t].sort((x, y) => Math.abs(sylCount(x, {}) - n) - Math.abs(sylCount(y, {}) - n) || rank.get(x) - rank.get(y)).slice(0, max);
+  return out;
+}
+// ---- Freestyle word drops: concrete things to rap about, one every few bars (Practice). Picks avoid the last 30 words.
+const WORD_DROPS = ('rain,mirror,engine,diamonds,kitchen,subway,ladder,envelope,candle,pressure,basement,satellite,ocean,receipt,thunder,midnight,passport,bicycle,concrete,garden,' +
+  'headlights,jacket,wallet,compass,tunnel,lighthouse,radio,camera,elevator,crown,window,lemon,bridge,island,rooftop,gravity,anchor,microwave,telescope,pigeon,' +
+  'marble,trophy,silence,magnet,battery,crystal,tornado,factory,hammer,violin,snowfall,sneakers,mixtape,bus stop,vinyl,spotlight,chapter,canvas,desert,jungle,' +
+  'volcano,pillow,blanket,ticket,highway,border,gold chain,silver spoon,broken glass,paper plane,red light,blue flame,orange sky,old photo,first class,last train,' +
+  'night shift,corner shop,back door,front row,low battery,deep end,fast lane,slow motion,cold water,hot sauce,clean slate,loose change,long distance,short fuse,' +
+  'open road,empty room,full moon,new shoes,old friends,street lamp,parking lot,fire escape,payphone,seatbelt,ice cream,heartbeat,headline,deadline,skyline,' +
+  'goldfish,blackboard,neon sign,alarm clock,swimming pool,school bell,piano keys,tape deck,traffic jam,crossroads,sandcastle,snow globe,ferris wheel,dice roll,' +
+  'coin toss,poker face,boxing ring,finish line,penalty kick,home run,overtime,echo,whisper,siren,bassline,umbrella,keys,map,snake,lion,wolf,shark,crow,horse,' +
+  'river,mountain,storm,shadow,smoke,ashes,glass,steel,velvet,leather,denim,rubber,paper,ink,chalk,salt,sugar,pepper,honey,bread,rice,coffee,tea,juice,' +
+  'grandma,uncle,neighbour,landlord,teacher,doctor,barber,driver,stranger,twin,baby,king,queen,judge,pilot,sailor,ghost,robot,alien,angel,' +
+  'Monday,summer,winter,birthday,funeral,wedding,exam,interview,first date,road trip,heatwave,blackout,flood,sunrise,sunset,eclipse,lottery,jackpot,overdraft,rent').split(',');
+function nextDrop(rnd = Math.random, recent = []) {
+  const pool = WORD_DROPS.filter(w => !recent.includes(w));
+  return (pool.length ? pool : WORD_DROPS)[Math.floor(rnd() * (pool.length || WORD_DROPS.length))];
+}
 const EXC = { every: 2, fire: 1, being: 2, our: 1, ours: 1, hour: 1, hours: 1, hundred: 2, naked: 2, wicked: 2, sacred: 2, beloved: 3, blessed: 2,
   rugged: 2, ragged: 2, crooked: 2, jagged: 2, idea: 3, area: 3, create: 2, poem: 2, poet: 2, quiet: 2, science: 2, violence: 3, lion: 2,
   liar: 2, business: 2, rhythm: 2, prism: 2, chasm: 2 };
@@ -558,6 +854,7 @@ function sylCount(key, fix) {
   const k = key.replace(/'/g, '');
   if (EXC[key] != null) return EXC[key];
   if (EXC[k] != null) return EXC[k];
+  if (DICT && !/\d/.test(k)) { const dv = dictVowels(key); if (dv && dv.length) return dv.length; }
   if (/\d/.test(k)) return Math.max(1, k.replace(/\d+/g, m => ' ' + numWords(+m) + ' ').trim().split(/\s+/).reduce((a, w) => a + (EXC[w] != null ? EXC[w] : rawCount(w)), 0));
   let m = key.match(/^(.+)n't$/);
   if (m && /^(is|was|does|did|could|would|should|has|have|had|are|were|must|need|might|ought)$/.test(m[1])) return rawCount(m[1]) + 1;
@@ -579,6 +876,7 @@ const NOPREFIX = new Set(['after', 'always', 'any', 'apple', 'angel', 'answer', 
 function wordStress(key, n) {
   const k = key.replace(/'/g, '');
   if (FUNC.has(k)) return new Array(n).fill(false);
+  if (DICT && n > 1) { const dv = dictVowels(key); if (dv && dv.length === n && dv.some(x => x.s === '1')) return dv.map(x => x.s === '1'); }
   const st = new Array(n).fill(false);
   st[n > 1 && /^(re|be|de|pre|a)/.test(k) && !NOPREFIX.has(k) ? 1 : 0] = true;
   return st;
@@ -1137,6 +1435,7 @@ const VEXC = { im:'eye', ive:'eye', ill:'ih', where:'air', there:'air', their:'a
 function vowelClass(key, si) {
   const w = key.replace(/'/g, '');
   if (VEXC[w] && si === 0) return VEXC[w];
+  if (DICT) { const c = dictClass(key, si); if (c) return c; }
   let s = w.replace(/^y(?=[aeiou])/, '_');
   const gs = []; const re = /[aeiouy]+/g; let m;
   while ((m = re.exec(s))) gs.push([m.index, m[0]]);
@@ -1196,7 +1495,12 @@ function rhymeMap(lines, win = 2) {
   lines.forEach((L, li) => { const st = []; L.syl.forEach((x, i) => { if (x.v) st.push(i); });
     for (let k = 0; k + 1 < st.length; k++) { const key = L.syl[st[k]].v + '|' + L.syl[st[k + 1]].v; if (!pairs.has(key)) pairs.set(key, []); pairs.get(key).push([li, st[k], st[k + 1]]); } });
   for (const occ of pairs.values()) for (const a of occ) if (occ.some(b => b[0] !== a[0] && Math.abs(b[0] - a[0]) <= win)) { multi[a[0]].add(a[1]); multi[a[0]].add(a[2]); }
-  return { groups: top, syl: out, endRhyme, multi: multi.map(m => [...m]) };
+  // rhyme strength of each bar's last word against the best partner within 3 bars (rhymeTier: perfect > multi > slant > weak)
+  const endKey = lines.map(L => (L.words && L.words.length ? L.words[L.words.length - 1].key : null)), tails = endKey.map(k => (k ? rhymeTail(k) : null));
+  const endTier = lines.map(() => null), endWith = lines.map(() => -1);
+  tails.forEach((ta, i) => { if (!ta) return; for (let j = Math.max(0, i - 3); j <= Math.min(lines.length - 1, i + 3); j++) { if (j === i || !tails[j]) continue;
+    const t = rhymeTier(ta, tails[j]); if (t && (endTier[i] == null || TIERS.indexOf(t) < TIERS.indexOf(endTier[i]))) { endTier[i] = t; endWith[i] = j; } } });
+  return { groups: top, syl: out, endRhyme, multi: multi.map(m => [...m]), endTier, endWith, endKey };
 }
 /* BPM: mono, 10 ms energy frames, half-wave rectified difference, autocorrelation, comb score over lags 1..4 beats. */
 function detectBpm(chs, sr) {
@@ -1207,6 +1511,8 @@ function detectBpm(chs, sr) {
     for (let i = 0; i < hop; i++) { let v = 0; for (let c = 0; c < chs.length; c++) v += chs[c][o + i]; v /= chs.length; s += v * v; }
     e[f] = Math.log(1 + 100 * Math.sqrt(s / hop));
   }
+  // digital silence (every 10 ms frame under -70 dB): no number, rather than a made-up one
+  if (!e.some(v => v > 0.03)) return { bpm: 0, first: 0, conf: 0, sure: 0, silent: true };
   const on = new Float32Array(F); let mean = 0;
   for (let f = 1; f < F; f++) { on[f] = Math.max(0, e[f] - e[f - 1]); mean += on[f]; }
   mean /= F;
@@ -1247,7 +1553,53 @@ function detectBpm(chs, sr) {
   let mx = 0; const W = Math.min(F, 2000);
   for (let f = 1; f < W; f++) mx = Math.max(mx, on[f]);
   let first = 0; for (let f = 1; f < W; f++) if (on[f] >= 0.35 * mx) { first = f * hop / sr; break; }
-  return { bpm: Math.round(bpm * 10) / 10, first: Math.round(first * 100) / 100, conf: ac[0] ? bs / (4 * ac[0]) : 0 };
+  const conf = ac[0] ? bs / (4 * ac[0]) : 0;
+  return { bpm: Math.round(bpm * 10) / 10, first: Math.round(first * 100) / 100, conf, sure: bpmSure(conf), silent: false };
+}
+// How sure the BPM is, 0-100: how strongly the onsets repeat on the beat grid (comb score) against all the energy.
+// Measured: real beats 70-100, a loose 60 ms drummer about 20, speech or noise under 10. Under 20 = no steady beat.
+function bpmSure(conf) { return Math.round(100 * Math.min(1, Math.max(0, conf) / 0.3)); }
+// Typical tempo ranges by style, as a sanity check on a detected or tapped BPM. Half time counts: trap at 140 feels like 70.
+const TEMPO_STYLES = [['R&B / slow jam', 60, 80], ['Lo-fi', 70, 90], ['Boom bap', 84, 100], ['G-funk / West Coast', 88, 105], ['Reggaeton / dancehall', 88, 100],
+  ['Afrobeats', 98, 116], ['House', 118, 130], ['Jersey club', 130, 145], ['Trap', 130, 170], ['UK drill', 138, 146], ['Grime', 138, 142], ['Dubstep', 138, 142],
+  ['Drum & bass', 160, 180], ['Footwork / juke', 155, 165]];
+function tempoStyles(b) {
+  const out = []; for (const [n, lo, hi] of TEMPO_STYLES) { if (b >= lo && b <= hi) out.push(n); else if (b * 2 >= lo && b * 2 <= hi) out.push(n + ' (half time)'); }
+  return out;
+}
+// Tap tempo stats: the median gap throws out stray taps (a gap more than 30% off the median), then the mean of the rest.
+// steady = 100% when every kept gap is the same.
+function tapStats(t) {
+  const g = t.slice(1).map((v, i) => v - t[i]); if (!g.length) return null;
+  const med = [...g].sort((a, b) => a - b)[g.length >> 1], keep = g.filter(v => Math.abs(v - med) <= 0.3 * med);
+  const m = keep.reduce((a, v) => a + v, 0) / keep.length, sd = Math.sqrt(keep.reduce((a, v) => a + (v - m) * (v - m), 0) / keep.length);
+  return { gap: m, steady: Math.max(0, Math.round(100 * (1 - sd / m))), dropped: g.length - keep.length };
+}
+// Studio timings from a BPM: note lengths in ms (straight, dotted = 1.5x, triplet = 2/3), the straight note as an LFO rate in Hz,
+// and tempo-synced reverb sizes (pre-delay plus decay so the tail ends on the note value).
+const NOTE_VALUES = [['1 bar', 4], ['1/2', 2], ['1/4', 1], ['1/8', 0.5], ['1/16', 0.25], ['1/32', 0.125], ['1/64', 0.0625]];
+function delayTimes(b) {
+  const q = 60000 / b, r1 = v => Math.round(v * 10) / 10;
+  const notes = NOTE_VALUES.map(([name, beats]) => ({ name, straight: r1(q * beats), dotted: r1(q * beats * 1.5), triplet: r1(q * beats * 2 / 3), hz: Math.round(1000 / (q * beats) * 1000) / 1000 }));
+  const verb = [['Small room', 1 / 32, 1], ['Plate', 1 / 16, 2], ['Hall', 1 / 8, 4], ['Big hall', 1 / 4, 8]].map(([name, pre, total]) => ({ name, pre: r1(q * pre), decay: r1(q * (total - pre)), total: r1(q * total) }));
+  return { beat: r1(q), bar: r1(q * 4), notes, verb };
+}
+// Moving a part from one tempo to another: speed %, the pitch shift if pitch is not kept, and both bar lengths.
+function tempoMatch(from, to) {
+  const ratio = to / from;
+  return { ratio: Math.round(ratio * 10000) / 10000, speed: Math.round(ratio * 1000) / 10, semis: Math.round(12 * Math.log2(ratio) * 100) / 100,
+    barFrom: Math.round(240000 / from), barTo: Math.round(240000 / to) };
+}
+// Writing streak from the days you wrote (YYYY-MM-DD): days in a row up to today (or yesterday, so it is not lost before you write today),
+// the best run ever, and the last 14 days as on/off.
+function writeStreak(days, todayStr) {
+  const set = new Set(days), d = s => new Date(s + 'T12:00:00'), key = t => new Date(t).toLocaleDateString('en-CA'), DAY = 864e5;
+  let t = d(todayStr).getTime(); if (!set.has(key(t))) t -= DAY;
+  let streak = 0; while (set.has(key(t))) { streak++; t -= DAY; }
+  const sorted = [...set].sort(); let best = 0, run = 0, prev = null;
+  for (const s of sorted) { const x = d(s).getTime(); run = prev != null && Math.round((x - prev) / DAY) === 1 ? run + 1 : 1; best = Math.max(best, run); prev = x; }
+  const last14 = []; for (let i = 13; i >= 0; i--) { const k = key(d(todayStr).getTime() - i * DAY); last14.push({ day: k, on: set.has(k) }); }
+  return { streak, best, last14, total: set.size };
 }
 /* Key finder, all in the browser: mono at about 11 kHz, 4096-point FFT frames, every bin from 55 Hz to 2 kHz added to its
    pitch class (log loudness, so one loud bass note cannot decide alone), the 12-note profile summed over the song, then
@@ -1599,7 +1951,7 @@ function loopRange() {
   const lo = Math.min(total, Math.max(1, parseInt($('loopLo').value) || 1)), hi = Math.min(total, Math.max(lo, parseInt($('loopHi').value) || total));
   return { lo: lo - 1, hi: hi - 1 };
 }
-let teleEls = [];
+let teleEls = [], focusPh = null;   // focusPh: [element, placeholder] pairs the focus view puts back on close
 function showBar(barIdx, tp) {
   shownBar = barIdx;
   const counting = barIdx < 0;
@@ -1702,7 +2054,7 @@ function schedule() {
       } else if (!counting && $('eighths').checked && (S === 4 ? sub % 2 === 0 || swing() > 0 : true)) click(at, 5000, S === 4 && sub % 2 ? 0.07 : S === 4 ? 0.12 : 0.08, 0.015);   // 8th ticks (every eighth of an x/8 group too); with swing on, the in-between 16ths tick softly
     }
     const tp = tempoNow();
-    queue.push({ t: at, step, idx, beat, sub, bar, tp });
+    queue.push({ t: at, step, idx, beat, sub, bar, tp, bd: sub === 0 ? lay.lens[beat] * lay.unit * 60 / tp : 0 });   // bd = this beat's length in seconds (pendulum)
     nextTime += lay.unit * 60 / tp;
     if (++step >= lay.G) { step = 0; bar = nextBar(bar); }
   }
@@ -1720,18 +2072,34 @@ function stripBar(barIdx, tp) {
 }
 function stripVis() { strip.hidden = !(running && !tilesSeen); }
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { tilesSeen = es[es.length - 1].isIntersecting; stripVis(); }).observe($('bar'));
+// ---- deck metronome: pendulum + red record glow, both computed per frame from the audio clock (no timers)
+const deck = $('deck'), mPend = $('mPend'), mWeight = $('mWeight'), calmQ = matchMedia('(prefers-reduced-motion: reduce)');
+let pend = null, pendN = 0;   // last beat heard: { t, dur, side, glow }
+function metroWeight(tp) { mWeight.setAttribute('y', (40 + (Math.min(200, Math.max(60, tp)) - 60) / 140 * 64).toFixed(1)); }   // slow = weight high, like a real one
+function metroFrame(now) {
+  if (!pend) { mPend.style.transform = ''; deck.style.setProperty('--g', 0); return; }
+  const f = Math.min(1, Math.max(0, (now - pend.t) / pend.dur));
+  mPend.style.transform = calmQ.matches ? '' : `rotate(${(24 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
+  const g = (pend.glow * Math.exp(-(now - pend.t) / Math.min(0.14, pend.dur * 0.35))).toFixed(3);
+  deck.style.setProperty('--g', g);
+}
+function metroReset() { pend = null; pendN = 0; metroFrame(0); }
+metroWeight(bpm());
 function draw() {
-  while (queue.length && queue[0].t <= ctx.currentTime) {
+  const now = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0);   // what the ear hears now, so the eye lands with the click
+  while (queue.length && queue[0].t <= now) {
     const q = queue.shift(), b = q.beat;
+    if (q.sub === 0) { pend = { t: q.t, dur: q.bd, side: ++pendN % 2 ? 1 : -1, glow: q.bar < 0 ? 0.45 : b === 0 ? 1 : 0.6 }; metroWeight(q.tp); }
     subEls.forEach((e, i) => e.classList.toggle('on', i === q.idx));
     beatEls.forEach((e, i) => e.num.classList.toggle('on', i === b && q.sub < 2));
-    if (q.step === 0) { showBar(q.bar, q.tp); stripBar(q.bar, q.tp); }
+    if (q.step === 0) { showBar(q.bar, q.tp); stripBar(q.bar, q.tp); dropTick(q.bar); }
     stripEls.forEach((e, i) => e.classList.toggle('on', i === b && q.sub < 2));
     if (practice && q.bar >= 0 && lines[q.bar]) {
       const w = lines[q.bar].slotWord[q.step];
       if (w >= 0) teleEls.forEach((e, i) => e.classList.toggle('cur', i === w));
     }
   }
+  metroFrame(now);
   raf = requestAnimationFrame(draw);
 }
 function start() {
@@ -1743,9 +2111,9 @@ function start() {
   nativeBpm = trainerOn ? trainerTarget : bpm();
   curBpm = Math.max(60, Math.round(trainerTarget * 0.7));
   lastBar = -2; playedBars = 0; rateDirty = false; stopBeat(); landTimes = []; tapOffs = [];
-  step = 0; bar = $('countIn').checked ? -1 : loopRange().lo; queue = []; nextTime = ctx.currentTime + 0.08; nextSec = nextTime;
+  metroReset(); step = 0; bar = $('countIn').checked ? -1 : loopRange().lo; queue = []; nextTime = ctx.currentTime + 0.08; nextSec = nextTime;
   timer = setInterval(schedule, 25); schedule(); raf = requestAnimationFrame(draw);
-  running = true; stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
+  running = true; openFocus(); stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
 }
 function tapLanding() {
   const lat = ctx.outputLatency || ctx.baseLatency || 0, t = ctx.currentTime - lat;
@@ -1760,16 +2128,34 @@ function tapLanding() {
 $('bar').addEventListener('pointerdown', e => { if (running && $('tapTest').checked) { e.preventDefault(); tapLanding(); } }, true);
 $('bar').addEventListener('click', e => { if (running && $('tapTest').checked) { e.stopPropagation(); e.preventDefault(); } }, true);
 function stop() {
-  clearInterval(timer); cancelAnimationFrame(raf); running = false; queue = []; stopBeat();
+  closeFocus();
+  clearInterval(timer); cancelAnimationFrame(raf); running = false; queue = []; stopBeat(); metroReset(); dropStop();
   subEls.forEach(e => e.classList.remove('on')); beatEls.forEach(e => e.num.classList.remove('on'));
   stripEls.forEach(e => e.classList.remove('on')); stripVis();
   $('go').textContent = 'Start'; $('go').setAttribute('aria-pressed', 'false'); $('state').textContent = 'stopped'; $('wrPlay').textContent = '▶ Beat'; $('wrPlay').setAttribute('aria-pressed', 'false');
   showBar(practice ? loopRange().lo : 0);
 }
 $('go').addEventListener('click', () => running ? stop() : start());
+// ---- focus view: the deck moves into a full-screen layer while the metronome runs (not from the Write tab's beat button)
+function openFocus() {
+  if (!$('focusOn').checked || $('viewPractice').hidden || focusPh) return;
+  // the deck, plus the word-drop card when Word drops is on (that word is the drill, not a distraction)
+  focusPh = ['deck', 'drop'].map(id => { const el = $(id), ph = document.createComment(id); el.before(ph); $('focus').append(el); return [el, ph]; });
+  $('focus').hidden = false; document.documentElement.style.overflow = 'hidden';
+  $('fcStop').focus({ preventScroll: true });
+}
+function closeFocus() {
+  if (!focusPh) return;
+  focusPh.forEach(([el, ph]) => ph.replaceWith(el)); focusPh = null;
+  $('focus').hidden = true; document.documentElement.style.overflow = '';
+  if (document.activeElement === $('fcStop') || document.activeElement === document.body) $('go').focus({ preventScroll: true });
+}
+$('fcStop').addEventListener('click', () => { if (running) stop(); });
+$('focusOn').checked = store.get('metrobar.focus', true);
+$('focusOn').addEventListener('change', () => store.set('metrobar.focus', $('focusOn').checked));
 
 // ---- BPM field, detection, tap tempo
-function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); $('bpmOut').textContent = bpm(); updateSpb(); persist(); }
+function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); $('bpmOut').textContent = bpm(); if (!running) metroWeight(bpm()); updateSpb(); persist(); if ($('infoDlg').open) studioRender(); }
 function updateSpb() { const e = $('spb'); if (e) e.textContent = (240 / bpm()).toFixed(2); }
 $('minus').addEventListener('click', () => setBpm(bpm() - 1));
 $('plus').addEventListener('click', () => setBpm(bpm() + 1));
@@ -1784,15 +2170,16 @@ $('beatFile').addEventListener('change', async e => {
   $('det').textContent = 'Detecting…';
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
-  detected = detectBpm(chs, beatBuf.sampleRate);
-  const r = Math.round(detected.bpm);
-  $('det').innerHTML = ''; $('det').append('Detected ', h('b', '', r + ' BPM'), ` · first beat ${detected.first.toFixed(2)} s`);
-  $('useDet').hidden = false; showOct();
+  const myBuf = beatBuf;
+  const res = await coreJob('detectBpm', chs, beatBuf.sampleRate);
+  if (beatBuf !== myBuf) return;   // another beat was loaded meanwhile
+  if (!showDetected(res, 'file')) return;
   $('beatOffset').value = detected.first.toFixed(2);   // offset is prefilled; the BPM never is
   persist(); stretched = { sp: 1, buf: null }; makeStretch();
   // Key finder: after the BPM, so the BPM shows first
   $('keyInfo').textContent = 'finding the key…'; await new Promise(r => setTimeout(r, 30));
-  const k = detectKey(chs, beatBuf.sampleRate);
+  const k = await coreJob('detectKey', chs, beatBuf.sampleRate);
+  if (beatBuf !== myBuf) return;
   $('keyInfo').replaceChildren('· key ', h('b', '', k.name), k.conf < 8 ? ' (not sure)' : '');
   $('keyInfo').title = `Key of the beat: ${k.name}, same notes as ${k.relative}. Notes that sit right for a sung hook: ${k.scale.join(' ')}. ${k.conf < 8 ? 'The beat does not lean clearly to one key, so take this as a guess.' : ''}`;
   $('keyNotes').textContent = `notes ${k.scale.join(' ')} · same notes as ${k.relative}`; $('keyNotes').hidden = false;
@@ -1804,13 +2191,50 @@ async function makeStretch() {
   const job = ++stretchJob, sp = speed; $('speedInfo').textContent = 'keeping pitch…';
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
-  const out = timeStretch(chs, beatBuf.sampleRate, sp);
+  const out = await coreJob('timeStretch', chs, beatBuf.sampleRate, sp);
   if (job !== stretchJob) return;   // speed changed again meanwhile
   const b = ctx.createBuffer(out.length, out[0].length, beatBuf.sampleRate); out.forEach((y, c) => b.copyToChannel(y, c));
   stretched = { sp, buf: b }; rateDirty = true; $('speedInfo').textContent = '';
 }
 $('speed').addEventListener('change', () => { speed = (+$('speed').value || 100) / 100; makeStretch(); if (!running) $('bpmOut').textContent = Math.round(tempoNow()); });
 $('keepPitch').addEventListener('change', makeStretch);
+// Detected BPM with how sure it is and the styles that tempo fits. Silence gives no number at all.
+function showDetected(r, from) {
+  detected = r.silent ? null : r; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true; $('det').title = '';
+  if (r.silent) { $('det').textContent = from === 'mic' ? 'Heard only silence: no BPM' : 'That file is silent: no BPM'; return false; }
+  const st = tempoStyles(Math.round(r.bpm)), sure = r.sure != null ? r.sure : bpmSure(r.conf);
+  $('det').replaceChildren('Detected ', h('b', '', Math.round(r.bpm) + ' BPM'), from === 'mic' ? ' · by mic' : ` · first beat ${r.first.toFixed(2)} s`,
+    h('span', sure < 45 ? 'sure low' : 'sure', sure < 20 ? ' · no steady beat, tap it instead' : ` · ${sure}% sure`));
+  $('det').title = `${sure}% sure: how strongly the hits repeat on this tempo. ${sure < 45 ? 'Low, so check it with Tap or try ½ / ×2. ' : ''}Typical for: ${st.join(', ') || 'no common style'}.`;
+  $('useDet').hidden = false; showOct(); return true;
+}
+// BPM from the microphone: 12 s of whatever is playing in the room, analysed here; nothing is recorded or sent.
+let micJob = null;
+async function micBpm() {
+  if (micJob) { micJob.stop(); return; }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $('det').textContent = 'This browser has no microphone access'; return; }
+  if (running) stop();
+  ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); try { await ctx.resume(); } catch {}
+  let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+  catch { $('det').textContent = 'Microphone blocked: allow it in the browser to use Mic'; return; }
+  const SEC = 12, sr = ctx.sampleRate, src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain(), chunks = [];
+  let n = 0, over = false; mute.gain.value = 0; src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
+  const t0 = performance.now(), btn = $('micBtn'); btn.textContent = 'Stop'; btn.setAttribute('aria-pressed', 'true');
+  const show = () => { $('det').textContent = `Listening… ${Math.max(0, Math.ceil(SEC - (performance.now() - t0) / 1000))} s · stays on this device`; };
+  const tick = setInterval(show, 250); show();
+  const done = async () => {
+    if (over) return; over = true; clearInterval(tick); micJob = null;
+    proc.onaudioprocess = null; try { proc.disconnect(); src.disconnect(); mute.disconnect(); } catch {} stream.getTracks().forEach(t => t.stop());
+    btn.textContent = 'Mic'; btn.setAttribute('aria-pressed', 'false');
+    if (n < sr * 4) { $('det').textContent = 'Too short: listen at least 4 seconds'; return; }
+    const x = new Float32Array(n); let o = 0; for (const c of chunks) { x.set(c, o); o += c.length; }
+    $('det').textContent = 'Detecting…'; await new Promise(r => setTimeout(r, 30));
+    showDetected(await coreJob('detectBpm', [x], sr), 'mic');
+  };
+  proc.onaudioprocess = e => { if (over) return; const d = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); n += d.length; if (n >= sr * SEC) done(); };
+  micJob = { stop: done };
+}
+$('micBtn').addEventListener('click', micBpm);
 function showOct() { $('halfDet').hidden = !detected || detected.bpm / 2 < 60; $('dblDet').hidden = !detected || detected.bpm * 2 > 200;
   if (detected) { $('halfDet').textContent = `½ → ${Math.round(detected.bpm / 2)}`; $('dblDet').textContent = `×2 → ${Math.round(detected.bpm * 2)}`; } }
 function setDet(v) { detected.bpm = Math.round(v * 10) / 10; $('det').querySelector('b').textContent = Math.round(detected.bpm) + ' BPM'; showOct(); }
@@ -1820,8 +2244,8 @@ $('dblDet').addEventListener('click', () => { if (detected) setDet(detected.bpm 
 let taps = [];
 // Tap tempo: 4 taps to count (dots fill until then), then the BPM, how steady the taps were (100% = every gap the same)
 // and the gap in ms. ½ and ×2 show the number they give, so you can see which one is the real beat before you pick.
-function tapSteady(t) { const g = t.slice(1).map((v, i) => v - t[i]), m = g.reduce((a, v) => a + v, 0) / g.length;
-  const sd = Math.sqrt(g.reduce((a, v) => a + (v - m) * (v - m), 0) / g.length); return { gap: m, steady: Math.max(0, Math.round(100 * (1 - sd / m))) }; }
+// A stray tap (a gap 30% off the median) is left out instead of dragging the BPM (core tapStats).
+function tapSteady(t) { return tapStats(t); }
 function tapShow(text, alt) {
   const box = $('tapInfo'); box.replaceChildren(text);
   for (const [f, lab] of alt ? [[0.5, '½'], [2, '×2']] : []) { const v = Math.round(alt * f); if (v < 60 || v > 200) continue;
@@ -1831,8 +2255,8 @@ function tap() {
   if (running) return;
   const now = performance.now();
   if (taps.length && now - taps[taps.length - 1] > 2000) taps = [];
-  taps.push(now); if (taps.length > 8) taps.shift();
-  if (taps.length >= 4) { const st = tapSteady(taps); setBpm(60000 / st.gap); tapShow(`tap tempo ${bpm()} BPM · steady ${st.steady}% · ${Math.round(st.gap)} ms`, bpm()); }
+  taps.push(now); if (taps.length > 12) taps.shift();
+  if (taps.length >= 4) { const st = tapSteady(taps); setBpm(60000 / st.gap); tapShow(`tap tempo ${bpm()} BPM · steady ${st.steady}% · ${Math.round(st.gap)} ms${st.dropped ? ` · ${st.dropped} stray tap${st.dropped > 1 ? 's' : ''} left out` : ''}`, bpm()); }
   else tapShow('●'.repeat(taps.length) + '○'.repeat(4 - taps.length) + ' keep tapping');
 }
 $('tapBtn').addEventListener('click', tap);
@@ -1972,7 +2396,7 @@ function renderRhymes(out) {
   if (!lines.length || !$('rhymesOn').checked) return;
   const box = h('div', 'rmap'), key = h('div', 'rkey');
   rhymes.groups.forEach((v, g) => { const k = h('span', rhCls(g).replace('rh', '').trim()); const sw = h('i'); k.className = rhCls(g); k.style.background = 'none'; k.style.boxShadow = 'none'; k.prepend(sw); k.append(VLABEL[v] || v); key.appendChild(k); });
-  box.append(h('div', 'sum', rhymes.groups.length ? 'Rhyme map: same colour = same vowel sound on a stressed syllable within two bars. Outlined = a multisyllable rhyme: two vowel sounds in a row that come back in a nearby bar. Like the Vox breakdowns, look for chains of colour, not just line ends.' : 'Rhyme map: no repeated vowel sounds found yet.'));
+  box.append(h('div', 'sum', rhymes.groups.length ? 'Rhyme map: same colour = same vowel sound on a stressed syllable within two bars. Outlined = a multisyllable rhyme: two vowel sounds in a row that come back in a nearby bar. The end-rhyme badge says how strong the rhyme is (perfect, multi, slant, weak); click it to see the matching sounds. Like the Vox breakdowns, look for chains of colour, not just line ends.' : 'Rhyme map: no repeated vowel sounds found yet.'));
   if (rhymes.groups.length) box.append(key);
   lines.forEach((L, li) => {
     const row = h('div', 'rl'); row.append(h('b', '', String(li + 1).padStart(2, '0')));
@@ -1983,7 +2407,14 @@ function renderRhymes(out) {
       if (!ws.textContent) ws.textContent = w.raw;
       ws.title = w.raw; row.append(ws, ' ');
     });
-    if (rhymes.endRhyme[li]) row.append(h('span', 'er', 'end rhyme'));
+    const tier = rhymes.endTier && rhymes.endTier[li];
+    if (tier) { const b = h('button', 'er tier t-' + tier, 'end rhyme · ' + tier); b.title = `${TIER_LABEL[tier]} with bar ${rhymes.endWith[li] + 1}. Click to see why.`;
+      b.setAttribute('aria-expanded', 'false');
+      b.addEventListener('click', () => { const open = row.nextElementSibling && row.nextElementSibling.classList.contains('proof');
+        if (open) row.nextElementSibling.remove(); else { const pe = proofEl(rhymes.endKey[li], rhymes.endKey[rhymes.endWith[li]]); if (pe) row.after(pe); }
+        b.setAttribute('aria-expanded', String(!open)); });
+      row.append(b); }
+    else if (rhymes.endRhyme[li]) row.append(h('span', 'er', 'end rhyme'));
     if (L.enj && L.enj.runOn) row.append(h('span', 'er', 'runs on ↪'));
     if (rhymes.multi && rhymes.multi[li].length) row.append(h('span', 'er', 'multi'));
     box.appendChild(row);
@@ -2215,7 +2646,7 @@ $('vocalFile').addEventListener('change', async e => {
   let buf; try { buf = await ctx.decodeAudioData(await f.arrayBuffer()); } catch { box.replaceChildren(h('div', 'sum warn', 'Could not read that file.')); return; }
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
-  vocal = { name: f.name.replace(/\.[^.]+$/, ''), dur: buf.duration, ons: vocalOnsets(chs, buf.sampleRate) };
+  vocal = { name: f.name.replace(/\.[^.]+$/, ''), dur: buf.duration, ons: await coreJob('vocalOnsets', chs, buf.sampleRate) };
   renderSong();
 });
 ['bpm', 'beatOffset'].forEach(id => $(id).addEventListener('change', () => { if (vocal) renderSong(); }));
@@ -2277,7 +2708,26 @@ function syncInfoBeat() {
 }
 new MutationObserver(syncInfoBeat).observe($('detBox'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
 new MutationObserver(syncInfoBeat).observe($('beatBtn'), { childList: true });
-$('infoBtn').addEventListener('click', () => { syncInfoBeat(); $('infoDlg').showModal(); });
+$('infoBtn').addEventListener('click', () => { syncInfoBeat(); studioRender(); $('infoDlg').showModal(); });
+// ---- Studio timings (delay, reverb, tempo match) for the current BPM
+function studioRender() {
+  const b = bpm(), t = delayTimes(b), row = (cells, th) => { const tr = h('tr'); cells.forEach(c => tr.append(h(th ? 'th' : 'td', '', String(c)))); return tr; };
+  $('stBpm').textContent = b; if (studioRender.last !== b) { $('stTo').value = b; studioRender.last = b; }
+  $('stNotes').replaceChildren(row(['Note', 'Straight ms', 'Dotted ms', 'Triplet ms', 'LFO Hz'], true), ...t.notes.map(n => row([n.name, n.straight, n.dotted, n.triplet, n.hz])));
+  $('stVerb').replaceChildren(row(['Size', 'Pre-delay ms', 'Decay ms', 'Total ms'], true), ...t.verb.map(v => row([v.name, v.pre, v.decay, v.total])));
+  stMatch();
+  const st = tempoStyles(b); $('stStyles').textContent = st.length ? `${b} BPM is typical for ${st.join(', ')}.` : `${b} BPM is outside the usual style ranges.`;
+}
+function stMatch() {
+  const to = +$('stTo').value; if (!(to >= 40 && to <= 300)) { $('stMatch').textContent = ''; return; }
+  const m = tempoMatch(bpm(), to);
+  $('stMatch').textContent = `speed ${m.speed}% · bar ${m.barFrom} → ${m.barTo} ms · without Keep pitch: ${m.semis > 0 ? '+' : ''}${m.semis} semitones`;
+}
+$('stTo').addEventListener('input', stMatch);
+$('stCsv').addEventListener('click', () => {
+  const b = bpm(), t = delayTimes(b), L = [`MetroBar studio timings,${b} BPM`, 'Note,Straight ms,Dotted ms,Triplet ms,LFO Hz', ...t.notes.map(n => [n.name, n.straight, n.dotted, n.triplet, n.hz].join(',')), '', 'Reverb,Pre-delay ms,Decay ms,Total ms', ...t.verb.map(v => [v.name, v.pre, v.decay, v.total].join(','))];
+  wrDownload(`metrobar-timings-${b}bpm.csv`, L.join('\n') + '\n', 'text/csv');
+});
 $('infoClose').addEventListener('click', () => $('infoDlg').close());
 $('infoDlg').addEventListener('click', e => { if (e.target === $('infoDlg')) $('infoDlg').close(); });
 
@@ -2416,6 +2866,7 @@ function wrOpen() {
   if (!wrSong()) { if (WR.songs.length) WR.cur = WR.songs[0].id; else { wrCreate(); return; } }
   const s = wrSong(); $('wrTitle').value = s.title; $('wrText').value = s.text; $('wrTpl').value = s.tpl || '';
   WR.opened = s.id; WR.cache.clear(); wrList(); wrAnalyse(); wrGrow();
+  if (typeof spLoad === 'function' && $('tlSplit').open) spLoad();
 }
 function wrLibClose() { if (matchMedia('(max-width: 1099px)').matches) { $('viewWrite').querySelector('.wr-lib').classList.remove('open'); $('wrLibTg').setAttribute('aria-expanded', 'false'); $('wrTitle').scrollIntoView({ block: 'start' }); } }
 function ago(t) { const d = (now() - t) / 1000; return d < 60 ? 'just now' : d < 3600 ? Math.floor(d / 60) + ' min ago' : d < 86400 ? Math.floor(d / 3600) + ' h ago' : new Date(t).toLocaleDateString(); }
@@ -2517,8 +2968,9 @@ function wrStats() {
   const ls = WR.bars.map(r => r.L), s = $('wrStats');
   if (!ls.length) { s.textContent = 'One line = one bar. The number on the left is the syllable count; it turns red above your aim.'; return; }
   const avg = ls.reduce((a, L) => a + L.N, 0) / ls.length, over = ls.filter(L => L.N > +$('wrAim').value).length, secs = ls.reduce((a, L) => a + L.lay.quarters, 0) * 60 / bpm();
-  const end = WR.rh.endRhyme.filter(Boolean).length;
-  s.textContent = `${ls.length} bars · ${avg.toFixed(1)} syllables a bar on average${over ? ` · ${over} over your aim` : ''} · ${end} end rhyme${end === 1 ? '' : 's'} · about ${Math.floor(secs / 60)}:${String(Math.round(secs % 60)).padStart(2, '0')} at ${bpm()} BPM`;
+  const end = WR.rh.endRhyme.filter(Boolean).length, tc = {}; (WR.rh.endTier || []).forEach(t => { if (t) tc[t] = (tc[t] || 0) + 1; });
+  const tiers = TIERS.filter(t => tc[t]).map(t => `${tc[t]} ${t}`).join(', ');
+  s.textContent = `${ls.length} bars · ${avg.toFixed(1)} syllables a bar on average${over ? ` · ${over} over your aim` : ''} · ${end} end rhyme${end === 1 ? '' : 's'}${tiers ? ` (${tiers})` : ''} · about ${Math.floor(secs / 60)}:${String(Math.round(secs % 60)).padStart(2, '0')} at ${bpm()} BPM`;
 }
 function wrChecks() {
   const box = $('wrChecks'); box.replaceChildren();
@@ -2627,8 +3079,10 @@ function wrRhymes(word) {
   const group = (label, list) => { if (!list.length) return; box.append(h('div', 'wr-sub', label)); const d = h('div', 'wr-rh'); list.slice(0, 40).forEach(o => { const b = h('button', o.pf ? 'pf' : '', o.k); b.title = 'Insert at the cursor'; b.addEventListener('click', () => wrInsertWord(o.k)); d.append(b); }); box.append(d); };
   group('Rhymes (same ending)', perfect.map(o => ({ ...o, pf: true })));
   group(`Same vowel "${VLABEL[me.v] || me.v}" (assonance, slant)`, family);
-  if (!perfect.length && !family.length) box.append(h('p', 'note', 'Nothing in your songs yet. Try More rhymes online.'));
-  $('wrRhNote').textContent = `Vowel sound: ${VLABEL[me.v] || me.v}. From this song and your other songs.`;
+  const dr = DICT ? dictRhymes(word, 30) : null, seen = new Set(perfect.concat(family).map(o => o.k));
+  if (dr) [['perfect', 'Dictionary: perfect rhymes'], ['multi', 'Dictionary: multi rhymes'], ['slant', 'Dictionary: slant rhymes']].forEach(([t, label]) => group(label, dr[t].filter(k => !seen.has(k)).map(k => ({ k, src: 'dict', pf: t === 'perfect' }))));
+  if (!perfect.length && !family.length && !(dr && (dr.perfect.length || dr.multi.length || dr.slant.length))) box.append(h('p', 'note', 'Nothing in your songs yet. Try More rhymes online.'));
+  $('wrRhNote').textContent = `Vowel sound: ${VLABEL[me.v] || me.v}. From this song, your other songs${dr ? ' and the pronunciation dictionary' : ''}. Point at a word to see why it rhymes.`;
 }
 async function wrOnline() {
   const w = WR.word; if (!w) { $('wrRhNote').textContent = 'Pick a word first.'; return; }
@@ -2770,7 +3224,8 @@ $('wrImportFile').addEventListener('change', async e => {
   let n = 0;
   for (const f of e.target.files) {
     const t = await f.text();
-    if (/\.json$/i.test(f.name)) { try { const d = JSON.parse(t); (d.songs || []).forEach(s => { if (s && typeof s.text === 'string') { WR.songs.unshift({ id: newId(), title: String(s.title || ''), text: s.text, tpl: TEMPLATES[s.tpl] ? s.tpl : '', created: +s.created || now(), updated: now() }); n++; } }); } catch { wrMsg(`${f.name} is not a MetroBar backup.`); } }
+    if (/\.json$/i.test(f.name)) { try { const d = JSON.parse(t); (d.songs || []).forEach(s => { if (s && typeof s.text === 'string') { WR.songs.unshift({ id: newId(), title: String(s.title || ''), text: s.text, tpl: TEMPLATES[s.tpl] ? s.tpl : '', created: +s.created || now(), updated: now() }); n++; } });
+      if (Array.isArray(d.stash) && typeof stashMerge === 'function') stashMerge(d.stash); } catch { wrMsg(`${f.name} is not a MetroBar backup.`); } }
     else {
       let text = t.replace(/\r\n?/g, '\n'), title = f.name.replace(/\.[^.]+$/, '');
       const m = text.match(/^([^\n#\[][^\n]*)\n\n/); if (m) { title = m[1].trim(); text = text.slice(m[0].length); }   // our own .txt: title, blank line, lyrics
@@ -2779,7 +3234,7 @@ $('wrImportFile').addEventListener('change', async e => {
   }
   e.target.value = ''; if (n) { WR.cur = WR.songs[0].id; wrSave(); wrOpen(); wrMsg(`Imported ${n} song${n === 1 ? '' : 's'}.`); }
 });
-$('wrBackup').addEventListener('click', () => wrDownload('metrobar-songs-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify({ app: 'MetroBar', kind: 'songs', version: 1, songs: WR.songs }, null, 2), 'application/json'));
+$('wrBackup').addEventListener('click', () => wrDownload('metrobar-songs-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify({ app: 'MetroBar', kind: 'songs', version: 1, songs: WR.songs, stash: store.get('metrobar.stash', []) }, null, 2), 'application/json'));
 $('wrFindBtn').addEventListener('click', () => wrRhymes($('wrFind').value));
 $('wrFind').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); wrRhymes($('wrFind').value); } });
 $('wrOnline').addEventListener('click', wrOnline);
@@ -2794,6 +3249,292 @@ window.addEventListener('storage', e => {
 });
 WR.bin = WR.bin.filter(s => now() - (s.deleted || 0) < 30 * 86400e3);
 wrTechs(); wrClRender(); setView();
+</script>
+<script>
+// ---- Analysis off the main thread: the core functions run in a Web Worker made from the core script, so long files don't freeze the page.
+// If a worker can't start (old browser, blocked blob URL), the same function runs here instead.
+const CORE_FNS = () => ({ detectBpm, detectKey, vocalOnsets, timeStretch });
+let coreW = null; const coreJobs = new Map(); let coreSeq = 0;
+function coreWorker() {
+  if (coreW !== null) return coreW;
+  try {
+    const src = document.getElementById('core').textContent + `
+;self.onmessage = e => { const { id, fn, args } = e.data;
+  try { const r = ({ detectBpm, detectKey, vocalOnsets, timeStretch })[fn](...args); self.postMessage({ id, r }, fn === 'timeStretch' ? r.map(y => y.buffer) : []); }
+  catch (err) { self.postMessage({ id, err: String(err) }); } };`;
+    const url = URL.createObjectURL(new Blob([src], { type: 'text/javascript' }));
+    coreW = new Worker(url);
+    coreW.onmessage = e => { const j = coreJobs.get(e.data.id); if (!j) return; coreJobs.delete(e.data.id); if (e.data.err) j.local(); else j.resolve(e.data.r); };
+    coreW.onerror = ev => { if (ev && ev.preventDefault) ev.preventDefault(); coreW = false; const js = [...coreJobs.values()]; coreJobs.clear(); js.forEach(j => j.local()); };
+  } catch { coreW = false; }
+  return coreW;
+}
+function coreJob(fn, ...args) {
+  return new Promise((resolve, reject) => {
+    const local = () => { try { resolve(CORE_FNS()[fn](...args)); } catch (e) { reject(e); } };
+    const w = coreWorker(); if (!w) { setTimeout(local, 0); return; }
+    const id = ++coreSeq; coreJobs.set(id, { resolve, local });
+    try { w.postMessage({ id, fn, args }); } catch { coreJobs.delete(id); local(); }
+  });
+}
+
+// ---- Pronunciation dictionary: fetched once in the background (the service worker keeps it offline), then Fit and Write re-run with it
+const DICTUI = { state: 'off', n: 0 };
+function dictNote() {
+  const t = DICTUI.state === 'on' ? `Pronunciation dictionary on: ${DICTUI.n.toLocaleString('en')} words.`
+    : DICTUI.state === 'loading' ? 'Loading the pronunciation dictionary…'
+    : DICTUI.state === 'failed' ? 'Pronunciation dictionary not loaded (it needs MetroBar opened from a web address, not a file). Using the spelling rules.'
+    : 'Pronunciation dictionary off: using the spelling rules.';
+  document.querySelectorAll('.dict-note').forEach(e => { e.textContent = t; });
+}
+async function loadDict() {
+  if (DICTUI.state === 'loading' || DICTUI.state === 'on') return;
+  DICTUI.state = 'loading'; dictNote();
+  try { const r = await fetch('cmudict.txt'); if (!r.ok) throw new Error('HTTP ' + r.status); DICTUI.n = setDict(await r.text()); DICTUI.state = DICTUI.n ? 'on' : 'failed'; }
+  catch { DICTUI.state = 'failed'; }
+  dictNote();
+  if (DICTUI.state !== 'on') return;
+  if (lines.length) runFit();
+  WR.cache.clear(); if (!$('viewWrite').hidden) { wrAnalyse(); if (WR.word) wrRhymes(WR.word); }
+}
+window.addEventListener('load', () => (window.requestIdleCallback || (f => setTimeout(f, 800)))(loadDict));
+
+// ---- "Why it rhymes": both words' sounds from the stressed vowel on, matching sounds marked
+const TIER_WHY = { perfect: 'every sound from the stressed vowel on is the same.', multi: 'two or more vowel sounds in a row match; the consonants between them differ.',
+  slant: 'the stressed vowel matches, the ending does not.', weak: 'only the ending consonants, or a soft last vowel, match.' };
+function proofEl(a, b) {
+  const p = a && b ? rhymeProof(a, b) : null; if (!p) return null;
+  const box = h('div', 'proof');
+  const row = side => { const r = h('div', 'pr'); r.append(h('b', '', side.key));
+    side.seg.forEach(sg => { if (sg.v == null && !sg.say) return; const e = h('span', (sg.v != null ? 'pv' : 'pc') + (sg.m ? ' m' : ''), sg.say || '·'); if (sg.v != null && sg.st) e.classList.add('st'); r.append(e); });
+    return r; };
+  box.append(row(p.a), row(p.b), h('div', 'pt', p.tier ? `${TIER_LABEL[p.tier]}: ${TIER_WHY[p.tier]}` : 'Not a rhyme: the stressed vowels are different.'));
+  return box;
+}
+['mouseover', 'focusin'].forEach(ev => $('wrRh').addEventListener(ev, e => {
+  const b = e.target.closest('button'); if (!b || !WR.word || b.dataset.pw === b.textContent) return;
+  const pe = proofEl(WR.word, b.textContent); $('wrProof').replaceChildren(); if (pe) $('wrProof').append(pe);
+}));
+
+// ---- Freestyle word drops: a new word every 2, 4 or 8 bars while the metronome runs
+const DROP = { n: 0, recent: [] };
+try { const d = JSON.parse(localStorage.getItem('metrobar.drops') || 'null'); if (d) { $('drops').checked = !!d.on; $('dropsN').value = String(d.every || 4); } } catch {}
+['drops', 'dropsN'].forEach(id => $(id).addEventListener('change', () => {
+  try { localStorage.setItem('metrobar.drops', JSON.stringify({ on: $('drops').checked, every: +$('dropsN').value })); } catch {}
+  if (!$('drops').checked) $('drop').hidden = true;
+}));
+function dropTick(bar) {
+  const el = $('drop');
+  if (!$('drops').checked) { el.hidden = true; return; }
+  if (bar < 0) { DROP.n = 0; el.replaceChildren(h('small', '', 'word drop on bar 1')); el.hidden = false; return; }
+  const every = +$('dropsN').value || 4;
+  if (DROP.n % every === 0) {
+    const w = nextDrop(Math.random, DROP.recent); DROP.recent.push(w); if (DROP.recent.length > 30) DROP.recent.shift();
+    el.replaceChildren(h('small', '', `rap about · ${every} bars`), h('b', '', w)); el.hidden = false;
+    el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+  }
+  DROP.n++;
+}
+function dropStop() { DROP.n = 0; $('drop').hidden = true; }
+
+// ---- Pick up where you left off, and the optional daily reminder
+const today = () => new Date().toLocaleDateString('en-CA');   // YYYY-MM-DD, local time
+let caretTimer = 0;
+['keyup', 'click', 'input'].forEach(ev => $('wrText').addEventListener(ev, () => {
+  clearTimeout(caretTimer); caretTimer = setTimeout(() => store.set('metrobar.caret', { id: WR.cur, pos: $('wrText').selectionStart }), 300);
+  if (ev === 'input') { store.set('metrobar.wroteOn', today()); markDay(); }
+}));
+function wrJumpTo(pos) {
+  const ta = $('wrText'); pos = Math.min(pos, ta.value.length); ta.focus({ preventScroll: true }); ta.setSelectionRange(pos, pos);
+  const lineNo = ta.value.slice(0, pos).split('\n').length, all = ta.value.split('\n').length || 1, lh = ta.scrollHeight / Math.max(all, 1);
+  const y = ta.getBoundingClientRect().top + window.scrollY + (lineNo - 1) * lh - window.innerHeight / 3;
+  window.scrollTo({ top: Math.max(0, y) });
+}
+function showResume() {
+  const box = $('resume'); box.replaceChildren(); box.hidden = true;
+  if (location.hash === '#write') return;
+  let dismissed = false; try { dismissed = sessionStorage.getItem('metrobar.resumeHidden') === '1'; } catch {}
+  if (dismissed) return;
+  const s = WR.songs.filter(x => x.text && x.text.trim()).sort((a, b) => b.updated - a.updated)[0];
+  if (!s || now() - s.updated > 30 * 86400e3) return;
+  const caret = store.get('metrobar.caret', null), pos = caret && caret.id === s.id ? caret.pos : s.text.length;
+  const lineAt = s.text.slice(0, pos).split('\n').filter(l => l.trim() && !l.trim().startsWith('#')).length;
+  const go = h('button', 'btn pri', 'Continue writing'), x = h('button', 'ibtn x', '×'); x.setAttribute('aria-label', 'Hide');
+  go.addEventListener('click', () => { box.hidden = true; WR.cur = s.id; wrSave(); location.hash = '#write'; setTimeout(() => wrJumpTo(pos), 60); });
+  x.addEventListener('click', () => { box.hidden = true; try { sessionStorage.setItem('metrobar.resumeHidden', '1'); } catch {} });
+  const msg = h('div', 'rs-t'); msg.append('Pick up where you left off: ', h('b', '', s.title || (s.text.trim().split('\n')[0] || 'Untitled').slice(0, 40)), ` · bar ${Math.max(1, lineAt)} of ${barCount(s.text)} · ${ago(s.updated)}`);
+  box.append(msg, go, x); box.hidden = false;
+}
+showResume();
+window.addEventListener('hashchange', () => { if (location.hash === '#write') $('resume').hidden = true; });
+// Daily reminder: checked once a minute while MetroBar is open; skipped on days you already wrote
+const REM = Object.assign({ on: false, at: '20:00', last: '' }, store.get('metrobar.remind', {}));
+$('remOn').checked = REM.on; $('remAt').value = REM.at;
+function remSave() { store.set('metrobar.remind', REM); }
+$('remOn').addEventListener('change', async () => {
+  REM.on = $('remOn').checked; remSave();
+  if (REM.on && 'Notification' in window && Notification.permission === 'default') { try { await Notification.requestPermission(); } catch {} }
+  $('remNote').textContent = REM.on && (!('Notification' in window) || Notification.permission !== 'granted')
+    ? 'Notifications are blocked, so the reminder shows as a note at the top of MetroBar instead.'
+    : 'Only on this device. It fires while MetroBar is open in a tab or as an installed app, and only on days you have not written.';
+});
+$('remAt').addEventListener('change', () => { REM.at = $('remAt').value || '20:00'; REM.last = ''; remSave(); });
+function checkRemind() {
+  if (!REM.on || REM.last === today()) return;
+  const d = new Date(), hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  if (hm < REM.at || store.get('metrobar.wroteOn', '') === today()) return;
+  REM.last = today(); remSave();
+  const title = 'MetroBar: time to write', body = 'You have not written today. Four bars is enough.';
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const sw = navigator.serviceWorker && navigator.serviceWorker.controller ? navigator.serviceWorker.ready.then(r => r.showNotification(title, { body, icon: 'icon-192.png', tag: 'metrobar-remind' })) : Promise.reject();
+    sw.catch(() => { try { new Notification(title, { body, icon: 'icon-192.png' }); } catch {} });
+  }
+  const box = $('resume'), go = h('button', 'btn pri', 'Write now'), x = h('button', 'ibtn x', '×'); x.setAttribute('aria-label', 'Hide');
+  go.addEventListener('click', () => { box.hidden = true; location.hash = '#write'; });
+  x.addEventListener('click', () => { box.hidden = true; });
+  box.replaceChildren(h('div', 'rs-t', body), go, x); box.hidden = false;
+}
+setInterval(checkRemind, 60e3); checkRemind();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkRemind(); });
+
+// ---- First-run guide: Show me points at each control; the example runs the whole loop once
+function spot(id) {
+  const el = $(id); if (!el) return;
+  if (location.hash === '#write') location.hash = '#practice';
+  el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
+  setTimeout(() => el.classList.remove('spot'), 2600); if (id === 'lyrics') el.focus({ preventScroll: true });
+}
+$('intro').addEventListener('click', e => { const b = e.target.closest('[data-show]'); if (b) spot(b.dataset.show); });
+$('introTry').addEventListener('click', () => {
+  $('exampleBtn').click(); if (!practice) enterPractice();
+  $('intro').hidden = true; try { localStorage.setItem('metrobar.introSeen', '1'); } catch {}
+  $('bar').scrollIntoView({ block: 'start', behavior: 'smooth' }); spot('go');
+});
+$('guideAgain').addEventListener('click', () => { $('infoDlg').close(); location.hash = '#practice'; $('intro').hidden = false; $('intro').scrollIntoView({ block: 'start' }); });
+
+// ---- Write tools: split sheet, streaming royalties, title ideas
+const SP = { rows: [] };
+function spLoad() { const s = wrSong(); SP.rows = (s && s.split) ? s.split.map(r => ({ ...r })) : [{ name: '', role: 'Lyrics', pct: 100 }]; spRender(); }
+function spStore() { const s = wrSong(); if (s) { s.split = SP.rows.map(r => ({ ...r })); wrSave(); } }
+function spRender() {
+  const box = $('spRows'); box.replaceChildren();
+  SP.rows.forEach((r, i) => {
+    const row = h('div', 'sp-row'), nm = h('input', 'num-in'), role = h('select', 'num-in'), pct = h('input', 'num-in'), del = h('button', 'mini', 'Remove');
+    nm.placeholder = 'Name'; nm.value = r.name; nm.setAttribute('aria-label', 'Writer ' + (i + 1));
+    ['Lyrics', 'Music', 'Lyrics and music', 'Production'].forEach(o => { const op = h('option', '', o); op.value = o; role.append(op); }); role.value = r.role; role.setAttribute('aria-label', 'Role');
+    pct.type = 'number'; pct.min = 0; pct.max = 100; pct.step = 0.5; pct.value = r.pct; pct.setAttribute('aria-label', 'Share in percent');
+    nm.addEventListener('input', () => { r.name = nm.value; spStore(); }); role.addEventListener('change', () => { r.role = role.value; spStore(); });
+    pct.addEventListener('input', () => { r.pct = +pct.value || 0; spTotal(); spStore(); });
+    del.addEventListener('click', () => { SP.rows.splice(i, 1); if (!SP.rows.length) SP.rows.push({ name: '', role: 'Lyrics', pct: 100 }); spStore(); spRender(); });
+    row.append(nm, role, pct, h('span', 'det', '%'), del); box.append(row);
+  });
+  spTotal();
+}
+function spTotal() { const t = SP.rows.reduce((a, r) => a + (+r.pct || 0), 0), el = $('spTotal'); el.textContent = `Total ${+t.toFixed(2)}%${Math.abs(t - 100) > 0.01 ? ' (should be 100%)' : ''}`; el.classList.toggle('warn', Math.abs(t - 100) > 0.01); }
+$('spAdd').addEventListener('click', () => { SP.rows.push({ name: '', role: 'Lyrics', pct: 0 }); spStore(); spRender(); });
+$('spEven').addEventListener('click', () => { const n = SP.rows.length, e = Math.floor(10000 / n) / 100; SP.rows.forEach((r, i) => { r.pct = i ? e : +(100 - e * (n - 1)).toFixed(2); }); spStore(); spRender(); });
+$('spDl').addEventListener('click', () => {
+  const s = wrSong(), title = (s && s.title) || 'Untitled', t = SP.rows.reduce((a, r) => a + (+r.pct || 0), 0);
+  const txt = [`SPLIT SHEET`, ``, `Song: ${title}`, `Date: ${today()}`, ``, ...SP.rows.map((r, i) => `${i + 1}. ${r.name || '(name)'} · ${r.role} · ${r.pct}%`), ``, `Total: ${+t.toFixed(2)}%`, ``,
+    `Each writer agrees to the shares above.`, ``, ...SP.rows.map(r => `${(r.name || '(name)').padEnd(28)} Signature: ______________________  Date: __________`)].join('\n');
+  wrDownload(fileName(title) + '-split-sheet.txt', txt);
+});
+$('tlSplit').addEventListener('toggle', () => { if ($('tlSplit').open) spLoad(); });
+const ROY = [['Spotify', 3.5], ['Apple Music', 6.5], ['YouTube Music', 4], ['Amazon Music', 4], ['Tidal', 9]];   // rough per 1,000 streams in USD; editable
+const royState = Object.assign({ rate: {}, streams: {}, share: 100 }, store.get('metrobar.roy', {}));
+function royRender() {
+  const box = $('royRows'); box.replaceChildren(); box.append(h('span', 'det', 'Service'), h('span', 'det', 'Streams'), h('span', 'det', '$ per 1,000'));
+  ROY.forEach(([name, def]) => {
+    const st = h('input', 'num-in'), rt = h('input', 'num-in'); st.type = rt.type = 'number'; st.min = rt.min = 0; rt.step = 0.1;
+    st.value = royState.streams[name] || ''; st.placeholder = '0'; rt.value = royState.rate[name] != null ? royState.rate[name] : def;
+    st.setAttribute('aria-label', name + ' streams'); rt.setAttribute('aria-label', name + ' dollars per 1,000 streams');
+    st.addEventListener('input', () => { royState.streams[name] = +st.value || 0; royCalc(); }); rt.addEventListener('input', () => { royState.rate[name] = +rt.value || 0; royCalc(); });
+    box.append(h('span', '', name), st, rt);
+  });
+  $('royShare').value = royState.share; royCalc();
+}
+function royCalc() {
+  royState.share = Math.min(100, Math.max(0, +$('royShare').value || 0)); store.set('metrobar.roy', royState);
+  let gross = 0, n = 0; ROY.forEach(([name, def]) => { const s = royState.streams[name] || 0, r = royState.rate[name] != null ? royState.rate[name] : def; gross += s * r / 1000; n += s; });
+  const mine = gross * royState.share / 100, s = wrSong(), myPct = s && s.split && s.split[0] ? +s.split[0].pct : null;
+  const money = v => '$' + v.toLocaleString('en', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  $('royOut').textContent = n ? `${n.toLocaleString('en')} streams ≈ ${money(gross)} before cuts, ${money(mine)} after your ${royState.share}% share${myPct != null && SP.rows.length > 1 ? `. With the split sheet's first writer at ${myPct}%: ${money(mine * myPct / 100)}` : ''}.` : 'Type the streams you expect or have.';
+}
+$('royShare').addEventListener('input', royCalc);
+$('tlRoy').addEventListener('toggle', () => { if ($('tlRoy').open) royRender(); });
+const NM_SONG = [w => `${w}`, w => `The ${w}`, w => `No ${w}`, w => `${w} Season`, w => `Before the ${w}`, w => `${w} Talk`, w => `All the ${w}`, w => `${w} in the Rain`, w => `Late Night ${w}`, w => `${w} Theory`];
+const NM_RAP = [w => `Lil ${w}`, w => `Young ${w}`, w => `Big ${w}`, w => `MC ${w}`, w => `${w} Kid`, w => `King ${w}`, w => `${w} Don`, w => `${w} Jones`, w => `Saint ${w}`, w => `DJ ${w}`, w => `${w} Gotti`, w => `Unc ${w}`];
+const NM_ALBUM = [(a, b) => `${a} & ${b}`, (a, b) => `${a} Before ${b}`, a => `Songs About ${a}`, a => `The ${a} Tapes`, a => `${a} Diaries`, (a, b) => `From ${a} to ${b}`, a => `Volume One: ${a}`, a => `${a} (Deluxe)`, a => `The Book of ${a}`, a => `${a} Forever`];
+function nmWords() {
+  const s = wrSong(), txt = (s ? s.text : '').split('\n').filter(l => !l.trim().startsWith('#')).join(' ');
+  const cnt = new Map(); txt.split(/[^A-Za-z'’]+/).forEach(w => { const k = cleanKey(w); if (k.length < 4 || FUNC.has(k) || /'/.test(k)) return; cnt.set(k, (cnt.get(k) || 0) + 1); });
+  const own = [...cnt.entries()].sort((a, b) => b[1] - a[1]).slice(0, 30).map(e => e[0]);
+  const ends = WR.bars.map(r => r.L.words.length ? r.L.words[r.L.words.length - 1].key : '').filter(k => k.length > 3 && !FUNC.has(k));
+  return { own: [...new Set(ends.concat(own))], drops: WORD_DROPS.filter(w => !w.includes(' ')) };
+}
+const cap = w => w.split(' ').map(x => x ? x[0].toUpperCase() + x.slice(1) : x).join(' ');
+function nmGo() {
+  const { own, drops } = nmWords(), pick = arr => arr[Math.floor(Math.random() * arr.length)], src = () => cap(own.length && Math.random() < 0.75 ? pick(own) : pick(drops));
+  const kind = $('nmKind').value, out = new Set();
+  for (let k = 0; out.size < 12 && k < 80; k++) { if (kind === 'song') out.add(pick(NM_SONG)(src())); else if (kind === 'rap') out.add(pick(NM_RAP)(src())); else { const a = src(); let b = src(); if (b === a) b = cap(pick(drops)); out.add(pick(NM_ALBUM)(a, b)); } }
+  const box = $('nmOut'); box.replaceChildren();
+  [...out].forEach(t => { const b = h('button', '', t); b.title = kind === 'song' ? 'Use as the song title' : 'Copy'; b.addEventListener('click', () => { if (kind !== 'song') { try { navigator.clipboard.writeText(t); b.textContent = t + ' ✓'; } catch {} return; } $('wrTitle').value = t; $('wrTitle').dispatchEvent(new Event('input')); }); box.append(b); });
+  if (!own.length) box.append(h('p', 'note', 'Write a few bars first and the ideas will use your own words.'));
+}
+$('nmGo').addEventListener('click', nmGo);
+
+// ---- Writing streak: the days you wrote, kept in this browser only (metrobar.days)
+function markDay() {
+  const d = store.get('metrobar.days', []), t = today(); if (d.includes(t)) return;
+  d.push(t); store.set('metrobar.days', d.slice(-800)); streakRender();
+}
+function streakRender() {
+  let d = store.get('metrobar.days', null);
+  if (!d) { const w = store.get('metrobar.wroteOn', ''); d = w ? [w] : []; store.set('metrobar.days', d); }
+  const s = writeStreak(d, today()), box = $('wrStreak'), dots = h('div', 'streak-dots');
+  s.last14.forEach((x, i) => { const e = h('i', (x.on ? 'on' : '') + (i === 13 ? ' today' : '')); e.title = x.day + (x.on ? ': wrote' : ''); dots.append(e); });
+  const wroteToday = d.includes(today());
+  box.replaceChildren(h('div', '', ''), dots, h('p', 'note', s.total ? `Best run ${s.best} day${s.best === 1 ? '' : 's'} · ${s.total} day${s.total === 1 ? '' : 's'} written in all.${wroteToday ? '' : ' Write a bar today to keep it going.'}` : 'Write a bar on any day and it shows up here.'));
+  box.firstChild.append(h('span', 'streak-n', String(s.streak)), ` day${s.streak === 1 ? '' : 's'} in a row`);
+}
+streakRender();
+window.addEventListener('hashchange', () => { if (location.hash === '#write') streakRender(); });
+
+// ---- Stash: loose bars kept apart from songs (metrobar.stash), dropped back into any song
+let STASH = store.get('metrobar.stash', []);
+function stashMerge(list) { list.forEach(x => { if (x && typeof x.text === 'string' && !STASH.some(y => y.text === x.text)) STASH.push({ text: x.text, at: +x.at || Date.now() }); }); stashSave(); }
+function stashSave() { store.set('metrobar.stash', STASH); stashRender(); }
+function stashRender() {
+  const box = $('stashList'); box.replaceChildren(); $('stashN').textContent = STASH.length ? `${STASH.length} stashed` : '';
+  STASH.forEach(x => {
+    const r = h('div'), t = h('button', 't', x.text), del = h('button', 'x', '×');
+    t.title = 'Put this bar in the song, under the line you are on'; del.title = 'Remove from the stash'; del.setAttribute('aria-label', 'Remove ' + x.text);
+    t.addEventListener('click', () => { const ta = $('wrText'), v = ta.value; let p = ta.selectionEnd; while (p < v.length && v[p] !== '\n') p++;
+      ta.focus(); ta.setSelectionRange(p, p); wrInsert((v && p > 0 ? '\n' : '') + x.text); });
+    del.addEventListener('click', () => { STASH = STASH.filter(y => y !== x); stashSave(); });
+    r.append(t, del); box.append(r);
+  });
+}
+$('stashAdd').addEventListener('click', () => {
+  const ta = $('wrText'), v = ta.value; let text = v.slice(ta.selectionStart, ta.selectionEnd).trim();
+  if (!text) { const a = v.lastIndexOf('\n', ta.selectionStart - 1) + 1, b = v.indexOf('\n', ta.selectionStart); text = v.slice(a, b < 0 ? v.length : b).trim(); }
+  if (!text || text.startsWith('#')) { $('stashN').textContent = 'Put the cursor on a bar first'; return; }
+  if (!STASH.some(x => x.text === text)) STASH.unshift({ text, at: Date.now() }); STASH = STASH.slice(0, 300); stashSave();
+});
+stashRender();
+
+// ---- Does it rhyme? The last word of each box, compared sound by sound (same strip as the rhyme finder)
+function drGo() {
+  const last = v => { const w = v.trim().split(/[^A-Za-z'’]+/).filter(Boolean); return w.length ? cleanKey(w[w.length - 1]) : ''; };
+  const a = last($('drA').value), b = last($('drB').value), out = $('drOut'); out.replaceChildren();
+  if (!a || !b) { out.append(h('p', 'note', 'Type a word in both boxes.')); return; }
+  if (a === b) { out.append(h('p', 'note', `Same word twice: "${a}" with itself is an identical rhyme, which most writers count as a cheat.`)); return; }
+  const pe = proofEl(a, b); if (pe) { pe.style.marginLeft = '0'; out.append(pe); } else out.append(h('p', 'note', 'Could not read one of those words.'));
+}
+$('drGo').addEventListener('click', drGo);
+['drA', 'drB'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); drGo(); } }));
+$('tlName').addEventListener('toggle', () => { if ($('tlName').open && !$('nmOut').childElementCount) nmGo(); });
+window.addEventListener('hashchange', () => { if (location.hash === '#write') { if ($('tlSplit').open) spLoad(); } });
 </script>
 </body>
 </html>
