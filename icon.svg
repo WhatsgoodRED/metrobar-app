@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- MetroBar app icon: the logo's metronome tile in the app palette (bg #111413, cell #252b29, ink #e9ece8, muted #8e9893, accent #af0000) -->
+  <rect width="512" height="512" rx="112" fill="#111413"/>
+  <rect x="40" y="40" width="432" height="432" rx="84" fill="#252b29"/>
+  <rect x="80" y="80" width="352" height="252" rx="28" fill="#111413"/>
+  <path d="M196 290 L316 290 L284 116 L228 116 Z" fill="none" stroke="#e9ece8" stroke-width="13" stroke-linejoin="round"/>
+  <rect x="184" y="283" width="144" height="14" rx="7" fill="#e9ece8"/>
+  <line x1="256" y1="262" x2="302" y2="142" stroke="#af0000" stroke-width="12" stroke-linecap="round"/>
+  <rect x="288" y="156" width="26" height="22" rx="5" fill="#af0000" transform="rotate(21 301 167)"/>
+  <circle cx="256" cy="262" r="13" fill="#e9ece8"/>
+  <g font-family="IBM Plex Sans, Arial, sans-serif" font-weight="700" font-size="40" text-anchor="middle">
+    <rect x="80" y="350" width="80" height="82" rx="16" fill="#111413"/>
+    <rect x="171" y="350" width="80" height="82" rx="16" fill="#111413"/>
+    <rect x="262" y="350" width="80" height="82" rx="16" fill="#111413"/>
+    <rect x="352" y="350" width="80" height="82" rx="16" fill="#af0000"/>
+    <text x="120" y="405" fill="#8e9893">1</text>
+    <text x="211" y="405" fill="#8e9893">2</text>
+    <text x="302" y="405" fill="#8e9893">3</text>
+    <text x="392" y="405" fill="#ffffff">4</text>
+  </g>
+</svg>
