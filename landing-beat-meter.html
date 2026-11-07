@@ -300,6 +300,25 @@ body.write .wrap { max-width: 1240px; }
 .strip i.cnt { opacity: .55; }
 .strip span { font: .75rem var(--mono); color: var(--muted); margin-left: 6px; white-space: nowrap; }
 @media (max-width: 420px) { .strip { gap: 5px; } .strip i { width: 24px; height: 24px; font-size: .68rem; } }
+.hbtns { display: flex; gap: 8px; align-items: center; }
+.ibtn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; font-family: Georgia, "Times New Roman", serif; font-style: italic; font-weight: 700; font-size: 1.05rem; line-height: 1; display: grid; place-items: center; padding: 0; flex: none; }
+.ibtn:hover, .ibtn:focus-visible { border-color: var(--accent); color: var(--accent); }
+.ibtn.x { font-family: var(--body); font-style: normal; font-size: 1.3rem; }
+.beatbtn { font-weight: 600; }
+.controls .beatbtn { background: var(--bg); color: var(--fg); border: 2px solid var(--accent); }
+.controls .beatbtn:hover { background: var(--accent); color: var(--on-accent); }
+dialog.info { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 0; border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: 10px; background: var(--bg); color: var(--fg); }
+dialog.info::backdrop { background: rgb(0 0 0 / .6); }
+.info-h { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.info-h h2 { margin: 0; font-family: var(--display); font-size: 1.5rem; letter-spacing: .02em; text-transform: uppercase; }
+.info-beat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 18px 0; padding: 12px 14px; background: var(--panel); border-radius: 8px; }
+.info-keys { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 18px 0; font-size: .85rem; color: var(--muted); }
+.info kbd { font-family: var(--mono); font-size: .75rem; color: var(--fg); background: var(--cell); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+.info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; padding: 16px 18px 18px; }
+.info-grid section { background: var(--panel); border-radius: 8px; padding: 12px 14px; }
+.info-grid h3 { margin: 0 0 6px; font-size: .78rem; font-family: var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+.info-grid p { margin: 0 0 6px; font-size: .88rem; line-height: 1.45; }
+.info-grid p:last-child { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -313,9 +332,43 @@ body.write .wrap { max-width: 1240px; }
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
-      <button class="btn" id="themeBtn">Light mode</button>
+      <div class="hbtns"><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button><button class="btn" id="themeBtn">Light mode</button></div>
     </div>
   </header>
+  <dialog class="info" id="infoDlg" aria-labelledby="infoTitle">
+    <div class="info-h"><h2 id="infoTitle">How MetroBar works</h2><button class="ibtn x" id="infoClose" aria-label="Close">×</button></div>
+    <div class="info-beat">
+      <button class="btn pri beatbtn" id="infoBeatBtn">Load beat</button>
+      <span class="det" id="infoDet">No beat loaded</span>
+      <button class="btn" id="infoUse" hidden>Use</button><button class="btn" id="infoHalf" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="infoDbl" hidden title="Detected tempo is half: use double">×2</button>
+    </div>
+    <div class="info-keys"><span><kbd>Space</kbd> start / stop</span><span><kbd>T</kbd> tap tempo</span><span><kbd>Esc</kbd> stop practice</span></div>
+    <div class="info-grid">
+      <section><h3>Beat &amp; tempo</h3>
+        <p>Load a beat (mp3 or wav). MetroBar detects the BPM and the first beat. Press <b>Use</b> to take the BPM, or <b>½</b> / <b>×2</b> if it found half or double time.</p>
+        <p>No beat? Press <b>Tap</b> (or <kbd>T</kbd>) 4+ times, then keep tapping with <kbd>Space</kbd>. Click any tile to mark it.</p>
+        <p><b>Speed</b> plays the beat and the click slower or faster; <b>Keep pitch</b> keeps it in tune. A loaded beat also shows its key.</p></section>
+      <section><h3>Fit</h3>
+        <p>Counts syllables by rule. Click a word to correct its count.</p>
+        <p>Free text? Paste it and press <b>Split into bars</b>.</p>
+        <p>A <b>pickup</b> is the one or two soft syllables sung just before beat 1.</p></section>
+      <section><h3>Breakdown &amp; Compare</h3>
+        <p>Each Fit bar is drawn as a breakdown: dots for syllables, pills for held ones, the landing in red, brackets for the flow's groups.</p>
+        <p><b>Compare A/B/C/D</b> shows the same words in four flows. Pick one and Practice uses it.</p></section>
+      <section><h3>Practice</h3>
+        <p>Puts the lines on the tiles, one per bar, with the landing slot lit.</p>
+        <p><b>Tap test:</b> tick it, start Practice, and press <kbd>Space</kbd> (or tap the tiles) on every landing to see how many ms early or late you are. <kbd>Esc</kbd> stops.</p>
+        <p><b>Tempo trainer:</b> starts at 70% and adds 5 BPM every 4 bars up to the beat BPM. The beat plays slower and lower while it ramps.</p></section>
+      <section><h3>Rhymes &amp; Bar heel</h3>
+        <p><b>Rhymes</b> colours stressed syllables that share a vowel sound within two bars.</p>
+        <p><b>Bar heel</b> slides every line and its landing a 16th or 8th earlier or later: same words, different syncopation.</p></section>
+      <section><h3>Polymeter</h3>
+        <p>After Mazbou Q's <i>Science of Rap</i>. A cell of N steps (e.g. 7 triplet steps) repeats across the bar line, so its accents (outlined tiles, high click) land somewhere new every bar until they line up with beat 1 again.</p></section>
+      <section><h3>Vocal</h3>
+        <p>Load an acapella or vocal stem (load the beat first so the BPM and offset match). MetroBar finds every syllable, puts it on the grid, names each bar's flow and shows how early or late the voice is.</p>
+        <p>Paste the lyrics to see the words under the dots, then <b>Use as bars</b> to cut them the way they are rapped.</p></section>
+    </div>
+  </dialog>
   <section class="intro" id="intro" hidden>
     <div><b class="tag">Land every bar.</b> Three steps to drill a verse on the beat:</div>
     <ol>
@@ -345,6 +398,7 @@ body.write .wrap { max-width: 1240px; }
       <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
       <button id="plus" aria-label="Faster">+</button>
     </div>
+    <button class="btn pri beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
     <span class="det" id="detBox"><span id="det">No beat loaded</span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
     <button class="btn" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button><span class="det" id="tapInfo"></span>
     <label class="field"><input type="checkbox" id="eighths" checked> 8th ticks</label>
@@ -361,7 +415,6 @@ body.write .wrap { max-width: 1240px; }
     <label class="field" title="Clicks between the beats: 16ths, triplets (3 per beat) or quintuplets (5 per beat). x/8 meters always use 16ths.">Grid <select id="subdiv" class="num-in" style="width:auto"><option value="4" selected>16ths</option><option value="3">Triplets</option><option value="5">Quintuplets</option></select></label>
     <label class="field" title="Song shape for the bar map: sections, bar counts, meter and a drill per section. Off = the empty 4-bar loop.">Template <select id="tpl" class="num-in" style="width:auto;max-width:15em"><option value="">None (4-bar loop)</option></select></label>
     <label class="field" title="Delays the in-between 16ths: 0 = straight, 33 = triplet swing, 50+ = hard bounce">Swing <input id="swing" type="range" min="0" max="60" step="1" value="0" style="width:80px"> <span class="det" id="swingOut">0%</span></label>
-    <label class="field">Beat <input type="file" id="beatFile" accept="audio/*" style="max-width:180px;font-size:.8rem"></label>
     <label class="field">Offset (s) <input id="beatOffset" class="num-in" type="number" step="0.01" value="0"></label>
     <label class="field">Volume <input id="beatVol" type="range" min="0" max="1" step="0.05" value="0.8" style="width:90px"></label>
     <button class="btn" id="clear">Clear tiles</button>
@@ -416,7 +469,6 @@ body.write .wrap { max-width: 1240px; }
     <div id="fitOut" style="display:grid;gap:10px"></div>
   </section>
 
-  <p class="note">Space starts and stops. Load a beat (mp3/wav): MetroBar detects the BPM and the first beat; press Use to take the BPM (½ or ×2 if it found half or double time). No beat? Tap the Tap button (or T) 4+ times, then keep tapping with Space. Click any tile to mark it. Fit counts syllables by rule: click a word to correct its count. Practice puts the lines on the tiles, one per bar, with the landing slot lit. Rhymes colours stressed syllables that share a vowel sound within two bars. Bar heel slides every line and its landing a 16th or 8th earlier or later: same words, different syncopation. Polymeter (after Mazbou Q's Science of Rap): a cell of N steps, e.g. 7 triplet steps, repeats across the bar line, so its accents (outlined tiles, high click) land somewhere new every bar until they line up with beat 1 again. Free text? Paste it and press Split into bars. A pickup is the one or two soft syllables sung just before beat 1. Tap test: tick it, start Practice, and press Space (or tap the tiles) on every landing to see how many ms early or late you are; Esc stops. The tempo trainer starts at 70% and adds 5 BPM every 4 bars up to the beat BPM (the beat plays slower and lower while it ramps). Each Fit bar is drawn as a breakdown: dots for syllables, pills for held ones, the landing in red, brackets for the flow's groups. Compare A/B/C/D shows the same words in four flows; pick one and Practice uses it. Vocal: load an acapella or vocal stem (load the beat first so the BPM and offset match) and MetroBar finds every syllable, puts it on the grid, names each bar's flow and shows how early or late the voice is. Paste the lyrics to see the words under the dots, then Use as bars to cut them the way they are rapped.</p>
 </div>
   <div id="viewWrite" class="wr" hidden>
     <aside class="wr-lib" aria-label="Your songs">
@@ -1724,6 +1776,7 @@ $('plus').addEventListener('click', () => setBpm(bpm() + 1));
 $('bpm').addEventListener('change', () => setBpm(bpm()));
 $('beatFile').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
+  $('beatBtn').textContent = 'Change beat'; $('beatBtn').title = f.name;
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
   detected = null; $('keyInfo').textContent = ''; $('keyNotes').hidden = true; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
   try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); }
@@ -2211,9 +2264,26 @@ $('themeBtn').addEventListener('click', () => {
 });
 themeLabel();
 
+// ---- info panel ("i"): how it works, plus a clear way to load the beat
+$('beatBtn').addEventListener('click', () => $('beatFile').click());
+$('infoBeatBtn').addEventListener('click', () => $('beatFile').click());
+$('infoUse').addEventListener('click', () => $('useDet').click());
+$('infoHalf').addEventListener('click', () => $('halfDet').click());
+$('infoDbl').addEventListener('click', () => $('dblDet').click());
+function syncInfoBeat() {
+  $('infoDet').innerHTML = $('det').innerHTML;
+  $('infoUse').hidden = $('useDet').hidden; $('infoHalf').hidden = $('halfDet').hidden; $('infoDbl').hidden = $('dblDet').hidden;
+  $('infoBeatBtn').textContent = $('beatBtn').textContent;
+}
+new MutationObserver(syncInfoBeat).observe($('detBox'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
+new MutationObserver(syncInfoBeat).observe($('beatBtn'), { childList: true });
+$('infoBtn').addEventListener('click', () => { syncInfoBeat(); $('infoDlg').showModal(); });
+$('infoClose').addEventListener('click', () => $('infoDlg').close());
+$('infoDlg').addEventListener('click', e => { if (e.target === $('infoDlg')) $('infoDlg').close(); });
+
 // ---- keys
 document.addEventListener('keydown', e => {
-  if ($('viewPractice').hidden) return;
+  if ($('viewPractice').hidden || $('infoDlg').open) return;
   if (e.target.closest && e.target.closest('summary, a, [contenteditable]')) return;
   if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.type !== 'checkbox' && document.activeElement.type !== 'range') return;
   if (e.code === 'KeyT' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); tap(); return; }
