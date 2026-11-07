@@ -1926,7 +1926,7 @@ function renderTiles(barIdx) {
   subEls.forEach((e, i) => {
     const b = Math.floor(i / MAXS), sb = i % MAXS, show = b < lay.nb && sb < lay.lens[b], sl = show ? lay.starts[b] + sb : -1;
     e.classList.toggle('off', !show); if (!show) return;
-    if (!L) { e.textContent = countLabel(lay, sl); return; }
+    if (!L) { e.textContent = sb + 1; e.title = countLabel(lay, sl); return; }   // steps numbered 1 2 3 4 under every beat; the spoken count (1 e + a) is the tooltip
     e.replaceChildren(); if (L.slots[sl] >= 0) e.append(syllSpan(L, L.slots[sl])); else e.textContent = '';
   });
 }
