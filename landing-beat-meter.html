@@ -1,10 +1,10 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MetroBar</title>
-<meta name="theme-color" content="#111413">
+<meta name="theme-color" content="#eef0ec">
 <meta name="description" content="MetroBar: rap practice tool. Detect the beat, fit lyrics to bars, drill the landing.">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
@@ -16,9 +16,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
-<script>try{var t=localStorage.getItem('metrobar.theme');if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <style>
-/* Dark by default. Accent (--accent) is the one tweak colour: landing tiles, Start button, logo "4". Change it with the picker. */
+/* The page is always light (data-theme="light" on <html>); the dark set below is used by the analysis cards. Accent (--accent) is the one tweak colour: landing tiles, Start button, logo "4". Change it with the picker. */
 :root {
   --accent: #af0000; --on-accent: #fff;
   --bg: #111413; --panel: #1a1e1d; --fg: #e9ece8; --muted: #8e9893; --line: #2c3331;
@@ -65,26 +64,40 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .readout { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
 .readout b { color: var(--fg); font-weight: 600; }
 
-/* Deck: the beat tiles and, centred under them, a pendulum metronome, all inside one glowing panel. Both run off the Web Audio clock in draw():
+/* Deck: the pendulum metronome standing on its own (no box) above the beat-tile box. Both run off the Web Audio clock in draw():
    the rod reaches its extreme exactly on each beat (where you hear the click) and swings across in between,
-   and the red record glow (--g, 0..1) flashes on the tick and decays per frame. Beat 1 glows strongest. */
-.deck { --g: 0; position: relative; display: grid; gap: 14px;
-  background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
-.deck::after { content: ""; position: absolute; inset: -1px; border-radius: inherit; pointer-events: none; opacity: var(--g);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 85%, #fff), 0 0 48px 6px color-mix(in srgb, var(--accent) 80%, transparent), inset 0 0 44px color-mix(in srgb, var(--accent) 30%, transparent); }
-.metro { width: 180px; justify-self: center; }
-.metro svg { display: block; width: 100%; height: auto; overflow: visible; }
-.metro .m-body { fill: var(--cell); stroke: var(--line); }
-.metro .m-face { fill: var(--bg); }
-.metro .m-scale { stroke: var(--muted); stroke-width: 1; opacity: .7; }
-.metro .m-rod { stroke: var(--fg); stroke-width: 2.4; stroke-linecap: round; }
-.metro .m-weight { fill: var(--fg); }
+   and the red record glow (--g, 0..1) flashes on the tick and decays per frame: the tile box outline turns red and glows; the badge lights. Beat 1 glows strongest. */
+.deck { --g: 0; --edge: color-mix(in srgb, var(--accent) calc(var(--g) * 90%), var(--line)); position: relative; display: grid; }
+.deck-box { background: var(--panel); border: 1px solid var(--edge); border-radius: 14px; padding: 14px;
+  filter: drop-shadow(0 0 calc(var(--g) * 22px) color-mix(in srgb, var(--accent) calc(var(--g) * 85%), transparent)); }
+/* Pyramid metronome, drawn like a line sketch: ink outlines on a pale case, seen straight on, a slim arm pivoting low on the plinth with a sliding weight
+   (slow = weight high, fast = low, against the tempo scale), a winding key on the side and a diamond badge that lights red on the tick. */
+.metro { --m-case: color-mix(in srgb, var(--bg) 45%, #fff); --m-ink: var(--fg); justify-self: center; position: relative; z-index: 1; margin-bottom: -3px; }   /* stands on its own on top of the tile box: no box, border or background; feet rest on the box's top edge */
+.metro svg { filter: drop-shadow(5px 6px 6px rgb(0 0 0 / .16)); }   /* soft shadow cast behind it, light from the top left */
+.metro .m-floor { fill: rgb(0 0 0 / .32); }
+.metro svg { display: block; width: 200px; height: auto; overflow: visible; }
+.metro svg * { vector-effect: non-scaling-stroke; }
+.metro .m-body, .metro .m-cap, .metro .m-lip { fill: var(--m-case); stroke: var(--m-ink); stroke-width: 1.1; stroke-linejoin: round; }
+.metro .m-face { fill: color-mix(in srgb, var(--m-case) 88%, var(--muted)); stroke: var(--m-ink); stroke-width: .9; }
+.metro .m-strip { fill: var(--m-case); stroke: var(--m-ink); stroke-width: .8; }
+.metro .m-tabs rect { fill: var(--m-case); stroke: var(--m-ink); stroke-width: .7; }
+.metro .m-trim, .metro .m-capline { fill: none; stroke: var(--m-ink); stroke-width: .8; }
+.metro .m-slot { stroke: var(--m-ink); stroke-width: 2.4; stroke-linecap: round; }
+.metro .m-scale { stroke: var(--muted); stroke-width: .8; }
+.metro .m-nums { fill: var(--muted); font: 600 5px var(--mono); }
+.metro .m-feet rect { fill: var(--m-ink); }
+.metro .m-rod { fill: var(--m-case); stroke: var(--m-ink); stroke-width: 1.1; stroke-linejoin: round; }
+.metro .m-weight { fill: var(--m-case); stroke: var(--m-ink); stroke-width: 1.1; stroke-linejoin: round; }
+.metro .m-screw, .metro .m-knob { fill: var(--m-ink); }
 .metro .m-pivot { fill: var(--accent); }
-.metro .m-led { fill: var(--accent); opacity: calc(.35 + .65 * var(--g)); }
+.metro .m-keystem { stroke: var(--m-ink); stroke-width: 1.6; }
+.metro .m-wing { fill: var(--m-case); stroke: var(--m-ink); stroke-width: 1; stroke-linejoin: round; }
+.metro .m-badge { fill: var(--m-case); stroke: var(--m-ink); stroke-width: 1; }
+.metro .m-lit { fill: var(--accent); opacity: var(--g); }
 .metro .m-halo { fill: color-mix(in srgb, var(--accent) 75%, #ff5a4a); opacity: var(--g); }
-.metro .m-label { fill: var(--muted); font: 600 7px var(--mono); letter-spacing: .18em; }
-.metro .m-pend { transform-box: view-box; transform-origin: 60px 138px; }
-@media (max-width: 560px) { .deck { padding: 10px; } .metro { width: 132px; } }
+.metro .m-wheel { fill: none; stroke: var(--m-ink); stroke-width: .8; }
+.metro .m-pend { transform-box: view-box; transform-origin: 70px 136px; }
+@media (max-width: 560px) { .deck-box { padding: 10px; } .metro svg { width: 140px; } }
 .bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .beat { display: grid; gap: 6px; align-content: start; }
 .beat .num { font-family: var(--display); font-weight: 900; font-size: clamp(3rem, 14vw, 6rem); line-height: .85; text-align: center;
@@ -125,11 +138,7 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .legend span { display: inline-flex; align-items: center; gap: 6px; }
 .legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
 
-.pmbox { margin-top: -6px; }
-#pmInfo, #tapRes { white-space: normal; flex: 1 1 100%; min-width: 0; }
-.pmbox select, .fit select { max-width: 13em; }
-.pmbox .field, .fit .field { min-width: 0; max-width: 100%; }
-.pmbox .pmh b { font-family: var(--display); font-size: 1.15rem; letter-spacing: .03em; text-transform: uppercase; }
+#pmInfo, #tapRes { white-space: normal; min-width: 0; }
 .sub span.off { display: none; }
 .sub.s3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .bar.dense .sub span { font-size: .5rem; letter-spacing: -.05em; }
@@ -165,7 +174,7 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 .studio summary { cursor: pointer; font-weight: 600; }
 .studio h3 { font-size: .9rem; margin: 12px 0 4px; }
 .st-wrap { overflow-x: auto; }
-.st { border-collapse: collapse; font-family: var(--mono); font-size: .8rem; min-width: 100%; }
+table.st { border-collapse: collapse; font-family: var(--mono); font-size: .8rem; min-width: 100%; }
 .st th, .st td { padding: 3px 8px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
 .st th:first-child, .st td:first-child { text-align: left; }
 .st th { color: var(--muted); font-weight: 500; }
@@ -182,9 +191,7 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 :focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; }
 .note { font-size: .82rem; color: var(--muted); margin: 0; max-width: 70ch; line-height: 1.45; }
 
-.fit { display: grid; gap: 12px; padding: 14px; background: var(--panel); border-radius: 8px; }
-.fit h2 { margin: 0; font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.5rem; letter-spacing: .02em; }
-.fit textarea { width: 100%; min-height: 8.5rem; resize: vertical; padding: 10px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); line-height: 1.5; }
+.fit textarea { width: 100%; min-height: 8.5rem; resize: vertical; padding: 10px; border: 1px solid var(--rail); border-radius: 6px; background: var(--well); color: var(--fg); line-height: 1.5; }
 .row { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; }
 .sum { font-family: var(--mono); font-size: .82rem; color: var(--muted); line-height: 1.5; }
 .sum b { color: var(--fg); font-weight: 600; }
@@ -197,6 +204,18 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 .chip sup { font-family: var(--mono); font-size: .65rem; margin-left: 3px; color: var(--muted); }
 .rh { --rc: var(--r0); background: color-mix(in srgb, var(--rc) 28%, transparent); box-shadow: inset 0 -2px 0 var(--rc); border-radius: 3px; }
 .rh1 { --rc: var(--r1); } .rh2 { --rc: var(--r2); } .rh3 { --rc: var(--r3); } .rh4 { --rc: var(--r4); } .rh5 { --rc: var(--r5); } .rh6 { --rc: var(--r6); } .rh7 { --rc: var(--r7); }
+/* Analysis cards (Fit bars, rhyme map, song bars, Write cards) are always dark, in the logo palette: graphite, off-white, red. */
+.line, .rmap, .wr-card {
+  --bg: #111413; --panel: #1a1e1d; --fg: #e9ece8; --muted: #8e9893; --line: #2c3331;
+  --cell: #252b29; --hit: #e9ece8;
+  --s1: #4b5652; --s2: #66716c; --s3: #838d88; --s4: #a1aaa5; --s5: #bfc6c2;
+  --r0: #d9a62e; --r1: #3fa7d6; --r2: #e0679c; --r3: #59b36b; --r4: #a77fe0; --r5: #e07b39; --r6: #3cbfb0; --r7: #c9c94a;
+  --bd-syl: #4f9cf0; --bd-num: #f2c94c; --bd-strip: #f2c94c; --bd-ink: #15181a; --bd-bar: #e9ece8;
+  --accent-text: color-mix(in srgb, var(--accent) 55%, var(--fg));
+  --land-soft: color-mix(in srgb, var(--accent) 38%, var(--cell));
+  color-scheme: dark; color: var(--fg);
+}
+.wr-card { background: #161a19; border-color: var(--line); }
 .rmap { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; display: grid; gap: 6px; }
 .rmap .rl { font-size: 1.05rem; line-height: 1.6; } .rmap .rl b { font-family: var(--mono); font-size: .7rem; color: var(--muted); margin-right: 8px; font-weight: 400; }
 .rmap .mu { outline: 1px dashed var(--muted); outline-offset: 1px; }
@@ -215,7 +234,7 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 .gl { display: grid; grid-template-columns: repeat(16, minmax(0, 1fr)); gap: 2px; font-family: var(--mono); font-size: .55rem; color: var(--muted); text-align: center; }
 .warn { color: var(--fg); font-weight: 600; }
 .adv { margin: 0; font-size: .86rem; color: var(--muted); line-height: 1.45; }
-/* Breakdown: Mazbou Q-style lanes (rap lane, beat lane, lyric strip, counts) */
+/* Breakdown view lanes (rap lane, beat lane, lyric strip, counts) */
 .bd { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
 .bd svg { display: block; height: auto; }
 .bd text { font-family: var(--mono); }
@@ -242,18 +261,33 @@ button.mini, .cmp button { font: inherit; font-family: var(--mono); font-size: .
 .views { display: flex; gap: 4px; background: var(--cell); padding: 4px; border-radius: 8px; }
 .views a { font-family: var(--mono); font-size: .85rem; color: var(--muted); text-decoration: none; padding: 6px 12px; border-radius: 6px; }
 .views a[aria-current="page"] { background: var(--bg); color: var(--fg); font-weight: 600; }
-body.write .wrap { max-width: 1240px; }
-.wr { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); align-items: start; }
-@media (min-width: 1100px) { .wr { grid-template-columns: 210px minmax(0, 1fr) 300px; } }
+.wr { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); align-items: start; }
 .wr h2 { margin: 0; font-family: var(--display); font-weight: 900; text-transform: uppercase; font-size: 1.4rem; letter-spacing: .02em; }
 .wr h3 { margin: 0 0 6px; font-size: .95rem; }
 .wr-lib, .wr-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: grid; gap: 8px; min-width: 0; }
-.libtg { background: none; border: 0; padding: 0; margin: 0; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; cursor: pointer; }
-.libtg:focus-visible { outline: 2px solid var(--fg); outline-offset: 2px; border-radius: 4px; }
-@media (min-width: 1100px) { .libtg { cursor: default; pointer-events: none; } .libtg #wrLibN { display: none; } }
-@media (max-width: 1099px) { .wr-lib:not(.open) > :not(.wr-libh) { display: none; } .libtg::after { content: " ▾"; font-size: .8em; } .wr-lib.open .libtg::after { content: " ▴"; } }
+/* the song list is closed until the Songs button in the header bar drops it open; picking a song closes it again */
+.wr-lib:not(.open) { display: none; }
+.wr-lib .pv { display: none; }
+.wr-libh h2 { flex: 1; }
+.wr-pop { width: 30px; height: 30px; font-size: 1rem; line-height: 1; }
+/* wide screens: the list is a panel under the logo, no wider than the logo; the Write column moves right only if it would touch it */
+@media (min-width: 1180px) {
+  #viewWrite { --lw: 15.5rem; position: relative; margin-inline: calc(50% - 50vw + max(10px, env(safe-area-inset-left, 0px)) + 16px) calc(50% - 50vw + max(10px, env(safe-area-inset-right, 0px)) + 16px); }
+  #viewWrite > :not(.wr-lib, .wr-shade) { justify-self: start; width: min(828px, calc(100% - var(--lw) - 24px)); margin-left: max(calc((100% - 828px) / 2), calc(var(--lw) + 24px)); }
+  #viewWrite > .wr-lib:not(.pop) { display: grid; position: absolute; left: 0; top: 0; width: var(--lw); box-sizing: border-box; }
+  #viewWrite > .wr-lib:not(.pop) ul { grid-template-columns: 1fr; max-height: 55vh; }
+  #wrLibTg { display: none; }
+}
+/* popped out: a big sheet over the page, songs as cards with their first bars */
+.wr-shade { display: none; }
+body.lib-pop .wr-shade { display: block; position: fixed; inset: 0; z-index: 60; background: rgba(17, 20, 19, .45); }
+body.lib-pop { overflow: hidden; }
+#viewWrite > .wr-lib.pop { display: grid; position: fixed; z-index: 61; inset: max(4vh, 16px) max(4vw, 12px); width: auto; margin: 0; align-content: start; overflow: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, .3); }
+.wr-lib.pop ul { max-height: none; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 8px; }
+.wr-lib.pop li button { height: 100%; align-content: start; gap: 4px; padding: 10px 12px; border: 1px solid var(--line); background: var(--bg); }
+.wr-lib.pop .pv { display: block; font-style: normal; font-size: .8rem; color: var(--muted); line-height: 1.4; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .wr-libh { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.wr-lib ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; max-height: 50vh; overflow: auto; }
+.wr-lib ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px 8px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); max-height: 40vh; overflow: auto; }
 .wr-lib li button { width: 100%; text-align: left; font: inherit; font-size: .9rem; padding: 6px 8px; border-radius: 6px; border: 0; background: none; color: var(--fg); cursor: pointer; display: grid; }
 .wr-lib li button small { font-family: var(--mono); font-size: .7rem; color: var(--muted); }
 .wr-lib li button[aria-current="true"] { background: var(--bg); box-shadow: inset 3px 0 0 var(--accent); }
@@ -263,8 +297,12 @@ body.write .wrap { max-width: 1240px; }
 .wr-lib .binrow span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wr-search { width: 100%; text-align: left; }
 .wr-main { display: grid; gap: 10px; min-width: 0; }
+.wr-main > .row .btn { min-height: 30px; padding: 4px 10px; font-size: .85rem; }
+.wr-main > .row .field { font-size: .85rem; }
+@media (min-width: 701px) { .wr-main > .row:first-child > :not(.wr-toast) { flex: 1 1 auto; justify-content: center; } .wr-main > .row:first-child .field .num-in { flex: 1; } .wr-main > .row:first-child .field { display: inline-flex; align-items: center; gap: 6px; }
+  .wr-main > .row .num-in { font-size: .85rem; min-height: 30px; padding-block: 3px; } }
 .wr-top { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-#wrTitle { flex: 1; min-width: 0; font-family: var(--display); font-weight: 900; font-size: 1.7rem; text-transform: uppercase; letter-spacing: .02em; background: none; border: 0; border-bottom: 1px dashed var(--line); color: var(--fg); padding: 2px 0; }
+#wrTitle { flex: 1; min-width: 0; font-family: var(--display); font-weight: 900; font-size: 1.45rem; text-transform: uppercase; letter-spacing: .02em; background: none; border: 0; border-bottom: 1px dashed var(--line); color: var(--fg); padding: 2px 0; }
 #wrTitle:focus { outline: none; border-bottom-color: var(--accent); }
 .tg[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
 /* the editor: a transparent textarea over a mirror that paints rhyme colours behind the same text (same font, padding, wrapping) */
@@ -283,24 +321,40 @@ body.write .wrap { max-width: 1240px; }
 .wr-ov .g.over b::after { content: "+"; }
 .wr-ov .g.hd { color: var(--muted); }
 .wr-ov .hd-t { color: transparent; }
+/* highlights paint only (colour, shadow, outline): nothing that changes the size of the text, so the mirror stays under the typed letters */
+.wr-ov .ln span:not(.g) { display: inline; position: static; width: auto; height: auto; min-width: 0; padding: 0; margin: 0; border: 0; font: inherit; line-height: inherit; color: inherit; letter-spacing: inherit; word-spacing: inherit; vertical-align: baseline; }
 .wr-ov .rh { box-shadow: inset 0 -2px 0 var(--rc); }
 .wr-ov .mu { outline: 1px dashed var(--rc, var(--muted)); outline-offset: 0; border-radius: 3px; }
 .wr-ov .st { box-shadow: inset 0 -3px 0 var(--bd-syl); }
 .wr-ov .rh.st { box-shadow: inset 0 -2px 0 var(--rc), inset 0 -5px 0 var(--bd-syl); }
-.wr-ov .sel { outline: 2px solid var(--accent); border-radius: 3px; }
+.wr-ov .pick { outline: 2px solid var(--accent); border-radius: 3px; }   /* the clicked word (not .sel: that is the rack's select box style) */
 #wrText.hd-mode { }
 .wr-flow { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; }
 .wr-flow svg { display: block; }
-.wr-side { display: grid; gap: 12px; min-width: 0; }
+/* Write header bar (#wrDock): light buttons across the top. Songs drops the song list open under it; each tool opens its own dark panel under the pad (wrPanel). Any mix can be open;
+   a new one is added at the end so the open ones stay where they are. */
+.wr-dock { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; padding: 5px; box-sizing: border-box; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.wr-dock .dk-sep { width: 1px; align-self: stretch; margin: 4px 2px; background: var(--line); }
+#wrLibN { font-family: var(--mono); font-size: .75rem; font-weight: 400; color: var(--muted); }
+.wr-dock .btn { flex: 1 1 auto; display: inline-flex; justify-content: center; align-items: center; gap: 6px; font-size: .85rem; color: var(--fg); min-height: 34px; padding: 4px 6px; border-radius: 6px; white-space: nowrap; }
+.wr-dock .btn::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #cdd4cc; box-shadow: inset 0 0 0 1px #b3bcb3; transition: background .15s, box-shadow .15s; }
+.wr-dock .btn:not([aria-expanded])::before { display: none; }
+@media (max-width: 700px) { .wr-dock { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; scrollbar-width: none; } .wr-dock::-webkit-scrollbar { display: none; } .wr-dock .btn { flex: none; white-space: nowrap; } }
+.wr-dock .btn[aria-expanded="true"] { border-color: var(--fg); font-weight: 600; }
+.wr-dock .btn[aria-expanded="true"]::before { background: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+.wr-panels { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); align-items: start; }
+.wr-panels:not(:has(> :not([hidden]))) { display: none; }
+.wr-panels > .wr-card { position: relative; }
+.wr-panels > .wr-card.wide { grid-column: 1 / -1; }
+.wr-panels > .wr-card > h3:first-child { padding-right: 34px; }
+.wr-x { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid transparent; border-radius: 6px; background: none; color: var(--muted); font-size: 1.1rem; line-height: 1; cursor: pointer; }
+.wr-x:hover, .wr-x:focus-visible { color: var(--fg); border-color: var(--line); }
+@media (prefers-reduced-motion: reduce) { .wr-dock .btn::before { transition: none; } }
 .wr-rh { display: flex; flex-wrap: wrap; gap: 5px; }
 .wr-rh button { font: inherit; font-size: .85rem; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 .wr-rh button.pf { border-color: var(--accent); }
 .wr-sub { font-family: var(--mono); font-size: .72rem; color: var(--muted); margin: 6px 0 2px; text-transform: uppercase; letter-spacing: .04em; }
 .wr-tech { display: grid; gap: 6px; }
-.wr-tech details { border-top: 1px solid var(--line); padding-top: 6px; }
-.wr-tech summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
-.wr-tech p { margin: 4px 0; font-size: .85rem; line-height: 1.45; color: var(--muted); }
-.wr-tech pre { margin: 4px 0; font-family: var(--mono); font-size: .78rem; white-space: pre-wrap; background: var(--bg); padding: 6px 8px; border-radius: 6px; }
 .wr-chk { display: grid; gap: 6px; font-size: .83rem; line-height: 1.4; }
 .wr-chk .ok { color: var(--fg); } .wr-chk .todo { color: var(--muted); }
 .wr-chk b { font-family: var(--mono); font-size: .75rem; }
@@ -321,6 +375,7 @@ body.write .wrap { max-width: 1240px; }
 .wr-clown summary { cursor: pointer; font-size: .85rem; color: var(--muted); }
 .wr-clown[open] { display: grid; gap: 6px; }
 .wr-ov .cl { text-decoration: underline wavy var(--accent); text-decoration-skip-ink: none; text-underline-offset: 5px; text-decoration-thickness: 1.5px; }
+#wrMsg:empty { display: none; }
 .wr-toast { font-family: var(--mono); font-size: .8rem; color: var(--muted); display: inline-flex; gap: 8px; align-items: center; }
 .ed-in { flex: 1; min-width: 12em; font: inherit; font-size: .95rem; padding: 6px 8px; border: 1px solid var(--accent); border-radius: 6px; background: var(--bg); color: var(--fg); }
 .chip .x { margin-left: 4px; color: var(--muted); font-family: var(--mono); font-size: .7rem; }
@@ -353,27 +408,18 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 .info-beat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 18px 0; padding: 12px 14px; background: var(--panel); border-radius: 8px; }
 .info-keys { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 18px 0; font-size: .85rem; color: var(--muted); }
 .info kbd { font-family: var(--mono); font-size: .75rem; color: var(--fg); background: var(--cell); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+.shout { position: relative; margin: 16px 18px 0; padding: 18px 20px 16px; background: #111413; color: #e9ece8; border-radius: 10px; border-left: 6px solid var(--accent); overflow: hidden; }
+.shout::after { content: "\201D"; position: absolute; right: 14px; top: -6px; font-family: var(--display); font-size: 9rem; line-height: 1; color: var(--accent); opacity: .35; pointer-events: none; }
+.shout .k { margin: 0 0 4px; font-family: var(--mono); font-size: .72rem; letter-spacing: .14em; text-transform: uppercase; color: #8e9893; }
+.shout h3 { margin: 0 0 8px; font-family: var(--display); font-size: clamp(1.7rem, 5vw, 2.4rem); line-height: 1; letter-spacing: .02em; text-transform: uppercase; }
+.shout h3 b { color: var(--accent); filter: brightness(1.35); white-space: nowrap; }
+.shout p { position: relative; margin: 0 0 8px; font-size: .92rem; line-height: 1.5; max-width: 56ch; }
+.shout a { color: #e9ece8; font-weight: 600; text-underline-offset: 3px; text-decoration-color: var(--accent); }
 .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 12px; padding: 16px 18px 18px; }
 .info-grid section { background: var(--panel); border-radius: 8px; padding: 12px 14px; }
 .info-grid h3 { margin: 0 0 6px; font-size: .78rem; font-family: var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
 .info-grid p { margin: 0 0 6px; font-size: .88rem; line-height: 1.45; }
 .info-grid p:last-child { margin-bottom: 0; }
-/* Focus view: Start pops the deck (tiles + metronome, same layout) out full screen with nothing else; Stop, Space or Esc puts it back */
-.focus { position: fixed; inset: 0; z-index: 50; background: var(--bg); display: grid; place-items: center; overflow: auto;
-  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
-.focus .deck { width: min(1100px, 100%); gap: clamp(14px, 3vh, 28px); padding: clamp(14px, 2.4vw, 28px); }
-.focus .bar { gap: clamp(8px, 1.4vw, 14px); }
-.focus .beat .num { font-size: clamp(4rem, 17vw, 11rem); height: clamp(6rem, 30vh, 16rem); border-radius: 10px; }
-.focus .bar.many .num { font-size: clamp(2.6rem, 10vw, 7rem); }
-.focus .bar.dense .num { font-size: clamp(2.2rem, 8vw, 6rem); }
-.focus .bar.practice .num { font-size: clamp(1.1rem, 4.4vw, 3rem); }
-.focus .metro { width: clamp(132px, 22vh, 240px); }
-.focus { align-content: center; gap: clamp(12px, 3vh, 24px); }
-.focus .drop { width: min(1100px, 100%); }
-.fc-x { position: fixed; top: max(14px, env(safe-area-inset-top)); right: max(14px, env(safe-area-inset-right)); width: 44px; height: 44px; border-radius: 50%;
-  border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; display: grid; place-items: center; padding: 0; }
-.fc-x:hover, .fc-x:focus-visible { border-color: var(--accent); outline: none; }
-.fc-x::before { content: ""; width: 14px; height: 14px; border-radius: 2px; background: currentColor; }
 /* Rhyme strength badge + "why it rhymes" strip */
 .rmap button.er.tier { font: inherit; font-family: var(--mono); font-size: .7rem; margin-left: 6px; padding: 1px 7px; border-radius: 10px; border: 1px solid var(--line); background: none; color: var(--muted); cursor: pointer; }
 .rmap button.er.t-perfect { color: var(--fg); border-color: var(--accent); }
@@ -399,10 +445,7 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 .resume .rs-t { flex: 1 1 16em; min-width: 0; }
 .spot { outline: 3px solid var(--accent) !important; outline-offset: 3px; transition: outline-color .3s; }
 /* Write tools */
-.wtool summary { cursor: pointer; font-size: .9rem; font-weight: 600; }
-.wtool { border-top: 1px solid var(--line); padding-top: 6px; }
 .wtool p.note { margin: 0; }
-.wtool[open] { display: grid; gap: 8px; }
 .sp-rows { display: grid; gap: 6px; }
 .sp-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .sp-row input:first-child { flex: 1 1 8em; min-width: 0; text-align: left; }
@@ -411,6 +454,197 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 .roy-rows { display: grid; grid-template-columns: minmax(0, 1fr) 96px 80px; gap: 6px; align-items: center; }
 .roy-rows input { width: 100%; }
 #spTotal.warn { color: var(--accent-text); }
+/* Advanced panel: everything below the transport row. Closed on every load. It drops open from the point you click,
+   and its bottom edge bounces a few times like a ball before it settles (advOpen in the script). */
+.transport { border: 1px solid var(--line); }
+.adv { display: grid; min-width: 0; }
+/* Advanced spans the whole window, not the 860px column: it breaks out of .wrap with negative margins and keeps a small gutter */
+/* the header (logo, MetroBar/Write tabs, bar and BPM readout) spans the window too, lined up with the Advanced panel's edges */
+.wrap > header { margin-inline: calc(50% - 50vw + max(10px, env(safe-area-inset-left, 0px))) calc(50% - 50vw + max(10px, env(safe-area-inset-right, 0px))); padding-inline: 16px; }
+#viewPractice > .adv { margin-inline: calc(50% - 50vw + max(10px, env(safe-area-inset-left, 0px))) calc(50% - 50vw + max(10px, env(safe-area-inset-right, 0px))); }
+html, body { overflow-x: clip; }
+.adv-tg { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; cursor: pointer; padding: 14px 16px; min-height: 56px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; transition: border-color .2s, border-radius .2s; }
+.adv-tg:hover { border-color: var(--muted); }
+.adv-tg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.adv-t { font-family: var(--display); font-weight: 900; font-size: 1.3rem; text-transform: uppercase; letter-spacing: .03em; }
+.adv-s { flex: 1; min-width: 0; font-family: var(--mono); font-size: .72rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adv-c { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--fg); transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), background .2s; }
+.adv-c::before { content: ""; width: 7px; height: 7px; border: solid var(--bg); border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg); }
+.adv-tg[aria-expanded="true"] { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
+.adv-tg[aria-expanded="true"] .adv-c { transform: rotate(180deg); background: var(--accent); }
+.adv-tg[aria-expanded="true"] .adv-c::before { border-color: var(--on-accent); }
+.adv-body { background: var(--panel); border: 1px solid var(--line); border-top: 0; border-radius: 0 0 14px 14px; min-width: 0;
+  box-shadow: inset 0 -4px 0 #252b29, 0 14px 24px -18px rgba(17, 20, 19, .45); }
+.adv-body.anim { overflow: hidden; will-change: height, clip-path; }
+.adv-in { display: grid; gap: 20px; padding: 4px 14px 22px; min-width: 0; }
+@media (max-width: 560px) { .adv-s { display: none; } .adv-in { padding: 4px 8px 18px; } }
+@media (prefers-reduced-motion: reduce) { .adv-c, .adv-tg { transition: none; } }
+/* ---- Studio rack: the Advanced panel and the Write cards as hardware. Idea from a DeepSeek mockup Bennie liked.
+   Rules: a switch / segmented / slider / stepper takes effect at once; a red .cbtn.pri re-runs the analysis (Fit, Practice);
+   a lit dot shows "on" as well as colour. Native selects behind [data-seg] stay in the DOM (hidden) so the rest of the
+   script still reads and writes their value; segBuild in the script draws the buttons and keeps them in sync. */
+:root {
+  --rack: #e7eae4; --rack-2: #dfe3dc; --mod: #e9ece6; --well: #f6f8f4; --rail: #c0c7bf; --rail-2: #d0d6cf;
+  --knob-hi: #ffffff; --knob-lo: #7d8883; --faint: #606965;
+  --led: #7a5600; --led-ring: rgba(138, 100, 0, .2); --led-txt: #6e4d00;
+  --pad-a: #f4f6f2; --pad-b: #e6eae4; --pad-edge: #c8cfc7; --pad-shadow: #b9c1b9;
+  --dot-off: #cdd4cc; --dot-ring: #b3bcb3; --inset: rgba(255, 255, 255, .75);
+  --ghost: rgba(21, 24, 26, .06); --ghost-hi: rgba(21, 24, 26, .11);
+  --sw-off: #cdd4cc; --sw-off-bd: #b3bcb3; --sw-on: rgba(138, 100, 0, .2); --sw-on-bd: #7a5600;
+  --sw-knob: linear-gradient(180deg, #ffffff, #c2c9c1); --sw-knob-on: linear-gradient(180deg, #a87800, #6e4d00);
+  --seg-on: linear-gradient(180deg, #ffffff, #eef1ec); --seg-on-shadow: inset 0 1px 0 #fff, 0 1px 2px rgba(20, 30, 25, .14);
+  --pad-on: linear-gradient(180deg, rgba(138, 100, 0, .10), rgba(138, 100, 0, .035));
+}
+.wr-card {
+  --rack: #191d1c; --rack-2: #131716; --mod: #171b1a; --well: #0b0e0d; --rail: #333a37; --rail-2: #2a302e;
+  --knob-hi: #e6e9e4; --knob-lo: #a8b0ab; --faint: #84918b;
+  --led: #e8b04a; --led-ring: rgba(232, 176, 74, .55); --led-txt: #ffd88f;
+  --pad-a: #232927; --pad-b: #1b201f; --pad-edge: #2f3633; --pad-shadow: #0d100f;
+  --dot-off: #2b312f; --dot-ring: #3b423f; --inset: rgba(255, 255, 255, .045);
+  --ghost: rgba(255, 255, 255, .055); --ghost-hi: rgba(255, 255, 255, .1);
+  --sw-off: #0b0e0d; --sw-off-bd: #333a37; --sw-on: rgba(232, 176, 74, .16); --sw-on-bd: #7a5f28;
+  --sw-knob: linear-gradient(180deg, #5a625e, #39403d); --sw-knob-on: linear-gradient(180deg, #e6e9e4, #e8b04a);
+  --seg-on: linear-gradient(180deg, #2a312e, #1e2321); --seg-on-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+  --pad-on: linear-gradient(180deg, rgba(232, 176, 74, .14), rgba(232, 176, 74, .05));
+}
+.rk-key { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 0; font-family: var(--mono); font-size: .68rem; letter-spacing: .04em; color: var(--faint); }
+.rk-key span { display: inline-flex; align-items: center; gap: 6px; }
+.rk-key .k-led { width: 7px; height: 7px; border-radius: 50%; background: var(--led); box-shadow: 0 0 0 2px var(--led-ring); }
+.rk-key .k-run { width: 14px; height: 9px; border-radius: 2px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 85%, #fff), color-mix(in srgb, var(--accent) 80%, #000)); }
+
+.rack { background: linear-gradient(180deg, var(--rack), var(--rack-2)); border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  box-shadow: 0 24px 50px -32px rgba(60, 70, 64, .45), inset 0 1px 0 var(--inset); min-width: 0; color: var(--fg); }
+.rackbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 10px 15px; background: linear-gradient(180deg, var(--inset), transparent); border-bottom: 1px solid var(--line); }
+.rackbar h2 { margin: 0; font-family: var(--display); font-weight: 900; font-size: 1.3rem; letter-spacing: .04em; text-transform: uppercase; }
+.rackbar h2 .steps { font-size: .8em; color: var(--muted); }
+.rackbar .rk-sub { font-family: var(--mono); font-size: .66rem; letter-spacing: .1em; color: var(--faint); text-transform: uppercase; }
+.rackbar .sp { margin-left: auto; }
+/* flex, not grid: every row stretches to the full width, so the rack never shows an empty cell */
+.mods { display: flex; flex-wrap: wrap; gap: 1px; background: var(--line); }
+.mod { flex: 1 1 220px; background: var(--mod); padding: 12px 14px 14px; min-height: 80px; display: flex; flex-direction: column; gap: 10px; justify-content: center; min-width: 0; }
+.mod.span2 { flex: 2 1 441px; }
+.mod.fill { flex-basis: 100%; min-height: 0; }
+.mod-label { font-family: var(--mono); font-size: .62rem; letter-spacing: .18em; color: var(--faint); text-transform: uppercase; display: flex; align-items: center; gap: 7px; }
+.mod-label .val { margin-left: auto; color: var(--fg); letter-spacing: .05em; font-size: .68rem; text-transform: none; text-align: right; }
+.mod .det { font-size: .78rem; }
+.row-in { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+@media (max-width: 560px) { .mod, .mod.span2 { flex-basis: 100%; } }
+
+/* switch: one thing on or off, at once */
+.sw { display: flex; align-items: center; gap: 11px; cursor: pointer; user-select: none; position: relative; min-height: 28px; }
+.sw input { position: absolute; opacity: 0; width: 1px; height: 1px; margin: 0; }
+.sw .track { position: relative; width: 40px; height: 22px; border-radius: 3px; flex: none; background: var(--sw-off); border: 1px solid var(--sw-off-bd); transition: background .13s, border-color .13s; }
+.sw .track::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 16px; border-radius: 2px; background: var(--sw-knob); box-shadow: 0 1px 2px rgba(0, 0, 0, .25); transition: transform .14s cubic-bezier(.4, 1.4, .5, 1); }
+.sw input:checked + .track { background: var(--sw-on); border-color: var(--sw-on-bd); }
+.sw input:checked + .track::after { transform: translateX(18px); background: var(--sw-knob-on); }
+.sw input:focus-visible + .track { outline: 2px solid var(--accent); outline-offset: 2px; }
+.sw .txt { font-size: .88rem; color: var(--muted); transition: color .13s; }
+.sw input:checked ~ .txt { color: var(--fg); }
+
+/* segmented: 2 to ~10 exclusive choices, at once */
+.seg { display: inline-flex; flex-wrap: wrap; background: var(--well); border: 1px solid var(--rail); border-radius: 6px; padding: 2px; gap: 2px; max-width: 100%; }
+.seg + .seg { margin-top: -4px; }
+.seg button { font: inherit; font-family: var(--mono); font-size: .72rem; letter-spacing: .02em; color: var(--faint); background: transparent; border: 0; border-radius: 4px;
+  padding: 6px 10px; min-height: 30px; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background .12s, color .12s; white-space: nowrap; }
+.seg button:hover { color: var(--fg); background: var(--ghost); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.seg button[aria-pressed="true"] { background: var(--seg-on); color: var(--fg); box-shadow: var(--seg-on-shadow); }
+.seg button::before { content: ""; width: 5px; height: 5px; border-radius: 50%; flex: none; background: var(--dot-off); box-shadow: inset 0 0 0 1px var(--dot-ring); }
+.seg button[aria-pressed="true"]::before { background: var(--led); box-shadow: 0 0 0 2px var(--led-ring); }
+.seg.wide { display: flex; width: 100%; }
+.seg.wide button { flex: 1; justify-content: center; }
+.seg-tag { font-family: var(--mono); font-size: .58rem; letter-spacing: .14em; color: var(--faint); text-transform: uppercase; margin: 0 0 -6px 2px; }
+
+/* slider and stepper */
+.sl { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sl input[type=range] { flex: 1; min-width: 0; }
+.sl-l { font-size: .82rem; color: var(--muted); white-space: nowrap; }
+.stp { display: inline-flex; align-items: center; background: var(--well); border: 1px solid var(--rail); border-radius: 6px; overflow: hidden; flex: none; }
+.stp button { font: inherit; font-family: var(--mono); font-size: 1rem; line-height: 1; width: 32px; height: 32px; background: transparent; border: 0; color: var(--muted); cursor: pointer; }
+.stp button:hover { background: var(--ghost-hi); color: var(--fg); }
+.stp input { width: 4.4em; height: 32px; text-align: center; font-family: var(--mono); font-size: .8rem; color: var(--fg); background: transparent;
+  border: 0; border-left: 1px solid var(--rail-2); border-right: 1px solid var(--rail-2); -moz-appearance: textfield; appearance: textfield; }
+.stp input::-webkit-inner-spin-button, .stp input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.txt-in, .sel { font: inherit; font-family: var(--mono); font-size: .8rem; color: var(--fg); background: var(--well); border: 1px solid var(--rail); border-radius: 6px; padding: 7px 10px; width: 100%; min-width: 0; }
+.txt-in:focus, .sel:focus { outline: none; border-color: var(--led); box-shadow: 0 0 0 3px var(--led-ring); }
+input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid var(--rail); border-radius: 6px; background: var(--well); cursor: pointer; }
+
+/* commit buttons: the only things that need a second step. Red = re-runs the analysis */
+.commit { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.commit-sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
+.cbtn { font: inherit; font-size: .86rem; font-weight: 600; letter-spacing: .01em; padding: 8px 16px; min-height: 38px; border-radius: 7px; cursor: pointer;
+  border: 1px solid var(--pad-edge); background: linear-gradient(180deg, var(--pad-a), var(--pad-b)); color: var(--fg);
+  box-shadow: 0 2px 0 var(--pad-shadow), inset 0 1px 0 var(--inset); transition: background .13s, transform .07s, box-shadow .07s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.cbtn:hover { border-color: var(--muted); }
+.cbtn:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--pad-shadow), inset 0 1px 0 var(--inset); }
+.cbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.cbtn.pri { border-color: transparent; color: var(--on-accent); padding-inline: 22px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 88%, #fff), color-mix(in srgb, var(--accent) 82%, #000));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .2), 0 4px 14px -4px color-mix(in srgb, var(--accent) 70%, transparent); }
+.cbtn.pri:hover { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent)); }
+.cbtn.ghost { background: transparent; box-shadow: none; border-color: var(--line); color: var(--muted); font-weight: 500; }
+.cbtn.ghost:hover { color: var(--fg); border-color: var(--muted); background: var(--ghost); }
+.cbtn:disabled { opacity: .45; cursor: not-allowed; }
+.file-btn { position: relative; overflow: hidden; align-self: flex-start; }
+.file-btn input { position: absolute; inset: 0; opacity: 0; cursor: pointer; max-width: none !important; }
+.file-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.fit-in { display: grid; gap: 12px; padding: 14px 15px; border-bottom: 1px solid var(--line); }
+.fit-out { display: grid; gap: 12px; padding: 14px 15px; }
+.fit-out:not(:has(> :not(:empty):not([hidden]))) { display: none; }
+
+/* technique pads (Write): all 18 at once, one tap shows the drill */
+.pads { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 7px; }
+.pad { position: relative; font: inherit; text-align: left; cursor: pointer; background: linear-gradient(180deg, var(--pad-a), var(--pad-b));
+  border: 1px solid var(--pad-edge); border-radius: 6px; padding: 8px 18px 9px 10px; color: var(--muted); min-width: 0;
+  box-shadow: 0 2px 0 var(--pad-shadow), inset 0 1px 0 var(--inset); transition: border-color .13s, transform .07s; }
+.pad:hover { border-color: var(--muted); }
+.pad:active { transform: translateY(1px); box-shadow: 0 1px 0 var(--pad-shadow), inset 0 1px 0 var(--inset); }
+.pad:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pad .nm { display: block; font-size: .8rem; font-weight: 600; color: var(--fg); line-height: 1.25; }
+.pad .df { display: block; margin-top: 3px; font-family: var(--mono); font-size: .62rem; color: var(--faint); }
+.pad::after { content: ""; position: absolute; top: 9px; right: 8px; width: 5px; height: 5px; border-radius: 50%; background: var(--dot-off); box-shadow: inset 0 0 0 1px var(--dot-ring); }
+.pad[aria-pressed="true"] { border-color: var(--sw-on-bd); background: var(--pad-on); }
+.pad[aria-pressed="true"] .nm { color: var(--led-txt); }
+.pad[aria-pressed="true"]::after { background: var(--led); box-shadow: 0 0 6px 1px var(--led-ring); }
+.pad[hidden] { display: none; }
+.tech-card { display: grid; gap: 6px; border: 1px solid var(--rail); border-radius: 8px; background: var(--well); padding: 10px 12px; }
+.tech-card h4 { margin: 0; font-size: .92rem; color: var(--led-txt); }
+.tech-card p { margin: 0; font-size: .85rem; line-height: 1.45; color: var(--muted); }
+.tech-card pre { margin: 0; font-family: var(--mono); font-size: .78rem; white-space: pre-wrap; background: var(--bg); padding: 6px 8px; border-radius: 6px; }
+.tech-card .commit { margin-top: 2px; }
+.tech-card .tip { font-size: .78rem; }
+.tech-card .tsec { display: grid; gap: 4px; }
+.tech-card .tsec-h { display: flex; align-items: center; gap: 8px; font-size: .8rem; }
+.tech-card .tsec-h b { color: var(--led-txt); }
+.tech-card .tsec-h span { color: var(--muted); font-family: var(--mono); font-size: .72rem; }
+.tech-card .tsec-h .mini { margin-left: auto; }
+.tech-card .cbtn { min-height: 32px; padding: 5px 12px; font-size: .8rem; }
+
+/* tool drawers (Write): only for tools with several fields */
+.wtool { border-top: 1px solid var(--line); padding-top: 0; margin: 0 -12px; }
+.wtool > summary { cursor: pointer; list-style: none; padding: 10px 12px; display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: .68rem; font-weight: 400;
+  letter-spacing: .14em; color: var(--muted); text-transform: uppercase; transition: color .13s, background .13s; }
+.wtool > summary::-webkit-details-marker { display: none; }
+.wtool > summary:hover { color: var(--fg); background: var(--ghost); }
+.wtool > summary::after { content: ""; margin-left: auto; width: 6px; height: 6px; border: solid var(--faint); border-width: 0 1.5px 1.5px 0; transform: translateY(-2px) rotate(45deg); transition: transform .18s; }
+.wtool[open] > summary { color: var(--fg); }
+.wtool[open] > summary::after { transform: translateY(1px) rotate(-135deg); }
+.wtool[open] { display: grid; gap: 8px; padding: 0 12px 12px; }
+.wtool[open] > summary { margin: 0 -12px; }
+@media (prefers-reduced-motion: reduce) { .sw .track::after, .cbtn, .pad, .wtool > summary::after { transition: none; } }
+/* Advanced sections fold: the rackbar is a button; the chevron turns when open (rackOpen / rackClose in the script) */
+.rk-tg { flex: 1 1 auto; min-width: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 0; margin: 0; border: 0; background: none; font: inherit; color: inherit; text-align: left; cursor: pointer; min-height: 34px; }
+.rk-tg:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.rk-c { margin-left: auto; flex: none; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--fg); transition: transform .45s cubic-bezier(.3, 1.6, .5, 1), background .2s; }
+.rk-c::before { content: ""; width: 6px; height: 6px; border: solid var(--bg); border-width: 0 2px 2px 0; transform: translateY(-2px) rotate(45deg); }
+.rk-tg[aria-expanded="true"] .rk-c { transform: rotate(180deg); background: var(--accent); }
+.rk-tg[aria-expanded="true"] .rk-c::before { border-color: var(--on-accent); }
+.rack.fold:has(.rk-tg[aria-expanded="false"]) .rackbar { border-bottom-color: transparent; }
+.rack.fold .rackbar { cursor: pointer; }
+.rackbar .rk-tg + .sp { display: none; }
+@media (prefers-reduced-motion: reduce) { .rk-c { transition: none; } }
 </style>
 </head>
 <body>
@@ -424,7 +658,7 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
-      <div class="hbtns"><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button><button class="btn" id="themeBtn">Light mode</button></div>
+      <div class="hbtns"><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
     </div>
   </header>
   <dialog class="info" id="infoDlg" aria-labelledby="infoTitle">
@@ -435,6 +669,13 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
       <button class="btn" id="infoUse" hidden>Use</button><button class="btn" id="infoHalf" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="infoDbl" hidden title="Detected tempo is half: use double">×2</button>
     </div>
     <div class="info-keys"><span><kbd>Space</kbd> start / stop</span><span><kbd>T</kbd> tap tempo</span><span><kbd>Esc</kbd> stop practice</span></div>
+    <aside class="shout" aria-labelledby="shoutTitle">
+      <p class="k">Thank you</p>
+      <h3 id="shoutTitle">Big shout out to <b>Mazbou Q</b></h3>
+      <p>MetroBar started with Mazbou Q. His flow breakdowns, the dots, brackets and counting that let you see a verse instead of only hearing it, are what inspired this whole app.</p>
+      <p>Thank you, Mazbou Q, for showing so many of us how flow really works, and for backing what we are building here.</p>
+      <p><a href="https://www.mazbouq.com" target="_blank" rel="noopener">Learn from the source at mazbouq.com</a></p>
+    </aside>
     <div class="info-grid">
       <section><h3>Beat &amp; tempo</h3>
         <p>Load a beat (mp3 or wav). MetroBar detects the BPM and the first beat. Press <b>Use</b> to take the BPM, or <b>½</b> / <b>×2</b> if it found half or double time.</p>
@@ -463,7 +704,7 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
         <p class="note" id="remNote">Only on this device. It fires while MetroBar is open in a tab or as an installed app, and only on days you have not written.</p>
         <p><button class="btn" id="guideAgain">Show the 3-step guide again</button></p></section>
       <section><h3>Polymeter</h3>
-        <p>After Mazbou Q's <i>Science of Rap</i>. A cell of N steps (e.g. 7 triplet steps) repeats across the bar line, so its accents (outlined tiles, high click) land somewhere new every bar until they line up with beat 1 again.</p></section>
+        <p>A cell of N steps (e.g. 7 triplet steps) repeats across the bar line, so its accents (outlined tiles, high click) land somewhere new every bar until they line up with beat 1 again.</p></section>
       <section><h3>Vocal</h3>
         <p>Load an acapella or vocal stem (load the beat first so the BPM and offset match). MetroBar finds every syllable, puts it on the grid, names each bar's flow and shows how early or late the voice is.</p>
         <p>Paste the lyrics to see the words under the dots, then <b>Use as bars</b> to cut them the way they are rapped.</p></section>
@@ -492,38 +733,43 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
   <div id="viewPractice" class="vp">
 
   <div class="deck" id="deck">
-    <div class="bar" id="bar"></div>
     <div class="metro" id="metro" aria-hidden="true">
-      <svg viewBox="0 0 120 172">
-        <defs><filter id="mGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="4"/></filter></defs>
-        <path class="m-body" d="M20 160 L100 160 L77 14 L43 14 Z"/>
-        <path class="m-face" d="M33 146 L87 146 L71 30 L49 30 Z"/>
-        <g class="m-scale"><path d="M74 44h6M75 58h4M76 72h6M77 86h4M78 100h6M79 114h4M80 128h6"/></g>
+      <svg viewBox="0 0 140 212">
+        <defs><filter id="mGlow" x="-200%" y="-200%" width="500%" height="500%"><feGaussianBlur stdDeviation="4"/></filter><filter id="mSoft" x="-50%" y="-200%" width="200%" height="500%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+        <ellipse class="m-floor" cx="73" cy="209" rx="54" ry="3.2" filter="url(#mSoft)"/>
+        <g class="m-feet"><rect x="34" y="203" width="12" height="5" rx="2"/><rect x="94" y="203" width="12" height="5" rx="2"/></g>
+        <path class="m-body" d="M34 141 L106 141 L116 204 L24 204 Z"/>
+        <path class="m-trim" d="M29 198 L111 198"/>
+        <path class="m-body" d="M40 138 L100 138 L84 24 L56 24 Z"/>
+        <path class="m-face" d="M48 132 L92 132 L80 34 L60 34 Z"/>
+        <rect class="m-strip" x="63" y="36" width="14" height="94"/>
+        <g class="m-tabs"><rect x="64" y="38" width="5" height="4"/><rect x="71" y="38" width="5" height="4"/></g>
+        <g class="m-scale"><path d="M66 44.0h8M64 53.1h12M66 62.3h8M64 71.4h12M66 80.6h8M64 89.7h12M66 98.9h8M64 108.0h12"/></g>
+        <g class="m-nums"><text x="78" y="46.0">60</text><text x="78" y="64.3">100</text><text x="78" y="82.6">140</text><text x="78" y="100.9">180</text></g>
+        <path class="m-cap" d="M54 24 L86 24 L80 9 L60 9 Z"/>
+        <path class="m-capline" d="M60 9 L70 3 L80 9"/>
+        <path class="m-lip" d="M31 146 L109 146 L107 138 L33 138 Z"/>
+        <path class="m-slot" d="M52 141.5 L88 141.5"/>
         <g class="m-pend" id="mPend">
-          <line class="m-rod" x1="60" y1="138" x2="60" y2="22"/>
-          <rect class="m-weight" id="mWeight" x="52" y="60" width="16" height="11" rx="2"/>
+          <path class="m-rod" d="M67.6 136 L72.4 136 L71.6 20 L68.4 20 Z"/>
+          <g id="mWeight" transform="translate(0 70)">
+            <path class="m-weight" d="M60 -7 L80 -7 L76 7 L64 7 Z"/>
+            <circle class="m-screw" cx="66.5" cy="-1.5" r="2"/><circle class="m-screw" cx="73.5" cy="-1.5" r="2"/>
+          </g>
         </g>
-        <circle class="m-pivot" cx="60" cy="138" r="3.6"/>
-        <text class="m-label" x="60" y="156" text-anchor="middle">REC</text>
-        <circle class="m-halo" cx="60" cy="8" r="9" filter="url(#mGlow)"/>
-        <circle class="m-led" cx="60" cy="8" r="4.2"/>
+        <circle class="m-pivot" cx="70" cy="136" r="2.6"/>
+        <path class="m-halo" d="M70 160 L84 170 L70 180 L56 170 Z" filter="url(#mGlow)"/>
+        <path class="m-badge" d="M70 160 L84 170 L70 180 L56 170 Z"/>
+        <path class="m-lit" d="M70 160 L84 170 L70 180 L56 170 Z"/>
+        <g class="m-wheel"><circle cx="70" cy="170" r="4.4"/><path d="M70 165.6v8.8M65.6 170h8.8M66.9 166.9l6.2 6.2M73.1 166.9l-6.2 6.2"/></g>
+        <g class="m-key"><path class="m-keystem" d="M96 112 L102 112"/><circle class="m-knob" cx="102" cy="112" r="2.8"/><path class="m-wing" d="M104 112 L109 104 L118 102 L116 112 L118 122 L109 120 Z"/></g>
       </svg>
     </div>
+    <div class="deck-box"><div class="bar" id="bar"></div></div>
   </div>
 
-  <div class="focus" id="focus" hidden role="dialog" aria-modal="true" aria-label="Metronome running"><button class="fc-x" id="fcStop" aria-label="Stop (Space or Esc)"></button></div>
 
-  <div class="now">
-    <span class="label">Section</span><span class="sec" id="secName">Metronome</span>
-    <span class="label">Drill</span><p id="secDrill"></p>
-  </div>
-  <div class="tele" id="tele" hidden></div>
-  <div class="drop" id="drop" aria-live="polite" hidden></div>
-
-  <div><div class="map" id="map" aria-label="Bar map"></div></div>
-  <div class="legend" id="legend"></div>
-
-  <div class="controls">
+  <div class="controls transport">
     <button class="go" id="go" aria-pressed="false">Start</button>
     <div class="tempo">
       <button id="minus" aria-label="Slower">−</button>
@@ -534,81 +780,180 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
     <button class="btn" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
     <span class="det" id="detBox"><span id="det">No beat loaded</span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
     <button class="btn" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button><span class="det" id="tapInfo"></span>
-    <label class="field"><input type="checkbox" id="eighths" checked> 8th ticks</label>
-    <label class="field"><input type="checkbox" id="countIn" checked> Count-in bar</label>
-    <label class="field" title="Start pops the tiles and the metronome out full screen with nothing else on it. Space, Esc or the stop button closes it."><input type="checkbox" id="focusOn" checked> Full view</label>
-    <label class="field"><input type="checkbox" id="secTick" checked> 1s ticks</label>
-    <label class="field"><input type="checkbox" id="clicks" checked> Clicks</label>
-    <label class="field" title="Freestyle drill: a random word to rap about shows up every few bars while the metronome runs. Works with or without lyrics."><input type="checkbox" id="drops"> Word drops</label>
-    <select id="dropsN" class="num-in" style="width:auto" aria-label="New word every"><option value="2">every 2 bars</option><option value="4" selected>every 4 bars</option><option value="8">every 8 bars</option></select>
-    <label class="field" title="Tempo change: play the beat and the click slower to practise a fast verse, or a bit faster to push yourself. Keep pitch stops the beat sounding deeper or higher (it takes a second to prepare). The Tempo trainer in Fit does its own speed, so this waits while the trainer runs.">Speed <select id="speed" class="num-in" style="width:auto"><option value="70">70%</option><option value="75">75%</option><option value="80">80%</option><option value="85">85%</option><option value="90">90%</option><option value="95">95%</option><option value="100" selected>100%</option><option value="105">105%</option><option value="110">110%</option></select></label>
-    <label class="field"><input type="checkbox" id="keepPitch" checked> Keep pitch</label><span class="det" id="speedInfo"></span>
-    <label class="field" title="Meter of every bar. In lyrics, a tag like [7/8] or [7/8:3+2+2] at the start of a line switches the meter from that bar on. BPM always counts quarter notes, so a 16th keeps its length when the meter changes.">Meter <select id="beats" class="num-in" style="width:auto">
-      <option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="5/4">5/4</option><option value="6/4">6/4</option><option value="7/4">7/4</option>
-      <option value="5/8:3+2">5/8 (3+2)</option><option value="5/8:2+3">5/8 (2+3)</option><option value="6/8:3+3">6/8 (3+3)</option>
-      <option value="7/8:2+2+3">7/8 (2+2+3)</option><option value="7/8:3+2+2">7/8 (3+2+2)</option><option value="7/8:2+3+2">7/8 (2+3+2)</option>
-      <option value="9/8:2+2+2+3">9/8 (2+2+2+3)</option><option value="9/8:3+3+3">9/8 (3+3+3)</option><option value="11/8:3+3+3+2">11/8 (3+3+3+2)</option><option value="12/8:3+3+3+3">12/8 (3+3+3+3)</option></select></label>
-    <label class="field" title="Clicks between the beats: 16ths, triplets (3 per beat) or quintuplets (5 per beat). x/8 meters always use 16ths.">Grid <select id="subdiv" class="num-in" style="width:auto"><option value="4" selected>16ths</option><option value="3">Triplets</option><option value="5">Quintuplets</option></select></label>
-    <label class="field" title="Song shape for the bar map: sections, bar counts, meter and a drill per section. Off = the empty 4-bar loop.">Template <select id="tpl" class="num-in" style="width:auto;max-width:15em"><option value="">None (4-bar loop)</option></select></label>
-    <label class="field" title="Delays the in-between 16ths: 0 = straight, 33 = triplet swing, 50+ = hard bounce">Swing <input id="swing" type="range" min="0" max="60" step="1" value="0" style="width:80px"> <span class="det" id="swingOut">0%</span></label>
-    <label class="field">Offset (s) <input id="beatOffset" class="num-in" type="number" step="0.01" value="0"></label>
-    <label class="field">Volume <input id="beatVol" type="range" min="0" max="1" step="0.05" value="0.8" style="width:90px"></label>
-    <button class="btn" id="clear">Clear tiles</button>
-    <label class="field">Accent <input id="accent" type="color" value="#af0000" aria-label="Accent colour"></label>
+  </div>
+  <div class="tele" id="tele" hidden></div>
+  <div class="drop" id="drop" aria-live="polite" hidden></div>
+
+  <section class="adv" id="adv">
+    <button class="adv-tg" id="advTg" aria-expanded="false" aria-controls="advBody"><span class="adv-t">Advanced</span><span class="adv-s">Fit, rhyme map, flows, polymeter, sound and meter options</span><span class="adv-c" aria-hidden="true"></span></button>
+    <div class="adv-body" id="advBody" hidden><div class="adv-in">
+
+  <div class="now">
+    <span class="label">Section</span><span class="sec" id="secName">Metronome</span>
+    <span class="label">Drill</span><p id="secDrill"></p>
   </div>
 
-  <section class="controls pmbox" aria-label="Polymeter">
-    <label class="field pmh"><input type="checkbox" id="pmOn"> <b>Polymeter</b></label>
-    <label class="field">Preset <select id="pmPreset" class="num-in" style="width:auto">
-      <option value="16|x...........">3-beat phrase over 4/4 (Schoolboy Q)</option>
-      <option value="16|x..">3 over 16ths</option>
-      <option value="16|x....">5 over 16ths</option>
-      <option value="16|x......" >7 over 16ths</option>
-      <option value="16|x.....">3 over 8ths (6 sixteenths)</option>
-      <option value="12|x......" selected>7 over 12 (triplets)</option>
-      <option value="12|x.">Hemiola: 2s over triplets</option>
-      <option value="12|x....">5 over triplets</option>
-      <option value="16|x..x..x.x..">Tresillo cell over 13</option>
-    </select></label>
-    <label class="field">Grid <select id="pmGrid" class="num-in" style="width:auto"><option value="16">16ths (4 per beat)</option><option value="12" selected>Triplets (3 per beat)</option></select></label>
-    <label class="field">Cell <input id="pmCell" class="num-in" value="x......" spellcheck="false" style="width:9em;font-family:var(--mono)" aria-label="Cell pattern, x = accent, . = rest"></label>
-    <label class="field"><input type="checkbox" id="pmSolo"> Cell + beat 1 only</label>
-    <span class="det" id="pmInfo"></span>
+  <div><div class="map" id="map" aria-label="Bar map"></div></div>
+  <div class="legend" id="legend"></div>
+
+  <p class="rk-key"><span><i class="k-led"></i> lit = on</span><span><i class="k-run"></i> red = runs the analysis</span><span>everything else works straight away</span></p>
+
+  <section class="rack" aria-label="Sound and meter">
+    <div class="rackbar"><h2>Sound</h2><span class="rk-sub">clicks · speed · meter · beat</span></div>
+    <div class="mods">
+      <div class="mod">
+        <span class="mod-label">Click</span>
+        <label class="sw"><input type="checkbox" id="clicks" checked><span class="track"></span><span class="txt">Clicks</span></label>
+        <label class="sw"><input type="checkbox" id="eighths" checked><span class="track"></span><span class="txt">8th ticks</span></label>
+        <label class="sw"><input type="checkbox" id="secTick" checked><span class="track"></span><span class="txt">1s ticks</span></label>
+      </div>
+      <div class="mod">
+        <span class="mod-label">On start</span>
+        <label class="sw"><input type="checkbox" id="countIn" checked><span class="track"></span><span class="txt">Count-in bar</span></label>
+      </div>
+      <div class="mod" title="Tempo change: play the beat and the click slower to practise a fast verse, or a bit faster to push yourself. Keep pitch stops the beat sounding deeper or higher (it takes a second to prepare). The Tempo trainer in Fit does its own speed, so this waits while the trainer runs.">
+        <span class="mod-label">Speed <span class="val" id="speedOut">100%</span></span>
+        <div class="sl"><input id="speed" type="range" min="70" max="110" step="5" value="100" aria-label="Speed"></div>
+        <label class="sw"><input type="checkbox" id="keepPitch" checked><span class="track"></span><span class="txt">Keep pitch</span></label><span class="det" id="speedInfo"></span>
+      </div>
+      <div class="mod" title="Delays the in-between 16ths: 0 = straight, 33 = triplet swing, 50+ = hard bounce">
+        <span class="mod-label">Swing <span class="val" id="swingOut">0%</span></span>
+        <div class="sl"><input id="swing" type="range" min="0" max="60" step="1" value="0" aria-label="Swing"></div>
+      </div>
+      <div class="mod span2" title="Meter of every bar. In lyrics, a tag like [7/8] or [7/8:3+2+2] at the start of a line switches the meter from that bar on. BPM always counts quarter notes, so a 16th keeps its length when the meter changes.">
+        <span class="mod-label">Meter <span class="val" data-out="beats"></span></span>
+        <select id="beats" data-seg aria-label="Meter">
+          <optgroup label="Beats">
+          <option value="3/4">3/4</option><option value="4/4" selected>4/4</option><option value="5/4">5/4</option><option value="6/4">6/4</option><option value="7/4">7/4</option></optgroup>
+          <optgroup label="Eighths">
+          <option value="5/8:3+2" data-s="5/8 3+2">5/8 (3+2)</option><option value="5/8:2+3" data-s="5/8 2+3">5/8 (2+3)</option><option value="6/8:3+3" data-s="6/8">6/8 (3+3)</option>
+          <option value="7/8:2+2+3" data-s="7/8 2+2+3">7/8 (2+2+3)</option><option value="7/8:3+2+2" data-s="7/8 3+2+2">7/8 (3+2+2)</option><option value="7/8:2+3+2" data-s="7/8 2+3+2">7/8 (2+3+2)</option>
+          <option value="9/8:2+2+2+3" data-s="9/8 2+2+2+3">9/8 (2+2+2+3)</option><option value="9/8:3+3+3" data-s="9/8 3+3+3">9/8 (3+3+3)</option><option value="11/8:3+3+3+2" data-s="11/8">11/8 (3+3+3+2)</option><option value="12/8:3+3+3+3" data-s="12/8">12/8 (3+3+3+3)</option></optgroup></select>
+      </div>
+      <div class="mod" title="Clicks between the beats: 16ths, triplets (3 per beat) or quintuplets (5 per beat). x/8 meters always use 16ths.">
+        <span class="mod-label">Grid</span>
+        <select id="subdiv" data-seg class="wide" aria-label="Grid"><option value="4" selected>16ths</option><option value="3">Triplets</option><option value="5" data-s="Quint">Quintuplets</option></select>
+      </div>
+      <div class="mod" title="Freestyle drill: a random word to rap about shows up every few bars while the metronome runs. Works with or without lyrics.">
+        <span class="mod-label">Word drops</span>
+        <label class="sw"><input type="checkbox" id="drops"><span class="track"></span><span class="txt">New word every</span></label>
+        <select id="dropsN" data-seg class="wide" aria-label="New word every"><option value="2" data-s="2 bars">every 2 bars</option><option value="4" data-s="4 bars" selected>every 4 bars</option><option value="8" data-s="8 bars">every 8 bars</option></select>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Beat</span>
+        <div class="sl"><span class="sl-l">Volume</span><input id="beatVol" type="range" min="0" max="1" step="0.05" value="0.8" aria-label="Beat volume"></div>
+        <div class="sl"><span class="sl-l">Offset (s)</span><span class="stp" data-step="0.01"><button type="button" aria-label="Offset earlier">−</button><input id="beatOffset" type="number" step="0.01" value="0" aria-label="Beat offset in seconds"><button type="button" aria-label="Offset later">+</button></span></div>
+      </div>
+      <div class="mod" title="Song shape for the bar map: sections, bar counts, meter and a drill per section. Off = the empty 4-bar loop.">
+        <span class="mod-label">Template</span>
+        <select id="tpl" class="sel" aria-label="Template"><option value="">None (4-bar loop)</option></select>
+      </div>
+      <div class="mod fill">
+        <span class="mod-label">Tiles</span>
+        <div class="row-in"><button class="cbtn ghost" id="clear" type="button">Clear tiles</button><label class="sl"><span class="sl-l">Accent</span><input id="accent" type="color" value="#af0000" aria-label="Accent colour"></label></div>
+      </div>
+    </div>
   </section>
 
-  <section class="fit" aria-label="Fit">
-    <h2>Fit <span class="steps">→ Flow → Practice</span></h2>
-    <textarea id="lyrics" spellcheck="false" placeholder="One line per bar. Or paste free text and press Split into bars."></textarea>
-    <div class="row">
-      <button class="btn pri" id="fitBtn">Fit</button>
-      <button class="btn" id="practiceBtn">Practice</button>
-      <button class="btn" id="exampleBtn" title="Load four example bars">Example</button>
-      <button class="btn" id="tplWrite" title="Put the template's lyric skeleton (section headings plus example bars) in the box">Lyric template</button>
-      <button class="btn" id="tplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my lyrics</button>
-      <span class="det" id="tplMsg" role="status"></span>
-      <button class="btn" id="saveSong" title="Save these lyrics as a song in Write, the writing companion">Save to Songs</button>
-      <label class="field" title="Bar heel: slide the whole line, and where it lands, earlier or later. Same words, new syncopation.">Bar heel <select id="heel" class="num-in" style="width:auto">
-        <option value="-2">8th early</option><option value="-1">16th early</option><option value="0" selected>on the grid</option><option value="1">16th late</option><option value="2">8th late</option></select></label>
-      <button class="btn" id="splitBtn" title="Re-cut the text into bars of about this many syllables">Split into bars</button>
-      <select id="splitN" aria-label="Syllables per bar" class="num-in" style="width:auto"><option value="8">8 syl (8ths)</option><option value="10" selected>10 syl</option><option value="12">12 syl</option><option value="16">16 syl (16ths)</option></select>
-      <label class="field"><input type="checkbox" id="rhymesOn" checked> Rhymes</label>
-      <label class="field" title="While practice runs: press Space or tap the tiles on each landing. Esc or Stop ends."><input type="checkbox" id="tapTest"> Tap test</label>
-      <span class="det" id="tapRes"></span>
-      <label class="field"><input type="checkbox" id="trainer"> Tempo trainer</label>
-      <label class="field">Loop bars <input id="loopLo" class="num-in" type="number" min="1" placeholder="1" style="width:56px"> – <input id="loopHi" class="num-in" type="number" min="1" placeholder="all" style="width:56px"></label>
-      <label class="field" title="Load an acapella or vocal stem. MetroBar finds every syllable and puts it on the grid, using the BPM and the beat offset above.">Vocal <input type="file" id="vocalFile" accept="audio/*" style="max-width:180px;font-size:.8rem"></label>
-      <button class="btn" id="exportBtn">Export JSON</button>
-      <button class="btn" id="resetFix">Reset corrections</button>
+  <section class="rack pmbox" aria-label="Polymeter">
+    <div class="rackbar"><h2>Polymeter</h2><span class="rk-sub">a cell of N steps over the bar line</span><span class="sp"></span>
+      <label class="sw"><input type="checkbox" id="pmOn"><span class="track"></span><span class="txt">On</span></label></div>
+    <div class="mods">
+      <div class="mod span2">
+        <span class="mod-label">Preset <span class="val" data-out="pmPreset"></span></span>
+        <select id="pmPreset" data-seg aria-label="Polymeter preset">
+          <option value="16|x..........." data-s="3-beat phrase">3-beat phrase over 4/4 (Schoolboy Q)</option>
+          <option value="16|x.." data-s="3 / 16ths">3 over 16ths</option>
+          <option value="16|x...." data-s="5 / 16ths">5 over 16ths</option>
+          <option value="16|x......" data-s="7 / 16ths">7 over 16ths</option>
+          <option value="16|x....." data-s="3 / 8ths">3 over 8ths (6 sixteenths)</option>
+          <option value="12|x......" data-s="7 / triplets" selected>7 over 12 (triplets)</option>
+          <option value="12|x." data-s="Hemiola">Hemiola: 2s over triplets</option>
+          <option value="12|x...." data-s="5 / triplets">5 over triplets</option>
+          <option value="16|x..x..x.x.." data-s="Tresillo / 13">Tresillo cell over 13</option>
+        </select>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Grid</span>
+        <select id="pmGrid" data-seg class="wide" aria-label="Polymeter grid"><option value="16" data-s="16ths">16ths (4 per beat)</option><option value="12" data-s="Triplets" selected>Triplets (3 per beat)</option></select>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Cell <span class="val">x = accent · . = rest</span></span>
+        <input id="pmCell" class="txt-in" value="x......" spellcheck="false" aria-label="Cell pattern, x = accent, . = rest">
+        <label class="sw"><input type="checkbox" id="pmSolo"><span class="track"></span><span class="txt">Cell + beat 1 only</span></label>
+      </div>
+      <div class="mod fill"><span class="det" id="pmInfo"></span></div>
     </div>
+  </section>
+
+  <section class="rack fit" aria-label="Fit">
+    <div class="rackbar"><h2>Fit <span class="steps">→ Flow → Practice</span></h2></div>
+    <div class="fit-in">
+    <textarea id="lyrics" spellcheck="false" placeholder="One line per bar. Or paste free text and press Split into bars."></textarea>
+    <div class="commit">
+      <button class="cbtn pri" id="fitBtn">Fit</button>
+      <button class="cbtn pri" id="practiceBtn">Practice</button>
+      <span class="commit-sep"></span>
+      <button class="cbtn ghost" id="exampleBtn" title="Load four example bars">Example</button>
+      <button class="cbtn ghost" id="tplWrite" title="Put the template's lyric skeleton (section headings plus example bars) in the box">Lyric template</button>
+      <button class="cbtn ghost" id="tplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my lyrics</button>
+      <button class="cbtn ghost" id="saveSong" title="Save these lyrics as a song in Write, the writing companion">Save to Songs</button>
+      <span class="det" id="tplMsg" role="status"></span>
+    </div>
+    </div>
+    <div class="mods">
+      <div class="mod span2" title="Bar heel: slide the whole line, and where it lands, earlier or later. Same words, new syncopation.">
+        <span class="mod-label">Bar heel <span class="val" data-out="heel"></span></span>
+        <select id="heel" data-seg class="wide" aria-label="Bar heel"><option value="-2" data-s="8th early">8th early</option><option value="-1" data-s="16th early">16th early</option><option value="0" data-s="on the grid" selected>on the grid</option><option value="1" data-s="16th late">16th late</option><option value="2" data-s="8th late">8th late</option></select>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Show</span>
+        <label class="sw"><input type="checkbox" id="rhymesOn" checked><span class="track"></span><span class="txt">Rhymes</span></label>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Practice</span>
+        <label class="sw" title="While practice runs: press Space or tap the tiles on each landing. Esc or Stop ends."><input type="checkbox" id="tapTest"><span class="track"></span><span class="txt">Tap test</span></label>
+        <label class="sw" title="Starts at 70% and adds 5 BPM every 4 bars up to the beat BPM."><input type="checkbox" id="trainer"><span class="track"></span><span class="txt">Tempo trainer</span></label>
+        <span class="det" id="tapRes"></span>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Loop bars</span>
+        <div class="row-in">
+          <span class="stp" data-loop="lo"><button type="button" aria-label="First loop bar down">−</button><input id="loopLo" type="number" min="1" placeholder="1" aria-label="First bar of the loop"><button type="button" aria-label="First loop bar up">+</button></span>
+          <span class="sl-l">to</span>
+          <span class="stp" data-loop="hi"><button type="button" aria-label="Last loop bar down">−</button><input id="loopHi" type="number" min="1" placeholder="all" aria-label="Last bar of the loop"><button type="button" aria-label="Last loop bar up">+</button></span>
+        </div>
+      </div>
+      <div class="mod" title="Re-cut the text in the box into bars of about this many syllables">
+        <span class="mod-label">Split into bars</span>
+        <select id="splitN" data-seg class="wide" aria-label="Syllables per bar"><option value="8" data-s="8">8 syl (8ths)</option><option value="10" data-s="10" selected>10 syl</option><option value="12" data-s="12">12 syl</option><option value="16" data-s="16">16 syl (16ths)</option></select>
+        <button class="cbtn" id="splitBtn" type="button">Split the text</button>
+      </div>
+      <div class="mod" title="Load an acapella or vocal stem. MetroBar finds every syllable and puts it on the grid, using the BPM and the beat offset above.">
+        <span class="mod-label">Vocal</span>
+        <label class="cbtn file-btn">Load acapella<input type="file" id="vocalFile" accept="audio/*"></label>
+      </div>
+      <div class="mod">
+        <span class="mod-label">Files</span>
+        <div class="row-in"><button class="cbtn ghost" id="exportBtn" type="button">Export JSON</button><button class="cbtn ghost" id="resetFix" type="button">Reset corrections</button></div>
+      </div>
+    </div>
+    <div class="fit-out">
     <div class="sum" id="fitSum"></div>
     <div id="songOut" style="display:grid;gap:10px" hidden></div>
     <div id="fitOut" style="display:grid;gap:10px"></div>
+    </div>
+  </section>
+    </div></div>
   </section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
-    <aside class="wr-lib" aria-label="Your songs">
-      <div class="wr-libh"><h2><button class="libtg" id="wrLibTg" aria-expanded="false">Songs <span id="wrLibN"></span></button></h2><button class="btn pri" id="wrNew">New song</button></div>
+    <div class="wr-top"><input id="wrTitle" placeholder="Untitled" aria-label="Song title" autocomplete="off"><span class="wr-toast" id="wrSaved"></span><span class="sr-only" id="wrSaveErr" role="alert"></span></div>
+    <div class="wr-dock" id="wrDock" role="toolbar" aria-label="Write: Songs opens your song list here, each tool opens its panel under the writing pad"><button class="btn" type="button" id="wrLibTg" aria-expanded="false" aria-controls="wrLib">Songs <span id="wrLibN"></span></button><button class="btn" type="button" id="wrNew" title="Start a new song">+ New</button><span class="dk-sep" aria-hidden="true"></span></div>
+    <div class="wr-shade" id="wrLibShade" aria-hidden="true"></div>
+    <aside class="wr-lib" id="wrLib" aria-label="Your songs">
+      <div class="wr-libh"><h2>Songs</h2><button class="ibtn wr-pop" type="button" id="wrLibPop" aria-expanded="false" aria-label="Pop out the song list" title="Pop out: browse all your songs in a big view">⤢</button></div>
       <input id="wrSearch" class="num-in wr-search" type="search" placeholder="Search songs" aria-label="Search songs">
       <ul id="wrList"></ul>
       <details id="wrBinBox"><summary>Recently deleted (<span id="wrBinN">0</span>)</summary><div id="wrBin"></div></details>
@@ -621,7 +966,6 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
     </aside>
 
     <section class="wr-main" aria-label="Write">
-      <div class="wr-top"><input id="wrTitle" placeholder="Untitled" aria-label="Song title" autocomplete="off"><span class="wr-toast" id="wrSaved"></span><span class="sr-only" id="wrSaveErr" role="alert"></span></div>
       <div class="row" style="gap:6px 8px">
         <button class="btn tg" id="wrRhymes" aria-pressed="true" title="Colour the rhymes: same colour = same vowel sound on a stressed syllable within two bars. Dashed = part of a multisyllable rhyme.">Rhymes</button>
         <button class="btn tg" id="wrStress" aria-pressed="false" title="Underline the stressed syllables: the ones you hit hardest">Stress</button>
@@ -634,7 +978,7 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
         <button class="btn pri" id="wrPractice" title="Open this song in MetroBar: Fit, Compare and Practice it on the beat">Practice in MetroBar</button>
         <span class="wr-toast" id="wrMsg" role="status"></span>
       </div>
-      <div class="wr-ed"><div class="wr-ov" id="wrOv" aria-hidden="true"></div><textarea id="wrText" spellcheck="true" aria-label="Lyrics" placeholder="One line = one bar.&#10;# Hook: a line starting with # is a section heading&#10;[7/8] at the start of a line switches the meter from that bar on"></textarea></div>
+      <div class="wr-ed"><div class="wr-ov" id="wrOv" aria-hidden="true"></div><textarea id="wrText" spellcheck="true" autocorrect="off" data-gramm="false" data-gramm_editor="false" data-enable-grammarly="false" data-lt-active="false" aria-label="Lyrics" placeholder="One line = one bar.&#10;# Hook: a line starting with # is a section heading&#10;[7/8] at the start of a line switches the meter from that bar on"></textarea></div>
       <div class="wr-flow" id="wrFlow" hidden></div>
       <p class="sum" id="wrStats"></p>
       <div class="row" style="gap:6px">
@@ -642,55 +986,112 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
         <button class="btn" id="wrDl" title="Download this song as a text file">Download .txt</button>
         <button class="btn" id="wrDel">Delete</button>
       </div>
+      <div class="wr-panels" id="wrPanels">
+        <section class="wr-card" aria-label="Rhymes" data-tab="Rhymes" hidden>
+          <h3>Rhymes for <span id="wrWord" style="color:var(--accent-text)">…</span></h3>
+          <p class="note" id="wrRhNote">Click a word in your lyrics, or type one here.</p>
+          <div class="row" style="gap:6px"><input id="wrFind" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="Find rhymes for…" aria-label="Find rhymes for a word"><button class="btn" id="wrFindBtn">Find</button></div>
+          <div id="wrRh"></div>
+          <div id="wrProof" aria-live="polite"></div>
+          <button class="btn" id="wrOnline" title="Looks the word up in the free Datamuse word list on the internet. Only the word is sent.">More rhymes online</button>
+        </section>
+        <section class="wr-card" aria-label="Checks" data-tab="Checks" hidden><h3>Checks</h3><div class="wr-chk" id="wrChecks"><span class="note">Write a few bars. Headings like "# Monorhyme" or "# Fixed end tag" get their own check.</span></div></section>
+        <section class="wr-card" aria-label="Technique check" data-tab="Technique check" data-short="Tech check" hidden><h3>Technique check</h3><p class="note" id="wrTcScope"></p><div class="wr-chk" id="wrTc"></div></section>
+        <section class="wr-card" aria-label="Cliché score" data-tab="Cliché score" data-short="Clichés" hidden><h3>Cliché score</h3><div id="wrCl"></div>
+          <details class="wr-clown"><summary>Your own cliché list (<span id="wrClN">0</span>)</summary>
+            <p class="note">Phrases you never want to write again. They get flagged like the built-in list. Saved in this browser.</p>
+            <div class="row" style="gap:6px"><input id="wrClAdd" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="Add a phrase…" aria-label="Add a phrase to your cliché list"><button class="btn" id="wrClAddBtn">Add</button></div>
+            <div class="wr-rh" id="wrClList"></div>
+          </details></section>
+        <section class="wr-card wide" aria-label="Techniques" data-tab="Techniques" hidden><h3>Techniques</h3><div class="wr-tech" id="wrTech"></div></section>
+        <section class="wr-card" aria-label="Writing streak" data-tab="Streak" hidden><h3>Streak</h3><div id="wrStreak"></div></section>
+        <section class="wr-card" aria-label="Stash" data-tab="Stash" hidden><h3>Stash</h3>
+          <p class="note">Loose bars that don't fit this song yet. Stash the line you're on (or what you selected), and drop it into any song later.</p>
+          <div class="row" style="gap:6px"><button class="btn" id="stashAdd">Stash this line</button><span class="det" id="stashN"></span></div>
+          <div class="stash" id="stashList"></div></section>
+        <section class="wr-card" aria-label="Tools" data-tab="Tools" hidden><h3>Tools</h3>
+          <details class="wtool" id="tlRhyme"><summary>Does it rhyme?</summary>
+            <p class="note">Type two words or two line endings. MetroBar compares the last word of each, sound by sound.</p>
+            <div class="row" style="gap:6px"><input id="drA" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="first word" aria-label="First word"><input id="drB" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="second word" aria-label="Second word"><button class="btn" id="drGo">Check</button></div>
+            <div id="drOut" aria-live="polite"></div></details>
+          <details class="wtool" id="tlSplit"><summary>Split sheet</summary>
+            <p class="note">Who wrote what share of this song. Agree it with everyone who wrote, then all sign it. This is a starting point, not legal advice.</p>
+            <div id="spRows" class="sp-rows"></div>
+            <div class="row" style="gap:6px"><button class="btn" id="spAdd">Add writer</button><button class="btn" id="spEven">Split evenly</button><span class="det" id="spTotal"></span></div>
+            <button class="btn" id="spDl">Download split sheet</button></details>
+          <details class="wtool" id="tlRoy"><summary>Streaming royalties</summary>
+            <p class="note">Rough pay per 1,000 streams. Rates change by country, year and deal, so type in what your distributor reports.</p>
+            <div id="royRows" class="roy-rows"></div>
+            <label class="field">Your share after the label or distributor <input id="royShare" class="num-in" type="number" min="0" max="100" value="100" style="width:64px"> %</label>
+            <p class="sum" id="royOut"></p></details>
+          <details class="wtool" id="tlName"><summary>Title ideas</summary>
+            <p class="note">Song and album titles built from the words in this song. Nothing is sent anywhere.</p>
+            <div class="row" style="gap:6px"><select id="nmKind" data-seg aria-label="Kind of title"><option value="song">Song titles</option><option value="album">Album titles</option><option value="rap">Rap names</option></select><button class="btn" id="nmGo">New ideas</button></div>
+            <div class="wr-rh" id="nmOut"></div></details>
+        </section>
+      </div>
     </section>
 
-    <aside class="wr-side" aria-label="Writing tools">
-      <section class="wr-card" aria-label="Rhymes">
-        <h3>Rhymes for <span id="wrWord" style="color:var(--accent-text)">…</span></h3>
-        <p class="note" id="wrRhNote">Click a word in your lyrics, or type one here.</p>
-        <div class="row" style="gap:6px"><input id="wrFind" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="Find rhymes for…" aria-label="Find rhymes for a word"><button class="btn" id="wrFindBtn">Find</button></div>
-        <div id="wrRh"></div>
-        <div id="wrProof" aria-live="polite"></div>
-        <button class="btn" id="wrOnline" title="Looks the word up in the free Datamuse word list on the internet. Only the word is sent.">More rhymes online</button>
-      </section>
-      <section class="wr-card" aria-label="Checks"><h3>Checks</h3><div class="wr-chk" id="wrChecks"><span class="note">Write a few bars. Headings like "# Monorhyme" or "# Fixed end tag" get their own check.</span></div></section>
-      <section class="wr-card" aria-label="Technique check"><h3>Technique check</h3><p class="note" id="wrTcScope"></p><div class="wr-chk" id="wrTc"></div></section>
-      <section class="wr-card" aria-label="Cliché score"><h3>Cliché score</h3><div id="wrCl"></div>
-        <details class="wr-clown"><summary>Your own cliché list (<span id="wrClN">0</span>)</summary>
-          <p class="note">Phrases you never want to write again. They get flagged like the built-in list. Saved in this browser.</p>
-          <div class="row" style="gap:6px"><input id="wrClAdd" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="Add a phrase…" aria-label="Add a phrase to your cliché list"><button class="btn" id="wrClAddBtn">Add</button></div>
-          <div class="wr-rh" id="wrClList"></div>
-        </details></section>
-      <section class="wr-card" aria-label="Techniques"><h3>Techniques</h3><div class="wr-tech" id="wrTech"></div></section>
-      <section class="wr-card" aria-label="Writing streak"><h3>Streak</h3><div id="wrStreak"></div></section>
-      <section class="wr-card" aria-label="Stash"><h3>Stash</h3>
-        <p class="note">Loose bars that don't fit this song yet. Stash the line you're on (or what you selected), and drop it into any song later.</p>
-        <div class="row" style="gap:6px"><button class="btn" id="stashAdd">Stash this line</button><span class="det" id="stashN"></span></div>
-        <div class="stash" id="stashList"></div></section>
-      <section class="wr-card" aria-label="Tools"><h3>Tools</h3>
-        <details class="wtool" id="tlRhyme"><summary>Does it rhyme?</summary>
-          <p class="note">Type two words or two line endings. MetroBar compares the last word of each, sound by sound.</p>
-          <div class="row" style="gap:6px"><input id="drA" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="first word" aria-label="First word"><input id="drB" class="num-in" style="flex:1;text-align:left;min-width:0" placeholder="second word" aria-label="Second word"><button class="btn" id="drGo">Check</button></div>
-          <div id="drOut" aria-live="polite"></div></details>
-        <details class="wtool" id="tlSplit"><summary>Split sheet</summary>
-          <p class="note">Who wrote what share of this song. Agree it with everyone who wrote, then all sign it. This is a starting point, not legal advice.</p>
-          <div id="spRows" class="sp-rows"></div>
-          <div class="row" style="gap:6px"><button class="btn" id="spAdd">Add writer</button><button class="btn" id="spEven">Split evenly</button><span class="det" id="spTotal"></span></div>
-          <button class="btn" id="spDl">Download split sheet</button></details>
-        <details class="wtool" id="tlRoy"><summary>Streaming royalties</summary>
-          <p class="note">Rough pay per 1,000 streams. Rates change by country, year and deal, so type in what your distributor reports.</p>
-          <div id="royRows" class="roy-rows"></div>
-          <label class="field">Your share after the label or distributor <input id="royShare" class="num-in" type="number" min="0" max="100" value="100" style="width:64px"> %</label>
-          <p class="sum" id="royOut"></p></details>
-        <details class="wtool" id="tlName"><summary>Title ideas</summary>
-          <p class="note">Song and album titles built from the words in this song. Nothing is sent anywhere.</p>
-          <div class="row" style="gap:6px"><select id="nmKind" class="num-in" style="width:auto" aria-label="Kind of title"><option value="song">Song titles</option><option value="album">Album titles</option><option value="rap">Rap names</option></select><button class="btn" id="nmGo">New ideas</button></div>
-          <div class="wr-rh" id="nmOut"></div></details>
-      </section>
-    </aside>
   </div>
 </div>
 
+<script>
+/* ---- Studio rack controls (see the .rack CSS note). Runs before the app script so later code that sets a select's value
+   (restores, templates, polymeter presets) also lights the right segment. */
+(() => {
+  const VAL = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+  const sync = sel => {
+    sel._seg.forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === VAL.get.call(sel))));
+    const opt = sel.selectedOptions[0];
+    document.querySelectorAll(`[data-out="${sel.id}"]`).forEach(o => { o.textContent = opt ? opt.textContent : ''; });
+  };
+  document.querySelectorAll('select[data-seg]').forEach(sel => {
+    const groups = [...sel.querySelectorAll('optgroup')], parts = groups.length ? groups : [sel];
+    let at = sel; sel._seg = [];
+    parts.forEach(g => {
+      if (g !== sel) { const t = document.createElement('span'); t.className = 'seg-tag'; t.textContent = g.label; at.after(t); at = t; }
+      const seg = document.createElement('div');
+      seg.className = 'seg' + (sel.classList.contains('wide') ? ' wide' : ''); seg.setAttribute('role', 'group');
+      seg.setAttribute('aria-label', (sel.getAttribute('aria-label') || '') + (g !== sel ? ': ' + g.label : ''));
+      g.querySelectorAll('option').forEach(opt => {
+        const b = document.createElement('button'); b.type = 'button'; b.dataset.v = opt.value; b.textContent = opt.dataset.s || opt.textContent;
+        if (opt.dataset.s && opt.dataset.s !== opt.textContent) b.title = opt.textContent;
+        b.addEventListener('click', () => { if (VAL.get.call(sel) === opt.value) return; sel.value = opt.value; sel.dispatchEvent(new Event('change', { bubbles: true })); });
+        seg.append(b); sel._seg.push(b);
+      });
+      at.after(seg); at = seg;
+    });
+    sel.hidden = true;
+    Object.defineProperty(sel, 'value', { configurable: true, get() { return VAL.get.call(this); }, set(v) { VAL.set.call(this, v); sync(this); } });
+    sel.addEventListener('change', () => sync(sel));
+    sync(sel);
+  });
+  // steppers: − / + next to a number box. Loop bars stay inside the song; the last bar at the end means "all" (empty)
+  const fire = i => { i.dispatchEvent(new Event('input', { bubbles: true })); i.dispatchEvent(new Event('change', { bubbles: true })); };
+  document.querySelectorAll('.stp').forEach(st => {
+    const inp = st.querySelector('input'), [dn, up] = st.querySelectorAll('button');
+    const go = d => {
+      if (st.dataset.loop) {
+        const tot = Math.max(1, typeof total === 'number' ? total : 1), lo = document.getElementById('loopLo'), hi = document.getElementById('loopHi');
+        const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+        if (st.dataset.loop === 'lo') {
+          const v = clamp((parseInt(lo.value) || 1) + d, 1, tot); lo.value = String(v);
+          if (hi.value && parseInt(hi.value) < v) hi.value = v >= tot ? '' : String(v);
+        } else {
+          const v = clamp((parseInt(hi.value) || tot) + d, Math.min(tot, parseInt(lo.value) || 1), tot); hi.value = v >= tot ? '' : String(v);
+        }
+      } else {
+        const step = +st.dataset.step || 1, dec = (String(step).split('.')[1] || '').length;
+        inp.value = ((+inp.value || 0) + d * step).toFixed(dec);
+      }
+      fire(inp);
+    };
+    dn.addEventListener('click', () => go(-1)); up.addEventListener('click', () => go(1));
+  });
+  const sp = document.getElementById('speed'), so = document.getElementById('speedOut');
+  sp.addEventListener('input', () => { so.textContent = sp.value + '%'; });
+})();
+</script>
 <script id="core">
 /* ---- CORE: pure functions (no DOM). Tested by core.test.js ---- */
 const ONES = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
@@ -947,9 +1348,9 @@ const TRIP = { id: 'trip', name: 'Triplets', sub: 3, color: '--r4', on: lay => l
   advice: 'Three even syllables per beat, accent the first of each three, keep the consonants short; the rhyme lands on the first triplet of the last beat.' };
 const QUINT = { id: 'quint', name: 'Quintuplets', sub: 5, color: '--r6', on: lay => lay.den === 4, hits: lay => lay.starts.slice(),
   advice: 'Five syllables per beat: faster than 16ths, slower than 32nds, so it floats against the drums. Lock only the first of every five to the beat and let the rest roll evenly; short vowels.' };
-// Stomp cadence / military bounce (Mazbou Q: "a two beat cadence that stops dead on 2 to create a marching feel, as used by A$AP Ferg,
-// Three 6 Mafia, Wu-Tang Clan and A Tribe Called Quest"). The bar is two 2-beat cells; each cell runs up to a stressed stop word ON beat 2
-// (and beat 4), then goes silent for the rest of the beat. One soft syllable may hang off the stop (Flowdan's "DUM-da-da DUM-da" cells).
+// Stomp cadence / military bounce: a two-beat cadence that stops dead on 2 for a marching feel (A$AP Ferg,
+// Three 6 Mafia, Wu-Tang Clan, A Tribe Called Quest). The bar is two 2-beat cells; each cell runs up to a stressed stop word ON beat 2
+// (and beat 4), then goes silent for the rest of the beat. One soft syllable may hang off the stop ("DUM-da-da DUM-da" cells).
 const STOMP = { id: 'stomp', name: 'Stomp cadence (military bounce)', color: '--r5', on: lay => lay.den === 4 && lay.sub === 4 && lay.nb % 2 === 0, hits: lay => lay.starts.slice(),
   advice: 'Two-beat cells that stop dead on 2 and 4, like boots on the ground. Hit the stop word hard and leave the rest of that beat empty; say both cells with the same shape (call and response works).' };
 const ALLFLOWS = () => FLOWS.concat([TRIP, QUINT, STOMP]);
@@ -1092,7 +1493,7 @@ function analyseLine(text, fix, heel = 0, force = null, meter = '4/4') {   // he
       for (let j = 0; j < k; j++) slots[target - k + 1 + j] = Nb - k + j + pickup;
     }
   }
-  // bar-heel displacement (Mazbou Q on Mickey Factz): same words, the line and its landing slide earlier or later
+  // bar-heel displacement: same words, the line and its landing slide earlier or later
   let early = [], late = 0;
   if (heel) {
     const ns = new Array(G).fill(-1);
@@ -1238,7 +1639,7 @@ function breathBoundaries(ons, bpm, offset = 0, meter = '4/4', nBars = 0) {
   }
   return out;
 }
-/* Song-structure devices (from the Flowdan "BARS" breakdown: blocks of 16 or 8 bars, one device per block). Each check reads the
+/* Song-structure devices (from the Radio freestyle breakdown: blocks of 16 or 8 bars, one device per block). Each check reads the
    analysed bars of one section and says how well they keep the device. */
 function endVowelOf(L) { for (let k = L.N - 1; k >= 0; k--) if (L.syl[k].st) return L.syl[k].v; return null; }
 const normText = t => t.toLowerCase().replace(/[^a-z0-9' ]/g, '').replace(/\s+/g, ' ').trim();
@@ -1754,6 +2155,33 @@ function quantizeOnsets(ons, bpm, offset = 0, meter = '4/4') {
   }
   return out;
 }
+
+// ---- Write pad mirror helpers (pure, tested in core.test.js). The mirror must hold exactly the characters of the textarea, in order,
+// or the colours drift off the words. sylRanges: [start, end) of each syllable inside the raw token; syllable parts are the
+// letters/digits of the cleaned word, in order. Ranges never overlap, never go backwards and stay inside the token (null = no letters left).
+function sylRanges(raw, parts) {
+  raw = String(raw || ''); parts = Array.isArray(parts) ? parts : [];
+  const pos = []; for (let c = 0; c < raw.length; c++) if (/[a-z0-9]/i.test(raw[c])) pos.push(c);
+  const out = []; let p = 0, c = 0;
+  parts.forEach((pt, i) => {
+    let n = String(pt || '').toLowerCase().replace(/[^a-z0-9]/g, '').length || (i === parts.length - 1 ? pos.length - p : 0);
+    n = Math.max(0, Math.min(n, pos.length - p));
+    if (!n) { out.push(null); return; }
+    const a = Math.max(pos[p], c), b = pos[p + n - 1] + 1; p += n;
+    if (b <= a) { out.push(null); return; }
+    out.push([a, b]); c = b;
+  });
+  const lastI = out.map(Boolean).lastIndexOf(true);
+  if (lastI >= 0 && pos.length && p < pos.length) out[lastI][1] = pos[pos.length - 1] + 1;
+  return out;
+}
+// one painted token: a list of { t: text, k: syllable index or -1 }; joined, the texts always equal raw exactly
+function paintPieces(raw, parts) {
+  raw = String(raw || ''); const rg = sylRanges(raw, parts), out = []; let c = 0;
+  rg.forEach((r, k) => { if (!r || r[0] < c) return; if (r[0] > c) out.push({ t: raw.slice(c, r[0]), k: -1 }); out.push({ t: raw.slice(r[0], r[1]), k }); c = r[1]; });
+  if (c < raw.length) out.push({ t: raw.slice(c), k: -1 });
+  return out;
+}
 </script>
 
 <script>
@@ -1761,9 +2189,9 @@ const EMPTY_SECTIONS = [
   { name: 'Metronome', bars: 4, color: '--s1', drill: 'Free practice on a 4-bar loop. Click tiles to mark landings, or paste lyrics below and press Practice to put your own bars here.' },
 ];
 /* Templates: a song shape for the metronome map (sections, bars, meter, drill per section) plus a lyric skeleton to write into.
-   "Radio freestyle" follows the Flowdan "BARS" breakdown (triple j, 145 BPM): 80 bars in 16- and 8-bar blocks, one device per block. */
+   "Radio freestyle" (145 BPM): 80 bars in 16- and 8-bar blocks, one device per block. */
 const TEMPLATES = {
-  radio: { name: 'Radio freestyle (Flowdan "BARS" shape, 80 bars)', bpm: 145, sections: [
+  radio: { name: 'Radio freestyle (80 bars)', bpm: 145, sections: [
     { name: 'A1 Space', bars: 16, color: '--s1', drill: 'About 8 syllables a bar on straight 8ths, stresses on the beat. Short phrases, then rest. Change the rhyme sound every 2 to 4 bars. Ad-libs (Listen, Yeah, Rah) only at the start of a bar.' },
     { name: 'A2 Space, restart', bars: 16, color: '--s1', drill: 'Restart with a spoken "Listen" just before bar 1. Same space, new rhyme families.' },
     { name: 'B Monorhyme', bars: 16, color: '--s4', drill: 'One vowel at the end of nearly every bar. Change only the setup words before it (places, names, slang). The end word lands in the same slot every bar.' },
@@ -1818,7 +2246,7 @@ I keep it steady till they open it more
 [4/4] One two three and four
 [5/4] One two three and four and five` },
   cadence: { name: 'Four-bar cadence: 16 counts (6+6+4)', bpm: 90, sections: [{ name: 'Cadence 6+6+4', bars: 4, color: '--s4', stops: [6, 12, 16],
-    drill: 'Mazbou Q\'s four-bar cadence: 16 counts over 4 bars. Sentences of 6, 6 and 4 counts: the woodblock marks where each must END. Count 16 resolves.' },
+    drill: 'Four-bar cadence: 16 counts over 4 bars. Sentences of 6, 6 and 4 counts: the woodblock marks where each must END. Count 16 resolves.' },
     { name: 'Cadence 5+7+4', bars: 4, color: '--s3', stops: [5, 12, 16], drill: 'Now 5 + 7 + 4 counts. The sentence ends move off the bar lines, but count 16 still resolves.' },
     { name: 'Cadence 3+5+8', bars: 4, color: '--s2', stops: [3, 8, 16], drill: '3 + 5 + 8 counts: a short line, a medium one, then one long sentence over two bars.' }],
     lyrics: `# Enjambment: let the sentence run over the bar line, close it on count 16
@@ -1951,7 +2379,7 @@ function loopRange() {
   const lo = Math.min(total, Math.max(1, parseInt($('loopLo').value) || 1)), hi = Math.min(total, Math.max(lo, parseInt($('loopHi').value) || total));
   return { lo: lo - 1, hi: hi - 1 };
 }
-let teleEls = [], focusPh = null;   // focusPh: [element, placeholder] pairs the focus view puts back on close
+let teleEls = [];
 function showBar(barIdx, tp) {
   shownBar = barIdx;
   const counting = barIdx < 0;
@@ -2075,11 +2503,11 @@ if ('IntersectionObserver' in window) new IntersectionObserver(es => { tilesSeen
 // ---- deck metronome: pendulum + red record glow, both computed per frame from the audio clock (no timers)
 const deck = $('deck'), mPend = $('mPend'), mWeight = $('mWeight'), calmQ = matchMedia('(prefers-reduced-motion: reduce)');
 let pend = null, pendN = 0;   // last beat heard: { t, dur, side, glow }
-function metroWeight(tp) { mWeight.setAttribute('y', (40 + (Math.min(200, Math.max(60, tp)) - 60) / 140 * 64).toFixed(1)); }   // slow = weight high, like a real one
+function metroWeight(tp) { mWeight.setAttribute('transform', `translate(0 ${(44 + (Math.min(200, Math.max(60, tp)) - 60) / 140 * 64).toFixed(1)})`); }   // slow = weight high, like a real one; lines up with the scale ticks
 function metroFrame(now) {
   if (!pend) { mPend.style.transform = ''; deck.style.setProperty('--g', 0); return; }
   const f = Math.min(1, Math.max(0, (now - pend.t) / pend.dur));
-  mPend.style.transform = calmQ.matches ? '' : `rotate(${(24 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
+  mPend.style.transform = calmQ.matches ? '' : `rotate(${(22 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
   const g = (pend.glow * Math.exp(-(now - pend.t) / Math.min(0.14, pend.dur * 0.35))).toFixed(3);
   deck.style.setProperty('--g', g);
 }
@@ -2113,7 +2541,7 @@ function start() {
   lastBar = -2; playedBars = 0; rateDirty = false; stopBeat(); landTimes = []; tapOffs = [];
   metroReset(); step = 0; bar = $('countIn').checked ? -1 : loopRange().lo; queue = []; nextTime = ctx.currentTime + 0.08; nextSec = nextTime;
   timer = setInterval(schedule, 25); schedule(); raf = requestAnimationFrame(draw);
-  running = true; openFocus(); stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
+  running = true; stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
 }
 function tapLanding() {
   const lat = ctx.outputLatency || ctx.baseLatency || 0, t = ctx.currentTime - lat;
@@ -2128,7 +2556,6 @@ function tapLanding() {
 $('bar').addEventListener('pointerdown', e => { if (running && $('tapTest').checked) { e.preventDefault(); tapLanding(); } }, true);
 $('bar').addEventListener('click', e => { if (running && $('tapTest').checked) { e.stopPropagation(); e.preventDefault(); } }, true);
 function stop() {
-  closeFocus();
   clearInterval(timer); cancelAnimationFrame(raf); running = false; queue = []; stopBeat(); metroReset(); dropStop();
   subEls.forEach(e => e.classList.remove('on')); beatEls.forEach(e => e.num.classList.remove('on'));
   stripEls.forEach(e => e.classList.remove('on')); stripVis();
@@ -2136,23 +2563,6 @@ function stop() {
   showBar(practice ? loopRange().lo : 0);
 }
 $('go').addEventListener('click', () => running ? stop() : start());
-// ---- focus view: the deck moves into a full-screen layer while the metronome runs (not from the Write tab's beat button)
-function openFocus() {
-  if (!$('focusOn').checked || $('viewPractice').hidden || focusPh) return;
-  // the deck, plus the word-drop card when Word drops is on (that word is the drill, not a distraction)
-  focusPh = ['deck', 'drop'].map(id => { const el = $(id), ph = document.createComment(id); el.before(ph); $('focus').append(el); return [el, ph]; });
-  $('focus').hidden = false; document.documentElement.style.overflow = 'hidden';
-  $('fcStop').focus({ preventScroll: true });
-}
-function closeFocus() {
-  if (!focusPh) return;
-  focusPh.forEach(([el, ph]) => ph.replaceWith(el)); focusPh = null;
-  $('focus').hidden = true; document.documentElement.style.overflow = '';
-  if (document.activeElement === $('fcStop') || document.activeElement === document.body) $('go').focus({ preventScroll: true });
-}
-$('fcStop').addEventListener('click', () => { if (running) stop(); });
-$('focusOn').checked = store.get('metrobar.focus', true);
-$('focusOn').addEventListener('change', () => store.set('metrobar.focus', $('focusOn').checked));
 
 // ---- BPM field, detection, tap tempo
 function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); $('bpmOut').textContent = bpm(); if (!running) metroWeight(bpm()); updateSpb(); persist(); if ($('infoDlg').open) studioRender(); }
@@ -2267,7 +2677,7 @@ const rhCls = g => (g == null ? '' : 'rh' + (g % 8 ? ' rh' + (g % 8) : ''));
 function wordGroup(li, wi) { const L = lines[li]; for (let i = 0; i < L.N; i++) if (L.syl[i].w === wi && rhymes.syl[li][i] != null) return rhymes.syl[li][i]; return null; }
 const SVGNS = 'http://www.w3.org/2000/svg';
 function sv(tag, at, txt) { const e = document.createElementNS(SVGNS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; }
-// One bar drawn like the Mazbou Q breakdowns: flow brackets, rap lane (dot = syllable, pill = held, red = landing,
+// One bar in the Breakdown view: flow brackets, rap lane (dot = syllable, pill = held, red = landing,
 // dim = rest), beat lane, yellow lyric strip, counting, dashed focus box on the landing.
 function bdCw(lay) { return lay.sub === 3 ? 28 : lay.sub === 5 ? 17 : 21; }
 function bdWidth(L, padSlots = 0) { const lay = L.lay, cw = bdCw(lay); return 6 + padSlots * cw + Math.max(L.grid, L.ghostTo || 0) * cw + 16; }
@@ -2680,20 +3090,13 @@ $('exportBtn').addEventListener('click', () => {
   a.download = 'metrobar-song.json'; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 });
 
-// ---- theme + accent (accent is the one tweak colour)
+// ---- accent (the one tweak colour). The app is always light; analysis cards are always dark (see .line, .rmap, .wr-card in the CSS)
 function setAccent(c) {
   document.documentElement.style.setProperty('--accent', c);
   const n = parseInt(c.slice(1), 16), l = (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255;
   document.documentElement.style.setProperty('--on-accent', l > 0.6 ? '#111413' : '#fff');
 }
 $('accent').addEventListener('input', e => { setAccent(e.target.value); persist(); });
-function themeLabel() { $('themeBtn').textContent = document.documentElement.dataset.theme === 'light' ? 'Dark mode' : 'Light mode'; }
-$('themeBtn').addEventListener('click', () => {
-  const t = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  document.documentElement.dataset.theme = t; try { localStorage.setItem('metrobar.theme', t); } catch {}
-  document.querySelector('meta[name=theme-color]').content = t === 'light' ? '#eef0ec' : '#111413'; themeLabel();
-});
-themeLabel();
 
 // ---- info panel ("i"): how it works, plus a clear way to load the beat
 $('beatBtn').addEventListener('click', () => $('beatFile').click());
@@ -2814,24 +3217,78 @@ if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigat
    as you type, the bar under the cursor as a breakdown, rhymes for any word, checks per section, templates and techniques.
    It shares the core (analyseLine, rhymeMap, checkDevice, TEMPLATES) with MetroBar; "Practice in MetroBar" hands the song over. */
 const TECHS = [
-  { name: 'Straight 8ths', what: 'One syllable on every 8th note: 8 a bar, stresses on the beat. The base of grime and drill.', how: 'Clap 8ths and say exactly 8 syllables. Do 16 bars without drifting.', head: 'Straight 8ths: 8 syllables a bar, stress on the beat', ex: 'Step in the room and it goes quiet\nAll eyes on me and I don\'t buy it' },
-  { name: '16ths', what: 'Four syllables a beat, up to 16 a bar. Fast, even, every slot filled.', how: 'Keep every syllable the same length. Breathe at the bar line.', head: '16ths: up to 16 syllables a bar, all even', ex: 'Running it up with the people I trust and we never gonna slow it down' },
-  { name: 'Triplets', what: 'Three syllables a beat, 12 a bar: the rolling Migos-style flow.', how: 'Count "1 trip let 2 trip let". Three-syllable words fit one beat each.', head: 'Triplets: 3 syllables a beat, 12 a bar', ex: 'Every three syllables we underscore\nPicking the words so we keep up the form' },
-  { name: 'Tresillo 3-3-2', what: 'Stresses in groups of 3, 3 and 2 eighths: 1, the "and" of 2, beat 4. The Latin and dancehall pulse.', how: 'Put the heavy syllables on slots 1, 4 and 7 of 8. Let the rest be soft.', head: 'Tresillo: stresses grouped 3-3-2', ex: 'Money on my mind and the city on my back' },
-  { name: 'Stomp cadence (military bounce)', what: 'Two cells a bar that stop dead on 2 and 4, like boots marching (Mazbou Q). Three 6 Mafia, A$AP Ferg, Wu-Tang, Flowdan.', how: 'Up to 4 syllables, then a hard one-syllable stop word ON the beat, then silence. Comma between the cells.', head: 'Stomp cadence: two cells a bar, stop dead on 2 and 4', ex: 'Boots on the ground, guns in the air\nStomp it out, shut it down' },
-  { name: 'Hemiola', what: 'Groups of 3 over a beat of 2 (or 2s over triplets): the phrase pulls against the beat, then lands.', how: 'Repeat a 3-syllable stress pattern across the bar so it lands on a new beat each time.', head: 'Hemiola: 3s over the 4', ex: 'Pick it up, pick it up, pick it up and go' },
-  { name: 'Quintuplets', what: 'Five syllables a beat, 17 to 20 a bar (Adams, Ohriner). Rare and very fast.', how: 'Lock only the first of each five to the beat: "1 ka di mi ti". Practise at 70 BPM first.', head: 'Quintuplets: 5 syllables a beat', ex: 'Running through the numbers and the money and the city with the people' },
-  { name: 'Syncopation', what: 'Stresses off the beat and off the 8th: on the "e" and the "a". It makes a flow bounce.', how: 'Move one stressed word a 16th early in every bar. MetroBar shows your syncopation %.', head: 'Syncopation: stress the off-beats', ex: 'I been on it, never sleep, I been going in' },
-  { name: 'Bar heel', what: 'Slide the whole line, and its landing, a 16th or 8th early or late (Mazbou Q). Same words, new feel.', how: 'Write the bar, then try Bar heel in MetroBar\'s Fit row: 8th early, 16th late.', head: 'Bar heel: same bar, landing slid early or late', ex: 'I came to the city with a plan in my hand' },
-  { name: 'Pickups', what: 'One or two soft syllables before beat 1 that lead into the bar ("and", "yeah", "I").', how: 'Start the line with an unstressed word. MetroBar shows it as a pickup before beat 1.', head: 'Pickups: soft syllables before beat 1', ex: 'And I keep it moving when the city sleeps\nYeah I keep it moving when the money speaks' },
-  { name: 'Multisyllable rhymes', what: 'Two or more vowel sounds in a row that rhyme ("on the floor" / "gone before"). Outlined in the rhyme colours.', how: 'Pick a 2-word phrase, then find other phrases with the same two vowels.', head: 'Multis: rhyme two vowels in a row', ex: 'Never let it go when I\'m on the floor\nEverybody know that I\'m gone before' },
-  { name: 'Monorhyme run', what: 'One vowel at the end of nearly every bar for 8 to 16 bars (Flowdan "BARS", section B).', how: 'Choose the vowel. Change only the setup words before it: places, names, slang. Same slot every bar.', head: 'Monorhyme: one vowel at every bar end, same slot', ex: 'East side, west side, everybody knows\nFront row, back row, everybody goes' },
-  { name: 'Chant', what: 'A 4-bar phrase said twice, exactly. Every bar ends on the same soft two-syllable tail. Crowd writing.', how: 'Write 4 bars, repeat them. Break one bar into two single-word shouts for call and response.', head: 'Chant: a 4-bar phrase, twice, same tail', ex: 'Hands up high when the bass come in\nHands up high when the bass come in' },
-  { name: 'Fixed end tag', what: 'Each bar = a front part of 4 to 8 syllables + the same 3-syllable tag that never moves (Flowdan, "when I\'m here").', how: 'Keep the tag on beat 4. Change only the front. Rhyme the last word before the tag in pairs.', head: 'Fixed end tag: the tag never moves', ex: 'Nobody moves the crowd when I\'m here\nEvery speaker blows out when I\'m here' },
-  { name: 'Space', what: 'About 8 syllables a bar, short phrases, then rest. Rhyme sound changes every 2 to 4 bars.', how: 'Leave air. Ad-libs (Listen, Yeah, Rah) only at the start of a bar.', head: 'Space: about 8 syllables, then rest', ex: 'Listen, step in, room goes quiet\nAll eyes on me, I don\'t buy it' },
-  { name: 'Enjambment', what: 'A sentence that runs over the bar line (Adams 2009). Too little sounds like a list; too much never resolves.', how: 'Run one sentence over a bar line, then close a sentence on a rhyme at the end of each 4 bars.', head: 'Enjambment: run the sentence over the bar line', ex: 'I came to the city with a plan in my\nhand and a dream that I keep on the low.' },
-  { name: '7/8 (odd meter)', what: 'Seven 8th notes a bar, grouped 2+2+3: the bar ends an 8th early. Rap over odd meters (Mazbou Q).', how: 'Count "1 2, 1 2, 1 2 3" and land on the long group.', head: '7/8: count 1 2, 1 2, 1 2 3', ex: '[7/8:2+2+3] Seven in the bar and I keep it\nSeven in the bar and I keep it' },
-  { name: 'Polymeter', what: 'A phrase of 3 beats repeated over 4/4: it lands somewhere new every bar and comes home after 3 bars (Schoolboy Q).', how: 'Write a 3-beat phrase, say it 4 times over 3 bars. MetroBar\'s Polymeter box drills it.', head: 'Polymeter: a 3-beat phrase over 4/4', ex: 'Get it, got it, good\nGet it, got it, good' },
+  { name: 'Straight 8ths', what: 'One syllable on every 8th note: 8 a bar, stresses on the beat. The base of grime and drill.', how: 'Clap 8ths and say exactly 8 syllables. Do 16 bars without drifting.', head: 'Straight 8ths: 8 syllables a bar, stress on the beat',
+    song: { hook: 'Walk in slow and the room goes quiet\nAll eyes on me but I don\'t buy it\nHead on straight and the hands stay steady\nCame in late but the room was ready',
+      verse: 'Grew up loud in a two-room flat\nBills on the side where the post got stacked\nMum worked nights and I sat on the stairs\nWrote my lines in the gaps of the prayers\nNow I walk slow \'cause I know the floor\nKnow the boards and the creak of the door\nNo one rushed me so I won\'t rush you\nBar by bar till the bar comes through',
+      chorus: 'Walk in slow and the room goes quiet\nSay your piece but I won\'t deny it\nHead on straight and the hands stay steady\nCame in late but the room was ready' } },
+  { name: '16ths', what: 'Four syllables a beat, up to 16 a bar. Fast, even, every slot filled.', how: 'Keep every syllable the same length. Breathe at the bar line.', head: '16ths: up to 16 syllables a bar, all even',
+    song: { hook: 'I been up before the alarm and moving when the city wakes\nGot a plan in every pocket and a pen for what it takes\nThere\'s nothing rushing, nothing dragging, every syllable in line\nIt\'s sixteen steps inside a bar and every single one is mine',
+      verse: 'My little brother on the sofa with his homework on the side\nI been telling him the pages are a door, so look inside\nI was never in the classroom when they handed out the map\nSo I drew it on the ticket for the night bus on my lap\nI been writing on the bus until the city\'s out of sight\nSo I\'m filling every corner of the bar until it\'s tight\nIt\'s a train along a track, you hear it coming down the lane\nAnd the bar is never empty, so we run it back again',
+      chorus: 'I\'m up before the alarm and moving when the city wakes\nGot a plan in every pocket and a pen for what it takes\nThere\'s nothing rushing, nothing dragging, every syllable in line\nIt\'s sixteen steps inside a bar and every one is mine' } },
+  { name: 'Triplets', what: 'Three syllables a beat, 12 a bar: a rolling flow.', how: 'Count "1 trip let 2 trip let". Three-syllable words fit one beat each.', head: 'Triplets: 3 syllables a beat, 12 a bar',
+    song: { hook: 'Rolling it, rolling it, rolling it over\nLeaves on the pavement in early October\nNobody noticed the work in the winter\nPractice and patience, a pen and a printer',
+      verse: 'Up in the morning with nothing but paper\nSaving the words for a version of later\nMama was telling me patience is power\nLaying the bricks till it turned to a tower\nNobody counted the steps on the ladder\nNobody asking me what was the matter\nLucky is practice when nobody\'s watching\nPatience is quiet but patience is knocking',
+      chorus: 'Rolling it, rolling it, rolling it over\nLeaves on the pavement in early October\nCount it in one and a two and a three now\nRolling it, rolling it, rolling with me now' } },
+  { name: 'Tresillo 3-3-2', what: 'Stresses in groups of 3, 3 and 2 eighths: 1, the "and" of 2, beat 4. The Latin and dancehall pulse.', how: 'Put the heavy syllables on slots 1, 4 and 7 of 8. Let the rest be soft.', head: 'Tresillo: stresses grouped 3-3-2',
+    song: { hook: 'Sun on the block and the bass in the yard\nKids on the wall and the grandma on guard\nSmoke from the grill and the hum of the crowd\nThree and a three and a two, now we\'re loud',
+      verse: 'Uncle is slamming the bones on the board\nAuntie is piling the plates up some more\nHeat in the air and the bass in the floor\nEveryone dancing and asking for more\nHips to the left and the hands to the right\nNobody leaves till the morning is light\nDrum on the one and a stab on the and\nEveryone dancing with plates in their hands',
+      chorus: 'Sun on the block and the bass in the yard\nKids on the wall and the grandma on guard\nNobody leaves till the speakers go down\nThree and a three and a two for the crowd' } },
+  { name: 'Stomp cadence (military bounce)', what: 'Two cells a bar that stop dead on 2 and 4, like boots marching.', how: 'Up to 4 syllables, then a hard one-syllable stop word ON the beat, then silence. Comma between the cells.', head: 'Stomp cadence: two cells a bar, stop dead on 2 and 4',
+    song: { hook: 'Boots on the ground, fists in the air\nChins to the sky, nobody scared\nLeft foot, right foot, stamp it down\nMarch through the block, shake the town',
+      verse: 'Who goes there? Us again\nCount the steps, count to ten\nHold the line, hold the fort\nFront line, back line, all in step\nWho\'s at the door? It\'s us\nBig crowd, no fuss\nKeep it loud, keep it short\nEvery drum a promise kept',
+      chorus: 'Who\'s at the door? Us again\nHow many strong? Count to ten\nBoots on the ground, fists in the air\nSay it out loud, we\'re still here' } },
+  { name: 'Hemiola', what: 'Groups of 3 over a beat of 2 (or 2s over triplets): the phrase pulls against the beat, then lands.', how: 'Repeat a 3-syllable stress pattern across the bar so it lands on a new beat each time.', head: 'Hemiola: 3s over the 4',
+    song: { hook: 'Turn it up, turn it up, turn it up and go\nBack it up, back it up, back it up real slow\nRun it back, run it back, run it back once more\nShake the room, shake the room, shake the room, the floor',
+      verse: 'Every day, every day, every day the bus\nClock in, clock out, nobody thinks of us\nWrite it down, write it down, write it down at night\nEvery page, every page, every page a fight\nNine to five, nine to five, nine to five, then me\nTen to two in the morning when the mind runs free\nPull it close, pull it close, pull it close and hold\nEvery word, every word, every word is gold',
+      chorus: 'Turn it up, turn it up, turn it up and go\nLet it ride, let it ride, let it ride the flow\nRun it back, run it back, run it back once more\nShake the room, shake the room, shake the room, the floor' } },
+  { name: 'Quintuplets', what: 'Five syllables a beat, 17 to 20 a bar (Adams, Ohriner). Rare and very fast.', how: 'Lock only the first of each five to the beat: "1 ka di mi ti". Practise at 70 BPM first.', head: 'Quintuplets: 5 syllables a beat',
+    song: { hook: 'Three in the morning and the thoughts in my head are like a carousel spinning\nEvery little worry is a horse with a rider and the rider is winning\nCounting all the ceiling tiles, the cracks and the corners and the light from the city\nLittle bit of everything is rattling around and none of it is pretty',
+      verse: 'Monday was a deadline and a phone call and a letter I forgot to deliver\nTuesday I was standing at the window of the bus with my hands in a shiver\nWednesday was the day I told myself I would slow it down and just let it be\nThursday it was quicker and the quicker that I got the more it got away from me\nEvery single syllable is tumbling like a coin in a dryer on a spin\nRattling and battering and clattering and scattering and coming back again\nIf I ever get a minute I will tell you all the things that I been meaning to say\nBut the minute that I find it it\'s a memory, it\'s history, it\'s yesterday',
+      chorus: 'Three in the morning and the thoughts in my head are like a carousel spinning\nEvery little worry is a horse with a rider and the rider is winning\nFive to a beat and every beat a little faster than the one that it follows\nBreathe at the bar line, let it out and let it in and do it all again tomorrow' } },
+  { name: 'Syncopation', what: 'Stresses off the beat and off the 8th: on the "e" and the "a". It makes a flow bounce.', how: 'Move one stressed word a 16th early in every bar. MetroBar shows your syncopation %.', head: 'Syncopation: stress the off-beats',
+    song: { hook: 'I been on it, never sleep, I been going in\nGot a feeling in my feet, let the bass begin\nEvery corner of the street got a different spin\nI been on it, never sleep, I been going in',
+      verse: 'Took a minute, made it count, didn\'t count the cost\nTook a hit and took a loss but I never lost\nGot a little in the bank, got a lot to say\nGot a habit when I\'m stuck, I just walk away\nThen I come back with a bounce in the way I talk\nGot the rhythm in the heel every time I walk\nPut the accent where it\'s odd, put it in between\nEvery beat they never hit, that\'s the beat I mean',
+      chorus: 'I been on it, never sleep, I been going in\nGot a feeling in my feet, let the bass begin\nPut the weight where it\'s odd, put it in between\nI been on it, never sleep, I been going in' } },
+  { name: 'Bar heel', what: 'Slide the whole line, and its landing, a 16th or 8th early or late. Same words, new feel.', how: 'Write the bar, then try Bar heel in MetroBar\'s Fit row: 8th early, 16th late.', head: 'Bar heel: same bar, landing slid early or late',
+    song: { hook: 'I came to the city with a plan in my hand\nLittle bit late but I\'m right where I stand\nSlide it up early or I let it lag behind\nSame words, new feel, every single time',
+      verse: 'Some people rush like the clock owes them money\nI take my time and the time finds it funny\nHit it a hair late, the snare gets lazy\nHit it a hair soon, the room goes crazy\nSame bar, same words, a sixteenth away\nThat\'s the whole difference in the way that I play\nLean on the beat like a wall that I trust\nNever in a hurry and I never get rushed',
+      chorus: 'I came to the city with a plan in my hand\nLittle bit late but I\'m right where I stand\nSlide it up early or I let it lag behind\nSame words, new feel, every single time' } },
+  { name: 'Pickups', what: 'One or two soft syllables before beat 1 that lead into the bar ("and", "yeah", "I").', how: 'Start the line with an unstressed word. MetroBar shows it as a pickup before beat 1.', head: 'Pickups: soft syllables before beat 1',
+    song: { hook: 'And I keep it moving when the city sleeps\nYeah I keep it moving when the money speaks\nSo I keep it moving when the river\'s deep\nAnd I keep on moving \'cause the road is steep',
+      verse: 'But I never told them what I had to lose\nAnd I never sold them what I had to use\nYeah my mama told me pick the hill you choose\nSo I picked a hill and then I tied my shoes\nNow the hill is mine and I can see the view\nAnd the view is wide and it\'s a different blue\nYeah I left a light on in the window too\nSo you know the way if you\'re coming through',
+      chorus: 'And I keep it moving when the city sleeps\nYeah I keep it moving when the money speaks\nSo I keep it moving when the river\'s deep\nAnd I keep on moving \'cause the road is steep' } },
+  { name: 'Multisyllable rhymes', what: 'Two or more vowel sounds in a row that rhyme ("on the floor" / "gone before"). Outlined in the rhyme colours.', how: 'Pick a 2-word phrase, then find other phrases with the same two vowels.', head: 'Multis: rhyme two vowels in a row',
+    song: { hook: 'Never let it go when I\'m on the floor\nEverybody know that I\'m gone before\nHeavy on the motion and I\'m holding it down\nEverybody knowing that I\'m rolling through town',
+      verse: 'Pressure in the letter, I been under the weather\nPromise it gets better when we hold it together\nEvery single promise that they made me was broken\nEvery single lesson that they gave me I\'m holding\nNow I\'m in the city with the lights in the distance\nOut here with a pen and I\'m writing my existence\nNever had a ticket, had to fight for admission\nNow I\'m in the building and I\'m writing the mission',
+      chorus: 'Never let it go when I\'m on the floor\nEverybody know that I\'m gone before\nHeavy on the motion and I\'m holding it down\nEverybody knowing that I\'m rolling through town' } },
+  { name: 'Monorhyme run', what: 'One vowel at the end of nearly every bar for 8 to 16 bars (Radio freestyle, section B).', how: 'Choose the vowel. Change only the setup words before it: places, names, slang. Same slot every bar.', head: 'Monorhyme: one vowel at every bar end, same slot',
+    song: { hook: 'East side, west side, everybody knows\nFront row, back row, everybody goes\nHot days, cold nights, everybody grows\nFirst light, last call, everybody glows',
+      verse: 'Started on the corner where the wind blows\nBus pass, borrowed coat and some thin clothes\nMum said keep your chin up, keep your friends close\nEvery little window with the blinds closed\nNow the room is rocking and the bass grows\nEvery single speaker in the place glows\nHands up, lights down, feel the way the drop goes\nStarted on the corner, now we run the show',
+      chorus: 'East side, west side, everybody knows\nFront row, back row, everybody goes\nBig stage, small town, everybody shows\nLast bar, last word, that\'s the way it goes' } },
+  { name: 'Chant', what: 'A 4-bar phrase said twice, exactly. Every bar ends on the same soft two-syllable tail. Crowd writing.', how: 'Write 4 bars, repeat them. Break one bar into two single-word shouts for call and response.', head: 'Chant: a 4-bar phrase, twice, same tail',
+    song: { hook: 'Hands in the air if you\'re rolling with it\nFeet on the floor if you\'re rocking with it\nShout it out loud if you\'re really with it\nWhole place moving \'cause the whole place with it',
+      verse: 'Everybody in the place get with it\nEvery speaker in the place get with it\nUp! Down! Now we all get with it\nTurn around, turn around, get with it\nEverybody in the place get with it\nEvery speaker in the place get with it\nUp! Down! Now we all get with it\nTurn around, turn around, get with it',
+      chorus: 'Hands in the air if you\'re rolling with it\nFeet on the floor if you\'re rocking with it\nShout it out loud if you\'re really with it\nWhole place moving \'cause the whole place with it' } },
+  { name: 'Fixed end tag', what: 'Each bar = a front part of 4 to 8 syllables + the same 3-syllable tag that never moves ("when I\'m here").', how: 'Keep the tag on beat 4. Change only the front. Rhyme the last word before the tag in pairs.', head: 'Fixed end tag: the tag never moves',
+    song: { hook: 'No one ever moves the crowd when I\'m here\nEvery speaker blows out when I\'m here\nWindows rattle in their frames when I\'m here\nNobody remembers names when I\'m here',
+      verse: 'Every candle burning bright when I\'m here\nEvery problem out of sight when I\'m here\nMama doesn\'t have to worry when I\'m here\nLittle brother\'s in no hurry when I\'m here\nEvery story getting told when I\'m here\nEvery hand is there to hold when I\'m here\nDoors are open, come on in when I\'m here\nEvery loss turns to a win when I\'m here',
+      chorus: 'No one ever moves the crowd when I\'m here\nEvery speaker way too loud when I\'m here\nEvery night is a show when I\'m here\nEverybody gonna know when I\'m here' } },
+  { name: 'Space', what: 'About 8 syllables a bar, short phrases, then rest. Rhyme sound changes every 2 to 4 bars.', how: 'Leave air. Ad-libs (Listen, Yeah, Rah) only at the start of a bar.', head: 'Space: about 8 syllables, then rest',
+    song: { hook: 'Listen. Step in. Room goes quiet.\nAll eyes on me. I don\'t buy it.\nYeah. Slow down. Let it breathe.\nSay less. Then I leave.',
+      verse: 'Rah. Cold night. Long road.\nTwo hands. Heavy load.\nListen. Lights off. Phone dead.\nRead the room, not what\'s said.\nYeah. One step. Then two.\nKeep it short. Keep it true.\nBreathe in. Hold it. Let go.\nLess is more. Now you know.',
+      chorus: 'Listen. Step in. Room goes quiet.\nAll eyes on me. I don\'t buy it.\nYeah. Say less. Leave it there.\nHalf a bar of empty air.' } },
+  { name: 'Enjambment', what: 'A sentence that runs over the bar line (Adams 2009). Too little sounds like a list; too much never resolves.', how: 'Run one sentence over a bar line, then close a sentence on a rhyme at the end of each 4 bars.', head: 'Enjambment: run the sentence over the bar line',
+    song: { hook: 'I came to the city with a plan in my\nhand and a dream that I keep on the low and I\nnever once told anybody where I\nwas going. I just let them watch me go.',
+      verse: 'Every morning on the bus I would write in the\nmargins of a book that I borrowed and never gave\nback to the library, line after line, till the\nmargins were full and the pages were saved.\nThen I walked through a city I\'d only been\ntold about, knowing each street by the sound\nof the words that I wrote on the number\nforty-three bus every morning going round.',
+      chorus: 'I came to the city with a plan in my\nhand and a dream that I keep on the low and I\nnever once told anybody where I\nwas going. I just let them watch me go.' } },
+  { name: '7/8 (odd meter)', what: 'Seven 8th notes a bar, grouped 2+2+3: the bar ends an 8th early. Rap over odd meters.', how: 'Count "1 2, 1 2, 1 2 3" and land on the long group.', head: '7/8: count 1 2, 1 2, 1 2 3',
+    song: { hook: '[7/8:2+2+3] Seven in the bar and I keep it\nOne step short and I still complete it\nTwo, two, three, that\'s how I need it\nLand on the long one, then repeat it',
+      verse: '[7/8:2+2+3] Clock on the wall has been skipping\nOne beat gone but I\'m not slipping\nEverybody else counting four\nI came early, I\'m through the door\nShort bar, short bar, long bar, breathe\nTwo, two, three, that\'s the key\nOff by one and it feels brand new\nOdd time, odd mind, me and you',
+      chorus: '[7/8:2+2+3] Seven in the bar and I keep it\nOne step short and I still complete it\nTwo, two, three, that\'s how I need it\nLand on the long one, then repeat it' } },
+  { name: 'Polymeter', what: 'A phrase of 3 beats repeated over 4/4: it lands somewhere new every bar and comes home after 3 bars.', how: 'Write a 3-beat phrase, say it 4 times over 3 bars. MetroBar\'s Polymeter box drills it.', head: 'Polymeter: a 3-beat phrase over 4/4',
+    song: { hook: 'Feel it, find it, flow, feel it\nfind it, flow, feel it, find it\nflow, feel it, find it, flow.\nHold it, hold it, home.',
+      verse: 'Round and round we go, round and\nround we go, round and round we\ngo, round and round we go.\nBack to one, back home.\nTurn the key and walk, turn the\nkey and walk, turn the key and\nwalk, turn the key and walk.\nBack to one, we talk.',
+      chorus: 'Feel it, find it, flow, feel it\nfind it, flow, feel it, find it\nflow, feel it, find it, flow.\nHold it, hold it, home.' } },
 ];
 const WR = { songs: store.get('metrobar.songs', []), bin: store.get('metrobar.bin', []), cur: store.get('metrobar.curSong', null), rows: [], bars: [], rh: null, cache: new Map(), timer: 0, word: null, rev: 0, tcKey: '', cl: null, myCl: store.get('metrobar.cliches', []) };
 const now = () => Date.now();
@@ -2868,14 +3325,15 @@ function wrOpen() {
   WR.opened = s.id; WR.cache.clear(); wrList(); wrAnalyse(); wrGrow();
   if (typeof spLoad === 'function' && $('tlSplit').open) spLoad();
 }
-function wrLibClose() { if (matchMedia('(max-width: 1099px)').matches) { $('viewWrite').querySelector('.wr-lib').classList.remove('open'); $('wrLibTg').setAttribute('aria-expanded', 'false'); $('wrTitle').scrollIntoView({ block: 'start' }); } }
+function wrLibClose() { wrLibPop(false); if ($('wrLib').classList.contains('open') && !wrLibSide.matches) { $('wrLib').classList.remove('open'); $('wrLibTg').setAttribute('aria-expanded', 'false'); $('wrTitle').scrollIntoView({ block: 'start' }); } }
 function ago(t) { const d = (now() - t) / 1000; return d < 60 ? 'just now' : d < 3600 ? Math.floor(d / 60) + ' min ago' : d < 86400 ? Math.floor(d / 3600) + ' h ago' : new Date(t).toLocaleDateString(); }
 function barCount(text) { return wrParse(text).filter(r => r.kind === 'bar').length; }
 function wrList() {
   const q = $('wrSearch').value.trim().toLowerCase(), ul = $('wrList'); ul.replaceChildren();
   WR.songs.slice().sort((a, b) => b.updated - a.updated).filter(s => !q || (s.title + ' ' + s.text).toLowerCase().includes(q)).forEach(s => {
     const li = h('li'), b = h('button'); b.setAttribute('aria-current', s.id === WR.cur);
-    b.append(h('span', '', s.title || (s.text.trim().split('\n')[0] || 'Untitled').slice(0, 40)), h('small', '', `${barCount(s.text)} bars · ${ago(s.updated)}`));
+    const pv = s.text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#')).slice(s.title ? 0 : 1, (s.title ? 0 : 1) + 2).join(' / ');
+    b.append(h('span', '', s.title || (s.text.trim().split('\n')[0] || 'Untitled').slice(0, 40)), h('small', '', `${barCount(s.text)} bars · ${ago(s.updated)}`), h('em', 'pv', pv));
     b.addEventListener('click', () => { wrFlush(); WR.cur = s.id; wrSave(); wrOpen(); wrLibClose(); });
     li.append(b); ul.append(li);
   });
@@ -2919,23 +3377,26 @@ function wrAnalyse() {
   WR.cl = ls.length ? clicheScan(ls, WR.myCl, WR.rh) : null; WR.rev++;
   wrPaint(); wrChecks(); wrStats(); wrFlow(); wrTechCheck();
 }
-// character ranges of each syllable inside the raw token: syllable parts are letters/digits of the cleaned word, in order
-function sylRanges(raw, parts) {
-  const pos = []; for (let c = 0; c < raw.length; c++) if (/[a-z0-9]/i.test(raw[c])) pos.push(c);
-  const out = []; let p = 0;
-  parts.forEach((pt, i) => { const n = pt.replace(/[^a-z0-9]/g, '').length || (i === parts.length - 1 ? pos.length - p : 0); const a = pos[p], b = pos[Math.min(pos.length, p + n) - 1]; out.push(a == null ? null : [a, (b == null ? a : b) + 1]); p += n; });
-  if (out.length && pos.length && p < pos.length && out[out.length - 1]) out[out.length - 1][1] = pos[pos.length - 1] + 1;
-  return out;
-}
 function wrPaint() {
   const ov = $('wrOv'), aim = +$('wrAim').value, showRh = $('wrRhymes').getAttribute('aria-pressed') === 'true', showSt = $('wrStress').getAttribute('aria-pressed') === 'true';
   const curLine = $('wrText').value.slice(0, $('wrText').selectionStart).split('\n').length - 1;
-  ov.replaceChildren(); let bi = 0;
+  ov.replaceChildren();
+  // every row is checked: if its painted text is not exactly the typed line (or painting throws), it is drawn plain, so the
+  // colours can be missing on that line but never sit on the wrong letters or double the text
+  const plain = r => { const ln = h('span', 'ln' + (r.i === curLine ? ' cur' : '')); ln.append(h('span', 'g'), r.line || ' '); return ln; };
+  const textOf = ln => [...ln.childNodes].filter(n => !(n.classList && n.classList.contains('g'))).map(n => n.textContent).join('');
   WR.rows.forEach(r => {
+    const n0 = ov.childNodes.length;
+    try { wrPaintRow(r); } catch (e) { console.warn('Write pad: plain line', r.i + 1, e); }
+    const ln = ov.childNodes[n0];
+    if (ov.childNodes.length !== n0 + 1 || textOf(ln) !== (r.line || ' ')) { while (ov.childNodes.length > n0) ov.lastChild.remove(); ov.append(plain(r)); }
+  });
+  function wrPaintRow(r) {
     const ln = h('span', 'ln' + (r.i === curLine ? ' cur' : '')), g = h('span', 'g');
     if (r.kind === 'head') { g.classList.add('hd'); g.textContent = r.sec && r.sec.device ? '§' : '#'; ln.append(g, r.line || ' '); ov.append(ln); return; }
     if (r.kind !== 'bar') { ln.append(g, r.line || ' '); ov.append(ln); return; }
-    const L = r.L, li = bi++, over = L.N > aim;
+    const L = r.L; if (!L) throw new Error('no analysis');
+    const li = WR.bars.indexOf(r), over = L.N > aim;
     g.append(h('span', '', String(r.bar + 1).padStart(2, ' ') + ' '), h('b', '', L.N)); if (over) g.classList.add('over');
     g.title = `Bar ${r.bar + 1}: ${L.N} syllables${over ? ` (more than ${aim})` : ''} · ${L.flow.name} · lands on beat ${L.landBeat}`;
     ln.append(g, r.line.slice(0, r.off));
@@ -2945,24 +3406,22 @@ function wrPaint() {
       ln.append(body.slice(last, m.index)); last = m.index + m[0].length;
       const raw = m[0], key = cleanKey(raw.replace(/[’‘]/g, "'"));
       if (!/[a-z0-9]/.test(key) || wi >= L.words.length) { ln.append(raw); continue; }
-      const sy = L.syl.map((x, si) => ({ x, si })).filter(o => o.x.w === wi), rg = sylRanges(raw, sy.map(o => o.x.t || ''));
-      const wsp = h('span', 'w'); wsp.dataset.w = L.words[wi].key; let c = 0;
-      sy.forEach((o, k) => {
-        const range = rg[k]; if (!range) return;
-        if (range[0] > c) wsp.append(raw.slice(c, range[0]));
+      const sy = L.syl.map((x, si) => ({ x, si })).filter(o => o.x.w === wi);
+      const wsp = h('span', 'w'); wsp.dataset.w = L.words[wi].key;
+      paintPieces(raw, sy.map(o => o.x.t || '')).forEach(pc => {
+        const o = sy[pc.k]; if (!o) { wsp.append(pc.t); return; }
         const gi = showRh && WR.rh.syl[li] ? WR.rh.syl[li][o.si] : null, mu = showRh && WR.rh.multi[li] && WR.rh.multi[li].includes(o.si), st = showSt && o.x.st;
         const cls = [gi != null ? rhCls(gi) : '', mu ? 'mu' : '', st ? 'st' : ''].filter(Boolean).join(' ');
-        wsp.append(cls ? h('span', cls, raw.slice(range[0], range[1])) : raw.slice(range[0], range[1])); c = range[1];
+        wsp.append(cls ? h('span', cls, pc.t) : pc.t);
       });
-      if (c < raw.length) wsp.append(raw.slice(c));
-      if (WR.word && L.words[wi].key === WR.word) wsp.classList.add('sel');
+      if (WR.word && L.words[wi].key === WR.word) wsp.classList.add('pick');
       if (WR.cl && WR.cl.marks[li] && WR.cl.marks[li].includes(wi)) wsp.classList.add('cl');
       ln.append(wsp); wi++;
     }
     ln.append(body.slice(last), r.line.slice(r.off + body.length));
     ov.append(ln);
-  });
-  if (!WR.rows.length || $('wrText').value.endsWith('\n')) ov.append(h('span', 'ln', ' '));
+  }
+  if (!WR.rows.length) ov.append(h('span', 'ln', ' '));   // wrParse already gives the empty line after a final newline its own row
 }
 function wrStats() {
   const ls = WR.bars.map(r => r.L), s = $('wrStats');
@@ -3023,7 +3482,7 @@ function wrTechCheck(force) {
     box.append(h('div', 'wr-sub', 'Not in here yet'));
     const u = h('div', 'wr-unused');
     un.forEach(t => { const i = TECH_LIST.findIndex(x => x[0] === t.id), b = h('button', '', (TECHS[i] || t).name); b.title = 'Show how to do it, with a drill';
-      b.addEventListener('click', () => { const det = $('wrTech').children[i]; if (!det) return; det.open = true; det.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }); u.append(b); });
+      b.addEventListener('click', () => wrTechShow(i, true)); u.append(b); });
     box.append(u);
   }
   // cliché score
@@ -3125,15 +3584,112 @@ function wrMsg(text, undoText) {
     if (WR.cur === sid) { $('wrText').value = undoText; wrInput(); } else { s.text = undoText; s.updated = now(); wrSave(); wrList(); }
   }); m.append(u); }
 }
+// Techniques as a pad bank: all 18 at once, one tap shows what it is, how to do it and its drill (no collapsible per technique)
+const TECH_TAG = { 'Straight 8ths': ['even, on the beat', 'flow'], '16ths': ['4 a beat', 'flow'], 'Triplets': ['3 a beat', 'flow'], 'Tresillo 3-3-2': ['3-3-2 stresses', 'flow'],
+  'Stomp cadence (military bounce)': ['stop on 2 and 4', 'flow'], 'Hemiola': ['3s over the 4', 'meter'], 'Quintuplets': ['5 a beat', 'flow'], 'Syncopation': ['off the beat', 'flow'],
+  'Bar heel': ['slide the line', 'flow'], 'Pickups': ['lead into beat 1', 'flow'], 'Multisyllable rhymes': ['two vowels rhyme', 'rhyme'], 'Monorhyme run': ['one end sound', 'rhyme'],
+  'Chant': ['4 bars, twice', 'shape'], 'Fixed end tag': ['same tag every bar', 'rhyme'], 'Space': ['leave air', 'shape'], 'Enjambment': ['run over the bar', 'shape'],
+  '7/8 (odd meter)': ['odd meter, 2+2+3', 'meter'], 'Polymeter': ['3 beats over 4', 'meter'] };
+let techOn = -1;
 function wrTechs() {
-  const box = $('wrTech');
-  TECHS.forEach(t => {
-    const d = h('details'), s = h('summary', '', t.name), ins = h('button', 'mini', 'Insert drill');
-    ins.title = 'Adds a heading and two example bars at the cursor. Write your own bars under the heading.';
-    ins.addEventListener('click', () => wrInsert(`# ${t.head}\n${t.ex}\n`));
-    d.append(s, h('p', '', t.what), h('p', '', 'How: ' + t.how), h('pre', '', t.ex), ins); box.append(d);
+  const box = $('wrTech'), filt = h('div', 'seg'), pads = h('div', 'pads'), card = h('div', 'tech-card');
+  card.id = 'wrTechCard'; card.hidden = true; card.setAttribute('aria-live', 'polite');
+  filt.setAttribute('role', 'group'); filt.setAttribute('aria-label', 'Show techniques');
+  [['all', 'All'], ['flow', 'Flow'], ['meter', 'Meter'], ['rhyme', 'Rhyme'], ['shape', 'Shape']].forEach(([k, l]) => {
+    const b = h('button', '', l); b.type = 'button'; b.dataset.k = k; b.setAttribute('aria-pressed', String(k === 'all')); b.addEventListener('click', () => wrTechFilter(k)); filt.append(b); });
+  TECHS.forEach((t, i) => {
+    const [df, cat] = TECH_TAG[t.name] || ['', 'flow'], p = h('button', 'pad');
+    p.type = 'button'; p.dataset.cat = cat; p.setAttribute('aria-pressed', 'false'); p.title = t.what;
+    p.append(h('span', 'nm', t.name.replace(/ \(.*\)$/, '')), h('span', 'df', df));
+    p.addEventListener('click', () => wrTechShow(techOn === i ? -1 : i)); pads.append(p);
   });
+  box.append(filt, pads, card);
 }
+function wrTechFilter(k) {
+  const box = $('wrTech');
+  box.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
+  box.querySelectorAll('.pad').forEach(p => { p.hidden = k !== 'all' && p.dataset.cat !== k; });
+  const on = box.querySelectorAll('.pad')[techOn]; if (on && on.hidden) wrTechShow(-1);
+}
+// each drill is a whole song: a 4-bar hook, an 8-bar verse and a 4-bar chorus that show the technique, so you only swap the words
+const TECH_PARTS = [['hook', 'Hook', 4], ['verse', 'Verse', 8], ['chorus', 'Chorus', 4]];
+function techText(t, keys) {
+  const short = t.name.replace(/ \(.*\)$/, ''), note = String(t.head || '').replace(/^[^:]*:\s*/, ''), song = t.song || {};
+  let out = TECH_PARTS.filter(([k]) => keys.includes(k) && song[k]).map(([k, lab]) => `# ${lab} (${short}): ${note}\n${song[k]}\n`).join('\n');
+  if (/^\s*\[[^\]]*\/[^\]]*\]/m.test(out)) out += '[4/4]\n';   // an odd-meter drill hands the bars after it back to 4/4
+  return out;
+}
+// a drill always goes in on its own lines: with the cursor inside a bar it lands under that bar, never splitting it
+function wrInsertBlock(text) {
+  const ta = $('wrText'), v = ta.value; let p = ta.selectionEnd;
+  if (ta.selectionStart !== p || (p > 0 && v[p - 1] !== '\n')) { p = v.indexOf('\n', p); if (p < 0) p = v.length; }
+  ta.focus(); ta.setSelectionRange(p, p);
+  if (p > 0 && v[p - 1] !== '\n') text = '\n' + text;
+  if (p < v.length && v[p] !== '\n') text += '\n';
+  wrInsert(text);
+}
+function wrTechShow(i, scroll) {
+  try { wrTechCard(i, scroll); } catch (e) { console.error('technique card', e); techOn = -1; const c = $('wrTechCard'); if (c) { c.replaceChildren(); c.hidden = true; } }
+}
+function wrTechCard(i, scroll) {
+  techOn = i; const pads = $('wrTech').querySelectorAll('.pad'), card = $('wrTechCard');
+  pads.forEach((p, k) => p.setAttribute('aria-pressed', String(k === i)));
+  card.replaceChildren(); card.hidden = !(i >= 0 && TECHS[i]); if (card.hidden) { techOn = -1; return; }
+  const t = TECHS[i]; if (pads[i] && pads[i].hidden) wrTechFilter('all');
+  card.append(h('h4', '', t.name), h('p', '', t.what), h('p', '', 'How: ' + t.how), h('p', 'tip', 'Example song: keep the shape and the sounds, swap in your own words.'));
+  TECH_PARTS.forEach(([k, lab, n]) => {
+    if (!t.song || !t.song[k]) return;
+    const sec = h('div', 'tsec'), top = h('div', 'tsec-h'), ins = h('button', 'mini', 'Insert');
+    ins.type = 'button'; ins.title = `Adds this ${lab.toLowerCase()} at the cursor under its own heading`;
+    ins.addEventListener('click', () => wrInsertBlock(techText(t, [k])));
+    top.append(h('b', '', lab), h('span', '', `${n} bars`), ins);
+    sec.append(top, h('pre', '', t.song[k])); card.append(sec);
+  });
+  const all = h('button', 'cbtn', 'Insert the whole song'), row = h('div', 'commit');
+  all.type = 'button'; all.title = 'Adds the hook, verse and chorus at the cursor, each under its own heading. Then swap the words for yours.';
+  all.addEventListener('click', () => wrInsertBlock(techText(t, TECH_PARTS.map(x => x[0])))); row.append(all); card.append(row);
+  if (scroll) { wrPanel('Techniques', true); if (pads[i]) pads[i].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+}
+// ---- Write tool panels: one light button each in #wrDock; the panel opens under the pad, dark like the analysis cards.
+// Each opens and closes on its own (any mix at once); the open set and its order are kept in metrobar.wrOpen.
+const WR_PANELS = [...$('wrPanels').querySelectorAll(':scope > .wr-card')];
+const wrPanelCard = tab => WR_PANELS.find(c => c.dataset.tab === tab);
+const wrPanelBtn = tab => $('wrDock').querySelector(`[data-tab="${tab}"]`);
+function wrPanelSave() { try { localStorage.setItem('metrobar.wrOpen', JSON.stringify([...$('wrPanels').children].filter(c => !c.hidden).map(c => c.dataset.tab))); } catch (e) {} }
+function wrPanel(tab, open, anim) {
+  const c = wrPanelCard(tab), b = wrPanelBtn(tab); if (!c) return;
+  if (open === undefined) open = c.hidden;
+  if (open === !c.hidden) return;
+  c.getAnimations().forEach(a => a.cancel()); b.setAttribute('aria-expanded', String(open));
+  if (open) {
+    $('wrPanels').append(c); c.hidden = false; wrPanelSave();
+    if (!anim) return;
+    if (!calmQ.matches && c.animate) c.animate([
+      { transform: 'translateY(-22px)', opacity: 0, offset: 0, easing: 'cubic-bezier(.5, 0, 1, .5)' },
+      { transform: 'translateY(0)', opacity: 1, offset: .45, easing: 'cubic-bezier(0, .5, .5, 1)' },
+      { transform: 'translateY(-7px)', offset: .64, easing: 'cubic-bezier(.5, 0, 1, .5)' },
+      { transform: 'translateY(0)', offset: .8, easing: 'cubic-bezier(0, .5, .5, 1)' },
+      { transform: 'translateY(-2px)', offset: .9 },
+      { transform: 'translateY(0)', opacity: 1, offset: 1 }
+    ], { duration: 620 });
+    c.scrollIntoView({ block: 'nearest', behavior: calmQ.matches ? 'auto' : 'smooth' });
+  } else {
+    const done = () => { c.hidden = true; wrPanelSave(); };
+    if (!anim || calmQ.matches || !c.animate) { done(); return; }
+    const a = c.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(-10px)', opacity: 0 }], { duration: 170, easing: 'cubic-bezier(.6, 0, .9, .5)' });
+    a.onfinish = done;
+  }
+}
+WR_PANELS.forEach((c, i) => {
+  const tab = c.dataset.tab, b = h('button', 'btn', c.dataset.short || tab), x = h('button', 'wr-x', '×');
+  c.id = c.id || 'wrPanel' + i;
+  b.type = 'button'; b.dataset.tab = tab; b.title = tab; b.setAttribute('aria-controls', c.id); b.setAttribute('aria-expanded', 'false');
+  b.addEventListener('click', () => wrPanel(tab, undefined, true)); $('wrDock').append(b);
+  x.type = 'button'; x.title = 'Close ' + tab; x.setAttribute('aria-label', 'Close ' + tab);
+  x.addEventListener('click', () => { wrPanel(tab, false, true); b.focus({ preventScroll: true }); }); c.prepend(x);
+});
+{ let open = ['Rhymes']; try { const v = JSON.parse(localStorage.getItem('metrobar.wrOpen')); if (Array.isArray(v)) open = v; } catch (e) {}
+  open.forEach(t => wrPanel(t, true, false)); }
 function wrDownload(name, text, type = 'text/plain') {
   const a = h('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
@@ -3188,7 +3744,19 @@ $('wrTitle').addEventListener('input', () => { const s = wrSong(); if (!s) retur
 $('wrNew').addEventListener('mousedown', wrFlush);
 $('wrNew').addEventListener('click', () => { wrCreate(); $('wrTitle').focus(); });
 $('wrSearch').addEventListener('input', wrList);
-$('wrLibTg').addEventListener('click', () => { const o = $('viewWrite').querySelector('.wr-lib').classList.toggle('open'); $('wrLibTg').setAttribute('aria-expanded', o); });
+// Wide screens: the song list is a panel under the logo (wrLibSide). ⤢ pops it out over the page to browse all songs.
+const wrLibSide = matchMedia('(min-width: 1180px)');
+function wrLibPop(on) {
+  const lib = $('wrLib'), b = $('wrLibPop'); if (on === lib.classList.contains('pop')) return;
+  lib.classList.toggle('pop', on); document.body.classList.toggle('lib-pop', on);
+  b.setAttribute('aria-expanded', String(on)); b.textContent = on ? '×' : '⤢';
+  b.setAttribute('aria-label', on ? 'Close the big song view' : 'Pop out the song list'); b.title = on ? 'Close (Esc)' : 'Pop out: browse all your songs in a big view';
+  if (on) { lib.classList.add('open'); $('wrSearch').focus({ preventScroll: true }); } else if (!wrLibSide.matches) { lib.classList.remove('open'); $('wrLibTg').setAttribute('aria-expanded', 'false'); }
+}
+$('wrLibPop').addEventListener('click', () => wrLibPop(!$('wrLib').classList.contains('pop')));
+$('wrLibShade').addEventListener('click', () => wrLibPop(false));
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('wrLib').classList.contains('pop')) wrLibPop(false); });
+$('wrLibTg').addEventListener('click', () => { const o = $('wrLib').classList.toggle('open'); $('wrLibTg').setAttribute('aria-expanded', o); if (o) $('wrLib').scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
 ['wrRhymes', 'wrStress', 'wrFlowBtn'].forEach(id => $(id).addEventListener('click', () => { const b = $(id); b.setAttribute('aria-pressed', b.getAttribute('aria-pressed') !== 'true'); store.set('metrobar.wrView', { rh: $('wrRhymes').getAttribute('aria-pressed'), st: $('wrStress').getAttribute('aria-pressed'), fl: $('wrFlowBtn').getAttribute('aria-pressed'), aim: $('wrAim').value }); wrPaint(); wrFlow(); }));
 $('wrAim').addEventListener('change', () => { store.set('metrobar.wrView', { rh: $('wrRhymes').getAttribute('aria-pressed'), st: $('wrStress').getAttribute('aria-pressed'), fl: $('wrFlowBtn').getAttribute('aria-pressed'), aim: $('wrAim').value }); wrAnalyse(); });
 { const v = store.get('metrobar.wrView', null); if (v) { if (v.rh) $('wrRhymes').setAttribute('aria-pressed', v.rh); if (v.st) $('wrStress').setAttribute('aria-pressed', v.st); if (v.fl) $('wrFlowBtn').setAttribute('aria-pressed', v.fl); if (v.aim) $('wrAim').value = v.aim; } }
@@ -3208,7 +3776,7 @@ $('wrPractice').addEventListener('click', () => {
   wrFlush(); wrSave(); linkedSong = s.id; linkedAt = s.updated; store.set('metrobar.linked', linkedSong); store.set('metrobar.linkedAt', linkedAt);
   location.hash = '#practice'; if ($('lyrics').value !== s.text) lyricsChanged(s.text, `Loaded "${s.title || 'Untitled'}" from Write.`);
   if (s.tpl && TEMPLATES[s.tpl] && s.tpl !== tplId) applyTemplate(s.tpl, false);
-  runFit(); setTimeout(() => document.querySelector('.fit').scrollIntoView({ block: 'start' }), 50);
+  runFit(); advReveal(document.querySelector('.fit')); setTimeout(() => document.querySelector('.fit').scrollIntoView({ block: 'start' }), 50);
 });
 $('wrDup').addEventListener('click', () => { const s = wrSong(); if (s) { wrCreate(s.text, (s.title || 'Untitled') + ' (copy)', s.tpl); wrMsg('Duplicated.'); } });
 $('wrDl').addEventListener('click', () => { const s = wrSong(); if (s) wrDownload(fileName(s.title) + '.txt', (s.title ? s.title + '\n\n' : '') + s.text); });
@@ -3397,10 +3965,91 @@ function checkRemind() {
 setInterval(checkRemind, 60e3); checkRemind();
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkRemind(); });
 
+// ---- Advanced panel. Opening: the sheet falls from the click point (clip widens out from there) and the bottom edge
+// bounces like a ball, each bounce lower, before it settles. Closing folds it back up. Reduced motion: no animation.
+const advBody = $('advBody'), advTg = $('advTg');
+function advStop() { advBody.getAnimations({ subtree: true }).forEach(a => a.cancel()); advBody.classList.remove('anim'); advBody.style.height = ''; }
+function advOpen(e) {
+  if (!advBody.hidden && advTg.getAttribute('aria-expanded') === 'true') return;
+  advStop(); advBody.hidden = false; advTg.setAttribute('aria-expanded', 'true');
+  window.dispatchEvent(new Event('resize'));
+  if (!e || calmQ.matches || !advBody.animate) return;
+  const H = advBody.scrollHeight, W = advBody.offsetWidth, r = advBody.getBoundingClientRect();
+  const x = Math.max(0, Math.min(W, (e.clientX || r.left + W / 2) - r.left));
+  const fall = Math.min(560, 300 + Math.sqrt(Math.min(H, 4000)) * 3.2), b = Math.min(H * .16, 64);
+  const D = fall / .4, IN = 'cubic-bezier(.5, 0, 1, .5)', OUT = 'cubic-bezier(0, .5, .5, 1)';
+  advBody.classList.add('anim');
+  const fallA = advBody.animate([
+    { height: '0px', offset: 0, easing: IN },
+    { height: H + 'px', offset: .40, easing: OUT },
+    { height: H - b + 'px', offset: .55, easing: IN },
+    { height: H + 'px', offset: .69, easing: OUT },
+    { height: H - b * .42 + 'px', offset: .79, easing: IN },
+    { height: H + 'px', offset: .88, easing: OUT },
+    { height: H - b * .14 + 'px', offset: .94, easing: IN },
+    { height: H + 'px', offset: 1 }
+  ], { duration: D });
+  advBody.animate([
+    { clipPath: `inset(0 ${Math.max(0, W - x - 24)}px 0 ${Math.max(0, x - 24)}px round 0 0 14px 14px)`, opacity: .4 },
+    { clipPath: 'inset(0 0px 0 0px round 0 0 14px 14px)', opacity: 1 }
+  ], { duration: fall * .9, easing: 'cubic-bezier(.2, .8, .3, 1)' });
+  fallA.onfinish = () => { advBody.classList.remove('anim'); };
+}
+function advClose() {
+  advStop(); advTg.setAttribute('aria-expanded', 'false');
+  if (calmQ.matches || !advBody.animate) { advBody.hidden = true; return; }
+  const H = advBody.offsetHeight; advBody.classList.add('anim');
+  const a = advBody.animate([{ height: H + 'px', opacity: 1 }, { height: '0px', opacity: .3 }],
+    { duration: Math.min(380, 180 + Math.sqrt(H) * 3), easing: 'cubic-bezier(.6, 0, .9, .5)' });
+  a.onfinish = () => { advBody.hidden = true; advBody.classList.remove('anim'); };
+}
+advTg.addEventListener('click', e => (advTg.getAttribute('aria-expanded') === 'true' ? advClose() : advOpen(e)));
+// Anything that jumps to a control inside the panel opens it first, without the animation
+const advReveal = el => { if (!el || !advBody.contains(el)) return; if (advBody.hidden) advOpen(null); const r = el.closest('.rack.fold'); if (r && !rackIsOpen(r)) rackOpen(r, false); };
+// Sections inside Advanced (Sound, Polymeter, Fit) open one at a time: the first is open when Advanced opens, the rest are
+// headers you click. Opening one never closes another; each drops open with its own small bounce.
+function rackIsOpen(r) { return r.querySelector('.rk-tg').getAttribute('aria-expanded') === 'true'; }
+function rackOpen(r, anim) {
+  const tg = r.querySelector('.rk-tg'), body = r.querySelector('.rk-body');
+  body.getAnimations().forEach(a => a.cancel()); body.hidden = false; tg.setAttribute('aria-expanded', 'true'); window.dispatchEvent(new Event('resize'));
+  if (!anim || calmQ.matches || !body.animate) return;
+  const H = body.scrollHeight, b = Math.min(H * .12, 40), D = Math.min(900, 520 + Math.sqrt(H) * 6), IN = 'cubic-bezier(.5, 0, 1, .5)', OUT = 'cubic-bezier(0, .5, .5, 1)';
+  body.style.overflow = 'hidden';
+  const a = body.animate([
+    { height: '0px', opacity: .3, offset: 0, easing: IN },
+    { height: H + 'px', opacity: 1, offset: .42, easing: OUT },
+    { height: H - b + 'px', offset: .6, easing: IN },
+    { height: H + 'px', offset: .76, easing: OUT },
+    { height: H - b * .35 + 'px', offset: .88, easing: IN },
+    { height: H + 'px', opacity: 1, offset: 1 }
+  ], { duration: D });
+  a.onfinish = a.oncancel = () => { body.style.overflow = ''; };
+}
+function rackClose(r) {
+  const tg = r.querySelector('.rk-tg'), body = r.querySelector('.rk-body');
+  body.getAnimations().forEach(a => a.cancel()); tg.setAttribute('aria-expanded', 'false');
+  if (calmQ.matches || !body.animate) { body.hidden = true; return; }
+  const H = body.offsetHeight; body.style.overflow = 'hidden';
+  const a = body.animate([{ height: H + 'px', opacity: 1 }, { height: '0px', opacity: .3 }], { duration: Math.min(320, 160 + Math.sqrt(H) * 3), easing: 'cubic-bezier(.6, 0, .9, .5)' });
+  a.onfinish = () => { body.hidden = true; body.style.overflow = ''; };
+}
+document.querySelectorAll('.adv-in > .rack').forEach((r, i) => {
+  const bar = r.querySelector('.rackbar'), body = document.createElement('div'), tg = document.createElement('button');
+  body.className = 'rk-body'; body.id = 'rkBody' + i;
+  [...r.children].filter(c => c !== bar).forEach(c => body.append(c)); r.append(body);
+  tg.type = 'button'; tg.className = 'rk-tg'; tg.setAttribute('aria-controls', body.id);
+  [...bar.querySelectorAll(':scope > h2, :scope > .rk-sub')].forEach(c => tg.append(c));
+  const ch = document.createElement('span'); ch.className = 'rk-c'; ch.setAttribute('aria-hidden', 'true'); tg.append(ch);
+  bar.prepend(tg); r.classList.add('fold'); bar.addEventListener('click', e => { if (e.target === bar) tg.click(); });
+  const open = i === 0; tg.setAttribute('aria-expanded', String(open)); body.hidden = !open;
+  tg.addEventListener('click', () => (rackIsOpen(r) ? rackClose(r) : rackOpen(r, true)));
+});
+
 // ---- First-run guide: Show me points at each control; the example runs the whole loop once
 function spot(id) {
   const el = $(id); if (!el) return;
   if (location.hash === '#write') location.hash = '#practice';
+  advReveal(el);
   el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('spot'); void el.offsetWidth; el.classList.add('spot');
   setTimeout(() => el.classList.remove('spot'), 2600); if (id === 'lyrics') el.focus({ preventScroll: true });
 }
