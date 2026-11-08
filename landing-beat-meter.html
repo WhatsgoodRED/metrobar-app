@@ -53,9 +53,26 @@ input[type=file]::file-selector-button:hover { border-color: var(--muted); }
 .wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 40px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: grid; gap: 20px; }
-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+/* Top bar: logo in the middle, MetroBar/Write tabs left, readout + i right. Phones stack all three, centred. */
+header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
+header > .logo { grid-column: 2; grid-row: 1; }
+header > .views { grid-column: 1; grid-row: 1; justify-self: start; }
+header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
+@media (max-width: 700px) {
+  header { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 10px; }
+  header > .logo, header > .views, header > .hright { grid-column: 1; grid-row: auto; justify-self: center; }
+  header > .hright { display: flex; align-items: center; gap: 10px; }
+}
 .logo { display: grid; gap: 6px; width: min(100%, 15.5rem); }
-.logo-tile { background: var(--cell); border-radius: 12px; padding: 10px 20px; overflow: hidden; }
+.logo-tile { position: relative; background: var(--cell); border-radius: 12px; padding: 10px 20px; overflow: hidden; }
+/* Live logo: with a beat loaded the wordmark becomes the instrumental's waveform (whole file when stopped, live while it plays);
+   while running, the 1-2-3-4 tiles light on each beat */
+.lwave { position: absolute; inset: 6px 12px; width: calc(100% - 24px); height: calc(100% - 12px); display: none; }
+.logo.wave .wm { visibility: hidden; }
+.logo.wave .lwave { display: block; }
+.logo-sub i { transition: background .08s, color .08s; }
+.logo.run .logo-sub i.a:not(.on) { background: var(--cell); color: var(--muted); }
+.logo.run .logo-sub i.on { background: var(--accent); color: var(--on-accent); }
 .wm { display: block; font-family: var(--display); font-weight: 900; font-size: clamp(1.9rem, 9vw, 2.6rem); line-height: 1; letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; text-align: center; }
 .logo-sub { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .logo-sub i { font-style: normal; font-family: var(--mono); font-weight: 600; font-size: .8rem; text-align: center; padding-block: 4px; border-radius: 6px; background: var(--cell); color: var(--muted); }
@@ -118,6 +135,28 @@ header { display: flex; justify-content: space-between; align-items: center; gap
 .bar.practice .num span { min-width: 0; overflow-wrap: anywhere; }
 .bar.practice .sub span { font-size: .56rem; letter-spacing: -.04em; }
 .num .st, .sub .st { font-weight: 900; }
+/* Bennie 2026-11-08: numbers stay grey at rest; only the beat/step that is playing lights solid red, like the rail's ball */
+.beat .num.on, .sub span.on, .strip i.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+/* Beat rail: a horizontal take on a "rail table of contents" (a dotted rail, a dot per stop, a marker that travels it and fills the rail behind it).
+   Here the stops are the beats (one dot under the middle of each tile) and the marker is a ball that bounces from beat to beat in time:
+   it touches each dot exactly on its click (audio clock, see railFrame), squashes as it lands, and on the last beat hops back to beat 1.
+   The rail behind the ball is drawn solid, passed dots fill, and a ring in the box colour cuts the rail away under the ball. */
+.rail { --r-ink: color-mix(in srgb, var(--fg) 62%, var(--panel)); position: relative; height: 62px; margin-top: 2px; pointer-events: none; }
+.rail-line, .rail-fill { position: absolute; top: 54px; height: 1.5px; margin-top: -.75px; border-radius: 1px; }
+.rail-line { background: repeating-linear-gradient(90deg, color-mix(in srgb, var(--fg) 28%, transparent) 0 2px, transparent 2px 7px); }
+.rail-fill { background: var(--r-ink); width: 0; }
+.rail-dot { position: absolute; top: 54px; width: 8px; height: 8px; margin: -4px 0 0 -4px; border-radius: 50%; box-sizing: border-box;
+  border: 1.4px solid color-mix(in srgb, var(--fg) 32%, transparent); background: var(--panel); transition: background .2s, border-color .2s, transform .12s; }
+.rail-dot.one { width: 10px; height: 10px; margin: -5px 0 0 -5px; }
+.rail-dot.hit { background: var(--r-ink); border-color: var(--r-ink); }
+.rail-dot.now { background: var(--accent); border-color: var(--accent); transform: scale(1.35); transition: none; }
+.rail.cnt .rail-dot.now { background: var(--r-ink); border-color: var(--r-ink); }
+.rail-shadow { position: absolute; left: 0; top: 54px; width: 16px; height: 4px; margin: -2px 0 0 -8px; border-radius: 50%; background: rgb(0 0 0 / .28); filter: blur(1.5px); opacity: 0; }
+.rail-ball { position: absolute; left: 0; top: 54px; width: 14px; height: 14px; margin: -10px 0 0 -7px; border-radius: 50%; transform-origin: 50% 71%;   /* rests on its dot and covers it */
+  background: radial-gradient(circle at 34% 30%, color-mix(in srgb, var(--accent) 45%, #fff) 0 12%, var(--accent) 48%, color-mix(in srgb, var(--accent) 70%, #000) 100%);
+  box-shadow: 0 0 0 3px var(--panel); }
+.rail.cnt .rail-ball { background: radial-gradient(circle at 34% 30%, #fff 0 12%, var(--muted) 50%, color-mix(in srgb, var(--muted) 60%, #000) 100%); }
+@media (max-width: 560px) { .rail { height: 46px; } .rail-line, .rail-fill, .rail-dot, .rail-shadow, .rail-ball { top: 38px; } }
 .num .un, .sub .un { opacity: .62; font-weight: 700; }
 
 .now { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 14px; align-items: baseline; }
@@ -456,7 +495,26 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 #spTotal.warn { color: var(--accent-text); }
 /* Advanced panel: everything below the transport row. Closed on every load. It drops open from the point you click,
    and its bottom edge bounces a few times like a ball before it settles (advOpen in the script). */
-.transport { border: 1px solid var(--line); }
+.transport { border: 1px solid var(--line); flex-direction: column; align-items: center; gap: 12px; }
+/* Transport: Tap · START · Mic centred, then BPM and Load beat; status lines only when they have something to say */
+.t-grid { display: grid; grid-template-columns: repeat(4, auto); justify-content: center; align-items: center; gap: 12px 12px; }
+.t-side { min-width: 72px; min-height: 44px; font-weight: 600; }
+.t-grid .go { min-height: 48px; min-width: 140px; }
+.t-grid .beatbtn { min-height: 44px; }
+.t-bpm { grid-column: 1 / -1; justify-self: center; }
+.t-msg { display: none; grid-column: 3 / 5; justify-self: stretch; width: 0; min-width: 100%; flex-direction: column; align-items: center; gap: 4px; text-align: center; }
+.t-grid.has-msg .t-bpm { grid-column: 1 / 3; }
+.t-grid.has-msg .t-msg { display: flex; }
+.t-msg .det { justify-content: center; flex-wrap: wrap; max-width: 100%; font-size: .8rem; }
+#tapInfo:empty, #detBox:has(> #det:empty):has(> #keyInfo:empty) { display: none; }
+@media (max-width: 560px) {
+  .transport { padding: 12px 8px; }
+  .t-grid { gap: 10px 6px; }
+  .t-side { min-width: 48px; padding-inline: 8px; }
+  .t-grid .go { min-width: 92px; padding-inline: 10px; font-size: 1.2rem; }
+  .t-grid .beatbtn { padding-inline: 8px; font-size: .9rem; }
+  .t-msg .det { font-size: .72rem; gap: 4px; }
+}
 .adv { display: grid; min-width: 0; }
 /* Advanced spans the whole window, not the 860px column: it breaks out of .wrap with negative margins and keeps a small gutter */
 /* the header (logo, MetroBar/Write tabs, bar and BPM readout) spans the window too, lined up with the Advanced panel's edges */
@@ -559,6 +617,9 @@ html, body { overflow-x: clip; }
 /* slider and stepper */
 .sl { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .sl input[type=range] { flex: 1; min-width: 0; }
+.sl-stops { display: flex; justify-content: space-between; margin-top: -6px; }
+.sl-stops button { font: .7rem var(--mono); color: var(--muted); background: none; border: 0; padding: 2px 0; cursor: pointer; }
+.sl-stops button.on { color: var(--fg); font-weight: 600; }
 .sl-l { font-size: .82rem; color: var(--muted); white-space: nowrap; }
 .stp { display: inline-flex; align-items: center; background: var(--well); border: 1px solid var(--rail); border-radius: 6px; overflow: hidden; flex: none; }
 .stp button { font: inherit; font-family: var(--mono); font-size: 1rem; line-height: 1; width: 32px; height: 32px; background: transparent; border: 0; color: var(--muted); cursor: pointer; }
@@ -645,14 +706,102 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
 .rack.fold .rackbar { cursor: pointer; }
 .rackbar .rk-tg + .sp { display: none; }
 @media (prefers-reduced-motion: reduce) { .rk-c { transition: none; } }
+/* ---- RareUI ideas (own CSS): rolling digits, shimmer status, mic orb, bin delete, bar dots, beat bar, drill checklist, practice calendar */
+.rl { display: inline-flex; vertical-align: bottom; font-variant-numeric: tabular-nums; }
+.rl .rd, .rl .rc { display: inline-block; height: 1.2em; line-height: 1.2em; }
+.rl .rd { overflow: hidden; width: 1ch; -webkit-mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); mask-image: linear-gradient(transparent, #000 22%, #000 78%, transparent); }
+.rl .rs { display: flex; flex-direction: column; transform: translateY(calc(var(--d, 0) * -1.2em)); transition: transform .5s cubic-bezier(.2, 1.3, .4, 1); }
+.rl .rs i { font-style: normal; height: 1.2em; line-height: 1.2em; text-align: center; }
+.rl .rd.in { animation: rl-in .32s ease-out; }
+@keyframes rl-in { from { width: 0; opacity: 0; } }
+.shim { background: linear-gradient(100deg, var(--muted) 0 35%, var(--fg) 50%, var(--muted) 65% 100%); background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shim 1.6s linear infinite; }
+@keyframes shim { from { background-position: 100% 0; } to { background-position: -160% 0; } }
+.bt { color: var(--muted); font-variant-numeric: tabular-nums; }
+#orb { width: 46px; height: 46px; flex: none; color: var(--fg); }
+#detBox:has(> #orb:not([hidden])) { display: inline-flex; }
+/* bin: delete in place */
+.bdel { display: inline-flex; align-items: center; gap: 2px; }
+.bdel button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); color: var(--fg); cursor: pointer; }
+.bdel svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; overflow: visible; }
+.bd-lid { transform-origin: 20px 7px; transition: transform .28s cubic-bezier(.3, 1.6, .5, 1); }
+.bdel.open .bd-bin { color: var(--accent-text); border-color: var(--accent); }
+.bdel.open .bd-lid { transform: rotate(28deg) translate(1px, -2px); }
+.bd-pan { display: inline-flex; gap: 2px; max-width: 0; overflow: hidden; opacity: 0; transform: translateX(-8px); transition: max-width .3s cubic-bezier(.3, 1.3, .5, 1), opacity .2s, transform .3s cubic-bezier(.3, 1.3, .5, 1); }
+.bdel.open .bd-pan { max-width: 70px; opacity: 1; transform: none; }
+.bdel button.bd-yes { background: var(--accent); border-color: var(--accent); color: #fff; }
+.bd-chk { stroke-dasharray: 22; stroke-dashoffset: 22; opacity: 0; }
+.bdel.done .bd-lid, .bdel.done .bd-can { opacity: 0; transition: opacity .12s; }
+.bdel.done .bd-chk { opacity: 1; stroke-dashoffset: 0; transition: stroke-dashoffset .36s ease-out; stroke: var(--accent-text); }
+/* bar dots under the rail */
+.steps { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 6px; min-height: 18px; }
+.step-dots { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: center; }
+.sd { position: relative; width: 8px; height: 8px; padding: 0; border: 0; border-radius: 99px; background: color-mix(in srgb, var(--fg) 22%, transparent); cursor: pointer; overflow: hidden;
+  transition: width .38s cubic-bezier(.3, 1.4, .5, 1), background-color .2s; }
+.sd::before { content: ""; position: absolute; inset: -8px -3px; }   /* bigger tap target */
+.sd i { position: absolute; inset: 0; border-radius: inherit; background: var(--accent); transform-origin: left; transform: scaleX(0); }
+.sd.done { background: color-mix(in srgb, var(--fg) 70%, transparent); }
+.sd.cur { width: 34px; background: color-mix(in srgb, var(--fg) 18%, transparent); }
+.sd:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.step-lab { font-family: var(--mono); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+@media (max-width: 560px) { .sd.cur { width: 24px; } .step-dots { gap: 4px; } }
+/* beat bar: waveform scrubber for the loaded beat */
+.beatbar { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; width: 100%; max-width: 640px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); position: relative; }
+.beatbar.run { box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 40%, transparent), 0 0 18px -6px var(--accent); transition: box-shadow .3s; }
+.bb-play { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--fg); color: var(--bg); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.bb-play svg { width: 14px; height: 14px; fill: currentColor; }
+.bb-play .ps { display: none; } .bb-play.on .pl { display: none; } .bb-play.on .ps { display: block; }
+#bbWave { width: 100%; height: 34px; display: block; color: var(--fg); cursor: pointer; touch-action: none; border-radius: 4px; }
+#bbWave:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bb-r { display: flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: .72rem; color: var(--muted); white-space: nowrap; }
+#bbSpeed { min-height: 26px; padding: 2px 7px; font: inherit; border: 1px solid var(--line); border-radius: 99px; background: var(--panel); color: var(--fg); cursor: pointer; }
+#bbFrom { color: var(--accent-text); }
+#bbFrom:empty { display: none; }
+@media (max-width: 560px) { .beatbar { gap: 6px; padding: 5px 6px; } .bb-r { flex-direction: column; align-items: flex-end; gap: 2px; font-size: .66rem; } }
+/* drill checklist on the technique card */
+.drill { display: grid; gap: 6px; border-top: 1px solid var(--rail, var(--line)); padding-top: 8px; }
+.drill-h { display: flex; gap: 8px; align-items: baseline; } .drill-h span { font-family: var(--mono); font-size: .72rem; color: var(--muted); }
+.drill > .mini { justify-self: start; }
+.tasks { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.tk { display: flex; gap: 9px; align-items: flex-start; width: 100%; text-align: left; font: inherit; font-size: .84rem; color: var(--fg); background: transparent; border: 0; border-radius: 7px; padding: 5px 6px; cursor: pointer; }
+.tk:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.tk:focus-visible { outline: 2px solid var(--accent); outline-offset: 0; }
+.ck { flex: none; width: 1.1em; height: 1.1em; margin-top: .1em; border-radius: 50%; border: 1.5px solid var(--muted); display: grid; place-items: center; transition: background-color .2s, border-color .2s, transform .25s cubic-bezier(.3, 1.8, .5, 1); }
+.ck::after { content: ""; width: .32em; height: .58em; border: solid var(--bg); border-width: 0 2px 2px 0; transform: translateY(-.06em) rotate(45deg) scale(0); transition: transform .22s cubic-bezier(.3, 1.8, .5, 1) .05s; }
+.tx { background: linear-gradient(currentColor, currentColor) no-repeat 0 55% / 0 1.5px; transition: background-size .3s ease, color .3s; }
+li.on .ck { background: var(--accent); border-color: var(--accent); transform: scale(1.08); }
+li.on .ck::after { transform: translateY(-.06em) rotate(45deg) scale(1); }
+li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
+.pad .dn { position: absolute; top: 5px; right: 6px; font-family: var(--mono); font-size: .6rem; color: var(--faint, var(--muted)); }
+.pad .dn.all { color: var(--accent-text); font-size: .75rem; }
+/* practice calendar */
+.cal { display: grid; gap: 4px; margin: 8px 0 2px; }
+.cal-m, .cal-grid { display: grid; grid-template-columns: repeat(26, minmax(0, 1fr)); column-gap: 3px; }
+.cal-m span { font-family: var(--mono); font-size: .6rem; color: var(--muted); white-space: nowrap; overflow: visible; }
+.cal-grid { grid-auto-flow: column; grid-template-rows: repeat(7, auto); row-gap: 3px; }
+.cal-grid i { aspect-ratio: 1; border-radius: 3px; background: color-mix(in srgb, var(--fg) 9%, transparent); }
+.cal-grid i.fut { background: none; }
+.cal-grid i[data-l="1"], .cal-key i[data-l="1"] { background: color-mix(in srgb, var(--accent) 35%, var(--cell, var(--panel))); }
+.cal-grid i[data-l="2"], .cal-key i[data-l="2"] { background: color-mix(in srgb, var(--accent) 58%, var(--cell, var(--panel))); }
+.cal-grid i[data-l="3"], .cal-key i[data-l="3"] { background: color-mix(in srgb, var(--accent) 80%, var(--cell, var(--panel))); }
+.cal-grid i[data-l="4"], .cal-key i[data-l="4"] { background: var(--accent); }
+.cal-grid i.today { outline: 1.5px solid var(--fg); outline-offset: 1px; }
+.cal-grid i:hover { outline: 1.5px solid var(--muted); outline-offset: 1px; }
+.cal-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.cal-foot .note { margin: 0; }
+.cal-key { display: inline-flex; align-items: center; gap: 3px; font-family: var(--mono); font-size: .6rem; color: var(--muted); }
+.cal-key i { width: 10px; height: 10px; border-radius: 2px; background: color-mix(in srgb, var(--fg) 9%, transparent); }
+@media (prefers-reduced-motion: reduce) {
+  .shim { animation: none; color: var(--fg); background: none; }
+  .rl .rs, .sd, .bd-lid, .bd-pan, .ck, .ck::after, .tx { transition: none; }
+}
 </style>
 </head>
 <body>
 <div class="strip" id="beatStrip" aria-hidden="true" hidden><span id="stripInfo"></span></div>
 <div class="wrap">
   <header>
-    <div class="logo" role="img" aria-label="MetroBar">
-      <div class="logo-tile"><span class="wm">MetroBar</span></div>
+    <div class="logo" id="logo" role="img" aria-label="MetroBar">
+      <div class="logo-tile"><span class="wm">MetroBar</span><canvas class="lwave" id="logoWave" aria-hidden="true"></canvas></div>
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a></nav>
@@ -765,21 +914,31 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
         <g class="m-key"><path class="m-keystem" d="M96 112 L102 112"/><circle class="m-knob" cx="102" cy="112" r="2.8"/><path class="m-wing" d="M104 112 L109 104 L118 102 L116 112 L118 122 L109 120 Z"/></g>
       </svg>
     </div>
-    <div class="deck-box"><div class="bar" id="bar"></div></div>
+    <div class="deck-box"><div class="bar" id="bar"></div><div class="rail" id="rail" aria-hidden="true"><i class="rail-line" id="railLine"></i><i class="rail-fill" id="railFill"></i><i class="rail-shadow" id="railShadow"></i><i class="rail-ball" id="railBall"></i></div><div class="steps" id="steps"><div class="step-dots" id="stepDots" role="group" aria-label="Bars: click one to start there"></div><span class="step-lab" id="stepLab"></span></div></div>
   </div>
 
 
   <div class="controls transport">
-    <button class="go" id="go" aria-pressed="false">Start</button>
-    <div class="tempo">
-      <button id="minus" aria-label="Slower">−</button>
-      <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
-      <button id="plus" aria-label="Faster">+</button>
+    <div class="t-grid" id="tGrid">
+      <button class="btn t-side" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button>
+      <button class="go" id="go" aria-pressed="false">Start</button>
+      <button class="btn pri beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
+      <button class="btn t-side" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
+      <div class="tempo t-bpm">
+        <button id="minus" aria-label="Slower">−</button>
+        <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
+        <button id="plus" aria-label="Faster">+</button>
+      </div>
+      <div class="t-msg" id="tMsg" aria-live="polite">
+        <span class="det" id="detBox"><canvas id="orb" hidden aria-hidden="true"></canvas><span id="det"></span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
+        <span class="det" id="tapInfo"></span>
+      </div>
     </div>
-    <button class="btn pri beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
-    <button class="btn" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
-    <span class="det" id="detBox"><span id="det">No beat loaded</span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
-    <button class="btn" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button><span class="det" id="tapInfo"></span>
+    <div class="beatbar" id="beatBar" hidden>
+      <button class="bb-play" id="bbPlay" type="button" aria-label="Start"><svg class="pl" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z"/></svg><svg class="ps" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 1.5h3.2v11H2.5zM8.3 1.5h3.2v11H8.3z"/></svg></button>
+      <canvas id="bbWave" tabindex="0" role="slider" aria-label="Where the beat starts" aria-valuemin="1" aria-valuenow="1" title="Click or drag to start the beat from that bar (arrow keys: one bar)"></canvas>
+      <div class="bb-r"><span id="bbTime">0:00 / 0:00</span><span id="bbFrom"></span><button id="bbSpeed" type="button">100%</button></div>
+    </div>
   </div>
   <div class="tele" id="tele" hidden></div>
   <div class="drop" id="drop" aria-live="polite" hidden></div>
@@ -802,19 +961,16 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
     <div class="rackbar"><h2>Sound</h2><span class="rk-sub">clicks · speed · meter · beat</span></div>
     <div class="mods">
       <div class="mod">
-        <span class="mod-label">Click</span>
-        <label class="sw"><input type="checkbox" id="clicks" checked><span class="track"></span><span class="txt">Clicks</span></label>
-        <label class="sw"><input type="checkbox" id="eighths" checked><span class="track"></span><span class="txt">8th ticks</span></label>
-        <label class="sw"><input type="checkbox" id="secTick" checked><span class="track"></span><span class="txt">1s ticks</span></label>
+        <span class="mod-label">Click <span class="val" id="clickOut"></span></span>
+        <div class="sl" title="Slide right for more clicks: Off, one click per beat, plus the 8ths in between, plus a tick every second (that one ignores the tempo)."><input id="clickLvl" type="range" min="0" max="3" step="1" value="3" aria-label="Click"></div>
+        <div class="sl-stops" id="clickStops"><button type="button" data-v="0">Off</button><button type="button" data-v="1">Beats</button><button type="button" data-v="2">8ths</button><button type="button" data-v="3">+ 1 s</button></div>
+        <span hidden><input type="checkbox" id="clicks" checked><input type="checkbox" id="eighths" checked><input type="checkbox" id="secTick" checked></span>
       </div>
       <div class="mod">
-        <span class="mod-label">On start</span>
-        <label class="sw"><input type="checkbox" id="countIn" checked><span class="track"></span><span class="txt">Count-in bar</span></label>
-      </div>
-      <div class="mod" title="Tempo change: play the beat and the click slower to practise a fast verse, or a bit faster to push yourself. Keep pitch stops the beat sounding deeper or higher (it takes a second to prepare). The Tempo trainer in Fit does its own speed, so this waits while the trainer runs.">
-        <span class="mod-label">Speed <span class="val" id="speedOut">100%</span></span>
+        <span class="mod-label" title="Tempo change: play the beat and the click slower to practise a fast verse, or a bit faster to push yourself. Keep pitch stops the beat sounding deeper or higher (it takes a second to prepare). The Tempo trainer in Fit does its own speed, so this waits while the trainer runs.">Speed <span class="val" id="speedOut">100%</span></span>
         <div class="sl"><input id="speed" type="range" min="70" max="110" step="5" value="100" aria-label="Speed"></div>
         <label class="sw"><input type="checkbox" id="keepPitch" checked><span class="track"></span><span class="txt">Keep pitch</span></label><span class="det" id="speedInfo"></span>
+        <label class="sw" title="Start plays one bar of count-in clicks before the loop begins."><input type="checkbox" id="countIn" checked><span class="track"></span><span class="txt">Count-in bar on Start</span></label>
       </div>
       <div class="mod" title="Delays the in-between 16ths: 0 = straight, 33 = triplet swing, 50+ = hard bounce">
         <span class="mod-label">Swing <span class="val" id="swingOut">0%</span></span>
@@ -2183,6 +2339,103 @@ function paintPieces(raw, parts) {
   return out;
 }
 </script>
+<script>
+/* Small motion helpers (ideas from the RareUI library, own vanilla code, nothing installed):
+   roll(el, v)  numbers roll digit by digit like an odometer (up when they grow, down when they shrink)
+   busy(el, t)  a working line with a soft shimmer and a seconds counter, so a long wait never looks frozen
+   orbSet(s)    a round grid of dots beside the status line: 'listen' blooms with the mic level, 'think' sweeps, 'off' hides */
+const motionCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function roll(el, val) {
+  if (!el) return;
+  const s = String(val), p = el.dataset.rv;
+  if (p === s) return;
+  el.dataset.rv = s;
+  let sr = el.querySelector(':scope > .sr-only'), box = el.querySelector(':scope > .rl');
+  if (!box) { el.textContent = ''; sr = document.createElement('span'); sr.className = 'sr-only'; box = document.createElement('span'); box.className = 'rl'; box.setAttribute('aria-hidden', 'true'); el.append(sr, box); }
+  sr.textContent = s;
+  const shape = x => x.replace(/\d/g, '0'), digit = c => c >= '0' && c <= '9';
+  const set = (col, c) => { if (col.classList.contains('rd')) col.firstChild.style.setProperty('--d', c); };
+  if (p != null && !motionCalm() && shape(p) === shape(s)) { [...box.children].forEach((col, i) => set(col, s[i])); return; }
+  // the shape changed (a digit more or less, or a dash): rebuild, start each column on the old digit in that place, then roll
+  const from = p == null ? s : p.padStart(s.length, ' ').slice(-s.length);
+  box.replaceChildren(...[...s].map((c, i) => {
+    const col = document.createElement('span');
+    if (!digit(c)) { col.className = 'rc'; col.textContent = c; return col; }
+    col.className = 'rd' + (p != null && !digit(from[i]) ? ' in' : '');
+    const st = document.createElement('span'); st.className = 'rs';
+    for (let d = 0; d < 10; d++) { const x = document.createElement('i'); x.textContent = d; st.append(x); }
+    st.style.setProperty('--d', p != null && digit(from[i]) ? from[i] : c); col.append(st); return col;
+  }));
+  if (p == null || motionCalm()) return;
+  void box.offsetWidth;   // let the old digits paint, then roll to the new ones
+  [...box.children].forEach((col, i) => set(col, s[i]));
+}
+const BUSY = new WeakMap();
+function busy(el, label) {
+  if (!el) return;
+  const was = BUSY.get(el), t0 = was && was.lab.isConnected ? was.t0 : performance.now();   // the clock keeps running across steps of one job
+  const lab = document.createElement('span'), tm = document.createElement('span');
+  lab.className = 'shim'; lab.textContent = label; tm.className = 'bt';
+  el.replaceChildren(lab, tm);
+  const tick = () => { if (!lab.isConnected) { clearInterval(iv); return; } const s = (performance.now() - t0) / 1000; tm.textContent = s >= 1 ? ` · ${Math.floor(s)} s` : ''; };
+  const iv = setInterval(tick, 250);
+  BUSY.set(el, { t0, lab });
+}
+const ORB = { state: 'off', level: 0, lv: 0, raf: 0, t0: 0 };
+function orbSet(state) {
+  const cv = document.getElementById('orb'); if (!cv) return;
+  ORB.state = state; cv.hidden = state === 'off'; cv.dataset.s = state;
+  if (state === 'off') { cancelAnimationFrame(ORB.raf); ORB.raf = 0; return; }
+  if (!ORB.raf) { ORB.t0 = performance.now(); ORB.raf = requestAnimationFrame(orbDraw); }
+}
+function orbDraw(ms) {
+  const cv = document.getElementById('orb'); if (!cv || ORB.state === 'off') { ORB.raf = 0; return; }
+  const dpr = Math.min(2, window.devicePixelRatio || 1), W = cv.clientWidth || 34;
+  if (cv.width !== Math.round(W * dpr)) { cv.width = cv.height = Math.round(W * dpr); }
+  const g = cv.getContext('2d'), cs = getComputedStyle(cv), ink = cs.color, acc = cs.getPropertyValue('--accent').trim() || '#af0000';
+  const N = 9, c = (N - 1) / 2, step = cv.width / N, t = (ms - ORB.t0) / 1000;
+  ORB.lv += (Math.min(1, ORB.level) - ORB.lv) * 0.25;   // ease the level so the bloom breathes instead of flickering
+  g.clearRect(0, 0, cv.width, cv.height);
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const dx = x - c, dy = y - c, d = Math.hypot(dx, dy); if (d > c + 0.35) continue;   // round mask
+    let a = 0.3, hot = 0;
+    if (ORB.state === 'listen') {
+      const r = 1.3 + 0.35 * Math.sin(t * 3) + ORB.lv * (c - 0.6);   // breathes while it listens; louder = wider bloom
+      a = d <= r ? 0.55 + 0.45 * (1 - d / (r + 0.001)) : 0.3;
+      hot = d <= r * 0.45 && ORB.lv > 0.25 ? 1 : 0;
+      if (motionCalm()) { a = d <= r ? 0.8 : 0.16; }
+    } else if (ORB.state === 'think') {
+      const ang = Math.atan2(dy, dx), sweep = motionCalm() ? 0 : t * 4.2;
+      const diff = Math.abs(((ang - sweep) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);   // distance from the sweep arm
+      a = 0.14 + 0.86 * Math.max(0, 1 - diff / 1.4) * Math.min(1, d / 2);
+      if (d < 0.6) a = 0.5 + 0.4 * Math.sin(t * 6);
+    }
+    g.globalAlpha = Math.max(0.08, Math.min(1, a)); g.fillStyle = hot ? acc : ink;
+    g.beginPath(); g.arc((x + 0.5) * step, (y + 0.5) * step, step * (0.3 + 0.15 * a), 0, Math.PI * 2); g.fill();
+  }
+  g.globalAlpha = 1;
+  ORB.raf = requestAnimationFrame(orbDraw);
+}
+// Bin: delete in place. The lid lifts, a tick and a cross slide out; the tick draws a check and deletes, the cross / bin / Esc put it back.
+function binDel(label, onConfirm) {
+  const box = h('span', 'bdel'), bin = h('button', 'bd-bin'), pan = h('span', 'bd-pan'), yes = h('button', 'bd-yes'), no = h('button', 'bd-no');
+  bin.type = yes.type = no.type = 'button';
+  bin.setAttribute('aria-label', `Delete "${label}" forever`); bin.title = 'Delete forever'; bin.setAttribute('aria-expanded', 'false');
+  yes.setAttribute('aria-label', 'Yes, delete it forever'); yes.title = 'Delete forever'; no.setAttribute('aria-label', 'Keep it'); no.title = 'Keep it';
+  bin.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><g class="bd-lid"><path d="M4 7h16"/><path d="M9.5 7V5h5v2"/></g><path class="bd-can" d="M6 7l1 13h10l1-13"/><path class="bd-can" d="M10 11v6M14 11v6"/><path class="bd-chk" d="M5 13l4.5 4.5L19 8"/></svg>';
+  yes.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  no.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  pan.append(yes, no); box.append(bin, pan);
+  const open = on => { box.classList.toggle('open', on); bin.setAttribute('aria-expanded', String(on)); yes.tabIndex = no.tabIndex = on ? 0 : -1; if (on) no.focus(); };
+  open(false);
+  bin.addEventListener('click', () => { if (!box.classList.contains('done')) open(!box.classList.contains('open')); });
+  no.addEventListener('click', () => { open(false); bin.focus(); });
+  box.addEventListener('keydown', e => { if (e.key === 'Escape' && box.classList.contains('open')) { e.stopPropagation(); open(false); bin.focus(); } });
+  yes.addEventListener('click', () => { box.classList.remove('open'); box.classList.add('done'); setTimeout(onConfirm, motionCalm() ? 0 : 480); });
+  return box;
+}
+
+</script>
 
 <script>
 const EMPTY_SECTIONS = [
@@ -2357,13 +2610,14 @@ function renderTiles(barIdx) {
     if (!L) { e.textContent = sb + 1; e.title = countLabel(lay, sl); return; }   // steps numbered 1 2 3 4 under every beat; the spoken count (1 e + a) is the tooltip
     e.replaceChildren(); if (L.slots[sl] >= 0) e.append(syllSpan(L, L.slots[sl])); else e.textContent = '';
   });
+  if (railOn) railLayout();   // railOn: var, so this is safe before the rail code below has run
 }
 
 // ---- map + legend
 let mapCells = [];
 function buildMap() {
   const n = practice ? lines.length : PM.on ? PM.bars : barSection.length, map = $('map');
-  map.replaceChildren(); mapCells = []; total = n; $('barTot').textContent = n;
+  map.replaceChildren(); mapCells = []; total = n; roll($('barTot'), n);
   map.style.gridTemplateColumns = `repeat(${n}, minmax(0, 1fr))`;
   for (let i = 0; i < n; i++) { const c = h('i'); c.dataset.c = practice ? lines[i].flow.color : PM.on ? (i % 2 ? '--s3' : '--s1') : SECTIONS[barSection[i % barSection.length]].color; mapCells.push(c); map.appendChild(c); }
   const lg = $('legend'); lg.replaceChildren(); lg.hidden = !practice;
@@ -2371,6 +2625,7 @@ function buildMap() {
     : [...new Map(SECTIONS.map(s => [s.color, [s.name.replace(' II', ''), s.color]])).values()];
   items.forEach(([name, col]) => { const l = h('span'), sw = h('i'); sw.dataset.c = col; l.append(sw, name); lg.appendChild(l); });
   paintColors();
+  if (typeof stepsBuild === 'function') stepsBuild();
 }
 function paintColors() { document.querySelectorAll('.map i, .legend i').forEach(i => i.style.background = css(i.dataset.c)); }
 new MutationObserver(paintColors).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -2383,8 +2638,9 @@ let teleEls = [];
 function showBar(barIdx, tp) {
   shownBar = barIdx;
   const counting = barIdx < 0;
-  $('barNo').textContent = counting ? '–' : barIdx + 1;
-  $('bpmOut').textContent = Math.round(tp || bpm());
+  roll($('barNo'), counting ? '–' : barIdx + 1);
+  roll($('bpmOut'), Math.round(tp || bpm()));
+  if (typeof stepsShow === 'function' && !running) stepsShow(barIdx, 0);
   if (practice && !lines[counting ? loopRange().lo : barIdx]) return;
   if (practice) {
     const L = lines[counting ? loopRange().lo : barIdx];
@@ -2426,15 +2682,53 @@ function click(t, freq, amp, dur) {
   o.frequency.value = freq; g.gain.setValueAtTime(amp, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
   o.connect(g).connect(ctx.destination); o.start(t); o.stop(t + dur + 0.02);
 }
-let beatBuf = null, beatSrc = null, beatGain = null;
+let beatBuf = null, beatSrc = null, beatGain = null, beatAn = null, waveOv = null, waveLive = null;
+function beatAnalyser() {   // the beat goes through one analyser on its way out, so the logo can draw it live
+  if (!beatAn) { beatAn = ctx.createAnalyser(); beatAn.fftSize = 2048; beatAn.connect(ctx.destination); }
+  return beatAn;
+}
+function waveOverview(buf, n) {   // peak per column over the whole file
+  const d = buf.getChannelData(0), step = Math.floor(d.length / n), out = [];
+  let top = 1e-6;
+  for (let k = 0; k < n; k++) { let m = 0, c = 0; for (let i = k * step, e = i + step; i < e; i += 8) { m += d[i] * d[i]; c++; } m = Math.sqrt(m / Math.max(1, c)); out.push(m); if (m > top) top = m; }
+  return out.map(v => Math.pow(v / top, 1.5));   // loudness per column, contrast stretched
+}
+function logoWave() {
+  const logo = $('logo'), cv = $('logoWave'), on = !!beatBuf;
+  logo.classList.toggle('wave', on); if (!on) return;
+  const w = cv.clientWidth, hgt = cv.clientHeight, dpr = devicePixelRatio || 1; if (!w || !hgt) return;
+  if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hgt * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr); }
+  const c = cv.getContext('2d'), n = Math.max(24, Math.min(64, Math.floor(w / 5))), bw = w / n, cs = getComputedStyle(document.documentElement);
+  let vals;
+  if (running && beatSrc && beatAn) {
+    // live: the loudness of what plays right now enters on the right and scrolls left, so the logo draws the beat as it plays
+    if (!waveLive || waveLive.n !== n) waveLive = { n, h: new Array(n).fill(0), top: 0.05, f: 0 };
+    if (waveLive.f++ % 2 === 0) {
+      const t = new Float32Array(512); beatAn.getFloatTimeDomainData(t);
+      let r = 0; for (const v of t) r += v * v; r = Math.sqrt(r / t.length);
+      waveLive.top = Math.max(r, waveLive.top * 0.997); waveLive.h.push(r); waveLive.h.shift();
+    }
+    vals = waveLive.h.map(v => Math.min(1, Math.pow(v / waveLive.top, 1.5)));
+  } else { if (!waveOv || waveOv.length !== n) waveOv = waveOverview(beatBuf, n); vals = waveOv; waveLive = null; }
+  c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, hgt);
+  c.fillStyle = cs.getPropertyValue('--fg').trim() || '#111413';
+  const accent = cs.getPropertyValue('--accent').trim() || '#af0000', mid = hgt / 2;
+  vals.forEach((v, i) => {
+    const bh = Math.max(2, v * (hgt - 2)), x = i * bw + bw * 0.18;
+    if (running && beatSrc) c.fillStyle = v > 0.85 ? accent : (cs.getPropertyValue('--fg').trim() || '#111413');
+    c.beginPath(); c.roundRect ? c.roundRect(x, mid - bh / 2, bw * 0.64, bh, Math.min(2, bw * 0.3)) : c.rect(x, mid - bh / 2, bw * 0.64, bh); c.fill();
+  });
+}
+window.addEventListener('resize', () => { waveOv = null; logoWave(); });
 function startBeat(at, songBar, rate) {   // (re)start the beat file at the right place for song bar `songBar`
   if (!beatBuf) return;
   const old = beatSrc, s = ctx.createBufferSource(), g = ctx.createGain();
   const st = !trainerOn && speed !== 1 && $('keepPitch').checked && stretched.sp === speed && stretched.buf;   // play the pitch-kept copy at rate 1
   s.buffer = st ? stretched.buf : beatBuf; s.loop = true; s.playbackRate.value = st ? 1 : rate; g.gain.value = +$('beatVol').value;
-  s.connect(g).connect(ctx.destination);
+  s.connect(g).connect(beatAnalyser());
   const d = beatBuf.duration;
-  let pos = (((+$('beatOffset').value || 0) + barStartQ(songBar) * 60 / nativeBpm) % d + d) % d;
+  let pos = (((+$('beatOffset').value || 0) + (barStartQ(songBar) + beatSkip * barQuarters(0)) * 60 / nativeBpm) % d + d) % d;   // beatSkip: bars picked on the beat bar
+  beatPlay = { at, pos, rate: st ? speed : rate, d };
   if (st) pos = Math.min(s.buffer.duration - 0.001, pos / speed);
   s.start(at, pos);
   if (old) { try { old.stop(at); } catch {} }
@@ -2442,6 +2736,17 @@ function startBeat(at, songBar, rate) {   // (re)start the beat file at the righ
 }
 function stopBeat() { if (beatSrc) { try { beatSrc.stop(); } catch {} beatSrc = null; } }
 $('swing').addEventListener('input', () => { $('swingOut').textContent = $('swing').value + '%'; });
+// Click slider: one control for the old Clicks / 8th ticks / 1s ticks switches (they stay as hidden checkboxes the scheduler reads)
+const CLICK_LVLS = ['Off', '1 per beat', 'Beats + 8ths', '8ths + 1 s tick'];
+function clickLvl(v) {
+  v = Math.max(0, Math.min(3, +v || 0)); $('clickLvl').value = v;
+  $('clicks').checked = v >= 1; $('eighths').checked = v >= 2; $('secTick').checked = v >= 3;
+  $('clickOut').textContent = CLICK_LVLS[v];
+  for (const b of $('clickStops').children) b.classList.toggle('on', +b.dataset.v === v);
+}
+$('clickLvl').addEventListener('input', e => clickLvl(e.target.value));
+$('clickStops').addEventListener('click', e => { const b = e.target.closest('button'); if (b) clickLvl(b.dataset.v); });
+clickLvl($('clickLvl').value);
 $('beatVol').addEventListener('input', e => { if (beatGain) beatGain.gain.value = +e.target.value; });
 function swing() { return (+$('swing').value || 0) / 100; }
 function barQuarters(b) { return barLay(b).quarters; }
@@ -2500,11 +2805,58 @@ function stripBar(barIdx, tp) {
 }
 function stripVis() { strip.hidden = !(running && !tilesSeen); }
 if ('IntersectionObserver' in window) new IntersectionObserver(es => { tilesSeen = es[es.length - 1].isIntersecting; stripVis(); }).observe($('bar'));
+// ---- beat rail (see .rail): a ball bounces along a dotted rail from beat to beat, timed off the same audio clock as the pendulum
+const rail = $('rail'), railBall = $('railBall'), railFill = $('railFill'), railShadow = $('railShadow');
+var railOn = false;
+let railX = [], railDots = [], railKey = '', railPend = null, railHop = null;   // railHop = { t, dur, from, to, cnt }: the hop that started on beat `from`
+function railLayout() {   // one dot under the middle of each shown beat tile (tiles can differ in width, e.g. 7/8)
+  const bx = $('bar').getBoundingClientRect(), shown = beatEls.filter(e => !e.beat.hidden);
+  if (!bx.width) return;   // view hidden: the ResizeObserver measures again when it shows
+  const xs = shown.map(e => { const r = e.beat.getBoundingClientRect(); return r.left - bx.left + r.width / 2; }), key = xs.map(x => x.toFixed(1)).join();
+  if (key === railKey) return; railKey = key; railX = xs;
+  while (railDots.length < xs.length) { const d = h('i', 'rail-dot'); rail.insertBefore(d, railShadow); railDots.push(d); }
+  railDots.forEach((d, i) => { d.hidden = i >= xs.length; if (i < xs.length) d.style.left = xs[i] + 'px'; d.classList.toggle('one', i === 0); });
+  const a = xs[0] || 0, z = xs[xs.length - 1] || 0;
+  $('railLine').style.left = railFill.style.left = a + 'px'; $('railLine').style.width = (z - a) + 'px';
+  railFrame(ctx ? ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0) : 0);
+}
+if ('ResizeObserver' in window) new ResizeObserver(() => railLayout()).observe($('bar'));
+railOn = true;
+function railFrame(now) {
+  if (pend !== railPend) {   // a new beat was heard this frame: the ball leaves that beat's dot for the next one
+    railPend = pend;
+    if (pend) {
+      const on = subEls.findIndex(e => e.classList.contains('on')), b = on < 0 ? 0 : Math.floor(on / MAXS), nb = barLay(shownBar).nb;
+      railHop = { t: pend.t, dur: pend.dur, from: Math.min(b, nb - 1), to: b + 1 < nb ? b + 1 : 0, cnt: shownBar < 0 };
+    } else railHop = null;
+  }
+  if (!railX.length) return;
+  const n = railX.length, H = rail.clientHeight - 24, hop = railHop;
+  let x = railX[0], y = 0, sx = 1, sy = 1, lit = -1;
+  if (hop) {
+    const f = Math.min(1, Math.max(0, (now - hop.t) / hop.dur)), x0 = railX[Math.min(hop.from, n - 1)], x1 = railX[Math.min(hop.to, n - 1)];
+    lit = f < 0.22 ? hop.from : -1;
+    if (calmQ.matches) x = x0;   // reduced motion: the ball steps from dot to dot, no flight
+    else {
+      const back = hop.to < hop.from, lift = H * (back ? 1.25 : 1);   // the hop home to beat 1 flies a little higher
+      x = x0 + (x1 - x0) * f; y = lift * 4 * f * (1 - f);
+      const c = Math.max(0, 1 - Math.min(f, 1 - f) / 0.12);   // squash on the ground, stretch just after take-off
+      sy = 1 - 0.3 * c + 0.12 * Math.max(0, 1 - Math.abs(f - 0.2) / 0.15); sx = 1 / sy;
+    }
+  }
+  railBall.style.transform = `translate(${x.toFixed(1)}px, ${(-y).toFixed(1)}px) scale(${sx.toFixed(3)}, ${sy.toFixed(3)})`;
+  railShadow.style.transform = `translateX(${x.toFixed(1)}px) scale(${(1 - 0.5 * y / Math.max(1, H)).toFixed(3)})`;
+  railShadow.style.opacity = hop ? (0.9 - 0.6 * y / Math.max(1, H)).toFixed(2) : 0;
+  railFill.style.width = Math.max(0, x - railX[0]).toFixed(1) + 'px';
+  rail.classList.toggle('cnt', !!(hop && hop.cnt));
+  railDots.forEach((d, i) => { if (i >= n) return; d.classList.toggle('hit', !!hop && railX[i] <= x + 0.5); d.classList.toggle('now', i === lit); });
+}
 // ---- deck metronome: pendulum + red record glow, both computed per frame from the audio clock (no timers)
 const deck = $('deck'), mPend = $('mPend'), mWeight = $('mWeight'), calmQ = matchMedia('(prefers-reduced-motion: reduce)');
 let pend = null, pendN = 0;   // last beat heard: { t, dur, side, glow }
 function metroWeight(tp) { mWeight.setAttribute('transform', `translate(0 ${(44 + (Math.min(200, Math.max(60, tp)) - 60) / 140 * 64).toFixed(1)})`); }   // slow = weight high, like a real one; lines up with the scale ticks
 function metroFrame(now) {
+  railFrame(now);
   if (!pend) { mPend.style.transform = ''; deck.style.setProperty('--g', 0); return; }
   const f = Math.min(1, Math.max(0, (now - pend.t) / pend.dur));
   mPend.style.transform = calmQ.matches ? '' : `rotate(${(22 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
@@ -2513,21 +2865,23 @@ function metroFrame(now) {
 }
 function metroReset() { pend = null; pendN = 0; metroFrame(0); }
 metroWeight(bpm());
+const logoEls = [...document.querySelectorAll('#logo .logo-sub i')];
 function draw() {
   const now = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0);   // what the ear hears now, so the eye lands with the click
   while (queue.length && queue[0].t <= now) {
     const q = queue.shift(), b = q.beat;
-    if (q.sub === 0) { pend = { t: q.t, dur: q.bd, side: ++pendN % 2 ? 1 : -1, glow: q.bar < 0 ? 0.45 : b === 0 ? 1 : 0.6 }; metroWeight(q.tp); }
+    if (q.sub === 0) { pend = { t: q.t, dur: q.bd, side: ++pendN % 2 ? 1 : -1, glow: q.bar < 0 ? 0.45 : b === 0 ? 1 : 0.6 }; metroWeight(q.tp);
+      logoEls.forEach((e, i) => { e.classList.toggle('on', i === b % 4); e.classList.toggle('one', i === b % 4 && b === 0); }); }
     subEls.forEach((e, i) => e.classList.toggle('on', i === q.idx));
     beatEls.forEach((e, i) => e.num.classList.toggle('on', i === b && q.sub < 2));
-    if (q.step === 0) { showBar(q.bar, q.tp); stripBar(q.bar, q.tp); dropTick(q.bar); }
+    if (q.step === 0) { stepBarT = { t: q.t, dur: barQuarters(q.bar) * 60 / q.tp, bar: q.bar }; showBar(q.bar, q.tp); stripBar(q.bar, q.tp); dropTick(q.bar); if (q.bar >= 0) playTick(); }
     stripEls.forEach((e, i) => e.classList.toggle('on', i === b && q.sub < 2));
     if (practice && q.bar >= 0 && lines[q.bar]) {
       const w = lines[q.bar].slotWord[q.step];
       if (w >= 0) teleEls.forEach((e, i) => e.classList.toggle('cur', i === w));
     }
   }
-  metroFrame(now);
+  metroFrame(now); logoWave(); stepsFrame(now); bbFrame(now);
   raf = requestAnimationFrame(draw);
 }
 function start() {
@@ -2541,7 +2895,7 @@ function start() {
   lastBar = -2; playedBars = 0; rateDirty = false; stopBeat(); landTimes = []; tapOffs = [];
   metroReset(); step = 0; bar = $('countIn').checked ? -1 : loopRange().lo; queue = []; nextTime = ctx.currentTime + 0.08; nextSec = nextTime;
   timer = setInterval(schedule, 25); schedule(); raf = requestAnimationFrame(draw);
-  running = true; stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
+  running = true; bbRun(true); stepCur = -1; $('logo').classList.add('run'); stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
 }
 function tapLanding() {
   const lat = ctx.outputLatency || ctx.baseLatency || 0, t = ctx.currentTime - lat;
@@ -2559,13 +2913,15 @@ function stop() {
   clearInterval(timer); cancelAnimationFrame(raf); running = false; queue = []; stopBeat(); metroReset(); dropStop();
   subEls.forEach(e => e.classList.remove('on')); beatEls.forEach(e => e.num.classList.remove('on'));
   stripEls.forEach(e => e.classList.remove('on')); stripVis();
+  $('logo').classList.remove('run'); logoEls.forEach(e => e.classList.remove('on', 'one')); logoWave();
   $('go').textContent = 'Start'; $('go').setAttribute('aria-pressed', 'false'); $('state').textContent = 'stopped'; $('wrPlay').textContent = '▶ Beat'; $('wrPlay').setAttribute('aria-pressed', 'false');
+  playSave(); stepsStop(); bbRun(false);
   showBar(practice ? loopRange().lo : 0);
 }
 $('go').addEventListener('click', () => running ? stop() : start());
 
 // ---- BPM field, detection, tap tempo
-function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); $('bpmOut').textContent = bpm(); if (!running) metroWeight(bpm()); updateSpb(); persist(); if ($('infoDlg').open) studioRender(); }
+function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); roll($('bpmOut'), bpm()); if (typeof bbShow === 'function' && beatBuf && !running) bbShow(); if (!running) metroWeight(bpm()); updateSpb(); persist(); if ($('infoDlg').open) studioRender(); }
 function updateSpb() { const e = $('spb'); if (e) e.textContent = (240 / bpm()).toFixed(2); }
 $('minus').addEventListener('click', () => setBpm(bpm() - 1));
 $('plus').addEventListener('click', () => setBpm(bpm() + 1));
@@ -2576,18 +2932,20 @@ $('beatFile').addEventListener('change', async e => {
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
   detected = null; $('keyInfo').textContent = ''; $('keyNotes').hidden = true; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
   try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); }
-  catch { beatBuf = null; $('det').textContent = 'Could not read that file'; return; }
-  $('det').textContent = 'Detecting…';
+  catch { beatBuf = null; logoWave(); bbShow(); $('det').textContent = 'Could not read that file'; return; }
+  waveOv = null; logoWave(); beatSkip = 0; bbShow();
+  busy($('det'), 'Finding the BPM'); orbSet('think');
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
   const myBuf = beatBuf;
   const res = await coreJob('detectBpm', chs, beatBuf.sampleRate);
   if (beatBuf !== myBuf) return;   // another beat was loaded meanwhile
+  orbSet('off');
   if (!showDetected(res, 'file')) return;
-  $('beatOffset').value = detected.first.toFixed(2);   // offset is prefilled; the BPM never is
+  $('beatOffset').value = detected.first.toFixed(2); bbShow();   // offset is prefilled; the BPM never is
   persist(); stretched = { sp: 1, buf: null }; makeStretch();
   // Key finder: after the BPM, so the BPM shows first
-  $('keyInfo').textContent = 'finding the key…'; await new Promise(r => setTimeout(r, 30));
+  busy($('keyInfo'), ' · finding the key'); await new Promise(r => setTimeout(r, 30));
   const k = await coreJob('detectKey', chs, beatBuf.sampleRate);
   if (beatBuf !== myBuf) return;
   $('keyInfo').replaceChildren('· key ', h('b', '', k.name), k.conf < 8 ? ' (not sure)' : '');
@@ -2598,7 +2956,7 @@ $('beatFile').addEventListener('change', async e => {
 async function makeStretch() {
   rateDirty = true;
   if (!beatBuf || speed === 1 || !$('keepPitch').checked || stretched.sp === speed) { $('speedInfo').textContent = ''; return; }
-  const job = ++stretchJob, sp = speed; $('speedInfo').textContent = 'keeping pitch…';
+  const job = ++stretchJob, sp = speed; busy($('speedInfo'), 'keeping pitch');
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
   const out = await coreJob('timeStretch', chs, beatBuf.sampleRate, sp);
@@ -2606,7 +2964,7 @@ async function makeStretch() {
   const b = ctx.createBuffer(out.length, out[0].length, beatBuf.sampleRate); out.forEach((y, c) => b.copyToChannel(y, c));
   stretched = { sp, buf: b }; rateDirty = true; $('speedInfo').textContent = '';
 }
-$('speed').addEventListener('change', () => { speed = (+$('speed').value || 100) / 100; makeStretch(); if (!running) $('bpmOut').textContent = Math.round(tempoNow()); });
+$('speed').addEventListener('change', () => { speed = (+$('speed').value || 100) / 100; makeStretch(); if (!running) roll($('bpmOut'), Math.round(tempoNow())); });
 $('keepPitch').addEventListener('change', makeStretch);
 // Detected BPM with how sure it is and the styles that tempo fits. Silence gives no number at all.
 function showDetected(r, from) {
@@ -2630,18 +2988,19 @@ async function micBpm() {
   const SEC = 12, sr = ctx.sampleRate, src = ctx.createMediaStreamSource(stream), proc = ctx.createScriptProcessor(4096, 1, 1), mute = ctx.createGain(), chunks = [];
   let n = 0, over = false; mute.gain.value = 0; src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
   const t0 = performance.now(), btn = $('micBtn'); btn.textContent = 'Stop'; btn.setAttribute('aria-pressed', 'true');
-  const show = () => { $('det').textContent = `Listening… ${Math.max(0, Math.ceil(SEC - (performance.now() - t0) / 1000))} s · stays on this device`; };
+  const shim = h('span', 'shim'), show = () => { shim.textContent = `Listening… ${Math.max(0, Math.ceil(SEC - (performance.now() - t0) / 1000))} s · stays on this device`; if (!shim.isConnected) $('det').replaceChildren(shim); };
+  ORB.level = 0; orbSet('listen');
   const tick = setInterval(show, 250); show();
   const done = async () => {
     if (over) return; over = true; clearInterval(tick); micJob = null;
     proc.onaudioprocess = null; try { proc.disconnect(); src.disconnect(); mute.disconnect(); } catch {} stream.getTracks().forEach(t => t.stop());
     btn.textContent = 'Mic'; btn.setAttribute('aria-pressed', 'false');
-    if (n < sr * 4) { $('det').textContent = 'Too short: listen at least 4 seconds'; return; }
+    if (n < sr * 4) { orbSet('off'); $('det').textContent = 'Too short: listen at least 4 seconds'; return; }
     const x = new Float32Array(n); let o = 0; for (const c of chunks) { x.set(c, o); o += c.length; }
-    $('det').textContent = 'Detecting…'; await new Promise(r => setTimeout(r, 30));
-    showDetected(await coreJob('detectBpm', [x], sr), 'mic');
+    busy($('det'), 'Finding the BPM'); orbSet('think'); await new Promise(r => setTimeout(r, 30));
+    const res = await coreJob('detectBpm', [x], sr); orbSet('off'); showDetected(res, 'mic');
   };
-  proc.onaudioprocess = e => { if (over) return; const d = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); n += d.length; if (n >= sr * SEC) done(); };
+  proc.onaudioprocess = e => { if (over) return; const d = e.inputBuffer.getChannelData(0); chunks.push(new Float32Array(d)); n += d.length; let q = 0; for (let i = 0; i < d.length; i += 4) q += d[i] * d[i]; ORB.level = Math.min(1, Math.sqrt(q / (d.length / 4)) * 8); if (n >= sr * SEC) done(); };
   micJob = { stop: done };
 }
 $('micBtn').addEventListener('click', micBpm);
@@ -3052,9 +3411,9 @@ function useSongBars() {
 $('vocalFile').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
-  const box = $('songOut'); box.hidden = false; box.replaceChildren(h('div', 'sum', 'Listening for syllables…'));
+  const box = $('songOut'); box.hidden = false; const sm = h('div', 'sum'); box.replaceChildren(sm); busy(sm, 'Reading the file');
   let buf; try { buf = await ctx.decodeAudioData(await f.arrayBuffer()); } catch { box.replaceChildren(h('div', 'sum warn', 'Could not read that file.')); return; }
-  await new Promise(r => setTimeout(r, 30));
+  busy(sm, 'Finding every syllable'); await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
   vocal = { name: f.name.replace(/\.[^.]+$/, ''), dur: buf.duration, ons: await coreJob('vocalOnsets', chs, buf.sampleRate) };
   renderSong();
@@ -3105,10 +3464,13 @@ $('infoUse').addEventListener('click', () => $('useDet').click());
 $('infoHalf').addEventListener('click', () => $('halfDet').click());
 $('infoDbl').addEventListener('click', () => $('dblDet').click());
 function syncInfoBeat() {
-  $('infoDet').innerHTML = $('det').innerHTML;
+  $('infoDet').innerHTML = $('det').innerHTML || 'No beat loaded';
   $('infoUse').hidden = $('useDet').hidden; $('infoHalf').hidden = $('halfDet').hidden; $('infoDbl').hidden = $('dblDet').hidden;
   $('infoBeatBtn').textContent = $('beatBtn').textContent;
 }
+// Status beside the BPM, under Load beat: only shown when Mic, Load beat or Tap has something to say
+function tMsgSync() { $('tGrid').classList.toggle('has-msg', !!($('det').textContent || $('keyInfo').textContent || $('tapInfo').textContent)); }
+new MutationObserver(tMsgSync).observe($('tMsg'), { subtree: true, childList: true, characterData: true });
 new MutationObserver(syncInfoBeat).observe($('detBox'), { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ['hidden'] });
 new MutationObserver(syncInfoBeat).observe($('beatBtn'), { childList: true });
 $('infoBtn').addEventListener('click', () => { syncInfoBeat(); studioRender(); $('infoDlg').showModal(); });
@@ -3202,7 +3564,7 @@ $('tplPlace').addEventListener('click', () => {
     if (s.accent) { $('accent').value = s.accent; setAccent(s.accent); }
     $('loopLo').value = s.loopLo || ''; $('loopHi').value = s.loopHi || '';
   }
-  $('bpmOut').textContent = bpm();
+  roll($('bpmOut'), bpm());
   if ($('lyrics').value.trim()) runFit();
   applyTemplate(store.get('metrobar.tpl', ''), false);
 })();
@@ -3340,10 +3702,9 @@ function wrList() {
   $('wrLibN').textContent = `(${WR.songs.length})`; $('wrBinN').textContent = WR.bin.length; const bin = $('wrBin'); bin.replaceChildren();
   if (!WR.bin.length) bin.append(h('p', 'note', 'Nothing here. Deleted songs stay here for 30 days.'));
   WR.bin.forEach(s => {
-    const r = h('div', 'binrow'), rs = h('button', 'mini', 'Restore'), del = h('button', 'mini', 'Delete forever');
+    const r = h('div', 'binrow'), rs = h('button', 'mini', 'Restore');
     rs.addEventListener('click', () => { WR.bin = WR.bin.filter(x => x !== s); delete s.deleted; s.updated = now(); WR.songs.unshift(s); WR.cur = s.id; wrSave(); wrOpen(); wrLibClose(); });
-    let armed = 0;
-    del.addEventListener('click', () => { if (!armed) { armed = setTimeout(() => { armed = 0; del.textContent = 'Delete forever'; }, 4000); del.textContent = 'Sure? Click again'; return; } clearTimeout(armed); WR.bin = WR.bin.filter(x => x !== s); store.set('metrobar.purged', store.get('metrobar.purged', []).concat([s.id]).slice(-500)); wrSave(); wrList(); });
+    const del = binDel(s.title || 'Untitled', () => { WR.bin = WR.bin.filter(x => x !== s); store.set('metrobar.purged', store.get('metrobar.purged', []).concat([s.id]).slice(-500)); wrSave(); wrList(); });
     r.append(h('span', '', s.title || 'Untitled'), rs, del); bin.append(r);
   });
 }
@@ -3487,7 +3848,7 @@ function wrTechCheck(force) {
   }
   // cliché score
   const cl = clicheScan(ls, WR.myCl, rh), clBars = new Set(cl.hits.map(x => x.bar)).size, top = h('div', 'wr-score');
-  top.append(h('b', cl.score > 25 ? 'bad' : '', String(cl.score)), h('span', '', `${cl.label}. ${clBars} of ${n} bar${n === 1 ? '' : 's'} use a stock phrase${cl.worn.length ? `, ${cl.worn.length} end on a worn rhyme` : ''}. 0 = fresh, 100 = every bar.`));
+  const clN = h('b', cl.score > 25 ? 'bad' : ''); if (WR.clPrev != null) roll(clN, WR.clPrev); WR.clPrev = cl.score; requestAnimationFrame(() => roll(clN, cl.score)); top.append(clN, h('span', '', `${cl.label}. ${clBars} of ${n} bar${n === 1 ? '' : 's'} use a stock phrase${cl.worn.length ? `, ${cl.worn.length} end on a worn rhyme` : ''}. 0 = fresh, 100 = every bar.`));
   cbox.append(top);
   if (!cl.hits.length && !cl.worn.length) { cbox.append(h('p', 'note', 'No stock phrases found. Keep the details your own: a place, a name, an object, something that changed.')); return; }
   cl.hits.slice(0, 30).forEach(x => { const d = h('div', 'wr-hit'); d.append(wrBarBtn(live[x.bar], 'bar ' + (live[x.bar].bar + 1)), h('q', '', x.phrase), h('small', '', x.fam)); cbox.append(d); });
@@ -3604,6 +3965,7 @@ function wrTechs() {
     p.addEventListener('click', () => wrTechShow(techOn === i ? -1 : i)); pads.append(p);
   });
   box.append(filt, pads, card);
+  if (typeof drillPadMark === 'function') TECHS.forEach((t, i) => drillPadMark(i));
 }
 function wrTechFilter(k) {
   const box = $('wrTech');
@@ -3636,7 +3998,7 @@ function wrTechCard(i, scroll) {
   pads.forEach((p, k) => p.setAttribute('aria-pressed', String(k === i)));
   card.replaceChildren(); card.hidden = !(i >= 0 && TECHS[i]); if (card.hidden) { techOn = -1; return; }
   const t = TECHS[i]; if (pads[i] && pads[i].hidden) wrTechFilter('all');
-  card.append(h('h4', '', t.name), h('p', '', t.what), h('p', '', 'How: ' + t.how), h('p', 'tip', 'Example song: keep the shape and the sounds, swap in your own words.'));
+  card.append(h('h4', '', t.name), h('p', '', t.what), drillList(t, i), h('p', 'tip', 'Example song: keep the shape and the sounds, swap in your own words.'));
   TECH_PARTS.forEach(([k, lab, n]) => {
     if (!t.song || !t.song[k]) return;
     const sec = h('div', 'tsec'), top = h('div', 'tsec-h'), ins = h('button', 'mini', 'Insert');
@@ -3853,7 +4215,7 @@ function dictNote() {
     : DICTUI.state === 'loading' ? 'Loading the pronunciation dictionary…'
     : DICTUI.state === 'failed' ? 'Pronunciation dictionary not loaded (it needs MetroBar opened from a web address, not a file). Using the spelling rules.'
     : 'Pronunciation dictionary off: using the spelling rules.';
-  document.querySelectorAll('.dict-note').forEach(e => { e.textContent = t; });
+  document.querySelectorAll('.dict-note').forEach(e => { if (DICTUI.state === 'loading') busy(e, t.replace(/…$/, '')); else e.textContent = t; });
 }
 async function loadDict() {
   if (DICTUI.state === 'loading' || DICTUI.state === 'on') return;
@@ -4140,8 +4502,7 @@ function markDay() {
 function streakRender() {
   let d = store.get('metrobar.days', null);
   if (!d) { const w = store.get('metrobar.wroteOn', ''); d = w ? [w] : []; store.set('metrobar.days', d); }
-  const s = writeStreak(d, today()), box = $('wrStreak'), dots = h('div', 'streak-dots');
-  s.last14.forEach((x, i) => { const e = h('i', (x.on ? 'on' : '') + (i === 13 ? ' today' : '')); e.title = x.day + (x.on ? ': wrote' : ''); dots.append(e); });
+  const s = writeStreak(d, today()), box = $('wrStreak'), dots = calRender(d);   // practice calendar: 26 weeks of writing + bars played
   const wroteToday = d.includes(today());
   box.replaceChildren(h('div', '', ''), dots, h('p', 'note', s.total ? `Best run ${s.best} day${s.best === 1 ? '' : 's'} · ${s.total} day${s.total === 1 ? '' : 's'} written in all.${wroteToday ? '' : ' Write a bar today to keep it going.'}` : 'Write a bar on any day and it shows up here.'));
   box.firstChild.append(h('span', 'streak-n', String(s.streak)), ` day${s.streak === 1 ? '' : 's'} in a row`);
@@ -4184,6 +4545,208 @@ $('drGo').addEventListener('click', drGo);
 ['drA', 'drB'].forEach(id => $(id).addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); drGo(); } }));
 $('tlName').addEventListener('toggle', () => { if ($('tlName').open && !$('nmOut').childElementCount) nmGo(); });
 window.addEventListener('hashchange', () => { if (location.hash === '#write') { if ($('tlSplit').open) spLoad(); } });
+
+// ---- RareUI ideas, own vanilla code (see the helpers script after the core for roll / busy / orbSet)
+
+// Bar dots: one dot per bar (or per section when the song is longer than 16 bars). The current one stretches into a pill that fills as it plays.
+// Click a dot while stopped to start from there (it sets the first loop bar).
+var stepUnits = [], stepEls = [], stepCur = -1, stepBarT = null;
+function stepsBuild() {
+  const box = $('steps'); if (!box) return;
+  const n = total, units = [];
+  if (n <= 16 || practice || PM.on) for (let i = 0; i < n; i++) units.push({ lo: i, hi: i, name: 'Bar ' + (i + 1) });
+  else for (let i = 0; i < n; i++) { const k = barSection[i % barSection.length], u = units[units.length - 1];
+    if (u && u.k === k && u.hi === i - 1) u.hi = i; else units.push({ lo: i, hi: i, k, name: SECTIONS[k].name }); }
+  stepUnits = units; stepCur = -1;
+  const row = $('stepDots'); row.replaceChildren();
+  stepEls = units.map((u, i) => {
+    const b = h('button', 'sd'), f = h('i'); b.type = 'button'; b.append(f);
+    b.title = u.lo === u.hi ? `${u.name}: click to start here` : `${u.name} (bars ${u.lo + 1}-${u.hi + 1}): click to start here`;
+    b.setAttribute('aria-label', b.title);
+    b.addEventListener('click', () => { if (running) return; $('loopLo').value = u.lo ? u.lo + 1 : ''; if ((parseInt($('loopHi').value) || total) <= u.lo) $('loopHi').value = ''; persist(); showBar(loopRange().lo); });
+    row.append(b); return b;
+  });
+  stepsShow(shownBar, 0);
+}
+function stepsShow(barIdx, frac) {
+  if (!stepEls.length) return;
+  const counting = barIdx < 0, bi = counting ? loopRange().lo : barIdx;
+  const k = stepUnits.findIndex(u => bi >= u.lo && bi <= u.hi);
+  if (k !== stepCur) {
+    stepCur = k;
+    stepEls.forEach((e, i) => { e.classList.toggle('cur', i === k); e.classList.toggle('done', running && !counting && i < k); });
+    const u = stepUnits[k];
+    $('stepLab').textContent = !u ? '' : u.lo === u.hi ? `bar ${u.lo + 1} of ${total}` : `${u.name} · ${bi - u.lo + 1}/${u.hi - u.lo + 1}`;
+  } else if (stepUnits[k] && stepUnits[k].lo !== stepUnits[k].hi) { const u = stepUnits[k]; $('stepLab').textContent = `${u.name} · ${bi - u.lo + 1}/${u.hi - u.lo + 1}`; }
+  const u = stepUnits[k], e = stepEls[k]; if (!u || !e) return;
+  const p = counting ? 0 : (bi - u.lo + frac) / (u.hi - u.lo + 1);
+  e.firstChild.style.transform = `scaleX(${Math.max(0, Math.min(1, p)).toFixed(4)})`;
+}
+function stepsFrame(now) {
+  if (!stepBarT) return;
+  stepsShow(stepBarT.bar, stepBarT.bar < 0 ? 0 : Math.max(0, Math.min(1, (now - stepBarT.t) / stepBarT.dur)));
+}
+function stepsStop() { stepBarT = null; stepCur = -1; stepEls.forEach(e => e.classList.remove('done')); stepsShow(shownBar, 0); }
+
+// Beat bar: shows a loaded beat as a waveform. It fills as the beat plays; click or drag (or arrow keys) to pick the bar of the beat
+// to start from (the beat offset stays as it is, so it stays on the grid). The speed chip steps the Speed control: 70-110%.
+var beatSkip = 0, beatPlay = null, bbPeaks = null;
+const bbBarSec = () => barQuarters(0) * 60 / (running ? nativeBpm : bpm());
+function bbBars() { return beatBuf ? Math.max(1, Math.floor((beatBuf.duration - (+$('beatOffset').value || 0)) / bbBarSec())) : 0; }
+function bbShow() {
+  const on = !!beatBuf; $('beatBar').hidden = !on; if (!on) return;
+  bbPeaks = null; beatSkip = Math.min(beatSkip, bbBars() - 1); bbDraw(); bbLabel();
+}
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+function bbPos(now) {   // seconds into the (unstretched) beat file that is being heard now
+  if (!beatPlay || !running) return null;
+  const p = beatPlay; return ((p.pos + Math.max(0, now - p.at) * p.rate) % p.d + p.d) % p.d;
+}
+function bbLabel(pos) {
+  if (!beatBuf) return;
+  const d = beatBuf.duration, from = (+$('beatOffset').value || 0) + beatSkip * bbBarSec();
+  $('bbTime').textContent = `${mmss(pos != null ? pos : Math.max(0, from))} / ${mmss(d)}`;
+  $('bbWave').setAttribute('aria-valuenow', String(beatSkip + 1)); $('bbWave').setAttribute('aria-valuemax', String(bbBars()));
+  $('bbWave').setAttribute('aria-valuetext', `Beat starts from its bar ${beatSkip + 1} of ${bbBars()}`);
+  $('bbFrom').textContent = beatSkip ? `from bar ${beatSkip + 1}` : '';
+}
+function bbDraw(pos) {
+  const cv = $('bbWave'); if (!beatBuf || !cv.clientWidth) return;
+  const dpr = Math.min(2, window.devicePixelRatio || 1), W = Math.round(cv.clientWidth * dpr), H = Math.round(cv.clientHeight * dpr);
+  if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; bbPeaks = null; }
+  const n = Math.max(24, Math.floor(cv.clientWidth / 4)), g = cv.getContext('2d');
+  if (!bbPeaks || bbPeaks.length !== n) { const raw = waveOverview(beatBuf, n), mx = Math.max(1e-6, ...raw); bbPeaks = Array.from(raw, v => v / mx); }
+  const cs = getComputedStyle(cv), ink = cs.color, muted = cs.getPropertyValue('--muted').trim(), acc = cs.getPropertyValue('--accent').trim(), d = beatBuf.duration;
+  const off = +$('beatOffset').value || 0, bs = bbBarSec(), from = off + beatSkip * bs, bw = W / n;
+  g.clearRect(0, 0, W, H);
+  // bar lines every 4 bars (a tick every bar), from the offset
+  g.fillStyle = muted; g.globalAlpha = 0.35;
+  for (let k = 0, t = off; t < d; k++, t += bs) { const x = t / d * W; g.fillRect(Math.round(x), k % 4 ? H * 0.82 : 0, Math.max(1, dpr), k % 4 ? H * 0.18 : H); }
+  g.globalAlpha = 1;
+  bbPeaks.forEach((v, i) => {
+    const x = i * bw, t = (i + 0.5) / n * d, hgt = Math.max(2 * dpr, v * H * 0.78);
+    g.fillStyle = pos != null && t <= pos ? ink : muted; g.globalAlpha = pos != null && t <= pos ? 1 : 0.55;
+    g.fillRect(x + bw * 0.18, (H - hgt) / 2, Math.max(1, bw * 0.64), hgt);
+  });
+  g.globalAlpha = 1; g.fillStyle = acc;
+  const fx = from / d * W; g.fillRect(Math.round(fx) - dpr, 0, 2 * dpr, H);   // red start marker
+  g.beginPath(); g.moveTo(fx - 5 * dpr, 0); g.lineTo(fx + 5 * dpr, 0); g.lineTo(fx, 6 * dpr); g.fill();
+  if (pos != null) { const px = pos / d * W; g.globalAlpha = 0.9; g.fillRect(Math.round(px), 0, Math.max(1, dpr), H); g.globalAlpha = 1; }
+}
+var bbLast = 0;
+function bbFrame(now) {
+  if (!beatBuf || $('beatBar').hidden) return;
+  const pos = bbPos(now); if (pos == null) return;
+  if (performance.now() - bbLast < 33) return; bbLast = performance.now();   // ~30 fps is plenty for a waveform
+  bbDraw(pos); bbLabel(pos);
+}
+function bbSeek(k) {
+  const n = bbBars(); k = Math.max(0, Math.min(n - 1, Math.round(k))); if (k === beatSkip) return;
+  beatSkip = k; if (running) rateDirty = true;   // the scheduler restarts the beat from there at the next bar line
+  bbDraw(); bbLabel();
+}
+(function bbInit() {
+  const cv = $('bbWave'); let drag = false;
+  const at = e => { const r = cv.getBoundingClientRect(), t = (e.clientX - r.left) / r.width * beatBuf.duration; return Math.floor((t - (+$('beatOffset').value || 0)) / bbBarSec()); };
+  cv.addEventListener('pointerdown', e => { if (!beatBuf) return; drag = true; cv.setPointerCapture(e.pointerId); bbSeek(at(e)); });
+  cv.addEventListener('pointermove', e => { if (drag) bbSeek(at(e)); });
+  cv.addEventListener('pointerup', () => { drag = false; });
+  cv.addEventListener('keydown', e => {
+    const m = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1, PageDown: -4, PageUp: 4 }[e.key];
+    if (m) { e.preventDefault(); bbSeek(beatSkip + m); } else if (e.key === 'Home') { e.preventDefault(); bbSeek(0); } else if (e.key === 'End') { e.preventDefault(); bbSeek(bbBars() - 1); }
+  });
+  $('bbPlay').addEventListener('click', () => running ? stop() : start());
+  $('bbSpeed').addEventListener('click', () => {
+    const v = +$('speed').value || 100, nx = v >= 110 ? 70 : v + 10;
+    $('speed').value = nx; $('speed').dispatchEvent(new Event('input', { bubbles: true })); $('speed').dispatchEvent(new Event('change', { bubbles: true })); bbSpeedLab();
+  });
+  $('speed').addEventListener('input', bbSpeedLab); $('speed').addEventListener('change', bbSpeedLab);
+  $('beatOffset').addEventListener('change', () => { bbDraw(); bbLabel(); });
+  if ('ResizeObserver' in window) new ResizeObserver(() => { bbPeaks = null; bbDraw(); }).observe(cv);
+})();
+function bbSpeedLab() { const v = +$('speed').value || 100; $('bbSpeed').textContent = v + '%'; $('bbSpeed').title = `Speed ${v}%: tap for the next speed (70-110%)`; }
+function bbRun(on) { $('bbPlay').classList.toggle('on', on); $('bbPlay').setAttribute('aria-label', on ? 'Stop' : 'Start'); $('beatBar').classList.toggle('run', on); if (!on) { bbDraw(); bbLabel(); } }
+bbSpeedLab();
+
+// Practice calendar: every day you rap over the metronome (bars played) or write (metrobar.days) fills a square, 26 weeks back.
+// Kept in this browser only (metrobar.played = { 'YYYY-MM-DD': bars }).
+var playedToday = 0, playedSaved = 0;
+function playTick() { playedToday++; if (playedToday - playedSaved >= 8) playSave(); }
+function playSave() {
+  if (playedToday === playedSaved) return;
+  const m = store.get('metrobar.played', {}), t = today(); m[t] = (m[t] || 0) + (playedToday - playedSaved); playedSaved = playedToday;
+  const keys = Object.keys(m).sort(); while (keys.length > 800) delete m[keys.shift()];
+  store.set('metrobar.played', m);
+}
+window.addEventListener('pagehide', playSave);
+function calLevel(wrote, bars) { return (wrote ? 1 : 0) + (bars > 0 ? 1 : 0) + (bars >= 64 ? 1 : 0) + (bars >= 160 ? 1 : 0); }
+function calRender(days) {
+  playSave();
+  const played = store.get('metrobar.played', {}), wrote = new Set(days), WEEKS = 26, box = h('div', 'cal'), grid = h('div', 'cal-grid'), months = h('div', 'cal-m');
+  const end = new Date(); end.setHours(12, 0, 0, 0);
+  const startD = new Date(end); startD.setDate(startD.getDate() - ((startD.getDay() + 6) % 7) - (WEEKS - 1) * 7);   // a Monday, 26 weeks back
+  const key = d => d.toLocaleDateString('en-CA'), info = h('p', 'note cal-info');
+  let totalBars = 0, active = 0, lastMonth = -1;
+  for (let w = 0; w < WEEKS; w++) {
+    const wd = new Date(startD); wd.setDate(wd.getDate() + w * 7);
+    const m = h('span', '', wd.getMonth() !== lastMonth && w < WEEKS - 2 ? wd.toLocaleDateString('en-GB', { month: 'short' }) : ''); lastMonth = wd.getMonth(); months.append(m);
+    for (let r = 0; r < 7; r++) {
+      const d = new Date(wd); d.setDate(d.getDate() + r); const k = key(d), c = h('i');
+      if (d > end) { c.className = 'fut'; grid.append(c); continue; }
+      const b = played[k] || 0, wr = wrote.has(k), lv = calLevel(wr, b); totalBars += b; if (lv) active++;
+      c.dataset.l = lv; if (k === key(end)) c.classList.add('today');
+      const txt = `${d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}: ${[wr ? 'wrote' : '', b ? `${b} bar${b === 1 ? '' : 's'} played` : ''].filter(Boolean).join(' · ') || 'nothing'}`;
+      c.title = txt; c.addEventListener('pointerenter', () => { info.textContent = txt; }); c.addEventListener('click', () => { info.textContent = txt; });
+      grid.append(c);
+    }
+  }
+  const key2 = h('div', 'cal-key'); key2.append('less'); for (let l = 0; l <= 4; l++) { const i = h('i'); i.dataset.l = l; key2.append(i); } key2.append('more');
+  info.textContent = active ? `${active} active day${active === 1 ? '' : 's'} in 26 weeks · ${totalBars.toLocaleString('en')} bar${totalBars === 1 ? '' : 's'} played. Tap a square for that day.` : 'Play the metronome or write a bar and today fills in.';
+  box.append(months, grid, h('div', 'cal-foot'));
+  box.lastChild.append(info, key2);
+  return box;
+}
+
+// Drill checklist on each technique card: the How steps plus "insert the song" and "rap it over the beat".
+// Tick a step: it strikes through and sinks to the bottom. Kept in metrobar.drills = { technique: [steps done] }.
+function drillSteps(t) {
+  const how = String(t.how || '').split(/(?<=[.!?])\s+/).map(s => s.trim()).filter(Boolean);
+  return [...how, 'Insert the example song and swap in your own words', 'Rap it over the beat in MetroBar (Practice) without losing the grid'];
+}
+function drillDone(t) { const m = store.get('metrobar.drills', {}), st = drillSteps(t); return st.filter(s => (m[t.name] || []).includes(s)).length; }
+function drillPadMark(i) {
+  const p = $('wrTech').querySelectorAll('.pad')[i], t = TECHS[i]; if (!p || !t) return;
+  let m = p.querySelector('.dn'); if (!m) { m = h('span', 'dn'); p.append(m); }
+  const n = drillDone(t), all = drillSteps(t).length;
+  m.textContent = n === all ? '✓' : n ? `${n}/${all}` : ''; m.classList.toggle('all', n === all); m.hidden = !n;
+}
+function drillList(t, i) {
+  const ul = h('ul', 'tasks'), box = h('div', 'drill'); ul.setAttribute('aria-label', 'Drill steps');
+  const done = () => store.get('metrobar.drills', {})[t.name] || [];
+  const order = () => { const d = done(); return drillSteps(t).map(s => [s, d.includes(s)]).sort((a, b) => a[1] - b[1]); };
+  const paint = (animate) => {
+    const first = new Map([...ul.children].map(li => [li.dataset.s, li.getBoundingClientRect().top]));
+    ul.replaceChildren(...order().map(([s, on]) => {
+      const li = h('li'), b = h('button', 'tk'); li.dataset.s = s; b.type = 'button'; b.setAttribute('role', 'checkbox'); b.setAttribute('aria-checked', String(on));
+      b.append(h('span', 'ck'), h('span', 'tx', s)); li.append(b); if (on) li.classList.add('on');
+      b.addEventListener('click', () => {
+        const m = store.get('metrobar.drills', {}), d = new Set(m[t.name] || []); d.has(s) ? d.delete(s) : d.add(s);
+        m[t.name] = [...d]; store.set('metrobar.drills', m);
+        li.classList.toggle('on', d.has(s)); b.setAttribute('aria-checked', String(d.has(s))); drillPadMark(i); head();
+        clearTimeout(ul._t); ul._t = setTimeout(() => { const f = document.activeElement && document.activeElement.closest('li'); paint(true); if (f) { const n = [...ul.children].find(x => x.dataset.s === f.dataset.s); if (n) n.querySelector('button').focus(); } }, motionCalm() ? 0 : 420);   // after the tick, it sinks
+      });
+      return li;
+    }));
+    if (!animate || motionCalm()) return;
+    [...ul.children].forEach(li => { const f = first.get(li.dataset.s); if (f == null) return; const dy = f - li.getBoundingClientRect().top; if (Math.abs(dy) < 1 || !li.animate) return;
+      li.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.2, 1.1, .4, 1)' }); });
+  };
+  const hd = h('div', 'drill-h'), head = () => { const n = drillDone(t), all = drillSteps(t).length; hd.replaceChildren(h('b', '', 'Drill'), h('span', '', n === all ? 'all done' : `${n} of ${all} done`)); };
+  const reset = h('button', 'mini', 'Start over'); reset.type = 'button'; reset.title = 'Untick every step of this drill';
+  reset.addEventListener('click', () => { const m = store.get('metrobar.drills', {}); delete m[t.name]; store.set('metrobar.drills', m); paint(true); head(); drillPadMark(i); });
+  head(); paint(false); box.append(hd, ul, reset); return box;
+}
+stepsBuild(); TECHS.forEach((t, i) => drillPadMark(i)); streakRender();
 </script>
 </body>
 </html>
