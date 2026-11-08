@@ -53,10 +53,11 @@ input[type=file]::file-selector-button:hover { border-color: var(--muted); }
 .wrap { max-width: 860px; margin: 0 auto; padding-block: 20px 40px;
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
   display: grid; gap: 20px; }
-/* Top bar: logo in the middle, MetroBar/Write tabs left, readout + i right. Phones stack all three, centred. */
+/* Top bar on desktop: logo in the top-left corner (the Write song list sits under it on wide screens), MetroBar/Write tabs in the middle,
+   readout + i right. Phones (<=700px) stack all three, centred. */
 header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
-header > .logo { grid-column: 2; grid-row: 1; }
-header > .views { grid-column: 1; grid-row: 1; justify-self: start; }
+header > .logo { grid-column: 1; grid-row: 1; justify-self: start; }
+header > .views { grid-column: 2; grid-row: 1; }
 header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
 @media (max-width: 700px) {
   header { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 10px; }
@@ -135,8 +136,9 @@ header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
 .bar.practice .num span { min-width: 0; overflow-wrap: anywhere; }
 .bar.practice .sub span { font-size: .56rem; letter-spacing: -.04em; }
 .num .st, .sub .st { font-weight: 900; }
-/* Bennie 2026-11-08: numbers stay grey at rest; only the beat/step that is playing lights solid red, like the rail's ball */
-.beat .num.on, .sub span.on, .strip i.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+/* Bennie 2026-11-08: the 1-2-3-4 numbers are black; the beat/step that is playing lights solid red with a white number, like the rail's ball */
+.bar:not(.practice) .beat .num, .bar:not(.practice) .sub span { color: var(--fg); }
+.beat .num.on, .sub span.on, .strip i.on, .bar:not(.practice) .beat .num.on, .bar:not(.practice) .sub span.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
 /* Beat rail: a horizontal take on a "rail table of contents" (a dotted rail, a dot per stop, a marker that travels it and fills the rail behind it).
    Here the stops are the beats (one dot under the middle of each tile) and the marker is a ball that bounces from beat to beat in time:
    it touches each dot exactly on its click (audio clock, see railFrame), squashes as it lands, and on the last beat hops back to beat 1.
