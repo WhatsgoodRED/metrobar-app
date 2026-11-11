@@ -246,7 +246,7 @@ table.st { border-collapse: collapse; font-family: var(--mono); font-size: .8rem
 .rh { --rc: var(--r0); background: color-mix(in srgb, var(--rc) 28%, transparent); box-shadow: inset 0 -2px 0 var(--rc); border-radius: 3px; }
 .rh1 { --rc: var(--r1); } .rh2 { --rc: var(--r2); } .rh3 { --rc: var(--r3); } .rh4 { --rc: var(--r4); } .rh5 { --rc: var(--r5); } .rh6 { --rc: var(--r6); } .rh7 { --rc: var(--r7); }
 /* Analysis cards (Fit bars, rhyme map, song bars, Write cards) are always dark, in the logo palette: graphite, off-white, red. */
-.line, .rmap, .wr-card {
+.line, .rmap, .wr-card, dialog.tg {
   --bg: #111413; --panel: #1a1e1d; --fg: #e9ece8; --muted: #8e9893; --line: #2c3331;
   --cell: #252b29; --hit: #e9ece8;
   --s1: #4b5652; --s2: #66716c; --s3: #838d88; --s4: #a1aaa5; --s5: #bfc6c2;
@@ -1239,6 +1239,7 @@ body.write { padding-bottom: var(--sheet-pad, 0px); }
 .zn-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
 .zn-stats b { display: block; font-size: 1.2rem; }
 .zn-stats span { font-size: .75rem; color: var(--muted); }
+.zn-game { margin: 8px 0 0; font-family: var(--mono); font-size: .8rem; color: var(--muted); }
 .zn-name { font-weight: 800; font-size: 1.1rem; }
 .zn-bio { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
 .zn-form { display: grid; gap: 10px; max-width: 26rem; }
@@ -1426,6 +1427,144 @@ body.rb-zen .rb-ed { font-size: 21px; }
   body.rb-zen .rb-zlk { display: none; }
   body.rb-zen .rb-main { padding: 16px 16px 40vh; }
 }
+/* ---- Flow game (`TG`, dialog #tgDlg): play a Breakdown bar by tap or by voice. All classes are tg-*. */
+#viewPractice > .tg-entry { margin-inline: calc(50% - 50vw + max(10px, env(safe-area-inset-left, 0px))) calc(50% - 50vw + max(10px, env(safe-area-inset-right, 0px))); display: grid; min-width: 0; }
+.tg-entry .adv-c { transform: rotate(-90deg); background: var(--accent); }
+.tg-entry .adv-c::before { border-color: var(--on-accent); }
+dialog.tg { --tg-perfect: #59b36b; --tg-good: #f2c94c; --tg-ok: #e07b39; width: min(1000px, calc(100vw - 24px)); height: min(960px, calc(100dvh - 24px)); max-width: none; max-height: none; padding: 0;
+  border: 1px solid var(--line); border-radius: 14px; background: var(--bg); color: var(--fg); overflow: hidden; }
+dialog.tg[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); animation: dlg-in .2s cubic-bezier(.2, .8, .3, 1); }
+dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
+.tg-hd { display: flex; align-items: center; gap: 10px; padding: 10px 12px 10px 16px; border-bottom: 1px solid var(--line); min-width: 0; }
+.tg-hd h2 { margin: 0; font-family: var(--display); font-weight: 900; font-size: 1.35rem; text-transform: uppercase; letter-spacing: .03em; line-height: 1; white-space: nowrap; }
+.tg-hd .tg-sp { flex: 1; }
+.tg-ib { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 1px solid var(--line); border-radius: 8px; background: transparent; color: var(--fg); cursor: pointer; font-size: 1.1rem; line-height: 1; }
+.tg-ib:hover { border-color: var(--muted); }
+.tg-ib:focus-visible, .tg-seg button:focus-visible, .tg-bar:focus-visible, .tg-pad:focus-visible, .tg-b:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; }
+.tg-seg { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); }
+.tg-seg button { border: 0; background: transparent; color: var(--muted); font: inherit; font-size: .84rem; font-weight: 600; padding: 6px 14px; min-height: 30px; border-radius: 6px; cursor: pointer; }
+.tg-seg button[aria-pressed="true"] { background: var(--fg); color: var(--bg); }
+.tg-body { overflow-y: auto; overscroll-behavior: contain; padding: 18px 20px 24px; min-width: 0; }
+.tg-body > [hidden], .tg-pad[hidden] { display: none; }
+.tg-home, .tg-play { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+.tg-rank { display: grid; gap: 6px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.tg-rank .tg-lab { font-family: var(--mono); font-size: .6875rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.tg-rank b { font-family: var(--display); font-weight: 900; font-size: 2rem; line-height: 1; text-transform: uppercase; letter-spacing: .02em; }
+.tg-rank span { font-size: .84rem; color: var(--muted); }
+.tg-prog { height: 6px; border-radius: 3px; background: var(--cell); overflow: hidden; }
+.tg-prog i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 3px; transition: width .4s ease-out; }
+.tg-h { margin: 6px 0 -6px; font-family: var(--mono); font-size: .6875rem; font-weight: 500; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+.tg-lvs { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 940px) { .tg-lvs { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.tg-lv { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 4px 12px; align-items: start; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.tg-n { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; background: var(--fg); color: var(--bg); font-family: var(--display); font-weight: 900; font-size: 1.15rem; }
+.tg-lt { display: grid; gap: 2px; min-width: 0; }
+.tg-lt b { font-size: .98rem; }
+.tg-lt span { font-size: .8rem; color: var(--muted); line-height: 1.35; }
+.tg-ls { font-family: var(--mono); font-size: .75rem; color: var(--muted); padding-top: 2px; white-space: nowrap; }
+.tg-lv.tg-done .tg-ls { color: var(--tg-good); }
+.tg-lv.tg-locked { opacity: .55; }
+.tg-lv.tg-locked .tg-n { background: var(--cell); color: var(--muted); }
+.tg-bars { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.tg-mine { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px; }
+.tg-bar { display: grid; gap: 4px; justify-items: start; text-align: left; min-width: 0; padding: 8px 10px; min-height: 52px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); font: inherit; cursor: pointer; transition: border-color .15s, transform .12s ease-out; }
+.tg-bar:hover:not(:disabled) { border-color: var(--muted); }
+.tg-bar:active:not(:disabled) { transform: scale(.98); }
+.tg-bar:disabled { cursor: not-allowed; }
+.tg-bt { font-size: .8rem; line-height: 1.3; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tg-bm { display: flex; align-items: center; gap: 8px; font-family: var(--mono); font-size: .6875rem; color: var(--muted); max-width: 100%; white-space: nowrap; overflow: hidden; }
+.tg-stars { display: inline-flex; gap: 1px; }
+.tg-stars svg { width: 13px; height: 13px; fill: var(--cell); }
+.tg-stars svg.tg-on { fill: var(--tg-good); }
+.tg-zone { display: grid; gap: 10px; padding: 14px 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.tg-zw { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.tg-zw div { display: grid; gap: 2px; flex: 1 1 220px; min-width: 0; }
+.tg-zw b { font-size: .98rem; }
+.tg-zw span { font-size: .8rem; color: var(--muted); }
+.tg-board { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.tg-board li { display: grid; grid-template-columns: 2.2em 26px minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 6px 8px; min-height: 40px; border-radius: 8px; background: var(--bg); font-size: .86rem; }
+.tg-board li.tg-me { box-shadow: inset 0 0 0 1px var(--fg); }
+.tg-board .tg-pl { font-family: var(--mono); color: var(--muted); text-align: right; }
+.tg-tier { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; font-family: var(--display); font-weight: 900; font-size: 1rem; background: var(--cell); color: var(--fg); }
+.tg-tier[data-t="S"] { background: var(--tg-good); color: #15181a; } .tg-tier[data-t="A"] { background: var(--tg-perfect); color: #15181a; } .tg-tier[data-t="B"] { background: #4f9cf0; color: #15181a; }
+.tg-board .tg-who { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 600; }
+.tg-board .tg-pts { font-family: var(--mono); font-size: .75rem; color: var(--muted); white-space: nowrap; }
+.tg-board .tg-pts b { font-size: .9rem; color: var(--fg); }
+.tg-board .tg-ra { display: inline-flex; gap: 4px; }
+.tg-board .tg-b { min-height: 30px; padding: 4px 10px; font-size: .75rem; }
+@media (max-width: 700px) { .tg-board li { grid-template-columns: 1.8em 26px minmax(0, 1fr) auto; } .tg-board .tg-ra { grid-column: 3 / -1; justify-content: flex-end; } }
+.tg-note { margin: 0; font-size: .86rem; color: var(--muted); line-height: 1.5; max-width: 62ch; }
+.tg-crumb { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.tg-crumb b { font-family: var(--display); font-weight: 900; font-size: 1.5rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1.05; }
+.tg-crumb span { font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.tg-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.tg-tempo { display: inline-flex; align-items: center; gap: 6px; }
+.tg-tempo output { min-width: 5.2em; text-align: center; font-family: var(--mono); font-size: .9rem; }
+.tg-tempo output b { font-size: 1.15rem; }
+.tg-recs { font-family: var(--mono); font-size: .75rem; color: var(--muted); }
+.tg-b { font: inherit; font-size: .84rem; font-weight: 600; padding: 7px 14px; min-height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--fg); cursor: pointer; transition: border-color .15s, transform .12s ease-out; }
+.tg-b:hover:not(:disabled) { border-color: var(--muted); }
+.tg-b:active:not(:disabled) { transform: scale(.97); }
+.tg-b:disabled { opacity: .45; cursor: not-allowed; }
+.tg-b.tg-pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.tg-b.tg-sq { padding: 0; width: 36px; font-size: 1.05rem; }
+.tg-rows { display: grid; gap: 8px; touch-action: manipulation; }
+.tg-row { position: relative; padding: 8px 10px 6px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; transition: border-color .15s; }
+.tg-row.tg-now { border-color: var(--fg); }
+.tg-row .bd svg { margin-inline: auto; }
+.tg-pass { position: absolute; top: 6px; left: 10px; font-family: var(--mono); font-size: .6875rem; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.tg-row.tg-now .tg-pass { color: var(--fg); }
+.tg-mark { transform-box: fill-box; transform-origin: center; }
+.tg-mark.tg-pop { animation: tg-pop .22s ease-out; }
+.tg-ring { fill: none; transform-box: fill-box; transform-origin: center; animation: tg-ring .45s ease-out forwards; pointer-events: none; }
+@keyframes tg-pop { 0% { transform: scale(1.7); } 100% { transform: scale(1); } }
+@keyframes tg-ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
+.tg-hud { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 10px; min-height: 40px; }
+.tg-combo { font-family: var(--mono); font-size: .9rem; color: var(--muted); }
+.tg-combo b { font-size: 1.3rem; color: var(--fg); }
+.tg-verdict { font-family: var(--display); font-weight: 900; font-size: 1.7rem; text-transform: uppercase; letter-spacing: .03em; line-height: 1; text-align: center; white-space: nowrap; }
+.tg-verdict.v-perfect { color: var(--tg-perfect); } .tg-verdict.v-good { color: var(--tg-good); } .tg-verdict.v-ok { color: var(--tg-ok); } .tg-verdict.v-miss { color: var(--muted); }
+.tg-verdict.tg-bump { animation: tg-bump .16s ease-out; }
+@keyframes tg-bump { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.tg-live { display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-family: var(--mono); font-size: .9rem; color: var(--muted); }
+.tg-live b { font-size: 1.3rem; color: var(--fg); }
+.tg-pad { display: grid; gap: 2px; place-items: center; align-content: center; width: 100%; min-height: 96px; padding: 12px; border: 0; border-radius: 14px; background: var(--accent); color: var(--on-accent); cursor: pointer; font: inherit;
+  touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; position: relative; overflow: hidden; }
+.tg-pad b { font-family: var(--display); font-weight: 900; font-size: 1.9rem; text-transform: uppercase; letter-spacing: .04em; line-height: 1; }
+.tg-pad span { font-size: .8rem; opacity: .85; }
+.tg-pad.tg-run { background: var(--panel); color: var(--fg); box-shadow: inset 0 0 0 2px var(--fg); }
+.tg-pad.tg-hit { animation: tg-hit .12s ease-out; }
+@keyframes tg-hit { 0% { transform: scale(.985); background: var(--cell); } 100% { transform: scale(1); } }
+.tg-meter { position: absolute; left: 0; bottom: 0; height: 5px; width: 100%; background: var(--tg-perfect); transform-origin: left; transform: scaleX(0); }
+.tg-opts { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px; font-size: .84rem; color: var(--muted); }
+.tg-opts label { display: inline-flex; align-items: center; gap: 8px; }
+.tg-opts input[type=checkbox] { accent-color: var(--accent); width: 16px; height: 16px; }
+.tg-opts input[type=range] { width: 130px; accent-color: var(--accent); }
+.tg-opts output { font-family: var(--mono); font-size: .75rem; min-width: 4.5em; color: var(--fg); }
+.tg-msg { margin: 0; font-size: .84rem; color: var(--tg-ok); }
+.tg-res { display: grid; gap: 12px; padding: 16px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; }
+.tg-res-t { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.tg-res-t b { font-family: var(--display); font-weight: 900; font-size: 1.7rem; text-transform: uppercase; letter-spacing: .02em; line-height: 1; }
+.tg-res .tg-stars svg { width: 30px; height: 30px; }
+.tg-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.tg-stats div { display: grid; gap: 2px; }
+.tg-stats dt { font-family: var(--mono); font-size: .6875rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.tg-stats dd { margin: 0; font-family: var(--mono); font-size: 1rem; }
+.tg-news { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .88rem; }
+.tg-news li { color: var(--fg); }
+.tg-news li.tg-up { color: var(--tg-good); font-weight: 600; }
+.tg-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+@media (max-width: 700px) {
+  dialog.tg { width: 100vw; height: 100dvh; border: 0; border-radius: 0; }
+  .tg-body { padding: 14px 12px 20px; }
+  .tg-hd { padding-left: 12px; gap: 8px; } .tg-hd h2 { font-size: 1.15rem; }
+  .tg-seg button { padding-inline: 10px; }
+  .tg-bars { grid-template-columns: minmax(0, 1fr); }
+  .tg-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tg-verdict { font-size: 1.35rem; }
+  .tg-row { padding-inline: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { dialog.tg[open], .tg-mark.tg-pop, .tg-verdict.tg-bump, .tg-pad.tg-hit { animation: none; } .tg-ring { display: none; } .tg-prog i, .tg-bar, .tg-b { transition: none; } }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -1444,6 +1583,53 @@ body.rb-zen .rb-ed { font-size: 21px; }
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
     </div>
   </header>
+  <dialog class="tg" id="tgDlg" aria-labelledby="tgTitle">
+    <div class="tg-hd">
+      <button class="tg-ib" id="tgBack" type="button" aria-label="Back to the levels" hidden>←</button>
+      <h2 id="tgTitle">Flow game</h2>
+      <span class="tg-sp"></span>
+      <div class="tg-seg" role="group" aria-label="Play by">
+        <button type="button" id="tgTap" aria-pressed="true">Tap</button><button type="button" id="tgVoice" aria-pressed="false">Voice</button>
+      </div>
+      <button class="tg-ib" id="tgClose" type="button" aria-label="Close the flow game">×</button>
+    </div>
+    <div class="tg-body">
+      <div class="tg-home" id="tgHome">
+        <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
+        <h3 class="tg-h">This week on the Zone</h3>
+        <div class="tg-zone" id="tgZone"></div>
+        <h3 class="tg-h">Levels</h3>
+        <ol class="tg-lvs" id="tgLvs"></ol>
+        <h3 class="tg-h">Your bars</h3>
+        <div class="tg-mine" id="tgMine"></div>
+        <p class="tg-note" id="tgMineNote"></p>
+      </div>
+      <div class="tg-play" id="tgPlay" hidden>
+        <div class="tg-crumb"><b id="tgName"></b><span id="tgSub"></span></div>
+        <p class="tg-note" id="tgTip"></p>
+        <div class="tg-ctl">
+          <div class="tg-tempo"><button class="tg-b tg-sq" id="tgSlow" type="button" aria-label="5 BPM slower">−</button><output id="tgBpm" aria-live="off"><b>90</b> BPM</output><button class="tg-b tg-sq" id="tgFast" type="button" aria-label="5 BPM faster">+</button></div>
+          <button class="tg-b" id="tgSong" type="button" hidden>Song tempo</button>
+          <span class="tg-recs" id="tgRec"></span>
+        </div>
+        <div class="tg-rows" id="tgRows"></div>
+        <div class="tg-hud"><span class="tg-combo" id="tgCombo"></span><span class="tg-verdict" id="tgVerdict">Ready</span><span class="tg-live"><span id="tgLive"></span><button class="tg-b" id="tgStop" type="button" hidden>Stop</button></span></div>
+        <div class="tg-res" id="tgRes" hidden>
+          <div class="tg-res-t"><b id="tgResT" role="status"></b><span class="tg-stars" id="tgResStars"></span></div>
+          <dl class="tg-stats"><div><dt>Accuracy</dt><dd id="tgAcc"></dd></div><div><dt>Perfect</dt><dd id="tgPerf"></dd></div><div><dt>Best streak</dt><dd id="tgStreak"></dd></div><div><dt>Timing</dt><dd id="tgAvg"></dd></div></dl>
+          <ul class="tg-news" id="tgNews"></ul>
+          <div class="tg-acts"><button class="tg-b tg-pri" id="tgMain" type="button">Again</button><button class="tg-b" id="tgAlt" type="button" hidden></button><button class="tg-b" id="tgNext" type="button" hidden></button></div>
+        </div>
+        <button class="tg-pad" id="tgPad" type="button"><b id="tgPadT">Start</b><span id="tgPadS"></span><i class="tg-meter" id="tgMeter" hidden></i></button>
+        <p class="tg-msg" id="tgMsg" role="status" hidden></p>
+        <div class="tg-opts">
+          <label><input type="checkbox" id="tgGuide"> Hear the dots</label>
+          <label>Sound delay <input type="range" id="tgLag" min="-50" max="300" step="5"><output id="tgLagOut"></output></label>
+          <button class="tg-b" id="tgCal" type="button">Calibrate</button>
+        </div>
+      </div>
+    </div>
+  </dialog>
   <dialog class="info" id="infoDlg" aria-labelledby="infoTitle">
     <div class="info-h"><h2 id="infoTitle">How MetroBar works</h2><button class="ibtn x" id="infoClose" aria-label="Close">×</button></div>
     <div class="info-beat">
@@ -1470,7 +1656,8 @@ body.rb-zen .rb-ed { font-size: 21px; }
         <p>A <b>pickup</b> is the one or two soft syllables sung just before beat 1.</p></section>
       <section><h3>Breakdown &amp; Compare</h3>
         <p>Each Fit bar is drawn as a breakdown: dots for syllables, pills for held ones, the landing in red, brackets for the flow's groups.</p>
-        <p><b>Compare A/B/C/D</b> shows the same words in four flows. Pick one and Practice uses it.</p></section>
+        <p><b>Compare A/B/C/D</b> shows the same words in four flows. Pick one and Practice uses it.</p>
+        <p><b>Flow game</b> turns a bar into a round: a click counts you in and you tap every dot, or rap it into the mic. Twelve levels, stars, ranks and tempo records, and Play on a Fit card runs your own lyrics. The mic sound is only listened to for syllable starts, never recorded.</p></section>
       <section><h3>Practice</h3>
         <p>Puts the lines on the tiles, one per bar, with the landing slot lit.</p>
         <p><b>Tap test:</b> tick it, start Practice, and press <kbd>Space</kbd> (or tap the tiles) on every landing to see how many ms early or late you are. <kbd>Esc</kbd> stops.</p>
@@ -1576,6 +1763,8 @@ body.rb-zen .rb-ed { font-size: 21px; }
   </div>
   <div class="tele" id="tele" hidden></div>
   <div class="drop" id="drop" aria-live="polite" hidden></div>
+
+  <section class="tg-entry"><button class="adv-tg" id="tgOpen" type="button"><span class="adv-t">Flow game</span><span class="adv-s" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span><span class="adv-c" aria-hidden="true"></span></button></section>
 
   <section class="adv" id="adv">
     <button class="adv-tg" id="advTg" aria-expanded="false" aria-controls="advBody"><span class="adv-t">Advanced</span><span class="adv-s">Fit, rhyme map, flows, polymeter, sound and meter options</span><span class="adv-c" aria-hidden="true"></span></button>
@@ -3312,6 +3501,80 @@ function doubleRhymes(text, opt = {}) {
   const sortK = (a, b) => (a.kind === b.kind ? 0 : a.kind === 'classic' ? -1 : 1) || (!!a.rare - !!b.rare) || Math.abs(a.syl - T.length) - Math.abs(b.syl - T.length) || (a.r || 0) - (b.r || 0);
   return { target: text, k, vowels: tail.map(x => x.v), words: words.sort(sortK).slice(0, max), phrases: phrases.sort(sortK).slice(0, Math.min(40, max)) };
 }
+// ---- Flow game (Bennie 2026-11-11): the Breakdown bar becomes playable. Levels in the order flow is usually taught; every bar goes
+// through analyseLine with its flow forced, so the game plays exactly what the Breakdown view draws. Lyrics are our own.
+const LADDER = [
+  { id: 'beat', name: 'On the beat', flow: 'half', bpm: 90, tip: 'One syllable on every beat. Feel where 1, 2, 3 and 4 are.',
+    bars: ['Feet on the floor', 'Break down the door', 'Give me some more'] },
+  { id: '8ths', name: 'Straight 8ths', flow: '8ths', bpm: 90, tip: 'Two even syllables per beat. The rhyme lands on beat 4.',
+    bars: ['Keep it steady on the beat', 'Every bar I land my feet', 'Say it plain and take a seat'] },
+  { id: 'space', name: 'Leave space', flow: '8ths', bpm: 90, tip: 'Stop early and wait. The silence before the landing is part of the bar.',
+    bars: ['Wait for it, now go', 'Hold up, let it breathe', 'Less is more, trust me'] },
+  { id: 'stomp', name: 'Stomp cadence', flow: 'stomp', bpm: 90, tip: 'Two-beat cells that stop dead on 2 and 4, like boots on the ground.',
+    bars: ['Pick it up, put it down', 'Run it back, hold the line', 'Left right left, hold tight'] },
+  { id: 'tres', name: 'Tresillo 3-3-2', flow: 'tres', bpm: 90, tip: 'Count 3, 3, 2. The hits slide off the beat and come home on the last one.',
+    bars: ['Push pull lean back bounce down', 'Kick snare kick kick snare clap', 'Big steps small steps big sound'] },
+  { id: 'trip', name: 'Triplets', flow: 'trip', bpm: 80, tip: 'Three even syllables per beat. Lean on the first of every three.',
+    bars: ['Rolling it rolling it over the drum', 'Three at a time and I never go numb', 'Counting it counting it under my thumb'] },
+  { id: '16ths', name: '16ths', flow: '16ths', bpm: 75, tip: 'Four syllables per beat. Keep them even and light.',
+    bars: ['Every little syllable is sitting in the pocket', 'Tap it like a drummer till the rhythm is a rocket', 'Never let the tempo get away before you lock it'] },
+  { id: 'late', name: 'Behind the beat', flow: '8ths', bpm: 90, tip: 'The same 8ths, slid late. Every word sits just after where you expect it.',
+    bars: [{ t: 'Drag it back and let it breathe', heel: 1 }, { t: 'Lean a little late behind the beat', heel: 2 }, { t: 'Take your time and still arrive', heel: 1 }] },
+  { id: 'early', name: 'Ahead of the beat', flow: '8ths', bpm: 90, tip: 'The same 8ths, pulled early. The landing arrives before the beat does.',
+    bars: [{ t: 'Jump the gun and get there first', heel: -2 }, { t: 'Out the gate before the bell', heel: -1 }, { t: 'Never wait until the one', heel: -2 }] },
+  { id: 'hem', name: 'Threes over four', flow: 'hem', bpm: 85, tip: 'Group the words in threes against the beat. It pulls until the rhyme lands.',
+    bars: ['Money on my mind and I am running out of time', 'Sliding off the beat but I am landing every line', 'Counting in threes while the drummer is counting in fours'] },
+  { id: 'seven', name: 'Seven eight', flow: 'grp', meter: '7/8', bpm: 90, tip: 'The bar is short, short, long: 2 + 2 + 3. The next 1 comes early.',
+    bars: ['One two one two one two three', { t: 'Seven steps and then it turns', flow: '8ths' }, 'Short short long is how it goes'] },
+  { id: 'quint', name: 'Quintuplets', flow: 'quint', bpm: 60, tip: 'Five syllables per beat. Lock the first of every five and let the rest roll.',
+    bars: ['All the people in the building better listen when I talk into the mic', 'Syllable on syllable on syllable I never trip on one', 'Five in any beat and it is floating over anything you play'] },
+];
+function ladderBar(lv, i) {
+  const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b;
+  return analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, V.meter || '4/4');
+}
+// the dots to hit in one pass of a bar: slot, time from the bar line in quarter notes, stressed, landing
+function gameTargets(L) {
+  const out = []; L.slots.forEach((v, s) => { if (v >= 0) out.push({ slot: s, q: s * L.lay.unit, st: !!L.syl[v].st, land: s === L.landSlot }); });
+  return out;
+}
+// Tap: within 40 ms perfect, 85 good. Voice is judged wider: an onset detector hears where a syllable starts getting loud, not where you feel it.
+const GAME = { tap: { perfect: 40, good: 85, stray: 0.25 }, voice: { perfect: 55, good: 110, stray: 0 }, pts: { perfect: 1, good: 0.6, ok: 0.25 }, stars: [50, 75, 90], unlock: 6 };
+function gameGrade(absMs, mode) { const g = GAME[mode] || GAME.tap; return absMs <= g.perfect ? 'perfect' : absMs <= g.good ? 'good' : 'ok'; }
+function gameAcc(pts, strays, n, mode) { return n ? Math.max(0, Math.round(100 * (pts - (GAME[mode] || GAME.tap).stray * strays) / n)) : 0; }
+function gameStars(acc) { return GAME.stars.filter(v => acc >= v).length; }
+function gameFeel(offs) {
+  if (offs.length < 4) return { avg: 0, feel: '' };
+  const avg = Math.round(offs.reduce((a, b) => a + b, 0) / offs.length);
+  return { avg, feel: avg > 25 ? 'Laid back' : avg < -25 ? 'Pushing' : 'Locked in' };
+}
+const GAME_RANKS = [[0, 'Rookie'], [9, 'On beat'], [24, 'In the pocket'], [45, 'Locked in'], [66, 'Switch-up'], [90, 'Untouchable']];
+function gameRank(stars) {
+  let k = 0; GAME_RANKS.forEach((r, i) => { if (stars >= r[0]) k = i; });
+  const nx = GAME_RANKS[k + 1];
+  return { name: GAME_RANKS[k][1], tier: k, next: nx ? nx[1] : null, need: nx ? nx[0] - stars : 0 };
+}
+// Live onset detector for Voice mode: feed it mic blocks, get back the times a syllable starts. A syllable start = the level
+// (high-passed, about 4 ms hops) jumps 8 dB above its lowest point of the last 40 ms, clear of the room noise, at most one per 70 ms.
+function onsetTracker(sr) {
+  const hop = Math.max(64, Math.round(sr * 0.004)), gap = 0.07;
+  let hp = 0, px = 0, acc = 0, n = 0, floor = -60, last = -1, level = -100; const hist = [];
+  return {
+    get level() { return level; },
+    push(buf, t0) {
+      const out = [];
+      for (let i = 0; i < buf.length; i++) {
+        const x = buf[i]; hp = 0.985 * (hp + x - px); px = x; acc += hp * hp;
+        if (++n < hop) continue;
+        const db = 10 * Math.log10(acc / hop + 1e-12), t = t0 + (i + 1 - hop) / sr; acc = 0; n = 0; level = db;
+        floor = db < floor ? db : floor + 0.002;
+        const low = hist.length ? Math.min(...hist) : db; hist.push(db); if (hist.length > 10) hist.shift();
+        if (db > -48 && db > floor + 10 && db - low > 8 && t - last > gap) { out.push(t); last = t; }
+      }
+      return out;
+    },
+  };
+}
 </script>
 <script>
 /* Small motion helpers (ideas from the RareUI library, own vanilla code, nothing installed):
@@ -4262,6 +4525,7 @@ function renderFit() {
     const cb = h('button', 'mini push', cmpOpen.has(L.text) ? 'Hide compare' : 'Compare A/B/C/D'); cb.setAttribute('aria-expanded', cmpOpen.has(L.text));
     cb.addEventListener('click', () => { cmpOpen.has(L.text) ? cmpOpen.delete(L.text) : cmpOpen.add(L.text); renderFit(); });
     if (L.N) hd.append(cb);
+    if (L.N) { const pb = h('button', 'mini', 'Play'); pb.title = 'Play this bar in the flow game, by tap or by voice'; pb.addEventListener('click', () => TG.openFit(i)); hd.append(pb); }
     if (L.src != null) { const eb = h('button', 'mini', editSrc === L.src ? 'Editing' : 'Edit'); eb.dataset.src = L.src; eb.title = 'Edit, add or delete words in this bar'; eb.setAttribute('aria-pressed', editSrc === L.src); eb.addEventListener('click', () => { editSrc = editSrc === L.src ? null : L.src; renderFit(); }); hd.append(eb); }
     const words = h('div', 'words');
     L.words.forEach(w => {
@@ -6967,6 +7231,7 @@ function ckRoot() {
   add('Actions', 'Find the BPM with the microphone', () => { goView(false); $('micBtn').click(); }, { kw: 'mic listen' });
   add('Actions', 'Set tempo', null, { page: 'tempo', kw: 'bpm speed' });
   add('Actions', advBody.hidden ? 'Open Advanced' : 'Close Advanced', () => { goView(false); advBody.hidden ? advOpen(null) : advClose(); }, { kw: 'settings options fit polymeter sound' });
+  add('Actions', 'Play the flow game', () => TG.open(), { kw: 'game tap voice rap levels stars rank practice breakdown' });
   add('Actions', 'How MetroBar works', () => $('infoBtn').click(), { kw: 'info help' });
   add('Actions', 'Keyboard shortcuts', () => keysOpen(), { key: '?', kw: 'keys help' });
   document.querySelectorAll('#advBody .rack').forEach(r => { const hd = r.querySelector('.rackbar h2'), sub = r.querySelector('.rk-sub'), name = hd ? hd.textContent.trim() : r.getAttribute('aria-label') || '';
@@ -7205,6 +7470,12 @@ function znSupabase(cfg) {
     async block(uid, on) { chk(on ? await sb.from('blocks').insert({ blocked: uid }) : await sb.from('blocks').delete().eq('blocked', uid)); },
     async report(postId, commentId, reason) { chk(await sb.from('reports').insert({ post_id: postId || null, comment_id: commentId || null, reason })); },
     async setFeatured(id, on) { chk(await sb.rpc('zone_set_featured', { p: id, on_: on })); },
+    // flow game (zone/flow-game.sql): the database scores the raw timing itself; nothing here can write a score directly
+    async gameSubmit(r) { const d = chk(await sb.rpc('zone_game_submit', { p_mode: r.mode, p_bar: r.bar, p_bpm: r.bpm, p_offs: r.offs, p_strays: r.strays })); return Array.isArray(d) ? d[0] : d; },
+    async gameBoard(mode, bar, week) { return chk(await sb.from('game_board').select('id,user_id,username,badge,bpm,acc,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100)); },
+    async gameOf(id) { const r = await sb.from('profiles').select('game_stars,game_level').eq('id', id).maybeSingle(); return r.error ? null : r.data; },
+    async gameHide(id, on) { chk(await sb.rpc('zone_game_hide', { p: id, on_: on })); },
+    async gameReport(id, reason) { chk(await sb.from('reports').insert({ score_id: id, reason })); },
   };
 }
 // ---- demo version: same calls, kept in memory for this tab only (made-up rhymers and original bars)
@@ -7220,7 +7491,7 @@ function znDemo() {
     { id: 2, user_id: 'u2', title: 'Pocket Change', body: 'Pocket full of change but I never changed\nSame little room, I just rearranged\nNotebook on the shelf with the corners frayed\nEvery page a step, every step I made', created_at: new Date(t0 - 30 * hr).toISOString(), respect_count: 31, comment_count: 0, featured: false },
     { id: 3, user_id: 'u3', title: 'Sub Bass', body: 'Low end shaking the frame of the door\nNeighbours knocking, they want me to floor it\nI ain\'t asking for more, I just record it\nPlay it back slow till the speakers afford it', created_at: new Date(t0 - 9 * 24 * hr).toISOString(), respect_count: 58, comment_count: 0, featured: true }];
   const comments = [{ id: 1, post_id: 1, user_id: 'u2', body: '@NightShiftNova the fogged window line is crazy', created_at: new Date(t0 - 4 * hr).toISOString() }];
-  const respects = new Set(), follows = new Set(), blocks = new Set(); let signed = false, cid = 2;
+  const respects = new Set(), follows = new Set(), blocks = new Set(), game = {}; let signed = false, cid = 2;
   const full = p => Object.assign({}, p, { user: U(p.user_id) });
   const wait = v => new Promise(r => setTimeout(() => r(v), 60));
   return {
@@ -7263,6 +7534,21 @@ function znDemo() {
     async block(uid, on) { on ? blocks.add(uid) : blocks.delete(uid); },
     async report() {},
     async setFeatured(id, on) { posts.find(x => x.id === id).featured = on; },
+    async gameSubmit(r) {
+      const g = GAME[r.mode], n = 2 * gameTargets(ladderBar(...r.bar.split(':').slice(1).map((v, k) => k ? +v : LADDER.findIndex(V => V.id === v)))).length;
+      const acc = gameAcc(r.offs.reduce((a, o) => a + GAME.pts[gameGrade(Math.abs(o), r.mode)], 0), r.strays, n, r.mode), points = Math.round(acc * r.bpm / 10), k = r.mode + r.bar;
+      const old = game[k].find(x => x.user_id === 'me'), best = !old || points > old.points;
+      if (best) { game[k] = game[k].filter(x => x.user_id !== 'me'); game[k].push({ id: 99, user_id: 'me', username: U('me').username, badge: '', bpm: r.bpm, acc, stars: gameStars(acc), points }); }
+      const rows = await this.gameBoard(r.mode, r.bar), mine = rows.find(x => x.user_id === 'me');
+      return { points, acc, stars: gameStars(acc), best, weekly: true, place: mine.place, tier: mine.tier, players: rows.length };
+    },
+    async gameBoard(mode, bar) {
+      const k = mode + bar; if (!game[k]) game[k] = users.filter(u => u.id !== 'me').map((u, i) => ({ id: i + 1, user_id: u.id, username: u.username, badge: u.badge || '', bpm: 120 - 10 * i, acc: 96 - 7 * i, stars: i < 2 ? 3 : 2, points: Math.round((96 - 7 * i) * (120 - 10 * i) / 10) }));
+      const rows = game[k].slice().sort((a, b) => b.points - a.points);
+      return wait(rows.map((x, i) => { const f = i / rows.length; return Object.assign({}, x, { place: i + 1, tier: f < 0.05 ? 'S' : f < 0.2 ? 'A' : f < 0.5 ? 'B' : f < 0.8 ? 'C' : 'D' }); }));
+    },
+    async gameOf(id) { return id === 'me' ? null : { game_stars: 30 + 7 * (String(id).charCodeAt(1) % 5), game_level: 4 + String(id).charCodeAt(1) % 5 }; },
+    async gameHide() {}, async gameReport() {},
   };
 }
 // ---- helpers
@@ -7426,6 +7712,7 @@ async function znProfile(body) {
   [['respect', 'Props!'], ['followers', 'Followers'], ['following', 'Following'], ['posts', 'Posts']].forEach(([k, l]) => { const d = h('div'); d.append(h('b', '', String(st[k] || 0)), h('span', '', l)); stats.append(d); });
   const nm = h('div', 'zn-name'); nm.append(znName(p));
   side.append(stats);
+  try { const g = ZN.api.gameOf ? await ZN.api.gameOf(p.id) : null; if (g && g.game_stars > 0) side.append(h('p', 'zn-game', `Flow game: level ${g.game_level} · ${gameRank(g.game_stars).name} · ${g.game_stars} stars`)); } catch (e) {}
   const acts = h('div', 'zn-acts'); acts.style.marginTop = '8px';
   if (me) { acts.append(znBtn('Edit profile', 'btn', () => znGo('edit')), znBtn('Sign out', 'btn', async () => { await ZN.api.signOut(); ZN.me = null; await znAuthChanged(true); znGo('feed'); })); }
   else {
@@ -7832,6 +8119,357 @@ void main(){
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   return { nav, sw, pop, scan };
+})();
+</script>
+<script>
+// ---- Flow game (Bennie 2026-11-11): play a Breakdown bar. A click counts one bar in, then the bar runs twice and every dot is a
+// target: tap it (Space, F, J or the pad) or rap it into the mic (Voice). Levels = core LADDER, scoring = core GAME; tap and voice
+// keep their own stars, ranks and tempo records. Any Fit bar can be played too. Everything is scheduled on the game's own audio clock.
+const TG = (() => {
+  const dlg = $('tgDlg'), STAR = 'M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z';
+  const raw = store.get('metrobar.game', {}) || {}, two = o => ({ tap: Object.assign({}, o && o.tap), voice: Object.assign({}, o && o.voice) });
+  const S = { stars: two(raw.stars), best: two(raw.best), lag: Object.assign({ tap: 0, voice: 30 }, raw.lag), guide: raw.guide !== false, mode: raw.mode === 'voice' ? 'voice' : 'tap' };
+  const keep = () => store.set('metrobar.game', S);
+  let cur = null, tempo = 90, state = 'idle', R = null, raf = 0, fails = 0, rows = [], ac = null, mic = null, last = null;
+  const playing = () => state === 'count' || state === 'play';
+  const starsOf = k => S.stars[S.mode][k] || 0;
+  const lvKey = (lv, i) => 'L:' + LADDER[lv].id + ':' + i;
+  const lvStars = lv => [0, 1, 2].reduce((a, i) => a + starsOf(lvKey(lv, i)), 0);
+  const lvOpen = lv => lv === 0 || lvStars(lv - 1) >= GAME.unlock;
+  const total = () => LADDER.reduce((a, V, lv) => a + lvStars(lv), 0);
+  const hash = t => { let x = 5381; for (let i = 0; i < t.length; i++) x = ((x * 33) ^ t.charCodeAt(i)) >>> 0; return x.toString(36); };
+  const fitKey = L => 'F:' + L.flow.id + ':' + hash(L.text.toLowerCase());
+  const by = () => S.mode === 'voice' ? 'voice' : 'tap';
+  function starEl(n, el) {
+    const s = el || h('span', 'tg-stars'); s.replaceChildren(); s.setAttribute('role', 'img'); s.setAttribute('aria-label', n + ' of 3 stars');
+    for (let i = 0; i < 3; i++) { const g = sv('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }); if (i < n) g.setAttribute('class', 'tg-on'); g.append(sv('path', { d: STAR })); s.append(g); }
+    return s;
+  }
+  function rankLine() { const t = total(), rk = gameRank(t); return { t, rk, text: `${t} of ${LADDER.length * 9} stars by ${by()}` + (rk.next ? ` · ${rk.need} more for ${rk.next}` : ' · top rank') }; }
+  function entry() { const e = $('tgOpenS'); if (e) { const r = rankLine(); e.textContent = `Tap or rap the dots of a bar. ${LADDER.length} levels · ${r.rk.name}, ${r.t} stars`; } }
+
+  // ---- the Zone: one bar of the week for everyone, a weekly board with S to D tiers, level on the profile.
+  // Nothing is loaded or sent unless you are signed in to the Zone, or press Show the board.
+  const WEEKLY = []; LADDER.slice(0, 7).forEach((V, lv) => V.bars.forEach((b, i) => WEEKLY.push([lv, i])));
+  function week(now) {
+    const d = now || new Date(), mon = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate() - (d.getUTCDay() + 6) % 7), k = Math.round((mon - Date.UTC(1970, 0, 5)) / 6048e5), w = WEEKLY[k % WEEKLY.length];
+    return { date: new Date(mon).toISOString().slice(0, 10), lv: w[0], i: w[1], bar: lvKey(w[0], w[1]) };
+  }
+  async function zApi(ask) {
+    if (window.ZN && ZN.api) return ZN.api;
+    let signed = false; try { signed = !!localStorage.getItem('metrobar.zoneAuth'); } catch (e) {}
+    if ((!ask && !signed) || typeof rbSyncApi !== 'function') return null;
+    try { return await rbSyncApi(); } catch (e) { return null; }
+  }
+  const zHint = e => { const m = znErr(e); return /game_board|zone_game|schema cache|does not exist/i.test(m) ? 'The Zone database does not have the game tables yet. Run zone/flow-game.sql in Supabase once.' : m; };
+  let zTok = 0;
+  async function board(ask) {
+    const box = $('tgZone'), w = week(), V = LADDER[w.lv], b = V.bars[w.i], tok = ++zTok, top = h('div', 'tg-zw'), tx = h('div'), note = h('p', 'tg-note');
+    tx.append(h('b', '', `Bar of the week: ${typeof b === 'string' ? b : b.t}`), h('span', '', `${V.name} · the same bar for everyone until Monday · open even if the level is locked`));
+    const play = h('button', 'tg-b tg-pri', 'Play it'); play.type = 'button'; play.addEventListener('click', () => playLadder(w.lv, w.i));
+    top.append(tx, play); box.replaceChildren(top, note);
+    const goZone = () => { const z = h('button', 'tg-b', 'Go to the Zone'); z.type = 'button'; z.addEventListener('click', () => { dlg.close(); location.hash = '#zone'; }); return z; };
+    note.textContent = 'Loading the board…';
+    const api = await zApi(ask); if (tok !== zTok) return;
+    if (!api) {
+      const hasCfg = typeof znCfg === 'function' && !!znCfg(), acts = h('div', 'tg-acts');
+      note.textContent = hasCfg ? `Sign in to the Zone and your ${by()} runs on this bar go on the weekly board, with a tier from S to D. Your level shows on your profile.` : 'The weekly board lives on the Zone. Connect the Zone first, or try its demo.';
+      if (hasCfg) { const s = h('button', 'tg-b', 'Show the board'); s.type = 'button'; s.addEventListener('click', () => board(true)); acts.append(s); }
+      acts.append(goZone()); box.append(acts); return;
+    }
+    let me = null, rows = [], admin = false;
+    try { me = await api.session(); rows = await api.gameBoard(S.mode, w.bar, w.date); admin = me ? await api.isAdmin() : false; } catch (e) { if (tok === zTok) note.textContent = 'The board could not be loaded. ' + zHint(e); return; }
+    if (tok !== zTok) return;
+    note.textContent = (rows.length ? `${rows.length} ${rows.length === 1 ? 'rhymer' : 'rhymers'} on the ${by()} board this week. Points = accuracy × tempo, so a clean run at a faster tempo wins.` : `Nobody is on the ${by()} board yet this week. The first clean run takes S.`)
+      + (me ? '' : ' Sign in to the Zone to post your own runs.') + (api.demo ? ' Demo: made-up scores that live only in this tab.' : '');
+    if (!me) { const a = h('div', 'tg-acts'); a.append(goZone()); box.append(a); }
+    if (!rows.length) return;
+    const ol = h('ol', 'tg-board'), mine = me ? rows.findIndex(r => r.user_id === me.id) : -1, show = rows.slice(0, 10); if (mine >= 10) show.push(rows[mine]);
+    show.forEach(r => {
+      const li = h('li', me && r.user_id === me.id ? 'tg-me' : ''), tier = h('span', 'tg-tier', r.tier), pts = h('span', 'tg-pts'), ra = h('span', 'tg-ra'); tier.dataset.t = r.tier; tier.title = 'Tier ' + r.tier;
+      pts.append(h('b', '', String(r.points)), ` · ${r.bpm} BPM · ${r.acc}%`);
+      const mk = (label, fn) => { const x = h('button', 'tg-b', label); x.type = 'button'; x.addEventListener('click', fn); ra.append(x); };
+      if (!me || r.user_id !== me.id) mk('Beat it', () => { playLadder(w.lv, w.i); setTempo(r.bpm); });
+      if (me && r.user_id !== me.id && !admin) mk('Report', async () => { const why = prompt('What is wrong with this score?', ''); if (why == null) return; try { await api.gameReport(r.id, why.slice(0, 300)); toast('Reported. An admin will look at it.'); } catch (e) { toast(zHint(e)); } });
+      if (admin) mk('Hide', async () => { try { await api.gameHide(r.id, true); toast(`Score of @${r.username} hidden.`, { undo: async () => { await api.gameHide(r.id, false); board(false); } }); board(false); } catch (e) { toast(zHint(e)); } });
+      li.append(h('span', 'tg-pl', '#' + r.place), tier, h('span', 'tg-who', '@' + r.username), pts, ra); ol.append(li);
+    });
+    box.append(ol);
+  }
+  // after a level bar: send the raw timing; the Zone's database scores it itself
+  async function zSend(run, add) {
+    try {
+      const api = await zApi(false); if (!api) return; const me = await api.session(); if (!me) return;
+      const r = await api.gameSubmit(run); if (!r || last !== run.tag) return;
+      if (r.weekly) add(r.best ? `On the Zone: ${r.points} points, place ${r.place} of ${r.players} this week, tier ${r.tier}.` : `Your best run this week stays on the Zone board: place ${r.place} of ${r.players}, tier ${r.tier}.`, r.best);
+    } catch (e) { if (last === run.tag) add('The Zone did not take this run. ' + zHint(e)); }
+  }
+
+  // ---- home: rank, the level ladder, the player's own Fit bars
+  function barBtn(text, key, meta) {
+    const b = h('button', 'tg-bar'), m = h('span', 'tg-bm'); b.type = 'button';
+    m.append(starEl(starsOf(key))); if (meta) m.append(h('span', '', meta));
+    const rec = S.best[S.mode][key]; if (rec) m.append(h('span', '', rec + ' BPM'));
+    b.append(h('span', 'tg-bt', text), m); return b;
+  }
+  function home() {
+    stopRound(); cur = null; $('tgHome').hidden = false; $('tgPlay').hidden = true; $('tgBack').hidden = true; $('tgTitle').textContent = 'Flow game';
+    const r = rankLine(), lo = GAME_RANKS[r.rk.tier][0], hi = r.rk.next ? lo + (r.t - lo) + r.rk.need : lo;
+    $('tgRankL').textContent = S.mode === 'voice' ? 'Voice rank' : 'Tap rank'; $('tgRank').textContent = r.rk.name; $('tgRankS').textContent = r.text;
+    $('tgProg').style.width = (hi > lo ? Math.round(100 * (r.t - lo) / (hi - lo)) : 100) + '%';
+    const ol = $('tgLvs'); ol.replaceChildren();
+    LADDER.forEach((V, lv) => {
+      const ok = lvOpen(lv), n = lvStars(lv), li = h('li', 'tg-lv' + (ok ? '' : ' tg-locked') + (n === 9 ? ' tg-done' : '')), tx = h('div', 'tg-lt'), bars = h('div', 'tg-bars');
+      tx.append(h('b', '', V.name), h('span', '', ok ? V.tip : `Locked. Get ${GAME.unlock} of 9 stars on ${LADDER[lv - 1].name} (${lvStars(lv - 1)} so far).`));
+      V.bars.forEach((b, i) => { const bt = barBtn(typeof b === 'string' ? b : b.t, lvKey(lv, i)); bt.disabled = !ok; bt.addEventListener('click', () => playLadder(lv, i)); bars.append(bt); });
+      li.append(h('span', 'tg-n', String(lv + 1)), tx, h('span', 'tg-ls', n + '/9'), bars); ol.append(li);
+    });
+    const box = $('tgMine'), seen = new Set(); box.replaceChildren(); let shown = 0, more = 0;
+    lines.forEach((L, i) => {
+      if (!L.N) return; const k = fitKey(L); if (seen.has(k)) return; seen.add(k);
+      if (shown >= 48) { more++; return; } shown++;
+      const bt = barBtn(L.text, k, L.flow.name); bt.addEventListener('click', () => playFit(i)); box.append(bt);
+    });
+    $('tgMineNote').textContent = shown ? `Your own lyrics from Fit, on the dots Fit gave them. Play them by tap or by voice.${more ? ` ${more} more bars: use Play on their Fit card.` : ''}`
+      : 'Type your lyrics in Advanced and press Fit. Your bars then show up here, and every Fit card gets a Play button, so you can tap or rap your own words.';
+    entry(); board(false);
+  }
+
+  // ---- one bar on screen: the Breakdown drawing twice (first and second time through), with marks laid over the dots
+  function setCur(o) {
+    stopRound(); cur = o; fails = 0; const rec = o.key ? S.best[S.mode][o.key] || 0 : 0;
+    tempo = o.fit != null ? rec || o.base : Math.max(o.base, rec);
+    $('tgHome').hidden = true; $('tgPlay').hidden = false; $('tgBack').hidden = false; $('tgRes').hidden = true; $('tgPad').hidden = false;
+    $('tgTitle').textContent = o.calib ? 'Calibrate' : o.fit != null ? 'Your bars' : 'Level ' + (o.lv + 1);
+    $('tgName').textContent = o.name; $('tgSub').textContent = o.sub; $('tgTip').textContent = o.tip;
+    $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm();
+    drawRows(); idleUi(o.calib ? 'Start' : 'Start'); showRec(false); bpmShow(); say('Ready', ''); $('tgCombo').replaceChildren(); $('tgLive').replaceChildren();
+    $('tgPad').focus({ preventScroll: true }); dlg.querySelector('.tg-body').scrollTop = 0;
+  }
+  function playLadder(lv, i) { const V = LADDER[lv]; setCur({ key: lvKey(lv, i), L: ladderBar(lv, i), lv, bi: i, name: V.name, sub: `Bar ${i + 1} of 3 · ${by()}`, tip: V.tip, base: V.bpm }); }
+  function playFit(i) {
+    const L = lines[i]; if (!L || !L.N) return;
+    setCur({ key: fitKey(L), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, name: L.flow.name, sub: `Your bar ${i + 1} · ${by()}`,
+      tip: 'Your own words on the dots Fit gave them. To try another flow, use Compare A/B/C/D on the Fit card.', base: Math.min(bpm(), 90) });
+  }
+  function playCal() {
+    setCur({ key: null, calib: true, L: ladderBar(0, 0), name: 'Find your delay', sub: by(), base: 90,
+      tip: S.mode === 'voice' ? 'Say a short "ta" on every click, eight times. MetroBar measures how late the mic hears you and sets the sound delay for voice.'
+        : 'Tap on every click, eight times. MetroBar measures how late your taps arrive (Bluetooth headphones add delay) and sets the sound delay for tap.' });
+  }
+  function drawRows() {
+    const box = $('tgRows'), L = cur.L, cw = bdCw(L.lay), pad = Math.min(3, L.pickup || 0), padL = 6 + pad * cw, tg = gameTargets(L); box.replaceChildren(); rows = [];
+    for (let p = 0; p < 2; p++) {
+      const wrap = breakdownSvg(L, 0, pad, {}), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, row = h('div', 'tg-row');
+      svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p ? 'Second' : 'First'} time: ${L.text}`);
+      const dots = tg.map(x => {
+        const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
+        const c = sv('circle', { class: 'tg-mark', cx, cy: 38, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
+        g.append(c, tick); svg.append(g); return { c, tick, g, cx, r, cw };
+      });
+      const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
+      row.append(h('span', 'tg-pass', p ? '2nd time' : '1st time'), wrap); box.append(row);
+      rows.push({ row, dots, head, x0: padL, w: L.grid * cw });
+    }
+  }
+  function resetRows() { rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  function bpmShow() { $('tgBpm').replaceChildren(h('b', '', String(tempo)), ' BPM'); }
+  function setTempo(v) { tempo = Math.min(200, Math.max(40, Math.round(v))); bpmShow(); }
+  function showRec(isNew) {
+    const e = $('tgRec'); if (!cur || cur.calib) { e.textContent = ''; return; }
+    const b = S.best[S.mode][cur.key]; e.textContent = b ? `${isNew ? 'New record' : 'Record'} by ${by()}: ${b} BPM` : 'No record yet. Three stars sets one.';
+  }
+  function idleUi(txt) {
+    const v = S.mode === 'voice'; $('tgPad').classList.remove('tg-run', 'tg-hit'); $('tgPadT').textContent = txt; $('tgStop').hidden = true; $('tgMeter').hidden = true;
+    $('tgPadS').textContent = v ? 'Space bar or press here, then rap the bar into the mic. Headphones on.' : 'Space bar, or press here';
+  }
+  function say(text, cls) { const v = $('tgVerdict'); v.textContent = text; v.className = 'tg-verdict' + (cls ? ' v-' + cls : ''); if (cls && !calmQ.matches) { v.classList.remove('tg-bump'); void v.offsetWidth; v.classList.add('tg-bump'); } }
+  function msg(t) { const m = $('tgMsg'); m.textContent = t || ''; m.hidden = !t; }
+  function hud() {
+    const c = $('tgCombo'); c.replaceChildren(); if (R.combo > 1) c.append('×', h('b', '', String(R.combo)));
+    $('tgLive').replaceChildren(h('b', '', (R.judged ? gameAcc(R.score, R.strays, R.judged, S.mode) : 100) + '%'));
+  }
+
+  // ---- sound and the microphone
+  function blip(t, freq, amp, dur, type) { const o = ac.createOscillator(), g = ac.createGain(); o.type = type || 'sine'; o.frequency.value = freq; g.gain.setValueAtTime(amp, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + dur + 0.02); }
+  async function micOn() {
+    if (mic) return true;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { msg('This browser gives the page no microphone here. Open MetroBar over http(s), or play by tap.'); return false; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+      if (!ac || !dlg.open || S.mode !== 'voice') { stream.getTracks().forEach(t => t.stop()); return false; }
+      const src = ac.createMediaStreamSource(stream), proc = ac.createScriptProcessor(512, 1, 1), mute = ac.createGain(), tr = onsetTracker(ac.sampleRate), lead = 3 * 512 / ac.sampleRate;
+      mute.gain.value = 0;
+      // nothing is recorded or kept: each block only goes through the onset detector
+      proc.onaudioprocess = e => { const on = tr.push(e.inputBuffer.getChannelData(0), e.playbackTime - lead); if (mic) mic.level = tr.level; if (R) on.forEach(t => hit(t - R.out - S.lag.voice / 1000, true)); };
+      src.connect(proc); proc.connect(mute); mute.connect(ac.destination);
+      mic = { stream, src, proc, mute, level: -100 }; msg(''); return true;
+    } catch (e) { msg('The microphone is blocked. Allow it for this page, or play by tap.'); return false; }
+  }
+  function micOff() { if (!mic) return; try { mic.proc.onaudioprocess = null; mic.src.disconnect(); mic.proc.disconnect(); mic.mute.disconnect(); } catch (e) {} mic.stream.getTracks().forEach(t => t.stop()); mic = null; }
+
+  // ---- a round: one bar of count-in, then the bar twice
+  async function start() {
+    if (playing() || !cur || state === 'wait') return;
+    if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+    ac.resume();
+    if (S.mode === 'voice' && !mic) { state = 'wait'; const ok = await micOn(); state = 'idle'; if (!ok || !cur) return; }
+    resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
+    const L = cur.L, lay = L.lay, spq = 60 / tempo, barDur = lay.quarters * spq, t0 = ac.currentTime + 0.15, tPlay = t0 + barDur, voice = S.mode === 'voice', maxWin = voice ? 0.16 : 0.14;
+    const tg = gameTargets(L), targets = [];
+    for (let p = 0; p < 2; p++) tg.forEach((x, k) => targets.push({ t: tPlay + p * barDur + x.q * spq, p, k, land: x.land, done: false }));
+    targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
+    for (let b = 0; b < 3; b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
+    if (S.guide && !voice && !cur.calib) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
+    const out = ac.outputLatency || ac.baseLatency || 0;
+    R = { t0, tPlay, barDur, spq, slot: lay.unit * spq, targets, maxWin, end: tPlay + 2 * barDur + (voice ? 0.4 : 0.25), perf0: performance.now(), ctx0: ac.currentTime, out, lat: out + (voice ? 0 : S.lag.tap / 1000),
+      grace: voice ? 0.12 : 0, beats: lay.starts.map(s => s * lay.unit * spq), combo: 0, maxCombo: 0, strays: 0, score: 0, offs: [], perfect: 0, judged: 0 };
+    state = 'count';
+    $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = voice ? 'Rap it' : 'Tap'; $('tgPadS').textContent = voice ? 'One syllable per dot. Esc stops.' : 'Space, F or J. Esc stops.';
+    $('tgStop').hidden = false; $('tgMeter').hidden = !voice;
+    say('Listen', ''); $('tgCombo').replaceChildren(); $('tgLive').replaceChildren();
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+  }
+  const heard = ms => R.ctx0 + ((ms == null ? performance.now() : ms) - R.perf0) / 1000 - R.lat;   // the moment the ear is at, on the audio clock
+  function frame() {
+    if (!R) return;
+    const now = heard();
+    if (mic && S.mode === 'voice') $('tgMeter').style.transform = `scaleX(${Math.min(1, Math.max(0, (mic.level + 60) / 50)).toFixed(2)})`;
+    if (state === 'count') {
+      if (now >= R.tPlay - 0.02) { state = 'play'; say('Go', ''); }
+      else { let q = -1; R.beats.forEach((b, i) => { if (now - R.t0 >= b) q = i; }); if (q >= 0 && $('tgVerdict').textContent !== String(q + 1)) say(String(q + 1), 'miss'); }
+    }
+    if (state === 'play') {
+      const p = (now - R.tPlay) / R.barDur, b = Math.min(1, Math.max(0, Math.floor(p)));
+      rows.forEach((r, i) => { const on = i === b && p < 2; r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
+        if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - b)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+      for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) { x.done = true; R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud(); }
+      if (now >= R.end) return finish();
+    }
+    raf = requestAnimationFrame(frame);
+  }
+  function mark(x, grade, off) {
+    const d = rows[x.p].dots[x.k], col = grade === 'miss' ? 'var(--muted)' : `var(--tg-${grade})`;
+    if (grade === 'miss') { d.c.setAttribute('fill', 'var(--panel)'); d.c.setAttribute('stroke', col); d.c.setAttribute('stroke-width', 1.5); d.c.setAttribute('stroke-dasharray', '2 2'); d.c.setAttribute('opacity', 1); return; }
+    d.c.setAttribute('fill', col); d.c.removeAttribute('stroke'); d.c.removeAttribute('stroke-dasharray'); d.c.setAttribute('opacity', 1);
+    d.c.classList.remove('tg-pop'); void d.c.getBoundingClientRect(); d.c.classList.add('tg-pop');
+    const dx = Math.max(-0.45, Math.min(0.45, off / 1000 / R.slot)) * d.cw; d.tick.setAttribute('x1', d.cx + dx); d.tick.setAttribute('x2', d.cx + dx); d.tick.setAttribute('stroke', col); d.tick.setAttribute('opacity', 1);
+    if (grade !== 'ok' && !calmQ.matches) { const ring = sv('circle', { class: 'tg-ring', cx: d.cx, cy: 38, r: d.r, stroke: col, 'stroke-width': 2 }); d.g.append(ring); setTimeout(() => ring.remove(), 500); }
+  }
+  // t = the moment of the tap or the syllable, already brought back to the click's own clock
+  function hit(t, voice) {
+    if (!R || !playing() || voice !== (S.mode === 'voice')) return;
+    if (!voice) { const pad = $('tgPad'); pad.classList.remove('tg-hit'); void pad.offsetWidth; pad.classList.add('tg-hit'); }
+    if (t < R.tPlay - R.maxWin) return;   // joining in with the count-in is free
+    let best = null; for (const x of R.targets) if (!x.done && Math.abs(x.t - t) <= x.win && (!best || Math.abs(x.t - t) < Math.abs(best.t - t))) best = x;
+    if (!best) { if (voice) return; R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('No dot there', 'miss'); hud(); return; }
+    const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode);
+    best.done = true; R.judged++; R.offs.push(off); R.score += GAME.pts[grade]; if (grade === 'perfect') R.perfect++;
+    R.combo = grade === 'ok' ? 0 : R.combo + 1; R.maxCombo = Math.max(R.maxCombo, R.combo);
+    mark(best, grade, off);
+    if (!voice) blip(ac.currentTime, grade === 'perfect' ? (best.land ? 1760 : 1320) : grade === 'good' ? 990 : 620, grade === 'perfect' ? 0.3 : 0.22, best.land && grade === 'perfect' ? 0.16 : 0.07, 'triangle');
+    say(grade === 'perfect' ? 'Perfect' : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early'), grade); hud();
+  }
+  function stopRound() {
+    cancelAnimationFrame(raf); const was = playing();
+    if (was && ac) { ac.close(); ac = null; if (mic) { mic.stream.getTracks().forEach(t => t.stop()); mic = null; } }   // drops every click still scheduled
+    R = null; state = 'idle'; if (was) { resetRows(); idleUi('Start'); say('Ready', ''); $('tgCombo').replaceChildren(); $('tgLive').replaceChildren(); }
+  }
+  function finish() {
+    const Q = R, n = Q.targets.length, acc = gameAcc(Q.score, Q.strays, n, S.mode), stars = gameStars(acc), f = gameFeel(Q.offs), news = $('tgNews'), main = $('tgMain'), alt = $('tgAlt'), nx = $('tgNext');
+    cancelAnimationFrame(raf); state = 'done'; R = null; rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); });
+    news.replaceChildren(); alt.hidden = true; nx.hidden = true; main.dataset.d = 0; $('tgStop').hidden = true; $('tgMeter').hidden = true;
+    const add = (t, up) => news.append(h('li', up ? 'tg-up' : '', t));
+    $('tgAcc').textContent = acc + '%'; $('tgPerf').textContent = Q.perfect + ' of ' + n; $('tgStreak').textContent = Q.maxCombo;
+    $('tgAvg').textContent = Q.offs.length ? f.avg === 0 ? 'on time' : Math.abs(f.avg) + ' ms ' + (f.avg > 0 ? 'late' : 'early') : 'no hits';
+    last = { acc, stars, avg: f.avg, perfect: Q.perfect, strays: Q.strays, maxCombo: Q.maxCombo, hits: Q.offs.length, n, mode: S.mode, tempo };
+    if (cur.calib) {
+      const o = Q.offs.slice().sort((a, b) => a - b), med = o.length ? o[o.length >> 1] : 0, okc = o.length >= 5;
+      if (okc) { S.lag[S.mode] = Math.min(300, Math.max(-50, Math.round(S.lag[S.mode] + med))); keep(); lagShow(); }
+      $('tgResT').textContent = okc ? `Delay set to ${S.lag[S.mode]} ms` : 'Not enough hits'; starEl(0, $('tgResStars')).hidden = true;
+      add(okc ? `You were ${Math.abs(Math.round(med))} ms ${med > 0 ? 'late' : 'early'} on average. The ${by()} game now allows for that.` : `Only ${o.length} of 8 clicks were caught. ${S.mode === 'voice' ? 'Say it louder and shorter, close to the mic.' : 'Tap right on each click.'}`);
+      main.textContent = 'Run it again'; last.lag = S.lag[S.mode];
+    } else {
+      const was = starsOf(cur.key), wasRec = S.best[S.mode][cur.key] || 0, rk0 = gameRank(total()), nextOpen0 = cur.lv != null && cur.lv + 1 < LADDER.length && lvOpen(cur.lv + 1);
+      if (stars > was) S.stars[S.mode][cur.key] = stars;
+      const rec = stars === 3 && tempo > wasRec; if (rec) S.best[S.mode][cur.key] = tempo;
+      if (stars > was || rec) keep();
+      $('tgResT').textContent = !Q.offs.length ? 'Nothing landed' : stars === 3 ? f.feel === 'Locked in' || !f.feel ? 'Locked in' : f.feel + ', and clean' : f.feel || 'Keep going';
+      starEl(stars, $('tgResStars')).hidden = false;
+      const next = GAME.stars.find(v => v > acc);
+      if (next && next - acc <= 6 && Q.offs.length) add(`${next - acc} ${next - acc === 1 ? 'point' : 'points'} from ${GAME.stars.indexOf(next) + 1} ${next === GAME.stars[0] ? 'star' : 'stars'}. One more?`);
+      if (rec) add(`New record by ${by()}: ${tempo} BPM.`, true);
+      if (cur.lv != null) {
+        const rk1 = gameRank(total()); if (rk1.tier > rk0.tier) add(`New ${by()} rank: ${rk1.name}.`, true);
+        if (!nextOpen0 && cur.lv + 1 < LADDER.length && lvOpen(cur.lv + 1)) add(`Level ${cur.lv + 2} is open: ${LADDER[cur.lv + 1].name}.`, true);
+        else if (cur.lv + 1 < LADDER.length && !lvOpen(cur.lv + 1)) add(`${GAME.unlock - lvStars(cur.lv)} more ${GAME.unlock - lvStars(cur.lv) === 1 ? 'star' : 'stars'} on this level open level ${cur.lv + 2}.`);
+      }
+      if (S.mode === 'voice' && Q.offs.length < n / 2) add('The mic caught fewer than half the syllables. Start each one with a clear consonant, stay close to the mic and wear headphones. Calibrate helps if every hit shows late.');
+      fails = stars === 0 ? fails + 1 : 0;
+      if (stars === 3 && tempo < 200) { main.textContent = `Go faster: ${tempo + 5} BPM`; main.dataset.d = 5; alt.hidden = false; alt.textContent = 'Again at ' + tempo; }
+      else if (fails >= 2 && tempo > 40) { main.textContent = `Ease off: ${tempo - 5} BPM`; main.dataset.d = -5; alt.hidden = false; alt.textContent = 'Again at ' + tempo; }
+      else main.textContent = 'Again';
+      const to = nextItem(); if (to && stars > 0) { nx.hidden = false; nx.textContent = to.label; }
+      showRec(rec); entry();
+      if (cur.lv != null) zSend({ mode: S.mode, bar: cur.key, bpm: tempo, offs: Q.offs.map(o => Math.round(o)), strays: Q.strays, tag: last }, add);
+    }
+    say(cur.calib ? 'Done' : stars === 3 ? 'Clean' : stars ? 'Done' : 'Again?', stars === 3 && !cur.calib ? 'perfect' : ''); idleUi('Again');
+    $('tgRes').hidden = false; $('tgPad').hidden = true; $('tgRes').scrollIntoView({ block: 'nearest', behavior: calmQ.matches ? 'auto' : 'smooth' });
+  }
+  function nextItem() {
+    if (!cur || cur.calib) return null;
+    if (cur.fit != null) { for (let i = cur.fit + 1; i < lines.length; i++) if (lines[i].N) return { label: 'Next bar', go: () => playFit(i) }; return null; }
+    if (cur.bi < 2) return { label: 'Next bar', go: () => playLadder(cur.lv, cur.bi + 1) };
+    if (cur.lv + 1 < LADDER.length && lvOpen(cur.lv + 1)) return { label: 'Next level: ' + LADDER[cur.lv + 1].name, go: () => playLadder(cur.lv + 1, 0) };
+    return null;
+  }
+  function primary() { if (playing() || !cur) return; if (state === 'done') setTempo(tempo + (+$('tgMain').dataset.d || 0)); start(); }
+
+  // ---- controls
+  function setMode(m) {
+    if (m === S.mode && dlg.open) return;
+    const c = cur; stopRound(); S.mode = m; keep(); if (m === 'tap') micOff(); modeUi(); msg('');
+    if (c && !$('tgPlay').hidden) { c.calib ? playCal() : c.fit != null ? playFit(c.fit) : playLadder(c.lv, c.bi); } else home();
+  }
+  function modeUi() {
+    const v = S.mode === 'voice'; $('tgTap').setAttribute('aria-pressed', !v); $('tgVoice').setAttribute('aria-pressed', v);
+    $('tgGuide').checked = S.guide && !v; $('tgGuide').disabled = v; $('tgGuide').parentNode.title = v ? 'Off in Voice: the mic would hear the dots and score them for you' : 'A soft tick on every dot';
+    $('tgLag').value = S.lag[S.mode]; lagShow();
+  }
+  function lagShow() { $('tgLag').value = S.lag[S.mode]; $('tgLagOut').textContent = S.lag[S.mode] + ' ms'; }
+  function open() { if (running) stop(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); if (!dlg.open) dlg.showModal(); modeUi(); home(); }
+  function openFit(i) { open(); playFit(i); }
+  $('tgOpen').addEventListener('click', open);
+  $('tgClose').addEventListener('click', () => dlg.close());
+  $('tgBack').addEventListener('click', home);
+  $('tgTap').addEventListener('click', () => setMode('tap'));
+  $('tgVoice').addEventListener('click', () => setMode('voice'));
+  $('tgSlow').addEventListener('click', () => { if (!playing()) setTempo(tempo - 5); });
+  $('tgFast').addEventListener('click', () => { if (!playing()) setTempo(tempo + 5); });
+  $('tgSong').addEventListener('click', () => { if (!playing()) setTempo(bpm()); });
+  $('tgStop').addEventListener('click', stopRound);
+  $('tgCal').addEventListener('click', playCal);
+  $('tgGuide').addEventListener('change', () => { S.guide = $('tgGuide').checked; keep(); });
+  $('tgLag').addEventListener('input', () => { S.lag[S.mode] = +$('tgLag').value; lagShow(); keep(); });
+  $('tgMain').addEventListener('click', primary);
+  $('tgAlt').addEventListener('click', () => { if (!playing()) start(); });
+  $('tgNext').addEventListener('click', () => { const to = nextItem(); if (to) to.go(); });
+  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false); } else primary(); });
+  $('tgPad').addEventListener('click', e => { if (e.detail === 0 && !playing()) primary(); });   // Enter on the pad, or a screen reader's press
+  $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false); } });
+  document.addEventListener('keydown', e => {   // on the document: focus falls to the page when the focused button hides
+    if (!dlg.open || e.repeat || e.metaKey || e.ctrlKey || e.altKey || $('tgPlay').hidden) return;
+    const k = e.key.toLowerCase(), on = playing();
+    if (on && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); if (S.mode === 'tap') hit(heard(e.timeStamp), false); }
+    else if (!on && k === ' ' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); primary(); }
+  });
+  document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
+  dlg.addEventListener('cancel', e => { if (playing()) { e.preventDefault(); stopRound(); } else if (!$('tgPlay').hidden) { e.preventDefault(); home(); } });
+  dlg.addEventListener('close', () => { stopRound(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
+  entry();
+  // _t: for the automated tests (a tapping bot and sound fed into the mic input)
+  return { open, openFit, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
+    week, tap: t => hit(t, false), heard: () => R ? heard() : 0, ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
 </body>
