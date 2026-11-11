@@ -1363,6 +1363,99 @@ h1.sr-only { font-size: 1.25rem; margin: 0; }
 @keyframes rbPop { from { opacity: 0; transform: translateY(16px) scale(.985); } }
 body.book #viewBook.rb-pop { animation: rbPop .24s cubic-bezier(.2, .9, .3, 1.15) both; transform-origin: 50% 0; }
 @media (prefers-reduced-motion: reduce) { body.book #viewBook.rb-pop { animation: none; } }
+/* Beat player (Bennie 2026-11-10/11; layout idea from RhymeFlux's beat sheet, own code). A floating beat button sits at the bottom right of
+   Barbook; it opens the beat panel: My file / YouTube / SoundCloud, search or paste a link, genres, this song's beat and recent beats.
+   Tucking the panel away never stops the beat. Phones: the panel is a sheet from the bottom. */
+.bk-beat, .bk-fab { display: none; }
+body.book .bk-fab { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); z-index: 58; display: grid; place-items: center;
+  width: 56px; height: 56px; border-radius: 50%; border: 0; background: var(--accent); color: var(--on-accent, #fff); cursor: pointer; box-shadow: 0 8px 24px #0003; transition: transform .14s ease-out; }
+body.book .bk-fab:active { transform: scale(.94); }
+.bk-fab > svg:first-child { width: 24px; height: 24px; }
+.bk-fab .bk-ring { position: absolute; inset: -4px; width: 64px; height: 64px; transform: rotate(-90deg); pointer-events: none; }
+.bk-fab .bk-ring circle { fill: none; stroke: var(--accent); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 188.5; stroke-dashoffset: 188.5; opacity: 0; transition: opacity .2s; }
+.bk-fab.on .bk-ring circle { opacity: .55; }
+.bk-fab .bk-eq { position: absolute; bottom: 9px; display: none; gap: 2px; align-items: end; height: 8px; }
+.bk-fab .bk-eq i { width: 3px; height: 100%; border-radius: 1px; background: currentColor; animation: bkEq .9s ease-in-out infinite alternate; }
+.bk-fab .bk-eq i:nth-child(2) { animation-delay: -.3s; } .bk-fab .bk-eq i:nth-child(3) { animation-delay: -.6s; }
+.bk-fab.on .bk-eq { display: flex; } .bk-fab.on > svg:first-child { transform: translateY(-4px); }
+@keyframes bkEq { from { transform: scaleY(.3); } to { transform: scaleY(1); } }
+@media (prefers-reduced-motion: reduce) { .bk-fab .bk-eq i { animation: none; } }
+body.book .bk-beat { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: calc(max(20px, env(safe-area-inset-bottom, 0px)) + 68px); z-index: 57; display: grid; gap: 12px; align-content: start;
+  width: 380px; max-height: calc(100dvh - 120px); overflow: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 14px 16px 16px; border-radius: 16px; border: 1px solid var(--line);
+  background: var(--panel, var(--bg)); color: var(--fg); font: 400 .9rem/1.35 var(--body); box-shadow: 0 18px 48px #0004;
+  transform-origin: 100% 100%; transition: transform .2s cubic-bezier(.2, .8, .3, 1), opacity .16s ease-out; }
+/* tucked away: out of sight and untouchable, but still in the page so YouTube and SoundCloud keep playing */
+body.book .bk-beat:not(.open) { opacity: 0; transform: translateY(14px) scale(.96); pointer-events: none; }
+body.book .bk-beat:not(.open) * { pointer-events: none !important; }
+@media (prefers-reduced-motion: reduce) { body.book .bk-beat { transition: opacity .12s; } body.book .bk-beat:not(.open) { transform: none; } }
+.bk-hd { display: flex; align-items: center; gap: 10px; }
+.bk-hd > b { font: 700 1rem var(--body); margin-right: auto; }
+.bk-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 999px; background: color-mix(in srgb, var(--fg) 7%, transparent); }
+.bk-tabs button { border: 0; background: none; color: var(--muted); font: 600 .8rem var(--body); padding: 6px 10px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.bk-tabs button[aria-pressed="true"] { background: var(--bg); color: var(--fg); box-shadow: 0 1px 3px #0002; }
+.bk-tabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bk-now { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.bk-l { display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1; }
+.bk-play { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; border: 0; background: var(--accent); color: var(--on-accent, #fff); cursor: pointer; transition: transform .12s ease-out, opacity .15s; }
+.bk-play:active:not(:disabled) { transform: scale(.94); }
+.bk-play:disabled { opacity: .35; cursor: default; }
+.bk-play .i-pause, .bk-beat.on .bk-play .i-play { display: none; }
+.bk-beat.on .bk-play .i-pause { display: block; }
+.bk-play svg { margin-left: 1px; }
+.bk-meta { display: grid; min-width: 0; }
+.bk-meta b { font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bk-meta small { color: var(--muted); font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+.bk-r { display: flex; align-items: center; gap: 2px; flex: none; }
+.bk-ib { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 8px; border: 0; background: none; color: var(--muted); cursor: pointer; }
+.bk-ib:hover { color: var(--fg); background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.bk-ib[aria-pressed="true"] { color: var(--accent); }
+.bk-beat[data-src="none"] #bkLoop, .bk-beat[data-src="none"] .bk-vol, .bk-beat[data-src="none"] .bk-m { display: none; }
+.bk-vol { display: flex; align-items: center; gap: 2px; color: var(--muted); }
+.bk-vol input { width: 64px; accent-color: var(--accent); }
+.bk-m { min-width: 0; }
+.bk-scrub { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 10px; height: 40px; border-radius: 8px; cursor: pointer; touch-action: none; outline-offset: 2px; }
+.bk-scrub canvas { width: 100%; height: 32px; display: block; color: var(--fg); }
+.bk-t { font: 500 .78rem var(--body); color: var(--muted); font-variant-numeric: tabular-nums; min-width: 2.6em; text-align: center; }
+.bk-ask { display: flex; gap: 8px; align-items: center; }
+.bk-ask input { flex: 1; min-width: 0; height: 40px; padding: 0 12px; font: 400 .92rem var(--body); text-align: left; border-radius: 10px; }
+.bk-ask .btn { min-height: 40px; }
+.bk-beat[data-tab="file"] .bk-ask, .bk-beat[data-tab="file"] .bk-genres { display: none; }
+.bk-beat:not([data-tab="file"]) .bk-file { display: none; }
+.bk-file { display: grid; gap: 6px; justify-items: center; padding: 18px 12px; border-radius: 12px; border: 1.5px dashed color-mix(in srgb, var(--fg) 22%, transparent); text-align: center; color: var(--muted); font-size: .85rem; }
+.bk-file .btn { display: inline-flex; align-items: center; gap: 6px; }
+.bk-beat.drop .bk-file, .bk-beat.drop .bk-ask input { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.bk-genres { display: flex; flex-wrap: wrap; gap: 6px; }
+.bk-genres button { border: 1px solid var(--line); background: none; color: var(--fg); font: 500 .82rem var(--body); padding: 6px 12px; border-radius: 999px; cursor: pointer; }
+.bk-genres button:hover { border-color: var(--accent); color: var(--accent); }
+.bk-song { display: grid; gap: 6px; }
+.bk-song:empty { display: none; }
+.bk-card { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; background: color-mix(in srgb, var(--fg) 5%, transparent); }
+.bk-card .bk-th { flex: none; width: 56px; height: 42px; border-radius: 8px; object-fit: cover; background: color-mix(in srgb, var(--fg) 12%, transparent); display: grid; place-items: center; color: var(--muted); }
+.bk-card .bk-ct { display: grid; min-width: 0; flex: 1; }
+.bk-card .bk-ct b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bk-card .bk-ct small { color: var(--muted); font-size: .78rem; }
+.bk-card .btn { min-height: 30px; padding: 3px 10px; font-size: .8rem; flex: none; }
+.bk-h4 { margin: 2px 0 0; font: 700 .8rem var(--body); color: var(--muted); }
+.bk-recent { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.bk-recent button { display: grid; gap: 4px; padding: 0; border: 0; background: none; color: var(--fg); text-align: left; cursor: pointer; font: 500 .78rem/1.25 var(--body); min-width: 0; }
+.bk-recent .bk-th { width: 100%; aspect-ratio: 16 / 9; border-radius: 8px; object-fit: cover; background: color-mix(in srgb, var(--fg) 10%, transparent); display: grid; place-items: center; color: var(--muted); }
+.bk-recent span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bk-recent button:hover .bk-th { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bk-recent:empty::before { content: "Beats you play show up here."; color: var(--muted); font-size: .82rem; grid-column: 1 / -1; }
+.bk-vid, .bk-scbox { width: 100%; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; }
+.bk-scbox { aspect-ratio: auto; height: 166px; background: none; }
+.bk-vid > *, .bk-vid iframe, .bk-scbox iframe { width: 100%; height: 100%; border: 0; display: block; }
+.bk-vid.tuck { height: 0; aspect-ratio: auto; }
+.bk-up { justify-self: start; border: 0; background: none; padding: 0; color: var(--accent); font: 600 .85rem var(--body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.bk-msg { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--fg); color: var(--bg); font-size: .85rem; display: none; }
+.bk-msg.show { display: block; }
+@media (max-width: 700px) {
+  body.book .bk-beat { left: 0; right: 0; bottom: 0; width: auto; max-height: 82dvh; border-radius: 18px 18px 0 0; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform-origin: 50% 100%; }
+  body.book .bk-beat:not(.open) { transform: translateY(100%); opacity: 1; }
+  body.book .bk-fab { width: 52px; height: 52px; }
+  .bk-vol { display: none !important; }
+}
+@media (prefers-reduced-motion: reduce) { .bk-vid, .bk-play { transition: none; } }
 /* room under the last bar, so the line you are writing never sits on the bottom edge of the window */
 @media (min-width: 1001px) { body.book .rb-view[data-rbv="write"] { padding-bottom: 30vh; } }
 /* the open song / the chosen search row: a plain darker row, no coloured edge */
@@ -1427,6 +1520,169 @@ body.rb-zen .rb-ed { font-size: 21px; }
   body.rb-zen .rb-zlk { display: none; }
   body.rb-zen .rb-main { padding: 16px 16px 40vh; }
 }
+/* ---- Barbook editor (Bennie 2026-11-11: "work and lay out like RhymeFlux's editor", in MetroBar's colours; layout studied from
+   RhymeFlux's editor, own code). One row per bar: the words with their rhyme colour, the syllable count and ⋯ on the right, a syllable meter
+   under it. The bar you are on gets a toolbar (Record, Rewrite, Rhymes, Ad-lib, Drafts, Add bar). Sections are dividers. Classes be-*. */
+body.book .rb-top { display: none; }
+body.book #viewBook { grid-template-rows: minmax(0, 1fr); }
+body.book .rb-main > .rb-bar { display: none; }
+body.book #rbSug { display: none; }
+#rbEd.be-on > .rb-ov { display: none; }
+#rbEd.be-on > #rbText { position: fixed !important; left: 0; top: 0; width: 40rem; height: 1px !important; min-height: 0 !important; padding: 0; opacity: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+body.book .rb-view[data-rbv="write"] { width: 100%; max-width: 50rem; margin-inline: auto; }
+body.book .rb-main { padding-top: 0; }
+.be-head { position: sticky; top: 0; z-index: 6; display: flex; align-items: center; gap: 6px; margin: 0 -8px; padding: 12px 8px 10px; background: var(--bg); }
+.be-head .be-sp { flex: 1; }
+.be-pill { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: 600 .9rem var(--body); cursor: pointer; max-width: 16rem; }
+.be-pill span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.be-pill:hover, .be-ib:hover { border-color: color-mix(in srgb, var(--fg) 30%, var(--line)); }
+.be-ib { display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 36px; min-width: 36px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); font: 600 .85rem var(--body); cursor: pointer; }
+.be-ib[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.be-ib svg, .be-pill svg { flex: none; }
+#beDrawerTg { display: none; }
+.be-find { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; }
+.be-find[hidden] { display: none; }
+.be-find input { flex: 1; min-width: 0; height: 36px; padding: 0 12px; border-radius: 10px; font: 400 .92rem var(--body); text-align: left; }
+.be-find small { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 4.5em; text-align: right; }
+.be-title { display: grid; gap: 4px; margin: 6px 0 14px; }
+body.book .be-title #rbTitle { width: 100%; max-width: none; flex: none; font: 800 clamp(1.6rem, 2.4vw, 2.1rem)/1.15 var(--body); letter-spacing: -.01em; padding: 2px 0; border: 0; border-bottom: 2px solid transparent; background: none; color: var(--fg); text-transform: none; }
+body.book .be-title #rbTitle:focus { outline: none; border-bottom-color: var(--accent); }
+.be-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: var(--muted); font: 500 .85rem var(--body); }
+.be-meta svg { flex: none; }
+body.book .be-meta .rb-stat { margin: 0; font: inherit; color: inherit; }
+.be-meta .wr-toast { margin-left: auto; }
+/* the page: rows on the page theme */
+#rbEd.be-on { padding: 4px 0; border-radius: 14px; }
+.be-rows { display: grid; }
+.be-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 14px; padding: 13px 16px 11px 20px; border-top: 1px solid var(--rb-rule); }
+.be-row:first-child { border-top: 0; }
+.be-row.cur { background: color-mix(in srgb, var(--accent) 4%, var(--rb-bg)); }
+.be-row.cur::before { content: ""; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 0 3px 3px 0; background: var(--accent); }
+.be-row.hit .be-mir { text-decoration: underline 2px color-mix(in srgb, var(--accent) 55%, transparent); text-underline-offset: 6px; }
+.be-cell { position: relative; min-width: 0; grid-column: 1; grid-row: 1; }
+.be-mir, .be-in { display: block; margin: 0; padding: 0 3px; border: 0; font-family: var(--rb-font); font-size: 1em; font-weight: 400; line-height: 1.6; letter-spacing: 0; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; box-sizing: border-box; tab-size: 4; text-align: left; }
+.be-mir { color: var(--rb-fg); min-height: 1.6em; }
+.be-in { position: absolute; inset: 0; width: 100%; height: 100%; resize: none; background: transparent; color: transparent; -webkit-text-fill-color: transparent; caret-color: var(--accent); overflow: hidden; outline: none; }
+.be-in::placeholder { color: color-mix(in srgb, var(--rb-fg) 36%, transparent); -webkit-text-fill-color: color-mix(in srgb, var(--rb-fg) 36%, transparent); }
+.be-in::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
+.be-in[readonly] { cursor: default; }
+.be-mir .rb-w { background: var(--t); border-radius: 6px; box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -2px 0 var(--c); transition: opacity .18s ease-out; }
+.rb-ed[data-rbtheme="night"] .be-mir .rb-w, .rb-ed[data-rbtheme="studio"] .be-mir .rb-w, .rb-ed[data-rbtheme="chalk"] .be-mir .rb-w, .rb-ed[data-rbtheme="dark"] .be-mir .rb-w { box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -2px 0 var(--c), 0 6px 14px -6px color-mix(in srgb, var(--c) 75%, transparent); }
+.be-rows.be-foc .be-mir .rb-w:not(.lit) { opacity: .3; }
+.be-rows.be-foc .be-mir .rb-w.lit { --rb-ta: 36%; }
+.rb-ed.nohi .be-mir .rb-w { background: none; box-shadow: none; opacity: 1; }
+.be-mir .be-ad { color: color-mix(in srgb, var(--rb-fg) 52%, transparent); font-style: italic; }
+.be-side { grid-column: 2; grid-row: 1 / span 2; display: grid; justify-items: center; align-content: start; gap: 2px; padding-top: 3px; }
+.be-cnt { min-width: 28px; height: 22px; padding: 0 6px; display: grid; place-items: center; border-radius: 6px; border: 1px solid var(--rb-rule); font: 650 12px/1 var(--body); font-variant-numeric: tabular-nums; color: color-mix(in srgb, var(--rb-fg) 70%, transparent); }
+.be-cnt:empty { visibility: hidden; }
+.be-cnt.warn { color: #b26a00; border-color: #e6a23c; }
+.be-cnt.bad { color: var(--accent); border-color: var(--accent); }
+.rb-ed[data-rbtheme="night"] .be-cnt.warn, .rb-ed[data-rbtheme="studio"] .be-cnt.warn, .rb-ed[data-rbtheme="chalk"] .be-cnt.warn, .rb-ed[data-rbtheme="dark"] .be-cnt.warn { color: #f0b44c; }
+.be-dots { width: 28px; height: 24px; display: grid; place-items: center; border: 0; border-radius: 6px; background: none; color: color-mix(in srgb, var(--rb-fg) 45%, transparent); cursor: pointer; }
+.be-dots:hover, .be-dots[aria-expanded="true"] { color: var(--rb-fg); background: color-mix(in srgb, var(--rb-fg) 7%, transparent); }
+.be-meter { grid-column: 1; grid-row: 2; display: flex; flex-wrap: wrap; gap: 3px; margin: 8px 3px 0; }
+.be-meter i { width: 16px; height: 4px; border-radius: 2px; background: color-mix(in srgb, var(--rb-fg) 11%, transparent); }
+.be-meter i.on { background: color-mix(in srgb, var(--rb-fg) 42%, transparent); }
+.be-meter i.st { background: var(--accent); }
+.rb-ed.nosyl .be-cnt, .rb-ed.nosyl .be-meter { display: none; }
+/* section divider */
+.be-hd { display: none; }
+.be-row.hd { display: block; padding: 22px 20px 8px; border-top: 0; }
+.be-row.hd + .be-row { border-top: 0; }
+.be-row.hd .be-cell, .be-row.hd .be-side, .be-row.hd .be-meter { display: none; }
+.be-row.hd .be-hd { display: flex; align-items: center; gap: 12px; }
+.be-hin { flex: 0 1 auto; width: 10ch; min-width: 4ch; padding: 0; border: 0; background: none; color: var(--accent); font: 800 .8rem/1.4 var(--body); letter-spacing: .12em; text-transform: uppercase; outline: none; }
+.be-hin:focus { text-decoration: underline 2px; text-underline-offset: 4px; }
+.be-hl { flex: 1; height: 1px; background: var(--rb-rule); }
+.be-hn { color: color-mix(in srgb, var(--rb-fg) 50%, transparent); font: 500 .78rem var(--body); font-variant-numeric: tabular-nums; }
+/* toolbar on the bar you are on, and what it opens */
+.be-tools { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.be-tb { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rb-rule); background: var(--rb-bg); color: var(--rb-fg); font: 600 .8rem var(--body); cursor: pointer; }
+.be-tb:hover { border-color: color-mix(in srgb, var(--rb-fg) 35%, transparent); }
+.be-tb[aria-pressed="true"] { background: var(--rb-fg); color: var(--rb-bg); border-color: var(--rb-fg); }
+.be-tb.rec { background: var(--accent); color: #fff; border-color: var(--accent); }
+.be-tb.rec .be-dot { width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: beBlink 1s steps(2) infinite; }
+@keyframes beBlink { 50% { opacity: .2; } }
+.be-pop { grid-column: 1 / -1; margin-top: 10px; padding: 12px 14px 14px; border-radius: 12px; background: color-mix(in srgb, var(--rb-fg) 4%, var(--rb-bg)); border: 1px solid var(--rb-rule); font: 400 .9rem/1.4 var(--body); color: var(--rb-fg); }
+.be-pop[hidden] { display: none; }
+.be-ph { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.be-ph > b { font-weight: 700; margin-right: auto; }
+.be-ph > b em { font-style: normal; color: var(--accent); }
+.be-px { width: 28px; height: 28px; border: 0; border-radius: 50%; background: none; color: color-mix(in srgb, var(--rb-fg) 55%, transparent); cursor: pointer; font-size: 18px; line-height: 1; }
+.be-px:hover { background: color-mix(in srgb, var(--rb-fg) 8%, transparent); color: var(--rb-fg); }
+.be-pop h5 { margin: 10px 0 6px; font: 700 .75rem var(--body); color: color-mix(in srgb, var(--rb-fg) 55%, transparent); }
+.be-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.be-chip { display: inline-flex; align-items: baseline; gap: 5px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--rb-rule); background: var(--rb-bg); color: var(--rb-fg); font: 500 .88rem var(--rb-font); cursor: pointer; }
+.be-chip:hover { border-color: var(--accent); }
+.be-chip.pf { border-color: color-mix(in srgb, var(--accent) 45%, var(--rb-rule)); }
+.be-chip small { font: 600 .7rem var(--body); color: color-mix(in srgb, var(--rb-fg) 50%, transparent); }
+.be-pop .note { margin: 4px 0; color: color-mix(in srgb, var(--rb-fg) 60%, transparent); font-size: .85rem; }
+.be-pop input { height: 34px; padding: 0 10px; border-radius: 8px; font: 400 .9rem var(--body); text-align: left; }
+.be-drafts { display: grid; gap: 6px; }
+.be-draft { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-radius: 10px; background: var(--rb-bg); border: 1px solid var(--rb-rule); }
+.be-draft span { flex: 1; min-width: 0; font-family: var(--rb-font); }
+.be-take { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 8px; padding: 6px 0; border-top: 1px solid var(--rb-rule); }
+.be-take:first-of-type { border-top: 0; }
+.be-take audio { width: 100%; height: 34px; }
+.be-take small { grid-column: 1 / -1; color: color-mix(in srgb, var(--rb-fg) 55%, transparent); }
+.be-pop .btn { min-height: 30px; padding: 3px 11px; font-size: .82rem; }
+.be-tip { margin: 12px 4px 0; color: var(--muted); font: 400 .88rem var(--body); }
+.be-done { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: 10px 4px 0; font: 500 .92rem var(--body); color: var(--fg); }
+.be-done[hidden] { display: none; }
+.be-done button { border: 0; background: none; padding: 0; color: var(--accent); font: 700 .92rem var(--body); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+/* menus (row ⋯, section pill, page ⋯) float, so they may cast a shadow */
+.be-menu { position: fixed; z-index: 80; min-width: 13rem; max-width: min(22rem, calc(100vw - 24px)); max-height: min(70vh, 32rem); overflow: auto; padding: 6px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel, var(--bg)); color: var(--fg); box-shadow: 0 14px 40px #0003; font: 500 .9rem var(--body); }
+.be-menu button.mi { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border: 0; border-radius: 8px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.be-menu button.mi:hover, .be-menu button.mi:focus-visible { background: color-mix(in srgb, var(--fg) 7%, transparent); outline: none; }
+.be-menu button.mi[aria-current="true"] { font-weight: 700; }
+.be-menu button.mi.dz { color: var(--accent); }
+.be-menu button.mi small { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.be-menu hr { border: 0; height: 1px; background: var(--line); margin: 6px 4px; }
+.be-menu h6 { margin: 8px 10px 4px; font: 700 .75rem var(--body); color: var(--muted); }
+.be-more { display: grid; gap: 10px; padding: 12px; min-width: 18rem; }
+.be-more .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.be-more .field { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: .85rem; }
+.be-more .field select, .be-more .field input { max-width: 12rem; }
+.be-more .btn { min-height: 32px; padding: 4px 11px; font-size: .85rem; }
+/* drawer bits in the songs column: daily goal + streak, shortcuts, saved bars, recent songs, sync */
+.be-dr { display: grid; gap: 10px; margin: 0 0 12px; }
+.be-goal { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 12px; background: var(--side, color-mix(in srgb, var(--fg) 4%, var(--bg))); }
+.be-goal svg { flex: none; }
+.be-goal .gr-bg { fill: none; stroke: color-mix(in srgb, var(--fg) 12%, transparent); stroke-width: 4; }
+.be-goal .gr-fg { fill: none; stroke: var(--accent); stroke-width: 4; stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .4s ease-out; }
+.be-goal b { display: block; font: 700 .95rem var(--body); font-variant-numeric: tabular-nums; }
+.be-goal small { color: var(--muted); font-size: .8rem; }
+.be-goal button { border: 0; background: none; padding: 0; cursor: pointer; color: inherit; text-align: left; }
+.be-links { display: grid; gap: 2px; }
+.be-links button { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 8px; background: none; color: var(--fg); font: 500 .9rem var(--body); cursor: pointer; text-align: left; }
+.be-links button:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.be-links button small { margin-left: auto; color: var(--muted); font-variant-numeric: tabular-nums; }
+.be-saved { display: grid; gap: 6px; padding: 4px 0 6px; }
+.be-saved[hidden] { display: none; }
+.be-saved .sv { display: flex; gap: 6px; align-items: start; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--fg) 4%, transparent); font-size: .85rem; }
+.be-saved .sv span { flex: 1; min-width: 0; }
+.be-saved .sv button { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 0 2px; font: 600 .8rem var(--body); }
+.be-saved .sv button:hover { color: var(--accent); }
+.be-drh { margin: 6px 0 4px; font: 700 .78rem var(--body); color: var(--muted); }
+#beRecent { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+#beRecent button { display: grid; width: 100%; gap: 1px; padding: 7px 10px; border: 0; border-radius: 8px; background: none; color: var(--fg); text-align: left; cursor: pointer; font: 600 .88rem var(--body); }
+#beRecent button small { color: var(--muted); font-weight: 400; font-size: .78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#beRecent button:hover { background: color-mix(in srgb, var(--fg) 6%, transparent); }
+.be-sync { margin: 12px 0 0; color: var(--muted); font-size: .78rem; }
+.be-shade { display: none; }
+@media (max-width: 1000px) {
+  #beDrawerTg { display: inline-flex; }
+  body.book .rb-lib { position: fixed; z-index: 70; top: 0; left: 0; bottom: 0; width: min(330px, 88vw); overflow: auto; padding: 16px 14px calc(24px + env(safe-area-inset-bottom, 0px)); background: var(--bg); border: 0; box-shadow: 10px 0 40px #0004; transform: translateX(-105%); transition: transform .22s ease-out; }
+  body.book .rb-lib.be-open { transform: none; }
+  .be-shade.on { display: block; position: fixed; inset: 0; z-index: 69; background: #0005; }
+  .be-row { padding: 12px 10px 10px 14px; column-gap: 8px; }
+  .be-meter i { width: 12px; }
+  .be-head { margin-inline: -12px; padding-inline: 12px; }
+  .be-ib .lbl { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .be-tb.rec .be-dot { animation: none; } body.book .rb-lib { transition: none; } }
+@media (max-width: 1000px) { body.book .rb-sidetg { right: auto; left: max(16px, env(safe-area-inset-left, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); } }   /* Tools bottom left, the beat button bottom right */
+body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .be-done { display: none; }
 /* ---- Flow game (`TG`, dialog #tgDlg): play a Breakdown bar by tap or by voice. All classes are tg-*. */
 #viewPractice > .tg-entry { margin-inline: calc(50% - 50vw + max(10px, env(safe-area-inset-left, 0px))) calc(50% - 50vw + max(10px, env(safe-area-inset-right, 0px))); display: grid; min-width: 0; }
 .tg-entry .adv-c { transform: rotate(-90deg); background: var(--accent); }
@@ -2016,6 +2272,38 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
 
   </div>
   <div id="viewBook" class="rb" hidden>
+    <button class="bk-fab" type="button" id="bkFab" aria-controls="bkBeat" aria-expanded="false" aria-label="Beat" title="Beat: play, pick or search a beat (Alt+P plays and pauses)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span class="bk-eq" aria-hidden="true"><i></i><i></i><i></i></span><svg class="bk-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"/></svg></button>
+    <section class="bk-beat" id="bkBeat" aria-label="Beat player" data-src="none" data-tab="yt">
+      <div class="bk-hd"><b>Beat</b>
+        <div class="bk-tabs" role="group" aria-label="Where the beat comes from"><button type="button" data-tab="file" aria-pressed="false">My file</button><button type="button" data-tab="yt" aria-pressed="true">YouTube</button><button type="button" data-tab="sc" aria-pressed="false">SoundCloud</button></div>
+        <button class="bk-ib" type="button" id="bkTuck" title="Tuck the player away. The beat keeps playing." aria-label="Tuck the player away"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+      </div>
+      <div class="bk-vid" id="bkVid" hidden><div id="bkYt"></div></div>
+      <div class="bk-scbox" id="bkScBox" hidden></div>
+      <div class="bk-now">
+        <div class="bk-l">
+          <button class="bk-play" type="button" id="bkPlay" aria-label="Play the beat" title="Play / pause (Alt+P)" disabled><svg class="i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg><svg class="i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z" fill="currentColor"/></svg></button>
+          <div class="bk-meta"><b id="bkName">No beat</b><small id="bkSub">Pick a file, or a YouTube or SoundCloud link</small></div>
+        </div>
+        <div class="bk-r">
+          <button class="bk-ib" type="button" id="bkLoop" aria-pressed="true" title="Loop the beat" aria-label="Loop"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 2l3 3-3 3"/><path d="M20 5H8a4 4 0 0 0-4 4v1"/><path d="M7 22l-3-3 3-3"/><path d="M4 19h12a4 4 0 0 0 4-4v-1"/></svg></button>
+          <label class="bk-vol" title="Beat volume"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7"/></svg><input type="range" id="bkVol" min="0" max="1" step="0.01" value="0.8" aria-label="Beat volume"></label>
+          <button class="bk-ib" type="button" id="bkVidTg" aria-pressed="true" title="Show or tuck away the video" aria-label="Video" hidden><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M10 9.5v5l4.5-2.5z"/></svg></button>
+        </div>
+      </div>
+      <div class="bk-m">
+        <div class="bk-scrub" id="bkScrub" role="slider" tabindex="0" aria-label="Position in the beat" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0:00"><span class="bk-t" id="bkNow">0:00</span><canvas id="bkWave"></canvas><span class="bk-t" id="bkDur">0:00</span></div>
+      </div>
+      <form class="bk-ask" id="bkAsk" autocomplete="off"><input id="bkUrl" class="num-in" type="text" inputmode="search" enterkeyhint="search" list="bkRecent" placeholder="Search beats, or paste a YouTube link" aria-label="Search beats or paste a link"><datalist id="bkRecent"></datalist><button class="btn" type="submit" id="bkGo">Search</button><button class="btn" type="button" id="bkCancel" hidden>Cancel</button><button type="button" id="bkYtBtn" hidden></button></form>
+      <div class="bk-genres" id="bkGenres" aria-label="Genres"><button type="button">Trap</button><button type="button">Drill</button><button type="button">Boom bap</button><button type="button">R&amp;B</button><button type="button">Lo-fi</button><button type="button">Grime</button></div>
+      <div class="bk-file"><button class="btn" type="button" id="bkFileBtn" title="Play a beat file from this computer or phone (mp3, wav, m4a)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M5 15v4h14v-4"/></svg><span>Upload a beat</span></button><span>mp3, wav or m4a. Or drop the file here. It stays on this device.</span><button class="btn" type="button" id="bkMb" hidden title="Play the beat loaded on the MetroBar tab">Use the MetroBar beat</button></div>
+      <input type="file" id="bkFile" accept="audio/*,video/mp4" hidden>
+      <div class="bk-song" id="bkSong"></div>
+      <h4 class="bk-h4">Recent beats</h4>
+      <div class="bk-recent" id="bkRecentGrid"></div>
+      <button class="bk-up" type="button" id="bkUp">Upload your own beat</button>
+      <p class="bk-msg" id="bkMsg" role="status"></p>
+    </section>
     <div class="rb-top"><input id="rbTitle" placeholder="Untitled" aria-label="Page title" autocomplete="off"><input id="rbFolderIn" class="num-in" list="rbFolders" placeholder="Folder" aria-label="Folder" autocomplete="off"><datalist id="rbFolders"></datalist><span class="rb-stat" id="rbStat"></span><span class="wr-toast" id="rbMsg" role="status"></span><span class="rb-acts"><button class="btn rb-zenbtn" type="button" id="rbZen" aria-pressed="false" title="Focus: only your page and a live list of rhymes for the word you just wrote. Esc brings everything back."><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Focus</button><button class="btn tg" type="button" id="rbLock" aria-pressed="false" title="Lock this page so it can't be changed by accident">Lock</button><button class="btn pri" type="button" id="rbPost" title="Share this page in the Zone, the MetroBar community">Post to the Zone</button><button class="btn" type="button" id="rbToWrite" title="Copy this page to Write as a new song, to count bars and practise it">Copy to Write</button><button class="btn" type="button" id="rbDel" title="Move this page to Recently deleted">Delete</button></span></div>
     <aside class="rb-lib" id="rbLib" aria-label="Barbook songs">
       <div class="rb-libh"><h2>Barbook</h2><button class="btn" type="button" id="rbNew" title="Start a new page">+ New</button></div>
@@ -3295,7 +3583,8 @@ const bookHead = l => /^\s*#/.test(l) || /^\s*\[[^\]]*\]\s*$/.test(l);
 // Words are compared within the same line and the next 2 lines (blank lines skipped, [Section] lines start fresh).
 // A group's colour comes from its sound: same sound = same colour on the whole page, and a colour is never used for another
 // sound (Bennie: one colour = one rhyme). Colours go out in page order from BOOK_PAL (72: 12 far-apart hues, then shades).
-const BOOK_PAL = (() => { const hs = [0, 200, 50, 266, 135, 28, 300, 172, 230, 88, 340, 112], out = [];   // next colour always far from the last few
+var BK_STRICT = false;   // Barbook ⋯ > Rhymes: Strict colours only perfect and multi rhymes (no close slant)
+const BOOK_PAL = (() => { const hs = [0, 200, 50, 266, 135, 25, 305, 175, 228, 88, 340, 112, 250, 155, 68, 285], out = [];   // 16 hues (Bennie 2026-11-11: "instead of 12 colors we have 16"); next colour always far from the last few
   for (let s = 0; s < 6; s++) hs.forEach(h => out.push({ h: (h + [0, 12, 0, 12, 6, 18][s]) % 360, d: [0, 2, 1, 2, 1, 0][s] })); return out; })();
 function bookWords(line) {
   const out = [], re = /[A-Za-z0-9’‘'`]+/g; let m;
@@ -3363,7 +3652,7 @@ function bookHighlight(text, fix) {
     if (!near(x, y) || x.k === y.k || x.ws.some(w => y.ws.includes(w))) continue;
     if ((x.ph || y.ph) && !(lastOf(x) && lastOf(y))) continue;   // phrases only count line end to line end
     if (x.ph && y.ph) continue;   // two phrases: their last words already decide
-    const r = bkRhymes(x.t, y.t, lastOf(x) && lastOf(y)); if (!r) continue;
+    const r = bkRhymes(x.t, y.t, lastOf(x) && lastOf(y)); if (!r || (BK_STRICT && r === 'close')) continue;
     if ((x.f || y.f) && (r !== 'perfect' || (x.f && y.f) || Math.abs(pos[x.li][1] - pos[y.li][1]) > 1)) continue;   // small words: perfect, close by
     if ((x.ph || y.ph) && r === 'close') continue;   // a phrase needs a real double (multi) or perfect rhyme
     par[find(i)] = find(j); hit.add(i); hit.add(j);
@@ -3500,6 +3789,35 @@ function doubleRhymes(text, opt = {}) {
   }
   const sortK = (a, b) => (a.kind === b.kind ? 0 : a.kind === 'classic' ? -1 : 1) || (!!a.rare - !!b.rare) || Math.abs(a.syl - T.length) - Math.abs(b.syl - T.length) || (a.r || 0) - (b.r || 0);
   return { target: text, k, vowels: tail.map(x => x.v), words: words.sort(sortK).slice(0, max), phrases: phrases.sort(sortK).slice(0, Math.min(40, max)) };
+}
+// Barbook beat player: a pasted YouTube link (watch, youtu.be, shorts, live, embed, music, or a bare 11-character id) -> { id, t }
+function ytParse(s) {
+  s = String(s || '').trim(); if (!s) return null;
+  if (/^[\w-]{11}$/.test(s)) return { id: s, t: 0 };
+  let u; try { u = new URL(/^[a-z]+:\/\//i.test(s) ? s : 'https://' + s); } catch { return null; }
+  const host = u.hostname.replace(/^(www|m|music)\./, '');
+  let id = null;
+  if (host === 'youtu.be') id = u.pathname.split('/')[1];
+  else if (/^youtube(-nocookie)?\.com$/.test(host)) {
+    const m = u.pathname.match(/^\/(?:shorts|live|embed|v)\/([\w-]{11})/);
+    id = m ? m[1] : u.searchParams.get('v');
+  }
+  if (!id || !/^[\w-]{11}$/.test(id)) return null;
+  const tt = u.searchParams.get('t') || u.searchParams.get('start') || (u.hash.match(/t=([^&]+)/) || [])[1] || '';
+  let t = 0; const hms = String(tt).match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/);
+  if (hms) t = (+hms[1] || 0) * 3600 + (+hms[2] || 0) * 60 + (+hms[3] || 0);
+  return { id, t };
+}
+// A SoundCloud track or playlist link -> its clean https URL (the widget player takes it), or null. Short on.soundcloud.com links pass as they are.
+function scParse(s) {
+  s = String(s || '').trim(); if (!s) return null;
+  let u; try { u = new URL(/^[a-z]+:\/\//i.test(s) ? s : 'https://' + s); } catch { return null; }
+  const host = u.hostname.replace(/^(www|m)\./, '');
+  if (host === 'on.soundcloud.com' && /^\/\w+/.test(u.pathname)) return 'https://on.soundcloud.com' + u.pathname.replace(/\/$/, '');
+  if (host !== 'soundcloud.com') return null;
+  const parts = u.pathname.split('/').filter(Boolean);
+  if (parts.length < 2 || /^(search|discover|stream|you|upload|charts|tags|pages|settings|messages|notifications)$/.test(parts[0])) return null;
+  return 'https://soundcloud.com/' + parts.slice(0, parts[1] === 'sets' ? 3 : 2).join('/');
 }
 // ---- Flow game (Bennie 2026-11-11): the Breakdown bar becomes playable. Levels in the order flow is usually taught; every bar goes
 // through analyseLine with its flow forced, so the game plays exactly what the Breakdown view draws. Lyrics are our own.
@@ -6343,7 +6661,7 @@ function rbReveal() {
   const v = t.value, pos = t.selectionEnd, cs = getComputedStyle(t), lh = parseFloat(cs.lineHeight) || 30; let top, bot;
   if (v.indexOf('\n', pos) < 0) { bot = t.getBoundingClientRect().bottom - (parseFloat(cs.paddingBottom) || 0); top = bot - lh; }
   else { if (RB.shown !== v) return; const ln = $('rbOv').children[v.slice(0, pos).split('\n').length - 1]; if (!ln) return; const r = ln.getBoundingClientRect(); top = r.top; bot = r.bottom; }
-  const sc = rbScroller(), vv = window.visualViewport, vh = vv ? vv.height + vv.offsetTop : window.innerHeight, bar = document.querySelector('#viewBook .rb-bar');
+  const sc = rbScroller(), vv = window.visualViewport, vh = (vv ? vv.height + vv.offsetTop : window.innerHeight) - (parseFloat(document.body.style.getPropertyValue('--bk-dock')) || 0), bar = document.querySelector('#viewBook .rb-bar');
   let lo = sc ? sc.getBoundingClientRect().top : 0; const hi = (sc ? Math.min(sc.getBoundingClientRect().bottom, vh) : vh) - lh * 1.6;
   if (bar && getComputedStyle(bar).position === 'sticky') lo = Math.max(lo, bar.getBoundingClientRect().bottom);
   lo += lh * .4; if (hi - lo < lh * 2) return;
@@ -8119,6 +8437,904 @@ void main(){
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
   return { nav, sw, pop, scan };
+})();
+</script>
+<script>
+// ---- Beat player in Barbook (Bennie 2026-11-10/11; ideas from RhymeFlux's beat bar and beat sheet, own code). Your own file (mp3/wav/m4a,
+// kept in this browser's IndexedDB so it is there next time), a YouTube link (official IFrame player, youtube-nocookie), a SoundCloud link
+// (official Widget API), or the beat loaded on the MetroBar tab. The players load only when a link is played. A floating button opens the
+// panel; tucking the panel away keeps the beat playing (Bennie: RhymeFlux "doesn't close the player when tucked in"). Search opens YouTube
+// or SoundCloud in a new tab (there is no key, so no search inside the app); paste a link back to play it. Each page can keep its own beat
+// (page.beat). Waveform + BPM for files (core detectBpm in the worker). Alt+P = play/pause. Leaving the Barbook tab pauses it.
+// State: localStorage metrobar.bookBeat {src, name, yt, sc, vol, loop, tab}; recent beats metrobar.bookBeatRecent.
+var BKB = (() => {
+  const el = id => document.getElementById(id), dock = el('bkBeat'), fab = el('bkFab');
+  const S = Object.assign({ src: 'none', name: '', yt: null, sc: null, vol: 0.8, loop: true, bpm: 0, tab: 'yt' }, (() => { try { return JSON.parse(localStorage.getItem('metrobar.bookBeat')) || {}; } catch { return {}; } })());
+  let recent = (() => { try { return JSON.parse(localStorage.getItem('metrobar.bookBeatRecent')) || []; } catch { return []; } })().map(r => r.kind ? r : Object.assign({ kind: 'yt' }, r));
+  const audio = new Audio(); audio.preload = 'auto';
+  let url = '', peaks = null, yt = null, ytReady = null, ytWant = false, raf = 0, mbFile = null, restored = false, msgT = 0;
+  const sc = { w: null, ready: null, ok: false, on: false, pos: 0, dur: 0, want: false, art: '' };
+  const save = () => { try { localStorage.setItem('metrobar.bookBeat', JSON.stringify({ src: S.src, name: S.name, yt: S.yt, sc: S.sc, vol: S.vol, loop: S.loop, bpm: S.bpm, tab: S.tab })); } catch {} };
+  const fmt = t => { t = Math.max(0, Math.floor(t || 0)); const h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = String(t % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`; };
+  function say(t, ms = 4200) { const m = el('bkMsg'); m.textContent = t; m.classList.add('show'); clearTimeout(msgT); msgT = setTimeout(() => m.classList.remove('show'), ms); }
+
+  // ---- IndexedDB: one record, the last beat file
+  function db() { return new Promise((ok, no) => { const r = indexedDB.open('metrobar-beat', 1); r.onupgradeneeded = () => r.result.createObjectStore('f'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }); }
+  async function idb(mode, val) {
+    try { const d = await db(); return await new Promise((ok, no) => { const t = d.transaction('f', mode), st = t.objectStore('f'), q = mode === 'readonly' ? st.get('barbook') : st.put(val, 'barbook'); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); }
+    catch { return null; }
+  }
+
+  // ---- what is playing
+  const playing = () => S.src === 'yt' ? !!(yt && yt.getPlayerState && yt.getPlayerState() === 1) : S.src === 'sc' ? sc.on : S.src !== 'none' && !audio.paused;
+  const dur = () => S.src === 'yt' ? (yt && yt.getDuration ? yt.getDuration() : 0) : S.src === 'sc' ? sc.dur : (audio.duration || 0);
+  const now = () => S.src === 'yt' ? (yt && yt.getCurrentTime ? yt.getCurrentTime() : 0) : S.src === 'sc' ? sc.pos : audio.currentTime;
+  function seek(t) {
+    const d = dur(); if (!d) return; t = Math.max(0, Math.min(d - 0.05, t));
+    if (S.src === 'yt') { if (yt && yt.seekTo) yt.seekTo(t, true); } else if (S.src === 'sc') { if (sc.w) { sc.w.seekTo(t * 1000); sc.pos = t; } } else audio.currentTime = t;
+    paint();
+  }
+  const SUB = { yt: 'YouTube', sc: 'SoundCloud', mb: 'MetroBar beat', file: 'Your file' };
+  const PH = { yt: 'Search YouTube beats, or paste a link', sc: 'Search SoundCloud beats, or paste a link', file: '' };
+  function ui() {
+    dock.dataset.src = S.src; dock.dataset.tab = S.tab; const on = playing(); dock.classList.toggle('on', on); fab.classList.toggle('on', on);
+    dock.querySelectorAll('.bk-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === S.tab)));
+    el('bkName').textContent = S.src === 'none' ? 'No beat yet' : S.name || (S.src === 'yt' ? 'YouTube beat' : S.src === 'sc' ? 'SoundCloud beat' : 'Beat');
+    el('bkName').title = S.name || '';
+    el('bkSub').textContent = S.src === 'none' ? 'Pick a file, or a YouTube or SoundCloud link' : [SUB[S.src] || '', S.bpm ? S.bpm + ' BPM' : ''].filter(Boolean).join(' · ');
+    const p = el('bkPlay'); p.disabled = S.src === 'none'; p.setAttribute('aria-label', on ? 'Pause the beat' : 'Play the beat');
+    fab.setAttribute('aria-label', (on ? 'Beat playing: ' : 'Beat') + (S.src !== 'none' && S.name ? ' ' + S.name : ''));
+    el('bkLoop').setAttribute('aria-pressed', String(S.loop)); el('bkVol').value = S.vol;
+    el('bkVidTg').hidden = S.src !== 'yt'; el('bkVid').hidden = S.src !== 'yt'; el('bkScBox').hidden = S.src !== 'sc';
+    el('bkMb').hidden = !mbFile || S.src === 'mb';
+    el('bkUrl').placeholder = PH[S.tab] || PH.yt;
+    song(); paint();
+  }
+  // waveform (file) or a plain track (YouTube, SoundCloud): played part in the accent, the rest in the ink at low strength
+  function paint() {
+    const d = dur(), at = now(), f = d ? at / d : 0, ring = fab.querySelector('.bk-ring circle');
+    if (ring) ring.style.strokeDashoffset = String(188.5 * (1 - f));
+    const cv = el('bkWave'), w = cv.clientWidth, hh = cv.clientHeight, scr = el('bkScrub');
+    el('bkNow').textContent = fmt(at); el('bkDur').textContent = fmt(d);
+    scr.setAttribute('aria-valuemax', String(Math.round(d))); scr.setAttribute('aria-valuenow', String(Math.round(at))); scr.setAttribute('aria-valuetext', `${fmt(at)} of ${fmt(d)}`);
+    if (!w) return;
+    const r = Math.min(2, devicePixelRatio || 1); if (cv.width !== Math.round(w * r)) { cv.width = Math.round(w * r); cv.height = Math.round(hh * r); }
+    const g = cv.getContext('2d'), acc = getComputedStyle(dock).getPropertyValue('--accent').trim() || '#af0000', ink = getComputedStyle(cv).color;
+    g.setTransform(r, 0, 0, r, 0, 0); g.clearRect(0, 0, w, hh);
+    if (peaks && S.src !== 'yt' && S.src !== 'sc') {
+      const n = peaks.length, bw = w / n;
+      for (let i = 0; i < n; i++) { const v = Math.max(0.06, peaks[i]), bh = v * (hh - 4); g.fillStyle = (i + 0.5) / n <= f ? acc : ink; g.globalAlpha = (i + 0.5) / n <= f ? 1 : 0.22; g.fillRect(i * bw + 0.5, (hh - bh) / 2, Math.max(1, bw - 1.2), bh); }
+      g.globalAlpha = 1;
+    } else {
+      const y = hh / 2 - 2; g.fillStyle = ink; g.globalAlpha = 0.18; g.beginPath(); g.roundRect(0, y, w, 4, 2); g.fill(); g.globalAlpha = 1;
+      g.fillStyle = acc; g.beginPath(); g.roundRect(0, y, Math.max(4, w * f), 4, 2); g.fill();
+      g.beginPath(); g.arc(Math.max(6, w * f), hh / 2, 6, 0, 7); g.fill();
+    }
+  }
+  function loop() { cancelAnimationFrame(raf); if (!playing()) { paint(); return; } paint(); raf = requestAnimationFrame(loop); }
+  function stopMetroBar() { try { if (typeof running !== 'undefined' && running && typeof stop === 'function') stop(); } catch {} }
+  function stopOthers(keep) { if (keep !== 'yt') ytPause(); if (keep !== 'sc') scPause(); if (keep !== 'file') audio.pause(); }
+
+  // ---- sources
+  async function useFile(f, from, quiet) {
+    if (!f) return;
+    if (!/^audio\//.test(f.type) && !/\.(mp3|wav|m4a|aac|ogg|oga|flac|aiff?|webm|mp4)$/i.test(f.name || '')) { say('That is not an audio file. Try an mp3, wav or m4a.'); return; }
+    stopOthers('file'); audio.pause(); if (url) URL.revokeObjectURL(url);
+    url = URL.createObjectURL(f); audio.src = url; audio.loop = S.loop; audio.volume = S.vol;
+    Object.assign(S, { src: from || 'file', name: (f.name || 'Beat').replace(/\.[a-z0-9]{2,4}$/i, ''), bpm: 0, tab: 'file' }); peaks = null; save(); ui();
+    if (from !== 'mb') idb('readwrite', { blob: f, name: f.name || 'Beat', type: f.type });
+    if (!quiet) play();
+    try {   // waveform + BPM, after the beat already plays
+      const ac = (typeof ctx !== 'undefined' && ctx) || (window.__bkCtx = window.__bkCtx || new (window.AudioContext || window.webkitAudioContext)());
+      const buf = await ac.decodeAudioData(await f.arrayBuffer()); if (audio.src !== url) return;
+      const raw = typeof waveOverview === 'function' ? waveOverview(buf, 220) : []; const mx = Math.max(1e-6, ...raw); peaks = raw.map(v => v / mx); paint();
+      const chs = []; for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
+      const res = typeof coreJob === 'function' ? await coreJob('detectBpm', chs, buf.sampleRate) : null;
+      if (audio.src === url && res && !res.silent && res.bpm) { S.bpm = Math.round(res.bpm); save(); ui(); }
+    } catch {}
+  }
+  function loadScript(src, ready) {
+    return new Promise((ok, no) => {
+      if (ready()) { ok(); return; }
+      const sc0 = document.createElement('script'); sc0.src = src; sc0.async = true; sc0.onload = () => ok(); sc0.onerror = () => no(new Error('offline'));
+      document.head.append(sc0); setTimeout(() => no(new Error('timeout')), 15000);
+    });
+  }
+  function ytApi() {
+    if (window.YT && YT.Player) return Promise.resolve();
+    if (ytReady) return ytReady;
+    ytReady = new Promise((ok, no) => {
+      const prev = window.onYouTubeIframeAPIReady; window.onYouTubeIframeAPIReady = () => { if (prev) try { prev(); } catch {} ok(); };
+      const s0 = document.createElement('script'); s0.src = 'https://www.youtube.com/iframe_api'; s0.async = true; s0.onerror = () => { ytReady = null; no(new Error('offline')); };
+      document.head.append(s0); setTimeout(() => no(new Error('timeout')), 15000);
+    });
+    return ytReady;
+  }
+  const YT_ERR = { 2: 'That link has no video in it.', 5: 'This video can’t play here.', 100: 'That video was removed or is private.', 101: 'The owner doesn’t allow this video outside YouTube. Try another upload of the beat.', 150: 'The owner doesn’t allow this video outside YouTube. Try another upload of the beat.' };
+  async function useYt(link, autoplay = true) {
+    const v = typeof link === 'object' ? link : ytParse(link);
+    if (!v) { say('That doesn’t look like a YouTube link.'); el('bkUrl').focus(); return; }
+    stopOthers('yt');
+    const same = S.src === 'yt' && S.yt && S.yt.id === v.id && yt;
+    Object.assign(S, { src: 'yt', tab: 'yt', yt: { id: v.id, t: v.t || 0 }, bpm: 0, name: same ? S.name : (recent.find(r => r.kind === 'yt' && r.id === v.id) || {}).title || 'YouTube beat' });
+    el('bkUrl').value = ''; save(); ui(); if (!same) remember({ kind: 'yt', id: v.id, title: S.name });
+    ytWant = autoplay;
+    try { await ytApi(); } catch { say('Couldn’t reach YouTube. Check the connection, or use your own file.'); return; }
+    if (yt && yt.loadVideoById) { if (autoplay) { stopMetroBar(); yt.loadVideoById({ videoId: v.id, startSeconds: v.t || 0 }); } else yt.cueVideoById({ videoId: v.id, startSeconds: v.t || 0 }); return; }
+    yt = new YT.Player('bkYt', { host: 'https://www.youtube-nocookie.com', videoId: v.id, width: '100%', height: '100%',
+      playerVars: { playsinline: 1, rel: 0, start: v.t || 0, origin: location.origin.startsWith('http') ? location.origin : undefined },
+      events: {
+        onReady: () => { yt.setVolume(Math.round(S.vol * 100)); if (ytWant) { stopMetroBar(); yt.playVideo(); } ui(); },
+        onStateChange: e => {
+          if (e.data === 0 && S.loop) { yt.seekTo(0, true); yt.playVideo(); }
+          if (e.data === 1 || e.data === 5) { const d = yt.getVideoData && yt.getVideoData(); if (d && d.title && S.yt) { S.name = d.title; remember({ kind: 'yt', id: S.yt.id, title: d.title }); save(); } }
+          ui(); loop();
+        },
+        onError: e => { say(YT_ERR[e.data] || 'YouTube couldn’t play that video.', 5000); ui(); }
+      } });
+  }
+  function ytPause() { if (yt && yt.pauseVideo) try { yt.pauseVideo(); } catch {} }
+  // SoundCloud: the official widget in the panel; its play position comes in through events, so it is cached in sc.{pos, dur, on}
+  async function useSc(link, autoplay = true) {
+    const u = typeof link === 'string' ? scParse(link) : null;
+    if (!u) { say('That doesn’t look like a SoundCloud track link.'); el('bkUrl').focus(); return; }
+    stopOthers('sc');
+    const same = S.src === 'sc' && S.sc === u && sc.w;
+    Object.assign(S, { src: 'sc', tab: 'sc', sc: u, bpm: 0, name: same ? S.name : (recent.find(r => r.kind === 'sc' && r.url === u) || {}).title || 'SoundCloud beat' });
+    el('bkUrl').value = ''; save(); ui();
+    if (same) { if (autoplay) play(); return; }
+    sc.want = autoplay; sc.ok = false; sc.on = false; sc.pos = 0; sc.dur = 0;
+    try { await loadScript('https://w.soundcloud.com/player/api.js', () => !!(window.SC && SC.Widget)); } catch { say('Couldn’t reach SoundCloud. Check the connection, or use your own file.'); return; }
+    const src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(u) + '&auto_play=false&visual=true&hide_related=true&show_comments=false&show_reposts=false&show_teaser=false&buying=false&sharing=false&download=false';
+    if (sc.w) { sc.w.load(u, { auto_play: false, visual: true, hide_related: true, show_comments: false, show_reposts: false, show_teaser: false, callback: scReady }); return; }
+    const f = document.createElement('iframe'); f.src = src; f.title = 'SoundCloud player'; f.allow = 'autoplay'; f.setAttribute('scrolling', 'no'); el('bkScBox').replaceChildren(f);
+    const W = SC.Widget(f), E = SC.Widget.Events; sc.w = W;
+    W.bind(E.READY, scReady);
+    W.bind(E.PLAY, () => { sc.on = true; stopMetroBar(); ui(); loop(); });
+    W.bind(E.PAUSE, () => { sc.on = false; ui(); });
+    W.bind(E.FINISH, () => { sc.on = false; if (S.loop) { W.seekTo(0); W.play(); } ui(); });
+    W.bind(E.PLAY_PROGRESS, e => { sc.pos = (e.currentPosition || 0) / 1000; });
+    W.bind(E.ERROR, () => { say('SoundCloud couldn’t play that link. It may be private or blocked from other sites.', 5000); });
+  }
+  function scReady() {
+    const W = sc.w; if (!W) return; sc.ok = true;
+    W.setVolume(Math.round(S.vol * 100)); W.getDuration(d => { sc.dur = (d || 0) / 1000; paint(); });
+    W.getCurrentSound(s => { if (s && s.title) { S.name = s.title; sc.art = (s.artwork_url || (s.user && s.user.avatar_url) || '').replace('-large.', '-t300x300.'); remember({ kind: 'sc', url: S.sc, title: s.title, art: sc.art }); save(); ui(); } });
+    if (sc.want) { sc.want = false; W.play(); }
+  }
+  function scPause() { if (sc.w && sc.on) try { sc.w.pause(); } catch {} }
+
+  // ---- recent beats (YouTube and SoundCloud), with their picture
+  function remember(r) {
+    const key = x => x.kind + ':' + (x.id || x.url);
+    const old = recent.find(x => key(x) === key(r)); if (old && !r.art && old.art) r.art = old.art;
+    if (old && r.title && /^(YouTube|SoundCloud) beat$/.test(r.title) && old.title) r.title = old.title;
+    recent = [r, ...recent.filter(x => key(x) !== key(r))].slice(0, 8);
+    try { localStorage.setItem('metrobar.bookBeatRecent', JSON.stringify(recent)); } catch {}
+    recentList();
+  }
+  const thumb = r => r.kind === 'yt' ? `https://i.ytimg.com/vi/${r.id}/mqdefault.jpg` : r.art || '';
+  function thumbEl(r) {
+    const src = thumb(r);
+    if (src) { const i = document.createElement('img'); i.className = 'bk-th'; i.src = src; i.alt = ''; i.loading = 'lazy'; i.referrerPolicy = 'no-referrer'; return i; }
+    const d = document.createElement('span'); d.className = 'bk-th'; d.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>'; return d;
+  }
+  const playRec = (r, auto = true) => r.kind === 'sc' ? useSc(r.url, auto) : useYt({ id: r.id, t: 0 }, auto);
+  function recentList() {
+    const dl = el('bkRecent'); dl.replaceChildren(...recent.map(r => { const o = document.createElement('option'); o.value = r.kind === 'sc' ? r.url : 'https://youtu.be/' + r.id; o.label = r.title || ''; return o; }));
+    const g = el('bkRecentGrid'); g.replaceChildren(...recent.map(r => {
+      const b = document.createElement('button'); b.type = 'button'; b.title = 'Play ' + (r.title || 'this beat') + (r.kind === 'sc' ? ' (SoundCloud)' : ' (YouTube)');
+      const t = document.createElement('span'); t.textContent = r.title || (r.kind === 'sc' ? 'SoundCloud beat' : 'YouTube beat');
+      b.append(thumbEl(r), t); b.addEventListener('click', () => playRec(r)); return b;
+    }));
+  }
+
+  // ---- this song's beat: each Barbook page can keep the beat it was written to (page.beat)
+  const cur = () => S.src === 'yt' && S.yt ? { kind: 'yt', id: S.yt.id, title: S.name } : S.src === 'sc' && S.sc ? { kind: 'sc', url: S.sc, title: S.name, art: sc.art } : S.src === 'file' || S.src === 'mb' ? { kind: 'file', title: S.name } : null;
+  const sameBeat = (a, b) => !!a && !!b && a.kind === b.kind && (a.kind === 'file' ? a.title === b.title : (a.id || a.url) === (b.id || b.url));
+  function pageOf() { return typeof rbPage === 'function' ? rbPage() : null; }
+  function song() {
+    const box = el('bkSong'), p = pageOf(); box.replaceChildren(); if (!p) return;
+    const mine = p.beat, now0 = cur();
+    const btn = (t, fn, title) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn'; b.textContent = t; if (title) b.title = title; b.addEventListener('click', fn); return b; };
+    if (mine) {
+      const h4 = document.createElement('h4'); h4.className = 'bk-h4'; h4.textContent = 'This song’s beat'; box.append(h4);
+      const c = document.createElement('div'), ct = document.createElement('span'); c.className = 'bk-card'; ct.className = 'bk-ct';
+      const b = document.createElement('b'); b.textContent = mine.title || 'Beat'; const sm = document.createElement('small'); sm.textContent = { yt: 'YouTube', sc: 'SoundCloud', file: 'File on this device' }[mine.kind] || ''; ct.append(b, sm);
+      c.append(thumbEl(mine), ct);
+      if (!sameBeat(mine, now0)) c.append(btn('Play', () => { if (mine.kind === 'file') { el('bkFile').click(); say('Pick “' + (mine.title || 'the beat') + '” again: files stay on the device they were picked on.'); } else playRec(mine); }));
+      c.append(btn('Unpin', () => { delete p.beat; p.updated = Date.now(); if (typeof rbSaveNow === 'function') rbSaveNow(); song(); }, 'Stop keeping this beat with this song'));
+      box.append(c);
+    }
+    if (now0 && !sameBeat(mine, now0)) box.append(btn(mine ? 'Use the playing beat for this song instead' : 'Keep this beat with this song', () => { p.beat = now0; p.updated = Date.now(); if (typeof rbSaveNow === 'function') rbSaveNow(); song(); say('Saved with “' + (p.title || 'this song') + '”. It comes back when you open the song.'); }));
+  }
+  // opening a page with its own beat: have it ready (not playing) unless something else is already playing
+  function pageOpened() {
+    const p = pageOf(); song(); if (!p || !p.beat || playing() || sameBeat(p.beat, cur())) return;
+    if (p.beat.kind === 'yt') useYt({ id: p.beat.id, t: 0 }, false); else if (p.beat.kind === 'sc') useSc(p.beat.url, false);
+  }
+
+  // ---- transport
+  function play() {
+    if (S.src === 'none') { open(true); return; }
+    stopMetroBar();
+    if (S.src === 'yt') { if (!yt) useYt(S.yt, true); else { yt.playVideo(); } return; }
+    if (S.src === 'sc') { if (!sc.w) useSc(S.sc, true); else if (sc.ok) sc.w.play(); else sc.want = true; return; }
+    if (!audio.src) { restore(true); return; }
+    audio.play().then(() => { ui(); loop(); }).catch(() => say('Press play again to start the beat.'));
+  }
+  function pause() { if (S.src === 'yt') ytPause(); else if (S.src === 'sc') scPause(); else audio.pause(); ui(); }
+  function toggle() { playing() ? pause() : play(); }
+  audio.addEventListener('play', () => { ui(); loop(); }); audio.addEventListener('pause', ui); audio.addEventListener('loadedmetadata', paint);
+  audio.addEventListener('error', () => { if (audio.src) say('Couldn’t play that file in this browser. Try an mp3 or wav.', 5000); });
+
+  // ---- restore the last beat (no autoplay); for a file this reads it back from IndexedDB
+  async function restore(thenPlay) {
+    if (restored && !thenPlay) return; restored = true;
+    recentList();
+    if (S.src === 'file' || S.src === 'mb') {
+      const r = await idb('readonly'); if (!r || !r.blob) { Object.assign(S, { src: 'none', name: '' }); save(); ui(); return; }
+      const f = r.blob instanceof File ? r.blob : new File([r.blob], r.name || 'Beat', { type: r.type || r.blob.type });
+      await useFile(f, 'file', !thenPlay);
+    } else ui();
+  }
+
+  // ---- the panel: the floating button opens it; tucking it away (button, Esc, a click outside) keeps the beat playing
+  function open(on) {
+    on = on == null ? !dock.classList.contains('open') : !!on; dock.classList.toggle('open', on); fab.setAttribute('aria-expanded', String(on));
+    if (on) { restore(); ui(); requestAnimationFrame(paint); }
+  }
+  fab.addEventListener('click', () => open());
+  el('bkTuck').addEventListener('click', () => { open(false); fab.focus({ preventScroll: true }); });
+  document.addEventListener('pointerdown', e => { if (dock.classList.contains('open') && !dock.contains(e.target) && !fab.contains(e.target)) open(false); }, true);
+  dock.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); open(false); fab.focus({ preventScroll: true }); } });
+  dock.querySelectorAll('.bk-tabs button').forEach(b => b.addEventListener('click', () => { S.tab = b.dataset.tab; save(); ui(); if (S.tab !== 'file') el('bkUrl').focus({ preventScroll: true }); }));
+
+  // ---- wiring
+  el('bkPlay').addEventListener('click', toggle);
+  el('bkFileBtn').addEventListener('click', () => el('bkFile').click());
+  el('bkUp').addEventListener('click', () => { S.tab = 'file'; ui(); el('bkFile').click(); });
+  el('bkFile').addEventListener('change', e => { useFile(e.target.files[0]); e.target.value = ''; });
+  el('bkYtBtn').addEventListener('click', () => { S.tab = 'yt'; ui(); el('bkUrl').focus(); });
+  el('bkCancel').addEventListener('click', () => { el('bkUrl').value = ''; ui(); });
+  function search(q) {
+    q = String(q || '').trim(); if (!q) { el('bkUrl').focus(); return; }
+    if (ytParse(q)) { useYt(q); return; } if (scParse(q)) { useSc(q); return; }
+    const beat = /\bbeats?\b|instrumental/i.test(q) ? q : q + ' type beat';
+    const sc0 = S.tab === 'sc', href = sc0 ? 'https://soundcloud.com/search/sounds?q=' + encodeURIComponent(beat) : 'https://www.youtube.com/results?search_query=' + encodeURIComponent(beat);
+    window.open(href, '_blank', 'noopener');
+    say(`Opened ${sc0 ? 'SoundCloud' : 'YouTube'} in a new tab. Copy the link of a beat you like and paste it here.`, 7000);
+  }
+  el('bkAsk').addEventListener('submit', e => { e.preventDefault(); search(el('bkUrl').value); });
+  el('bkGenres').querySelectorAll('button').forEach(b => b.addEventListener('click', () => search(b.textContent)));
+  el('bkUrl').addEventListener('paste', e => { const t = (e.clipboardData || window.clipboardData).getData('text'); if (ytParse(t)) { e.preventDefault(); useYt(t); } else if (scParse(t)) { e.preventDefault(); useSc(t); } });
+  el('bkMb').addEventListener('click', () => mbFile && useFile(mbFile, 'mb'));
+  el('bkLoop').addEventListener('click', () => { S.loop = !S.loop; audio.loop = S.loop; save(); ui(); });
+  el('bkVol').addEventListener('input', e => { S.vol = +e.target.value; audio.volume = S.vol; if (yt && yt.setVolume) yt.setVolume(Math.round(S.vol * 100)); if (sc.w && sc.ok) sc.w.setVolume(Math.round(S.vol * 100)); save(); });
+  el('bkVidTg').addEventListener('click', () => { const v = el('bkVid'), t = !v.classList.contains('tuck'); v.classList.toggle('tuck', t); el('bkVidTg').setAttribute('aria-pressed', String(!t)); });
+  const bf = el('beatFile'); if (bf) bf.addEventListener('change', e => { if (e.target.files[0]) { mbFile = e.target.files[0]; ui(); } });
+  // scrubber: drag or click to seek, arrows = 5 s, Home/End
+  { const scr = el('bkScrub'), cv = el('bkWave'); let drag = false;
+    const at = e => { const r = cv.getBoundingClientRect(); return Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * dur(); };
+    scr.addEventListener('pointerdown', e => { if (!dur()) return; drag = true; scr.setPointerCapture(e.pointerId); seek(at(e)); });
+    scr.addEventListener('pointermove', e => { if (drag) seek(at(e)); });
+    scr.addEventListener('pointerup', () => { drag = false; }); scr.addEventListener('pointercancel', () => { drag = false; });
+    scr.addEventListener('keydown', e => { const k = { ArrowRight: 5, ArrowUp: 5, ArrowLeft: -5, ArrowDown: -5 }[e.key]; if (k) { e.preventDefault(); seek(now() + k); } else if (e.key === 'Home') { e.preventDefault(); seek(0); } else if (e.key === 'End') { e.preventDefault(); seek(dur() - 1); } else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); toggle(); } });
+  }
+  // drop a beat file (or a link) on the panel or the beat button
+  [dock, fab].forEach(t0 => {
+    ['dragenter', 'dragover'].forEach(t => t0.addEventListener(t, e => { const ty = [...(e.dataTransfer && e.dataTransfer.types || [])]; if (ty.includes('Files') || ty.includes('text/uri-list') || ty.includes('text/plain')) { e.preventDefault(); dock.classList.add('drop'); } }));
+    t0.addEventListener('dragleave', e => { if (!dock.contains(e.relatedTarget)) dock.classList.remove('drop'); });
+    t0.addEventListener('drop', e => { e.preventDefault(); dock.classList.remove('drop'); const f = e.dataTransfer.files[0]; if (f) { useFile(f); return; } const t = e.dataTransfer.getData('text'); if (ytParse(t)) useYt(t); else if (scParse(t)) useSc(t); });
+  });
+  // Alt+P anywhere on the Barbook tab, also while typing (Option+P on a Mac)
+  document.addEventListener('keydown', e => { if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyP' && document.body.classList.contains('book')) { e.preventDefault(); toggle(); } });
+  // leaving Barbook pauses; opening it brings the last beat back (not playing)
+  function onView() { if (location.hash === '#book') { restore(); requestAnimationFrame(() => { ui(); if (typeof bookFit === 'function') bookFit(); }); } else { if (playing()) pause(); open(false); } }
+  addEventListener('hashchange', onView); onView();
+  document.body.style.setProperty('--bk-dock', '0px');
+  if (window.ResizeObserver) new ResizeObserver(() => paint()).observe(dock);
+  new MutationObserver(paint).observe(document.documentElement, { attributeFilter: ['style'] });
+  // shortcut list
+  try { const dl = keysDlg.querySelector('dl'); dl.insertAdjacentHTML('beforeend', '<dt class="ksec">Barbook</dt><dd hidden></dd><dt><kbd>Alt</kbd> <kbd>P</kbd></dt><dd>Play / pause the beat (Option+P on a Mac)</dd>'); } catch {}
+  recentList();
+  return { S, play, pause, toggle, useFile, useYt, useSc, playing, audio, open, song, pageOpened };
+})();
+</script>
+<script>
+/* ---- Barbook editor (Bennie 2026-11-11: "work and lay out like RhymeFlux's editor", in MetroBar's colours). Layout and flow studied from
+   RhymeFlux's editor (one row per bar, rhyme chips, syllable count + ⋯, a meter under each bar, a toolbar on the bar you're on, section
+   dividers, a drawer with goal/streak/saved bars); own code, nothing of theirs copied. #rbText stays the one source of truth, so saving,
+   sync, the tools, Booth and Focus keep working: each row edits one line of it and the hidden text area follows the caret.
+   Page data added: page.drafts {line: [versions]}. Takes (Record) live in IndexedDB metrobar-takes. Goal: metrobar.bookGoal / bookGoalN. */
+var BE = (() => {
+  const t = $('rbText'), ed = $('rbEd'), view = document.querySelector('#viewBook .rb-view[data-rbv="write"]');
+  const S = { L: [], rows: [], cur: -1, pos: 0, rep: null, pop: '', flow: store.get('metrobar.bookFlow', false), find: '', hits: [], hit: -1, rec: null, menu: null, urls: [], C: null, at: -1 };
+  const isHead = l => /^\s*\[[^\]]*\]\s*$/.test(l);
+  const isNote = l => /^\s*#/.test(l);
+  const sv = (d, w = 18) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const IC = {
+    mic: sv('<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V20"/>', 16),
+    wand: sv('<path d="M5 19L15 9"/><path d="M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM19 11l.7 1.3L21 13l-1.3.7L19 15l-.7-1.3L17 13l1.3-.7z"/>', 16),
+    rhy: sv('<circle cx="9" cy="12" r="4.5"/><circle cx="15" cy="12" r="4.5"/>', 16),
+    ad: sv('<path d="M5 6h14v9H9l-4 3.5z"/><path d="M9 10.5h6"/>', 16),
+    drafts: sv('<path d="M12 4l8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/>', 16),
+    plus: sv('<path d="M12 5v14M5 12h14"/>', 16),
+    dots: sv('<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>', 18),
+    down: sv('<path d="M7 10l5 5 5-5"/>', 14), find: sv('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>', 17),
+    flow: sv('<path d="M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6"/>', 17), menu: sv('<path d="M4 7h16M4 12h16M4 17h16"/>', 18),
+    info: sv('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>', 15), focus: sv('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>', 16),
+    beat: sv('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>', 17), save: sv('<path d="M6 4h12v16l-6-4-6 4z"/>', 17),
+    check: sv('<circle cx="12" cy="12" r="8"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>', 17), flame: sv('<path d="M12 21c4 0 6.5-2.6 6.5-6.2 0-3.6-2.6-5.6-3.7-9.3-2 1.6-2.6 3.6-2.6 5.3C11 9.3 9.7 8 9.3 6.3 7 8.3 5.5 11.4 5.5 14.8 5.5 18.4 8 21 12 21z"/>', 16)
+  };
+  const btn = (cls, html, title, label) => { const b = h('button', cls); b.type = 'button'; b.innerHTML = html; if (title) b.title = title; if (label) b.setAttribute('aria-label', label); return b; };
+  const page = () => (typeof rbPage === 'function' ? rbPage() : null);
+  const locked = () => { const p = page(); return !p || !!p.locked; };
+  const say = (m) => { if (typeof toast === 'function') toast(m); };
+
+  // ---- layout: head (drawer, section pill, Flow, Search, Focus, ⋯), title, rows, tip; the old title bar + page toolbar move into the ⋯ panel
+  const head = h('div', 'be-head');
+  const drawerTg = btn('be-ib', IC.menu, 'Songs, goal and saved bars', 'Open the songs drawer'); drawerTg.id = 'beDrawerTg';
+  const secBtn = btn('be-pill', '<span>Verse 1</span>' + IC.down, 'Jump to a section or add one'); secBtn.id = 'beSec'; secBtn.setAttribute('aria-haspopup', 'menu');
+  const flowBtn = btn('be-ib', IC.flow + '<span class="lbl">Flow</span>', 'Flow: light up the stressed syllables in each bar\'s meter', 'Flow'); flowBtn.setAttribute('aria-pressed', String(S.flow));
+  const findBtn = btn('be-ib', IC.find, 'Search this song (Ctrl+F)', 'Search this song'); findBtn.setAttribute('aria-pressed', 'false');
+  const zenBtn = btn('be-ib', IC.focus, 'Focus: only your page and a live list of rhymes. Esc brings everything back.', 'Focus');
+  const moreBtn = btn('be-ib', IC.dots, 'Page settings and actions', 'More'); moreBtn.setAttribute('aria-haspopup', 'dialog');
+  head.append(drawerTg, secBtn, h('span', 'be-sp'), flowBtn, findBtn, zenBtn, moreBtn);
+  const find = h('div', 'be-find'); find.hidden = true;
+  const findIn = h('input', 'num-in'); findIn.type = 'search'; findIn.placeholder = 'Find in this song'; findIn.setAttribute('aria-label', 'Find in this song');
+  const findN = h('small'), findUp = btn('be-ib', sv('<path d="M7 14l5-5 5 5"/>', 16), 'Previous match', 'Previous match'), findDn = btn('be-ib', IC.down, 'Next match', 'Next match');
+  find.append(findIn, findN, findUp, findDn);
+  const title = h('div', 'be-title'), meta = h('div', 'be-meta'); title.append($('rbTitle'), meta);
+  meta.insertAdjacentHTML('beforeend', IC.info); meta.append($('rbStat'), $('rbMsg'));
+  const rowsBox = h('div', 'be-rows'); rowsBox.setAttribute('role', 'list'); rowsBox.setAttribute('aria-label', 'Bars');
+  ed.classList.add('be-on'); ed.append(rowsBox);
+  const tip = h('p', 'be-tip', 'Stuck? Tap Rhymes, or double-tap any word.');
+  const done = h('p', 'be-done'); done.hidden = true; const doneT = h('span'), doneB = btn('', 'Check them', 'Open Check your bars'); done.append(doneT, doneB);
+  view.prepend(head, find, title); ed.after(tip, done);
+  // ⋯ panel: the page's settings and actions (the same buttons as before, moved here)
+  const more = h('div', 'be-menu be-more'); more.hidden = true; more.setAttribute('role', 'dialog'); more.setAttribute('aria-label', 'Page settings');
+  { const r1 = h('div', 'row'), r2 = h('div', 'row'), r3 = h('div', 'row');
+    ['rbHi', 'rbSylBtn', 'rbAuto', 'rbShell'].forEach(id => r1.append($(id)));
+    const fRow = h('label', 'field', 'Folder'); fRow.append($('rbFolderIn'), $('rbFolders'));
+    const strict = h('label', 'field', 'Rhymes'), ss = h('select', 'num-in'); ss.id = 'beStrict'; ss.setAttribute('aria-label', 'How strict rhymes are');
+    [['rap', 'Rap: perfect, multi and close'], ['strict', 'Strict: perfect and multi only']].forEach(([v, l]) => ss.append(new Option(l, v))); ss.value = store.get('metrobar.bookStrict', 'rap'); strict.append(ss);
+    const th = $('rbTheme').closest('label'), fo = $('rbFont').closest('label');
+    ['rbLock', 'rbToWrite', 'rbPost'].forEach(id => r2.append($(id))); r3.append($('rbDel'));
+    more.append(h('h6', '', 'Page'), r1, th, fo, strict, fRow, h('h6', '', 'Song'), r2, r3);
+    $('rbZen').hidden = true; document.body.append(more);
+    BK_STRICT = ss.value === 'strict';
+    ss.addEventListener('change', () => { store.set('metrobar.bookStrict', ss.value); BK_STRICT = ss.value === 'strict'; rbPaint(); }); }
+  // songs column: goal + streak, shortcuts, saved bars, recent songs, sync line
+  const lib = $('rbLib'), shade = h('div', 'be-shade'); document.body.append(shade);
+  const dr = h('div', 'be-dr'), goal = h('div', 'be-goal'), links = h('nav', 'be-links'), saved = h('div', 'be-saved'); saved.hidden = true;
+  links.setAttribute('aria-label', 'Barbook shortcuts');
+  const lBeat = btn('', IC.beat + '<span>Beat</span>'), lSaved = btn('', IC.save + '<span>Saved bars</span><small></small>'), lCheck = btn('', IC.check + '<span>Check your bars</span>');
+  lSaved.setAttribute('aria-expanded', 'false'); links.append(lBeat, lSaved, saved, lCheck);
+  const recH = h('h3', 'be-drh', 'Recent'), recList = h('ul'); recList.id = 'beRecent';
+  const libH = h('h3', 'be-drh', 'Library'), syncLine = h('p', 'be-sync');
+  dr.append(goal, links, recH, recList, libH);
+  lib.querySelector('.rb-libh').after(dr); lib.append(syncLine);
+
+  // ---- the text model
+  // like RhymeFlux: there are always a few empty bars ("Type bar 23…") waiting under the last one. They are only rows, not text:
+  // trailing empty lines are cut when the page is saved, and typing in one of them makes it (and any above it) real.
+  const PAD = 4;
+  function lines() {
+    const L = t.value === '' ? ['[Verse 1]'] : t.value.split('\n'); let e = 0;
+    for (let k = L.length - 1; k >= 0 && L[k] === ''; k--) e++;
+    for (let k = e; k < PAD; k++) L.push('');
+    return L;
+  }
+  const textOf = L => { const M = L.slice(); while (M.length && M[M.length - 1] === '') M.pop(); const v = M.join('\n'); return v === '[Verse 1]' ? '' : v; };
+  const offOf = (L, i, p) => { let o = 0; for (let k = 0; k < i && k < L.length; k++) o += L[k].length + 1; return o + p; };
+  function caret(i, pos) {
+    S.cur = i; S.pos = pos; if (!t.value) return;
+    const o = Math.min(offOf(S.L, i, pos), t.value.length); try { t.setSelectionRange(o, o); } catch (e) {}
+  }
+  // write the lines back into the page text; everything that listens to the text area (save, sync, tools, Focus) hears it
+  function commit(L, i, pos) {
+    const p = page(); if (!p || p.locked) return false;
+    const v = textOf(L); S.L = L;
+    if (t.value !== v) {
+      t.value = v; caret(i, pos); t.dispatchEvent(new Event('input', { bubbles: true }));
+      if (!$('rbTitle').value.trim()) { const first = L.find(l => l.trim() && !isHead(l) && !isNote(l)); p.title = first ? first.trim().slice(0, 40) : ''; }
+    } else caret(i, pos);
+    return true;
+  }
+  // page.drafts follow their bar when bars are added, removed or moved here
+  function shiftDrafts(from, d) {
+    const p = page(); if (!p || !p.drafts) return; const o = {};
+    Object.keys(p.drafts).forEach(k => { const n = +k; if (d < 0 && n >= from && n < from - d) return; o[n >= from ? n + d : n] = p.drafts[k]; }); p.drafts = o;
+  }
+  function swapDrafts(a, b) { const p = page(); if (!p || !p.drafts) return; const x = p.drafts[a], y = p.drafts[b]; delete p.drafts[a]; delete p.drafts[b]; if (y) p.drafts[a] = y; if (x) p.drafts[b] = x; }
+
+  // ---- syllables, sections, colours
+  const fx = () => (typeof fix !== 'undefined' ? fix : {});
+  const adRanges = l => { const out = [], re = /\([^()\n]*\)?/g; let m; while ((m = re.exec(l))) out.push([m.index, m.index + m[0].length]); return out; };
+  const inAd = (rs, a) => rs.some(r => a >= r[0] && a < r[1]);
+  const noAd = l => l.replace(/\([^()\n]*\)?/g, s => ' '.repeat(s.length));
+  function sylOf(l) {
+    if (isHead(l) || isNote(l)) return { n: 0, st: [] };
+    const st = []; let n = 0;
+    bookWords(noAd(l)).forEach(w => { const k = sylCount(w.k, fx()); n += k; let s = []; try { s = wordStress(w.k, k); } catch (e) {} for (let j = 0; j < k; j++) st.push(!!s[j]); });
+    return { n, st };
+  }
+  function context(L) {
+    const syl = L.map(sylOf), num = [], secOf = [], heads = []; let s = -1, k = 0;
+    L.forEach((l, i) => { if (isHead(l)) { s = heads.length; heads.push({ i, name: l.trim().slice(1, -1).trim() || 'Section', bars: 0 }); k = 0; secOf[i] = s; return; } secOf[i] = s; num[i] = ++k; if (syl[i].n && s >= 0) heads[s].bars++; });
+    const med = {}; L.forEach((l, i) => { if (!syl[i].n) return; (med[secOf[i]] = med[secOf[i]] || []).push(syl[i].n); });
+    Object.keys(med).forEach(k2 => { const a = med[k2].sort((x, y) => x - y); med[k2] = a.length >= 3 ? a[Math.floor(a.length / 2)] : 0; });
+    return { syl, num, secOf, heads, med };
+  }
+  // colours of the words in a line: from the last paint, matched word by word so the chips stay put while you type
+  function colours(i, l) {
+    const ws = RB.rows && RB.rows[i]; if (!ws || !t.value) return [];
+    const out = []; bookWords(l).forEach((w, j) => { let m = ws[j] && ws[j].k === w.k && ws[j].c ? ws[j] : null; if (!m) m = ws.find(x => x.c && x.k === w.k) || null; if (m) out.push({ a: w.a, b: w.b, c: m.c, h: m.h, d: m.d }); });
+    return out;
+  }
+  function paintMir(mir, i, l) {
+    const frag = document.createDocumentFragment(), ad = adRanges(l), segs = [];
+    colours(i, l).forEach(w => { if (!inAd(ad, w.a)) segs.push({ a: w.a, b: w.b, w }); });
+    ad.forEach(r => segs.push({ a: r[0], b: r[1], ad: 1 })); segs.sort((x, y) => x.a - y.a);
+    let c = 0;
+    segs.forEach(s => { if (s.a < c) return; if (s.a > c) frag.append(l.slice(c, s.a)); const sp = h('span', s.ad ? 'be-ad' : 'rb-w', l.slice(s.a, s.b)); if (!s.ad) { bookPaint(sp, s.w); sp.dataset.c = s.w.c; } frag.append(sp); c = s.b; });
+    frag.append(l.slice(c) + '​'); mir.replaceChildren(frag);
+  }
+
+  // ---- rows
+  function rowEl() {
+    const r = h('div', 'be-row'); r.setAttribute('role', 'listitem');
+    const cell = h('div', 'be-cell'), mir = h('div', 'be-mir'), inp = h('textarea', 'be-in'); mir.setAttribute('aria-hidden', 'true');
+    inp.rows = 1; inp.spellcheck = !!RB.look.auto; inp.setAttribute('autocorrect', RB.look.auto ? 'on' : 'off'); inp.setAttribute('autocomplete', 'off'); inp.setAttribute('data-gramm', 'false'); inp.setAttribute('autocapitalize', 'sentences');
+    cell.append(mir, inp);
+    const side = h('div', 'be-side'), cnt = h('span', 'be-cnt'), dots = btn('be-dots', IC.dots, 'Bar options', 'Bar options'); dots.setAttribute('aria-haspopup', 'menu'); side.append(cnt, dots);
+    const meter = h('div', 'be-meter'); meter.setAttribute('aria-hidden', 'true');
+    const hd = h('div', 'be-hd'), hin = h('input', 'be-hin'), hn = h('span', 'be-hn'); hin.setAttribute('aria-label', 'Section name'); hin.autocomplete = 'off'; hd.append(hin, h('i', 'be-hl'), hn);
+    r.append(hd, cell, side, meter); r._ = { cell, mir, inp, cnt, dots, meter, hin, hn }; wire(r); return r;
+  }
+  const hinW = v => `calc(${Math.max(3, (v || '').length) * 1.3 + 1}ch)`;
+  function upd(r, i, L, C) {
+    const l = L[i], o = r._, head0 = isHead(l), ro = locked(); r.dataset.i = i; r.classList.toggle('hd', head0); r.classList.toggle('cur', i === S.cur && !head0);
+    if (head0) {
+      const name = l.trim().slice(1, -1); if (o.hin.value !== name && document.activeElement !== o.hin) o.hin.value = name;
+      o.hin.style.width = hinW(o.hin.value); o.hin.readOnly = ro;
+      const hh = C.heads.find(x => x.i === i); o.hn.textContent = hh && hh.bars ? `${hh.bars} bar${hh.bars === 1 ? '' : 's'}` : ''; return;
+    }
+    if (o.inp.value !== l) { const f = document.activeElement === o.inp, a = o.inp.selectionStart; o.inp.value = l; if (f) try { o.inp.setSelectionRange(a, a); } catch (e) {} }
+    o.inp.readOnly = ro; o.inp.spellcheck = !!RB.look.auto; o.inp.setAttribute('autocorrect', RB.look.auto ? 'on' : 'off');
+    o.inp.placeholder = isNote(l) ? '' : `Type bar ${C.num[i] || i + 1}…`; o.inp.setAttribute('aria-label', `Bar ${C.num[i] || i + 1}`);
+    paintMir(o.mir, i, l); meterOf(o, C.syl[i], C.med[C.secOf[i]]);
+  }
+  function meterOf(o, sy, med) {
+    const n = sy.n; o.cnt.textContent = n ? String(n) : '';
+    const dft = med && n ? Math.abs(n - med) : 0; o.cnt.classList.toggle('warn', dft >= 4 && dft < 6); o.cnt.classList.toggle('bad', dft >= 6);
+    o.cnt.title = n ? `${n} syllable${n === 1 ? '' : 's'}` + (med ? ` · bars in this section have about ${med}` + (dft >= 4 ? `: ${dft} ${n > med ? 'more' : 'fewer'}, check it fits` : '') : '') : '';
+    const segs = Math.max(16, n), m = o.meter;
+    while (m.children.length < segs) m.append(h('i')); while (m.children.length > segs) m.lastChild.remove();
+    for (let k = 0; k < segs; k++) { const e = m.children[k], c = k < n ? (S.flow && sy.st[k] ? 'on st' : 'on') : ''; if (e.className !== c) e.className = c; }
+  }
+  // repaint one row straight away while typing (colours from the last paint; the full paint follows a moment later)
+  function quick(r) {
+    const i = +r.dataset.i, l = S.L[i], C = S.C; if (l == null || !C) return;
+    paintMir(r._.mir, i, l); C.syl[i] = sylOf(l); meterOf(r._, C.syl[i], C.med[C.secOf[i]]);
+  }
+  function render() {
+    const L = S.L = lines(), C = S.C = context(L);
+    while (S.rows.length < L.length) { const r = rowEl(); rowsBox.append(r); S.rows.push(r); }
+    while (S.rows.length > L.length) S.rows.pop().remove();
+    if (S.cur >= L.length) S.cur = L.length - 1;
+    S.rows.forEach((r, i) => upd(r, i, L, C));
+    place(); focusMarks(); info(); secLabel(); if (S.find) findRun(false);
+  }
+  function info() {
+    const bars = S.C ? S.C.syl.filter(x => x.n).length : 0;
+    done.hidden = bars < 4; doneT.textContent = `${bars} bars done.`;
+  }
+  function secOfCur() { const C = S.C; if (!C || !C.heads.length) return null; const s = S.cur >= 0 ? C.secOf[S.cur] : 0; return C.heads[Math.max(0, s)] || C.heads[0]; }
+  function secLabel() { const s = secOfCur(); secBtn.querySelector('span').textContent = s ? s.name : 'Song'; }
+
+  // ---- focus a row
+  const rowAt = i => S.rows[i];
+  function focusRow(i, pos, sel) {
+    const r = rowAt(i); if (!r) return; const l = S.L[i] || '';
+    if (isHead(l)) { r._.hin.focus({ preventScroll: true }); try { const n = r._.hin.value.length; r._.hin.setSelectionRange(n, n); } catch (e) {} setCur(i, 0); reveal(r); return; }
+    const p = pos == null ? l.length : Math.max(0, Math.min(pos, l.length));
+    r._.inp.focus({ preventScroll: true }); try { r._.inp.setSelectionRange(sel ? 0 : p, sel ? l.length : p); } catch (e) {}
+    setCur(i, p); reveal(r);
+  }
+  // keep the bar you are on clear of the sticky head and the bottom edge
+  function reveal(r) {
+    if (!r || !r.isConnected) return;
+    const sc = (typeof rbScroller === 'function' && rbScroller()) || null, rr = r.getBoundingClientRect(), hb = head.getBoundingClientRect().bottom;
+    const vv = window.visualViewport, vh = vv ? vv.height + vv.offsetTop : innerHeight;
+    const lo = Math.max(hb, sc ? sc.getBoundingClientRect().top : 0) + 8, hi = Math.min(vh, sc ? sc.getBoundingClientRect().bottom : vh) - 96;
+    const d = rr.bottom > hi ? Math.min(rr.bottom - hi, rr.top - lo) : rr.top < lo ? rr.top - lo : 0; if (Math.abs(d) < 1) return;
+    if (sc) sc.scrollTop += d; else window.scrollBy(0, d);
+  }
+  function setCur(i, pos) {
+    const was = S.at; S.at = i; caret(i, pos == null ? S.pos : pos);
+    if (was !== i) { if (S.pop && !S.rec) popClose(true); S.rep = null; S.rows.forEach((r, k) => r.classList.toggle('cur', k === i && !isHead(S.L[k]))); place(); secLabel(); countGoal(was); }
+  }
+  // side tools that follow the caret (line-above rhymes, spotlight, Focus list, the Rhymes tool on a click)
+  function follow(click) {
+    try { rbSuggest(); } catch (e) {}
+    try { rbFocus(rbCaretFam()); } catch (e) {}
+    if (typeof ZEN !== 'undefined' && ZEN.on) try { rbZenWord(false, false); } catch (e) {}
+    if (click) { try { const { here } = rbCaretInfo(); if (here) { $('rbLook').value = here; rbRhymes(here); } } catch (e) {} }
+  }
+
+  // ---- editing
+  function rowsChanged(L, i, pos) { if (!commit(L, i, pos)) { render(); return; } render(); focusRow(i, pos); }
+  function split(i, a, b) { const L = S.L.slice(), v = L[i]; L.splice(i, 1, v.slice(0, a), v.slice(b)); shiftDrafts(i + 1, 1); rowsChanged(L, i + 1, 0); }
+  function mergeUp(i) {
+    const L = S.L.slice(), prev = L[i - 1];
+    if (isHead(prev)) { if (L[i] === '' && i < L.length - 1) { L.splice(i, 1); shiftDrafts(i, -1); rowsChanged(L, i - 1, 0); } else focusRow(i - 1); return; }
+    const pos = prev.length; L.splice(i - 1, 2, prev + L[i]); shiftDrafts(i, -1); rowsChanged(L, i - 1, pos);
+  }
+  function mergeDown(i) { const L = S.L.slice(); if (isHead(L[i + 1])) return; const pos = L[i].length; L.splice(i, 2, L[i] + L[i + 1]); shiftDrafts(i + 1, -1); rowsChanged(L, i, pos); }
+  function addBar(i, text = '') { const L = S.L.slice(); L.splice(i + 1, 0, text); shiftDrafts(i + 1, 1); rowsChanged(L, i + 1, text.length); }
+  function delBar(i) {
+    const L = S.L.slice(), gone = L[i]; L.splice(i, 1); if (!L.length) L.push(''); shiftDrafts(i, -1); const j = Math.max(0, i - 1); rowsChanged(L, j, (L[j] || '').length);
+    if (gone.trim() && typeof toast === 'function') toast('Bar deleted.', { undo: () => { const M = S.L.slice(); M.splice(i, 0, gone); shiftDrafts(i, 1); rowsChanged(M, i, gone.length); } });
+  }
+  function moveBar(i, d) { const j = i + d, L = S.L.slice(); if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]]; swapDrafts(i, j); rowsChanged(L, j, S.pos); }
+  function lockSay(e) {
+    if (e.metaKey || e.ctrlKey || e.altKey || !(e.key.length === 1 || /^(Enter|Backspace|Delete)$/.test(e.key))) return;
+    const n = Date.now(); if (n - (RB.lockSaid || 0) < 4000) return; RB.lockSaid = n; say('This page is locked. Unlock it under ⋯ to write in it.');
+  }
+  const oneLine = inp => inp.scrollHeight <= parseFloat(getComputedStyle(inp).lineHeight) * 1.5;
+  function wire(r) {
+    const o = r._, I = () => +r.dataset.i;
+    o.inp.addEventListener('focus', () => { setCur(I(), o.inp.selectionStart); follow(false); });
+    o.inp.addEventListener('input', () => {
+      const i = I(), L = S.L.slice(), v = o.inp.value;
+      if (/\n/.test(v)) { const parts = v.replace(/\r/g, '').split('\n'), a = o.inp.selectionStart; L.splice(i, 1, ...parts); shiftDrafts(i + 1, parts.length - 1); rowsChanged(L, i + parts.length - 1, Math.max(0, parts[parts.length - 1].length - (v.length - a))); return; }
+      L[i] = v; if (!commit(L, i, o.inp.selectionStart)) { o.inp.value = S.L[i]; return; }
+      if (S.rep && S.rep.i === i) S.rep = null;
+      quick(r); info();
+    });
+    o.inp.addEventListener('paste', e => {
+      const tx = (e.clipboardData || window.clipboardData).getData('text'); if (!/\n/.test(tx) || o.inp.readOnly) return;
+      e.preventDefault(); const i = I(), v = o.inp.value, a = o.inp.selectionStart, b = o.inp.selectionEnd, parts = tx.replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n');
+      const L = S.L.slice(), last = parts.length - 1, rows = parts.map((p, k) => (k === 0 ? v.slice(0, a) : '') + p + (k === last ? v.slice(b) : ''));
+      L.splice(i, 1, ...rows); shiftDrafts(i + 1, last); rowsChanged(L, i + last, (last ? 0 : a) + parts[last].length);
+    });
+    o.inp.addEventListener('keydown', e => {
+      if (o.inp.readOnly) { lockSay(e); return; }
+      if (e.isComposing || e.keyCode === 229) return;
+      const i = I(), v = o.inp.value, a = o.inp.selectionStart, b = o.inp.selectionEnd, plain = !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey;
+      if (e.key === 'Enter' && plain) { e.preventDefault(); split(i, a, b); }
+      else if (e.key === 'Backspace' && a === 0 && b === 0 && i > 0 && plain) { e.preventDefault(); mergeUp(i); }
+      else if (e.key === 'Delete' && a === v.length && b === a && i < S.L.length - 1 && plain) { e.preventDefault(); mergeDown(i); }
+      else if (e.key === 'ArrowUp' && plain && i > 0 && (a === 0 || oneLine(o.inp))) { e.preventDefault(); focusRow(i - 1, a); }
+      else if (e.key === 'ArrowDown' && plain && i < S.L.length - 1 && (a === v.length || oneLine(o.inp))) { e.preventDefault(); focusRow(i + 1, a); }
+      else if (e.key === 'Escape' && S.pop) { e.preventDefault(); e.stopPropagation(); popClose(); }
+    });
+    ['click', 'keyup', 'select'].forEach(ev => o.inp.addEventListener(ev, e => {
+      caret(I(), o.inp.selectionStart); if (ev === 'keyup' && !/Arrow|Home|End/.test(e.key || '')) return; follow(ev === 'click');
+    }));
+    // double-click / double-tap a word: rhymes for it, and a pick swaps it in
+    o.inp.addEventListener('dblclick', () => setTimeout(() => wordPick(r), 0));
+    let lastTap = 0; o.inp.addEventListener('pointerup', e => { if (e.pointerType !== 'touch') return; const n = Date.now(); if (n - lastTap < 350) setTimeout(() => wordPick(r, true), 30); lastTap = n; });
+    o.dots.addEventListener('click', () => barMenu(I(), o.dots));
+    // section name
+    o.hin.addEventListener('focus', () => setCur(I(), 0));
+    o.hin.addEventListener('input', () => { const i = I(), L = S.L.slice(); L[i] = '[' + o.hin.value.replace(/[\[\]\n]/g, '') + ']'; if (!commit(L, i, 0)) return; o.hin.style.width = hinW(o.hin.value); S.C = context(S.L); secLabel(); });
+    o.hin.addEventListener('keydown', e => {
+      if (o.hin.readOnly) { lockSay(e); return; } const i = I();
+      if (e.key === 'Enter') { e.preventDefault(); if (S.L[i + 1] === '') focusRow(i + 1, 0); else addBar(i); }
+      else if (e.key === 'Backspace' && !o.hin.value) { e.preventDefault(); const L = S.L.slice(); L.splice(i, 1); if (!L.length) L.push(''); shiftDrafts(i, -1); const j = Math.max(0, i - 1); rowsChanged(L, j, (L[j] || '').length); }
+      else if (e.key === 'ArrowDown' && i < S.L.length - 1) { e.preventDefault(); focusRow(i + 1, 0); }
+      else if (e.key === 'ArrowUp' && i > 0) { e.preventDefault(); focusRow(i - 1); }
+    });
+  }
+  function wordPick(r, touch) {
+    const o = r._, i = +r.dataset.i, v = o.inp.value; let a = o.inp.selectionStart, b = o.inp.selectionEnd;
+    if (a === b || touch) { const re = /[A-Za-z0-9’'`]+/g; let m; while ((m = re.exec(v))) if (a >= m.index && a <= m.index + m[0].length) { a = m.index; b = m.index + m[0].length; break; } }
+    const w = v.slice(a, b).trim(); if (!w || /\s/.test(w)) return;
+    try { o.inp.setSelectionRange(a, b); } catch (e) {}
+    S.cur = i; S.pos = b; S.rep = { i, a, b }; popOpen('rhymes', true);
+  }
+
+  // ---- toolbar on the bar you are on
+  const tools = h('div', 'be-tools'); tools.setAttribute('role', 'toolbar'); tools.setAttribute('aria-label', 'This bar');
+  const tb = {};
+  [['rec', IC.mic, 'Record', 'Record a take of this bar (the beat starts if one is loaded)'], ['rewrite', IC.wand, 'Rewrite', 'Rewrite this bar: with AI if you set it up, or swap the end word'],
+    ['rhymes', IC.rhy, 'Rhymes', 'Rhymes for the word at the cursor (or the bar above)'], ['adlib', IC.ad, 'Ad-lib', 'Add an ad-lib after the word at the cursor'],
+    ['drafts', IC.drafts, 'Drafts', 'Other versions of this bar'], ['add', IC.plus, 'Add bar', 'Add an empty bar under this one']].forEach(([k, ic, l, ti]) => {
+    const b = btn('be-tb', ic + '<span>' + l + '</span>', ti); b.dataset.k = k; if (k !== 'add' && k !== 'rec') b.setAttribute('aria-pressed', 'false');
+    b.addEventListener('mousedown', e => e.preventDefault()); tools.append(b); tb[k] = b;
+  });
+  const pop = h('div', 'be-pop'); pop.hidden = true; pop.setAttribute('role', 'region'); pop.setAttribute('aria-label', 'Bar tool');
+  tb.add.addEventListener('click', () => { if (S.cur >= 0 && !locked()) addBar(S.cur); });
+  tb.rec.addEventListener('click', recToggle);
+  ['rewrite', 'rhymes', 'adlib', 'drafts'].forEach(k => tb[k].addEventListener('click', () => popOpen(k)));
+  function place() {
+    const r = rowAt(S.cur);
+    if (!r || isHead(S.L[S.cur] || '') || (typeof RB2 !== 'undefined' && RB2.view !== 'write')) { tools.remove(); pop.remove(); return; }
+    if (tools.parentNode !== r) r.append(tools, pop);
+  }
+  function popClose(quiet) { S.pop = ''; pop.hidden = true; pop.replaceChildren(); S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; Object.values(tb).forEach(b => b.hasAttribute('aria-pressed') && b.setAttribute('aria-pressed', 'false')); if (!quiet) refocus(); }
+  function refocus() { const r = rowAt(S.cur); if (r && !isHead(S.L[S.cur] || '')) { r._.inp.focus({ preventScroll: true }); try { r._.inp.setSelectionRange(S.pos, S.pos); } catch (e) {} } }
+  function popOpen(k, keep) {
+    if (S.cur < 0) return; if (S.pop === k && !keep) { popClose(); return; }
+    if (k !== 'rhymes') S.rep = null;
+    S.pop = k; Object.entries(tb).forEach(([n, b]) => b.hasAttribute('aria-pressed') && b.setAttribute('aria-pressed', String(n === k)));
+    pop.hidden = false; place(); popBuild(); requestAnimationFrame(() => reveal(pop));
+  }
+  function popHead(label, word) {
+    const ph = h('div', 'be-ph'), b = h('b', '', label); if (word) { b.append(' '); b.append(h('em', '', word)); }
+    const x = btn('be-px', '×', 'Close', 'Close'); x.addEventListener('mousedown', e => e.preventDefault()); x.addEventListener('click', () => popClose()); ph.append(b, x); return ph;
+  }
+  const chip = (text, n, fn, cls) => { const b = h('button', 'be-chip' + (cls ? ' ' + cls : ''), text); b.type = 'button'; if (n) b.append(h('small', '', String(n))); b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', fn); return b; };
+  const sylN = x => { try { return x.split(/\s+/).reduce((a, y) => a + sylCount(cleanKey(y), fx()), 0); } catch (e) { return 0; } };
+  // the word the rhymes are for: the picked word, else the word at/before the caret, else the last word of the bar above
+  function rhymeWord() {
+    const i = S.cur, l = S.L[i] || '';
+    if (S.rep && S.rep.i === i) return { w: l.slice(S.rep.a, S.rep.b), rep: true };
+    const before = noAd(l.slice(0, S.pos) + (l.slice(S.pos).match(/^[A-Za-z’'`]*/) || [''])[0]), m = before.match(/([A-Za-z][A-Za-z’'`]*)[^A-Za-z]*$/);
+    if (m) return { w: m[1], two: (before.match(/([A-Za-z’'`]+\s+[A-Za-z’'`]+)[^A-Za-z]*$/) || [])[1] };
+    for (let k = i - 1; k >= 0; k--) { const pl = S.L[k]; if (isHead(pl) || isNote(pl)) continue; const ws = bookWords(noAd(pl)); if (ws.length) return { w: pl.slice(ws[ws.length - 1].a, ws[ws.length - 1].b), above: true }; }
+    return { w: '' };
+  }
+  function put(word) {
+    const i = S.cur, L = S.L.slice(), l = L[i] || '';
+    if (S.rep && S.rep.i === i) { const { a, b } = S.rep; L[i] = l.slice(0, a) + word + l.slice(b); const rep = { i, a, b: a + word.length }; rowsChanged(L, i, a + word.length); S.rep = rep; const r = rowAt(i); if (r) try { r._.inp.setSelectionRange(a, a + word.length); } catch (e) {} return; }
+    const p = S.pos, pre = l.slice(0, p), post = l.slice(p), ins = (pre && !/[\s(]$/.test(pre) ? ' ' : '') + word + (post && !/^\s/.test(post) ? ' ' : '');
+    L[i] = pre + ins + post; rowsChanged(L, i, p + ins.length);
+  }
+  function popBuild() {
+    S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; pop.replaceChildren();
+    const k = S.pop, i = S.cur, l = S.L[i] || '', p = page();
+    if (k === 'rhymes') {
+      const q = rhymeWord(); pop.append(popHead(q.rep ? 'Swap' : q.above ? 'Rhymes for the bar above:' : 'Rhymes for', q.w));
+      if (!q.w) { pop.append(h('p', 'note', 'Write a word, or put the cursor after one. Double-tap a word to swap it for a rhyme.')); return; }
+      const r = rbWordList(cleanKey(q.w), 40);
+      if (!r) { pop.append(h('p', 'note', DICTUI.state === 'loading' ? 'Loading the dictionary…' : 'The rhyme list needs the pronunciation dictionary (open MetroBar from its web address).')); return; }
+      let any = false;
+      [['perfect', 'Rhymes', 0, 'pf'], ['multi', 'Multis', 1, ''], ['slant', 'Near', 0, '']].forEach(([key, label, n, cls]) => {
+        if (!r[key].length) return; any = true; pop.append(h('h5', '', label)); const box = h('div', 'be-chips'); r[key].slice(0, 24).forEach(x => box.append(chip(x, n && sylN(x), () => put(x), cls))); pop.append(box);
+      });
+      try {
+        if (typeof doubleRhymes === 'function' && DICT) {
+          let d = doubleRhymes(cleanKey(q.w), { len: 0, max: 24 }); if ((!d || d.k < 2) && q.two) d = doubleRhymes(q.two.replace(/\s+/g, ' '), { len: 0, max: 24 });
+          if (d && d.k >= 2) { const seen = new Set([].concat(r.perfect, r.multi, r.slant)), ph = (d.phrases || []).concat((d.words || []).filter(x => / /.test(x.w))).filter(x => !seen.has(x.w)).slice(0, 12);
+            if (ph.length) { any = true; pop.append(h('h5', '', 'Phrases')); const box = h('div', 'be-chips'); ph.forEach(x => box.append(chip(x.w, x.syl || sylN(x.w), () => put(x.w)))); pop.append(box); } }
+        }
+      } catch (e) {}
+      if (!any) pop.append(h('p', 'note', `No rhymes found for "${q.w}".`));
+      pop.append(h('p', 'note', q.rep ? 'Tap a word to swap it in. Tap another to try the next one.' : 'Tap a word to add it at the cursor.'));
+    } else if (k === 'adlib') {
+      pop.append(popHead('Ad-lib'));
+      const box = h('div', 'be-chips'), own = store.get('metrobar.adlibs', []);
+      [...own, 'yeah', 'uh', 'ayy', 'woo', 'what', 'huh', 'skrrt', "let's go", 'brr', 'gang', 'facts', 'sheesh', 'okay', 'yuh'].filter((x, j, a) => a.indexOf(x) === j).slice(0, 18).forEach(x => box.append(chip(x, 0, () => adlib(x))));
+      const f = h('form', 'be-chips'); f.style.marginTop = '8px'; const inp = h('input', 'num-in'); inp.placeholder = 'Your own ad-lib'; inp.setAttribute('aria-label', 'Your own ad-lib'); const go = btn('btn', 'Add'); go.type = 'submit';
+      f.append(inp, go); f.addEventListener('submit', e => { e.preventDefault(); const x = inp.value.trim().replace(/[()]/g, ''); if (!x) return; store.set('metrobar.adlibs', [x, ...own.filter(y => y !== x)].slice(0, 8)); adlib(x); });
+      pop.append(box, f, h('p', 'note', 'The ad-lib goes in brackets after the word at the cursor. It doesn’t count as syllables and never takes a rhyme colour.'));
+    } else if (k === 'drafts') {
+      pop.append(popHead('Drafts of this bar'));
+      const list = (p && p.drafts && p.drafts[i]) || [], box = h('div', 'be-drafts');
+      if (!list.length) box.append(h('p', 'note', 'Save this version, then rewrite the bar freely. Saved versions stay here so you can swap back.'));
+      list.forEach((x, j) => {
+        const d = h('div', 'be-draft'), sp = h('span', '', x), use = btn('btn', 'Use', 'Put this version in the bar (the current one is kept here)'), del = btn('be-px', '×', 'Remove this draft', 'Remove this draft');
+        use.addEventListener('click', () => { const L = S.L.slice(), now0 = L[i]; L[i] = x; const nl = list.slice(); nl.splice(j, 1); if (now0.trim() && !nl.includes(now0)) nl.unshift(now0); p.drafts[i] = nl; rowsChanged(L, i, x.length); popOpen('drafts', true); });
+        del.addEventListener('click', () => { list.splice(j, 1); if (!list.length) delete p.drafts[i]; rbSave(); popBuild(); });
+        d.append(sp, use, del); box.append(d);
+      });
+      const keep = btn('btn', 'Save this version'); keep.disabled = !l.trim() || list.includes(l) || locked();
+      keep.addEventListener('click', () => { if (!p || p.locked) return; p.drafts = p.drafts || {}; p.drafts[i] = [l, ...list.filter(x => x !== l)].slice(0, 12); p.updated = Date.now(); rbSave(); popBuild(); });
+      pop.append(box, keep);
+    } else if (k === 'rewrite') {
+      pop.append(popHead('Rewrite this bar'));
+      const ready = typeof aiReady === 'function' && aiReady(), ai = btn('btn' + (ready ? ' pri' : ''), ready ? 'Fit this bar with AI' : 'Set up Write with AI');
+      ai.addEventListener('click', () => {
+        caret(i, S.pos); rbTool('ai', true); if (innerWidth <= 1000) $('rbSide').classList.add('open');
+        if (ready) { const go = document.querySelector('#rbAi [data-go="fit"]'); if (go) go.click(); }
+        const box = document.querySelector('.rb-tool[data-tool="ai"]'); if (box && box.scrollIntoView) box.scrollIntoView({ block: 'nearest' });
+      });
+      pop.append(h('p', 'note', ready ? 'Same meaning, weight on the beat. The new versions show in Write with AI.' : 'Free with a Gemini key, or private with Ollama on this computer. Nothing is sent until you press a button.'), ai);
+      // without AI: swap the end word for one that rhymes with the bar above and keeps the syllable count
+      const ws = bookWords(noAd(l)), end = ws[ws.length - 1];
+      let above = ''; for (let k2 = i - 1; k2 >= 0; k2--) { const pl = S.L[k2]; if (isHead(pl)) break; const pw = bookWords(noAd(pl)); if (pw.length) { above = pw[pw.length - 1].k; break; } }
+      if (end && !locked()) {
+        const target = above && above !== end.k ? above : end.k, r = rbWordList(target, 60), n = sylCount(end.k, fx());
+        if (r) {
+          const opts = [...r.perfect, ...r.multi, ...r.slant].filter(x => x !== end.k && sylN(x) === n).slice(0, 16);
+          if (opts.length) {
+            pop.append(h('h5', '', `Or swap the end word “${l.slice(end.a, end.b)}” for one that rhymes with “${target}” (${n} syl)`)); const box = h('div', 'be-chips');
+            opts.forEach(x => box.append(chip(x, 0, () => { const cur0 = S.L[i] || '', w2 = bookWords(noAd(cur0)), e2 = w2[w2.length - 1]; if (!e2) return; S.rep = { i, a: e2.a, b: e2.b }; put(x); S.rep = null; }))); pop.append(box);
+          }
+        }
+      }
+    } else if (k === 'takes') {
+      pop.append(popHead(S.rec ? 'Recording…' : 'Takes of this bar'));
+      if (S.rec) pop.append(h('p', 'note', 'Rap the bar. Press Stop when you are done.'));
+      takesFor(RB.cur).then(list => {
+        if (S.pop !== 'takes') return; const mine = list.filter(x => x.li === i || (l.trim() && x.text === l)).sort((a, b) => b.at - a.at);
+        if (!mine.length && !S.rec) pop.append(h('p', 'note', 'No takes yet. Press Record to rap this bar.'));
+        mine.forEach(x => {
+          const d = h('div', 'be-take'), au = document.createElement('audio'), u = URL.createObjectURL(x.blob); S.urls.push(u); au.controls = true; au.src = u; au.preload = 'metadata';
+          const del = btn('be-px', '×', 'Delete this take', 'Delete this take'); del.addEventListener('click', async () => { await takeDel(x.id); popBuild(); });
+          d.append(au, del, h('small', '', `${new Date(x.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${Math.round(x.dur)} s${x.text && x.text !== l ? ' · “' + x.text.slice(0, 40) + '”' : ''}`));
+          pop.append(d);
+        });
+      });
+    }
+  }
+  function adlib(x) {
+    const i = S.cur, L = S.L.slice(), l = L[i] || ''; let e = S.pos; while (e < l.length && /[A-Za-z0-9’'`]/.test(l[e])) e++;
+    const ins = (e > 0 && !/\s$/.test(l.slice(0, e)) ? ' ' : '') + '(' + x + ')' + (l.slice(e) && !/^\s/.test(l.slice(e)) ? ' ' : '');
+    L[i] = l.slice(0, e) + ins + l.slice(e); rowsChanged(L, i, e + ins.length);
+  }
+
+  // ---- Record: a take of this bar with the mic (MediaRecorder), kept in IndexedDB on this device only
+  function tdb() { return new Promise((ok, no) => { const r = indexedDB.open('metrobar-takes', 1); r.onupgradeneeded = () => { const st = r.result.createObjectStore('takes', { keyPath: 'id', autoIncrement: true }); st.createIndex('page', 'page'); }; r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); }); }
+  async function tq(mode, fn) { try { const d = await tdb(); return await new Promise((ok, no) => { const tx = d.transaction('takes', mode), q = fn(tx.objectStore('takes')); q.onsuccess = () => ok(q.result); q.onerror = () => no(q.error); }); } catch (e) { return null; } }
+  const takesFor = pg => tq('readonly', st => st.index('page').getAll(pg)).then(x => x || []);
+  const takeDel = id => tq('readwrite', st => st.delete(id));
+  function recUi() {
+    const b = tb.rec; if (S.rec) { const s = Math.floor((Date.now() - S.rec.t0) / 1000); b.classList.add('rec'); b.innerHTML = '<span class="be-dot"></span><span>Stop ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + '</span>'; }
+    else { b.classList.remove('rec'); b.innerHTML = IC.mic + '<span>Record</span>'; }
+  }
+  async function recToggle() {
+    if (S.rec) { S.rec.mr.stop(); return; }
+    if (S.cur < 0) return;
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { say('Recording needs MetroBar opened from its web address (https or localhost) in a recent browser.'); return; }
+    let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); } catch (e) { say('No microphone. Allow the mic for this site to record a take.'); return; }
+    const mr = new MediaRecorder(stream), chunks = [], i = S.cur, pg = RB.cur, text = S.L[i] || '', t0 = Date.now();
+    mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+    mr.onstop = async () => {
+      stream.getTracks().forEach(x => x.stop()); if (S.rec) clearInterval(S.rec.tm); S.rec = null; recUi();
+      const blob = new Blob(chunks, { type: mr.mimeType || 'audio/webm' });
+      if (blob.size) await tq('readwrite', st => st.add({ page: pg, li: i, text, at: Date.now(), dur: (Date.now() - t0) / 1000, blob }));
+      if (S.cur === i && RB.cur === pg) popOpen('takes', true);
+    };
+    mr.start(); S.rec = { mr, t0, tm: setInterval(recUi, 500) }; recUi(); popOpen('takes', true);
+    if (window.BKB && BKB.S.src !== 'none' && !BKB.playing()) BKB.play();
+  }
+
+  // ---- menus
+  function menu(anchor, build, side) {
+    menuClose(); const m = h('div', 'be-menu'); m.setAttribute('role', 'menu'); build(m); document.body.append(m); S.menu = { m, anchor };
+    anchor.setAttribute('aria-expanded', 'true');
+    const r = anchor.getBoundingClientRect(), w = m.offsetWidth, hh = m.offsetHeight;
+    let x = side === 'left' ? r.left : r.right - w; x = Math.max(12, Math.min(innerWidth - w - 12, x));
+    let y = r.bottom + 6; if (y + hh > innerHeight - 12) y = Math.max(12, r.top - hh - 6);
+    m.style.left = x + 'px'; m.style.top = y + 'px'; const f = m.querySelector('button'); if (f) f.focus({ preventScroll: true });
+  }
+  function menuClose() { if (!S.menu) return; S.menu.anchor.setAttribute('aria-expanded', 'false'); S.menu.m.remove(); S.menu = null; }
+  const mi = (m, label, fn, cls, small) => { const b = btn('mi' + (cls ? ' ' + cls : ''), ''); b.setAttribute('role', 'menuitem'); b.append(h('span', '', label)); if (small) b.append(h('small', '', small)); b.addEventListener('click', () => { menuClose(); fn(); }); m.append(b); return b; };
+  document.addEventListener('pointerdown', e => {
+    if (S.menu && !S.menu.m.contains(e.target) && !S.menu.anchor.contains(e.target)) menuClose();
+    if (!more.hidden && !more.contains(e.target) && !moreBtn.contains(e.target)) moreOpen(false);
+  }, true);
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && (S.menu || !more.hidden)) { e.preventDefault(); e.stopPropagation(); const a = S.menu ? S.menu.anchor : moreBtn; menuClose(); moreOpen(false); a.focus({ preventScroll: true }); return; }
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'f' && document.body.classList.contains('book') && RB2.view === 'write') { e.preventDefault(); findOpen(true); }
+  }, true);
+  function barMenu(i, anchor) {
+    if (S.cur !== i) setCur(i, (S.L[i] || '').length);
+    const l = S.L[i] || '', ro = locked();
+    menu(anchor, m => {
+      if (l.trim()) mi(m, 'Save to Saved bars', () => { if (typeof stashMerge === 'function') { stashMerge([{ text: l.trim(), at: Date.now() }]); say('Saved. Find it under Saved bars.'); drawer(); } });
+      if (!ro) { mi(m, 'Duplicate', () => addBar(i, l)); if (i > 0 && !isHead(S.L[i - 1])) mi(m, 'Move up', () => moveBar(i, -1)); if (i < S.L.length - 1 && !isHead(S.L[i + 1])) mi(m, 'Move down', () => moveBar(i, 1)); }
+      if (l.trim()) mi(m, 'Copy', () => { try { navigator.clipboard.writeText(l); say('Bar copied.'); } catch (e) {} });
+      mi(m, 'Takes of this bar', () => { focusRow(i, S.pos); popOpen('takes', true); });
+      if (!ro) { m.append(h('hr')); mi(m, 'Delete bar', () => delBar(i), 'dz'); }
+    });
+  }
+  const SECS = ['Verse', 'Hook', 'Pre-hook', 'Bridge', 'Intro', 'Outro'];
+  function secMenu() {
+    const C = S.C, cur = secOfCur();
+    menu(secBtn, m => {
+      if (C.heads.length) { m.append(h('h6', '', 'Jump to')); C.heads.forEach(s => { const b = mi(m, s.name, () => { const j = S.L[s.i + 1] != null && !isHead(S.L[s.i + 1]) ? s.i + 1 : s.i; focusRow(j, 0); }, '', s.bars ? `${s.bars} bar${s.bars === 1 ? '' : 's'}` : ''); if (cur && s.i === cur.i) b.setAttribute('aria-current', 'true'); }); }
+      if (locked()) return; if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section'));
+      SECS.forEach(n => mi(m, n, () => {
+        const L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
+        while (L.length > 1 && L[L.length - 1] === '' && !isHead(L[L.length - 2])) L.pop();
+        L.push('[' + name + ']', ''); rowsChanged(L, L.length - 1, 0);
+      }));
+    }, 'left');
+  }
+  function moreOpen(on) {
+    more.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); if (!on) return;
+    const r = moreBtn.getBoundingClientRect(); more.style.left = Math.max(12, Math.min(innerWidth - more.offsetWidth - 12, r.right - more.offsetWidth)) + 'px'; more.style.top = (r.bottom + 6) + 'px';
+  }
+  secBtn.addEventListener('click', () => (S.menu && S.menu.anchor === secBtn ? menuClose() : secMenu()));
+  moreBtn.addEventListener('click', () => moreOpen(more.hidden));
+  flowBtn.addEventListener('click', () => { S.flow = !S.flow; store.set('metrobar.bookFlow', S.flow); flowBtn.setAttribute('aria-pressed', String(S.flow)); render(); });
+  zenBtn.addEventListener('click', () => rbZen(true));
+  doneB.addEventListener('click', () => { rbTool('check', true); if (innerWidth <= 1000) $('rbSide').classList.add('open'); const b = document.querySelector('.rb-tool[data-tool="check"]'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
+
+  // ---- search in the song
+  function findOpen(on) { find.hidden = !on; findBtn.setAttribute('aria-pressed', String(on)); if (on) { findIn.focus(); findIn.select(); findRun(false); } else { S.find = ''; S.rows.forEach(r => r.classList.remove('hit')); } }
+  function findRun(go, d = 1) {
+    const q = findIn.value.trim().toLowerCase(); S.find = q; S.hits = [];
+    S.rows.forEach((r, i) => { const on = !!q && (S.L[i] || '').toLowerCase().includes(q); r.classList.toggle('hit', on); if (on) S.hits.push(i); });
+    if (!q) { findN.textContent = ''; return; }
+    if (go && S.hits.length) { S.hit = (S.hit + d + S.hits.length) % S.hits.length; const i = S.hits[S.hit], at = (S.L[i] || '').toLowerCase().indexOf(q); focusRow(i, at + q.length); try { rowAt(i)._.inp.setSelectionRange(at, at + q.length); } catch (e) {} }
+    findN.textContent = S.hits.length ? `${go ? S.hit + 1 : '–'} of ${S.hits.length}` : 'none';
+  }
+  findBtn.addEventListener('click', () => findOpen(find.hidden));
+  findIn.addEventListener('input', () => { S.hit = -1; findRun(false); });
+  findIn.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); findRun(true, e.shiftKey ? -1 : 1); findIn.focus(); } if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); findOpen(false); } });
+  findDn.addEventListener('click', () => findRun(true, 1)); findUp.addEventListener('click', () => findRun(true, -1));
+
+  // ---- drawer: daily goal, streak, saved bars, recent songs, sync
+  const todayKey = () => (typeof today === 'function' ? today() : new Date().toLocaleDateString('en-CA'));
+  function countGoal(i) {
+    if (i == null || i < 0) return; const l = (S.L[i] || '').trim(); if (!l || isHead(l) || isNote(l) || bookWords(l).length < 3) return;
+    let g = store.get('metrobar.bookGoal', { day: '', keys: [] }); const d = todayKey(); if (g.day !== d) g = { day: d, keys: [] };
+    const key = RB.cur + ':' + l.toLowerCase().replace(/\s+/g, ' '); if (g.keys.includes(key)) return;
+    g.keys.push(key); store.set('metrobar.bookGoal', g); if (typeof markDay === 'function') try { markDay(); } catch (e) {} drawer();
+  }
+  function drawer() {
+    let g = store.get('metrobar.bookGoal', { day: '', keys: [] }); if (g.day !== todayKey()) g = { day: todayKey(), keys: [] };
+    const goalN = store.get('metrobar.bookGoalN', 8), n = g.keys.length, f = Math.min(1, n / goalN), C0 = 2 * Math.PI * 17;
+    let streak = 0; try { streak = writeStreak(store.get('metrobar.days', []), todayKey()).streak; } catch (e) {}
+    goal.innerHTML = `<svg viewBox="0 0 42 42" width="42" height="42" aria-hidden="true"><circle class="gr-bg" cx="21" cy="21" r="17"/><circle class="gr-fg" cx="21" cy="21" r="17" stroke-dasharray="${C0.toFixed(1)}" stroke-dashoffset="${(C0 * (1 - f)).toFixed(1)}"/></svg>`;
+    const gb = btn('', '', 'Change the daily goal'); gb.append(h('b', '', `${n}/${goalN} bars today`), h('small', '', n >= goalN ? 'Goal done. Keep going.' : 'Daily goal · tap to change'));
+    gb.addEventListener('click', () => { const opts = [4, 8, 12, 16, 24], nx = opts[(opts.indexOf(goalN) + 1) % opts.length]; store.set('metrobar.bookGoalN', nx); drawer(); });
+    const st = h('span'); st.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:4px;font:700 .9rem var(--body);font-variant-numeric:tabular-nums;color:var(--accent)'; st.innerHTML = IC.flame; st.append(String(streak)); st.title = `${streak}-day writing streak`;
+    goal.append(gb, st);
+    const stash = typeof STASH !== 'undefined' ? STASH : []; lSaved.querySelector('small').textContent = stash.length ? String(stash.length) : '';
+    if (!saved.hidden) savedList();
+    const rec = RB.pages.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, 3);
+    recList.replaceChildren(...rec.map(p => { const li = h('li'), b = btn('', ''); b.append(h('span', '', p.title || 'Untitled'), h('small', '', (p.text || '').split('\n').find(x => x.trim() && !isHead(x)) || 'Empty')); b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; store.set('metrobar.bookCur', p.id); bookOpen(); drawerOpen(false); }); li.append(b); return li; }));
+    syncLine.textContent = ($('rbSync') || {}).textContent || '';
+  }
+  function savedList() {
+    const stash = typeof STASH !== 'undefined' ? STASH : []; saved.replaceChildren();
+    if (!stash.length) { saved.append(h('p', 'note', 'Loose bars you save (⋯ on a bar, or Stash in Write) wait here.')); return; }
+    stash.slice().reverse().slice(0, 30).forEach(x => {
+      const d = h('div', 'sv'), sp = h('span', '', x.text), add = btn('', 'Add', 'Add this bar under the one you are on'), del = btn('', '×', 'Remove from Saved bars', 'Remove');
+      add.addEventListener('click', () => { if (locked()) return; addBar(S.cur >= 0 ? S.cur : S.L.length - 1, x.text); drawerOpen(false); });
+      del.addEventListener('click', () => { STASH = STASH.filter(y => y !== x); stashSave(); drawer(); });
+      d.append(sp, add, del); saved.append(d);
+    });
+  }
+  lSaved.addEventListener('click', () => { saved.hidden = !saved.hidden; lSaved.setAttribute('aria-expanded', String(!saved.hidden)); if (!saved.hidden) savedList(); });
+  lBeat.addEventListener('click', () => { drawerOpen(false); if (window.BKB) BKB.open(true); });
+  lCheck.addEventListener('click', () => { drawerOpen(false); doneB.click(); });
+  function drawerOpen(on) { lib.classList.toggle('be-open', on); shade.classList.toggle('on', on); drawerTg.setAttribute('aria-expanded', String(on)); }
+  drawerTg.addEventListener('click', () => drawerOpen(!lib.classList.contains('be-open')));
+  shade.addEventListener('click', () => drawerOpen(false));
+  $('rbList').addEventListener('click', () => { if (innerWidth <= 1000) setTimeout(() => drawerOpen(false), 0); });
+  if (window.MutationObserver && $('rbSync')) new MutationObserver(() => { syncLine.textContent = $('rbSync').textContent; }).observe($('rbSync'), { childList: true, characterData: true, subtree: true });
+
+  // ---- spotlight on rows (the Rhyme map pin or the word under the caret)
+  function focusMarks() {
+    const c = RB.pin || RB.caretFam || 0; rowsBox.classList.toggle('be-foc', !!c);
+    rowsBox.querySelectorAll('.rb-w').forEach(s => s.classList.toggle('lit', !!c && +s.dataset.c === c));
+  }
+
+  // ---- hook into the page code: these globals are called by name, so the bar rows take over from the one big text area
+  const _paint = rbPaint; rbPaint = function () { _paint.apply(this, arguments); render(); };
+  const _focus = rbFocus; rbFocus = function (fc) { _focus(fc); focusMarks(); };
+  rbCaretFam = function () {
+    const r = rowAt(S.cur); if (!r || document.activeElement !== r._.inp || r._.inp.selectionStart !== r._.inp.selectionEnd) return 0;
+    const w = colours(S.cur, S.L[S.cur] || '').find(x => S.pos >= x.a && S.pos <= x.b); return w ? w.c : 0;
+  };
+  rbInsert = function (word) {
+    if (locked()) return; S.rep = null;
+    if (S.cur < 0 || isHead(S.L[S.cur] || '')) { const j = S.L.length - 1; if (isHead(S.L[j])) { addBar(j, word); return; } S.cur = j; S.pos = S.L[j].length; }
+    put(word);
+  };
+  rbGoLine = function (n) { rbView('write'); render(); focusRow(Math.max(0, Math.min(n, S.L.length - 1)), null, true); try { rbSuggest(); } catch (e) {} };
+  // code that focuses the big text area (Focus mode, tools that replace the page) lands in the bar at its caret instead
+  t.addEventListener('focus', () => setTimeout(() => {
+    if (document.activeElement !== t) return; const v = t.value, p = t.selectionStart, li = v.slice(0, p).split('\n').length - 1, col = p - (v.lastIndexOf('\n', p - 1) + 1);
+    render(); focusRow(v ? li : 1, v ? col : 0);
+  }, 0));
+  const _open = window.bookOpen;
+  window.bookOpen = bookOpen = function () {
+    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; if (S.pop) popClose(true); _open(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
+  };
+  const _apply = rbApplyLook; rbApplyLook = function () { _apply.apply(this, arguments); if (S.rows.length) render(); };
+  window.addEventListener('hashchange', () => { if (location.hash === '#book') drawer(); else { drawerOpen(false); moreOpen(false); menuClose(); if (S.rec) S.rec.mr.stop(); } });
+  render(); drawer();
+  return { S, render, focusRow, drawer, lines };
 })();
 </script>
 <script>
