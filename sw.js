@@ -1,5 +1,5 @@
 // Minimal offline cache for MetroBar: the one HTML file, manifest, icons; fonts are cached when first fetched.
-const CACHE = 'metrobar-v35';
+const CACHE = 'metrobar-v56';
 const FILES = ['./', './landing-beat-meter.html', './manifest.json', './icon-192.png', './icon-512.png', './cmudict.txt'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
@@ -11,7 +11,7 @@ self.addEventListener('fetch', e => {
   if (u.origin !== location.origin && !fonts) return;
   const save = r => { if (r && (r.ok || r.type === 'opaque')) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)); } return r; };
   // The page and manifest load network first, so a new version shows on the first reload; the cache is only the offline fallback
-  if (u.origin === location.origin && (e.request.mode === 'navigate' || /\.(html|json)$|\/$/.test(u.pathname))) {
+  if (u.origin === location.origin && (e.request.mode === 'navigate' || /\.(html|json)$|\/$|zone-config\.js$/.test(u.pathname))) {
     e.respondWith(fetch(e.request).then(save).catch(() => caches.match(e.request))); return;
   }
   e.respondWith(caches.match(e.request).then(hit => {
