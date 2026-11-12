@@ -2366,12 +2366,38 @@ html.bb .be-row.cur, html.bb .be-row.cur:hover { background: #121416; box-shadow
 @media (prefers-reduced-motion: reduce) { html.bb .be-rt { transition: none; } }
 .mb-move { position: fixed; z-index: 2000; left: 50%; bottom: 16px; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px; padding: 12px 16px; border-radius: 14px; background: #af0000; color: #fff; font: 600 14px/1.4 system-ui, sans-serif; box-shadow: 0 12px 40px #0008; }
 .mb-move button { padding: 7px 14px; border: 0; border-radius: 999px; background: #fff; color: #111; font: inherit; cursor: pointer; } .mb-move button:disabled { opacity: .85; cursor: default; }
+/* Account sheet (2026-11-13) */
+dialog.acct { width: min(27rem, calc(100vw - 32px)); padding: 30px 28px 26px; border: 1px solid #ffffff1f; border-radius: 22px; background: #111315; color: #f2f2f2; box-shadow: 0 30px 90px #000a; font-family: 'Instrument Sans', system-ui, sans-serif; }
+dialog.acct::backdrop { background: #000b; backdrop-filter: blur(6px); }
+.acct h2 { margin: 0 0 6px; font-size: 1.55rem; letter-spacing: -.015em; } .acct .acct-sub { margin: 0 0 20px; color: #a3a7ab; line-height: 1.45; }
+.acct .x { position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #ffffff1f; background: none; color: inherit; font-size: 1.2rem; cursor: pointer; }
+.acct .acct-wait { color: #a3a7ab; margin: 8px 0; }
+.acct-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: 0 0 18px; border-radius: 12px; background: #1a1d20; }
+.acct-tabs button { height: 36px; border: 0; border-radius: 9px; background: none; color: #a3a7ab; font: 600 .92rem/1 inherit; cursor: pointer; }
+.acct-tabs button[aria-selected="true"] { background: #2a2e32; color: #fff; }
+.acct-f { display: grid; gap: 14px; }
+.acct-f label { display: grid; gap: 6px; font-size: .85rem; color: #c9cdd0; font-weight: 600; }
+.acct-f input { height: 46px; padding: 0 14px; border: 1px solid #2c3136; border-radius: 12px; background: #0b0c0d; color: #fff; font: 400 1rem/1 inherit; outline: none; width: 100%; box-sizing: border-box; }
+.acct-f input::placeholder { color: #5d6368; } .acct-f input:focus { border-color: var(--accent, #ff3b4e); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #ff3b4e) 25%, transparent); }
+.acct-f .pw { position: relative; display: block; } .acct-f .pw input { padding-right: 70px; }
+.acct-f .eye { position: absolute; right: 6px; top: 6px; height: 34px; padding: 0 12px; border: 0; border-radius: 8px; background: #1d2023; color: #c9cdd0; font: 600 .8rem/1 inherit; cursor: pointer; }
+.acct .err { min-height: 1.2em; margin: -4px 0 0; color: #ff7a86; font-size: .88rem; }
+.acct .acct-go { height: 48px; border: 0; border-radius: 12px; background: var(--accent, #ff3b4e); color: #fff; font: 700 1rem/1 inherit; cursor: pointer; width: 100%; }
+.acct .acct-go:disabled { opacity: .7; cursor: default; } .acct .acct-go:hover:not(:disabled) { filter: brightness(1.08); }
+.acct .link { justify-self: center; border: 0; background: none; color: #c9cdd0; font: 500 .9rem/1 inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 6px; }
+.acct .fine { margin: 0; color: #8b8f93; font-size: .8rem; text-align: center; }
+.acct-me { display: flex; align-items: center; gap: 14px; margin: 0 0 18px; } .acct-me .acct-sub { margin: 0; }
+.acct-me .av { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--accent, #ff3b4e); color: #fff; font-weight: 700; font-size: 1.3rem; flex: none; }
+.acct-w { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 0 14px; }
+.acct-w > div { padding: 14px; border-radius: 14px; background: #1a1d20; display: grid; gap: 2px; } .acct-w b { font-size: 1.5rem; font-variant-numeric: tabular-nums; } .acct-w span { color: #a3a7ab; font-size: .82rem; }
+.acct-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+.acct .ghost { height: 42px; border: 1px solid #2c3136; border-radius: 12px; background: none; color: #e6e8ea; font: 600 .9rem/1 inherit; cursor: pointer; } .acct .ghost:hover { background: #1a1d20; }
 /* MetroBar AI credits (2026-11-12): wallet line in the AI panel + the Get more sheet */
 .ai-wal { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: .86rem; }
 .ai-wal .btn { flex: none; }
 dialog.ai-pay { width: min(56rem, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 28px; border: 1px solid #ffffff1f; border-radius: 22px; background: #111315; color: #f2f2f2; box-shadow: 0 30px 90px #000a; }
 dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
-.ai-pay h2 { margin: 0 0 6px; font-size: 1.5rem; letter-spacing: -.01em; } .ai-pay .sub { margin: 0 0 20px; color: #a3a7ab; }
+.ai-pay h2 { margin: 0 0 6px; font-size: 1.5rem; letter-spacing: -.01em; } .ai-pay .pay-sub { margin: 0 0 20px; color: #a3a7ab; }
 .ai-pay .x { position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #ffffff1f; background: none; color: inherit; font-size: 1.2rem; cursor: pointer; }
 .ai-pay .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 12px; }
 .ai-pay .plan { display: flex; flex-direction: column; gap: 4px; padding: 18px; border: 1px solid #ffffff1a; border-radius: 16px; background: #16191b; }
@@ -7551,7 +7577,10 @@ function rbTool(name, open) {
 }
 document.querySelectorAll('.rb-tool').forEach(box => box.querySelector('.rb-tbtn').addEventListener('click', () => rbTool(box.dataset.tool, !box.classList.contains('open'))));
 if (!store.get('metrobar.bookMap', false)) { store.set('metrobar.bookMap', true); if (!RB2.tools.includes('map')) RB2.tools = ['map'].concat(RB2.tools); }
-RB2.tools.forEach(n => rbTool(n, true));
+// saved tools reopen once every script has run: the AI tool needs the AI code further down (2026-11-13: reopening it here
+// threw at load and took MetroBar AI and the Zone's account button down with it)
+{ const reopen = () => RB2.tools.slice().forEach(n => { try { rbTool(n, true); } catch (e) { console.warn('tool', n, e); } });
+  document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', reopen) : setTimeout(reopen, 0); }
 $('rbSideTg').addEventListener('click', () => $('rbSide').classList.add('open'));
 $('rbSideX').addEventListener('click', () => $('rbSide').classList.remove('open'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('rbSide').classList.contains('open')) $('rbSide').classList.remove('open'); });
@@ -7854,7 +7883,7 @@ function aiWalletShow() {
       el.hidden = false;
       const t = h('span'); t.textContent = w ? `${w.left} AI credits left` + (w.plan === 'pro' ? ' · Pro' : ` · ${w.monthly} free every month`) : 'Sign in on The Zone to get free AI credits every month.';
       const more = h('button', 'btn', w ? (w.plan === 'pro' ? 'Add credits' : 'Get Pro') : 'Sign in'); more.type = 'button';
-      more.addEventListener('click', () => w ? aiPaywall() : (location.href = 'landing-beat-meter.html#zone'));
+      more.addEventListener('click', () => w ? aiPaywall() : acctOpen('in'));
       el.append(t, more);
     }
   }
@@ -7877,17 +7906,18 @@ function aiPaywall(why) {
   const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, w = AIW.w;
   let d = document.getElementById('aiPayDlg');
   if (!d) { d = document.createElement('dialog'); d.id = 'aiPayDlg'; d.className = 'ai-pay'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
-  const free = w ? w.monthly : 15, proN = P.proCredits || 800, packN = P.packCredits || 300;
+  const free = P.freeCredits || 15, proN = P.proCredits || 800, packN = P.packCredits || 300, pro = w && w.plan === 'pro';
+  const when = w ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
-<h2>${why === 'no_credits' ? 'You used all your AI credits' : 'More AI for your bars'}</h2>
-<p class="sub">${w ? `${w.left} left now. Free credits come back on ${new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}.` : 'Sign in on The Zone first, so the credits land in your account.'}</p>
+<h2>${why === 'no_credits' ? 'You used all your AI credits' : pro ? 'Your MetroBar AI' : 'More AI for your bars'}</h2>
+<p class="pay-sub">${!w ? 'Sign in first, so the credits land in your account.' : pro ? `${w.left} credits left. Your ${proN} come back on ${when}.` : `${w.left} left now. Your free ${free} come back on ${when}.`}</p>
 <div class="plans">
  <div class="plan"><b>Free</b><strong>${free}</strong><small>AI credits every month</small><ul><li>Next bar, Fit this bar, rhyme ammo, notes</li><li>Every answer checked by MetroBar's engine</li></ul><span class="cur">${w && w.plan === 'free' ? 'Your plan' : ''}</span></div>
- <div class="plan pro"><b>Pro</b><strong>${proN}</strong><small>AI credits every month</small><ul><li>Everything in Free, 50x the AI</li><li>Cancel any time</li></ul><a class="btn pri" data-k="pro">${P.proPrice || 'Get Pro'}</a></div>
+ <div class="plan pro"><b>Pro</b><strong>${proN}</strong><small>AI credits every month</small><ul><li>Everything in Free, 50x the AI</li><li>Cancel any time</li></ul>${pro ? '<span class="cur">Your plan</span>' : `<a class="btn pri" data-k="pro">${P.proPrice || 'Get Pro'}</a>`}</div>
  <div class="plan"><b>Credit pack</b><strong>${packN}</strong><small>credits, one payment, never expire</small><ul><li>On top of any plan</li></ul><a class="btn" data-k="pack">${P.packPrice || 'Buy pack'}</a></div>
 </div><p class="note">1 press = 1 credit. If the AI fails, the credit comes back. Payments run on Stripe; MetroBar never sees your card.</p>`;
   d.querySelectorAll('a[data-k]').forEach(a => { const u = aiPay(a.dataset.k);
-    if (!w) { a.href = 'landing-beat-meter.html#zone'; a.textContent = 'Sign in first'; }
+    if (!w) { a.href = '#'; a.textContent = 'Sign in first'; a.addEventListener('click', e => { e.preventDefault(); d.close(); acctOpen('in'); }); }
     else if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { setTimeout(() => aiWallet(true), 15000); }); }
     else { a.removeAttribute('href'); a.classList.add('off'); a.textContent = 'Coming soon'; } });
   if (!d.open) d.showModal();
@@ -8119,6 +8149,7 @@ function aiAddAfter(after, text, n) {
   rbSetText(ls.join('\n'), ls.slice(0, k + 2).join('\n').length);
 }
 function aiRender() {
+  if (typeof AI === 'undefined' || !AI) return;   // called before the AI code below has run
   const box = $('rbAi'); if (box.firstChild) return;
   const root = h('div', 'rb-ai'); box.append(root);
   root.innerHTML = `<div class="two"><label>Technique <select id="aiTech"></select></label><label>Rhyme <select id="aiRhyme"><option value="auto">auto (pairs)</option><option value="above">with the bar above</option><option value="free">free</option></select></label></div>
@@ -8857,7 +8888,7 @@ function znCompose(body) {
 // ---- wiring
 document.querySelectorAll('.zn-seg button').forEach(b => b.addEventListener('click', () => { ZN.feed = b.dataset.feed; if (!ZN.api) return; znGo('feed'); }));
 $('znSearch').addEventListener('input', () => { clearTimeout(ZN.qT); ZN.qT = setTimeout(() => { if (ZN.api) znGo('feed', null, false); }, 300); });
-$('znMe').addEventListener('click', () => { if (!ZN.api) return zoneOpen(); ZN.me ? znGo('profile', ZN.me.username) : znGo('auth'); });
+$('znMe').addEventListener('click', () => { if (!ZN.me && typeof acctOpen === 'function' && !(ZN.api && ZN.api.demo)) return acctOpen('in'); if (!ZN.api) return zoneOpen(); ZN.me ? znGo('profile', ZN.me.username) : znGo('auth'); });
 // Post to the Zone from the Rhyme Book
 $('rbPost').addEventListener('click', () => {
   const p = rbPage(); if (!p || !p.text.trim()) { $('rbMsg').textContent = 'Write something first.'; return; }
@@ -11221,7 +11252,7 @@ var BS = (() => {
     meB.querySelector('b').textContent = name || (synced ? 'Your account' : 'Guest'); me.classList.toggle('on', synced);
     meB.title = synced ? 'Your Barbook is kept in your Zone account' : 'Sign in on The Zone to keep your songs in your account';
   }
-  meB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html#zone'; });
+  meB.addEventListener('click', () => acctOpen());
   if (window.MutationObserver && $('rbSync')) new MutationObserver(statSync).observe($('rbSync'), { childList: true, characterData: true, subtree: true });
   document.addEventListener('aiwallet', statSync); if (AI_PROV.metrobar && AI.prov === 'metrobar') setTimeout(() => aiWallet(), 2500);
   // the Beat tile lights up while the beat panel is open or a beat plays; Saved bars while its list is open
@@ -11236,6 +11267,87 @@ var BS = (() => {
   rhyApply(); ready = true; rbPaint(); sync();
   return { settings, library, check, place, actOpen, cmp, struct };
 })();
+</script>
+<script>
+/* Account sheet (Bennie 2026-11-13: "the sign in is horrible"): sign in, join, reset and your account in one dark sheet over
+   Barbook or MetroBar, instead of a jump to the Zone page. Same Zone account (Supabase), same checks. acctOpen('in'|'up'|'reset'). */
+var ACCT = { mode: 'in' };
+async function acctOpen(mode) {
+  let d = document.getElementById('acctDlg');
+  if (!d) { d = document.createElement('dialog'); d.id = 'acctDlg'; d.className = 'acct'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
+  if (!d.open) d.showModal();
+  d.innerHTML = '<p class="acct-wait">One moment…</p>';
+  let api = null; try { api = typeof rbSyncApi === 'function' ? await rbSyncApi() : null; } catch (e) {}
+  if (!api) { d.innerHTML = '<form method="dialog"><button class="x" aria-label="Close">×</button></form><h2>Accounts are offline</h2><p class="acct-sub">MetroBar could not reach its account server. Check your connection and try again.</p>'; return; }
+  if (!ZN.me && !mode) { try { ZN.me = await api.session(); } catch (e) {} }
+  ZN.me && !mode ? acctMine(d, api) : acctForm(d, api, mode || ACCT.mode);
+}
+function acctForm(d, api, mode) {
+  ACCT.mode = mode;
+  const T = { in: ['Welcome back', 'Sign in to keep your songs in your account and use MetroBar AI.', 'Sign in'],
+    up: ['Make your account', 'Free. Your songs sync to it, and you get 15 MetroBar AI credits every month.', 'Create account'],
+    reset: ['Reset your password', 'We email you a link to set a new one.', 'Send reset link'] }[mode];
+  d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
+<h2>${T[0]}</h2><p class="acct-sub">${T[1]}</p>
+${mode === 'reset' ? '' : `<div class="acct-tabs" role="tablist"><button type="button" role="tab" data-m="in" aria-selected="${mode === 'in'}">Sign in</button><button type="button" role="tab" data-m="up" aria-selected="${mode === 'up'}">Join</button></div>`}
+<form class="acct-f" novalidate>
+${mode === 'up' ? '<label>Username<input name="name" autocomplete="username" spellcheck="false" placeholder="3-20 letters, numbers, _ or ." pattern="[A-Za-z0-9_.]{3,20}" required></label>' : ''}
+<label>Email<input name="email" type="email" autocomplete="email" spellcheck="false" placeholder="you@example.com" required></label>
+${mode === 'reset' ? '' : `<label>Password<span class="pw"><input name="pw" type="password" minlength="8" autocomplete="${mode === 'up' ? 'new-password' : 'current-password'}" placeholder="${mode === 'up' ? 'At least 8 characters' : 'Your password'}" required><button type="button" class="eye" aria-label="Show password">Show</button></span></label>`}
+<p class="err" role="alert"></p>
+<button class="acct-go" type="submit">${T[2]}</button>
+${mode === 'in' ? '<button type="button" class="link" data-m="reset">Forgot your password?</button>' : mode === 'reset' ? '<button type="button" class="link" data-m="in">Back to sign in</button>' : '<p class="fine">Posts you share on the Zone are public. Everything else stays private to you.</p>'}
+</form>`;
+  const f = d.querySelector('.acct-f'), err = f.querySelector('.err'), go = f.querySelector('.acct-go');
+  d.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => acctForm(d, api, b.dataset.m)));
+  const eye = f.querySelector('.eye'); if (eye) eye.addEventListener('click', () => { const i = f.elements.pw, on = i.type === 'password'; i.type = on ? 'text' : 'password'; eye.textContent = on ? 'Hide' : 'Show'; eye.setAttribute('aria-label', on ? 'Hide password' : 'Show password'); });
+  setTimeout(() => (f.elements.name || f.elements.email).focus(), 30);
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); err.textContent = '';
+    const v = k => (f.elements[k] ? f.elements[k].value.trim() : ''), email = v('email'), pw = f.elements.pw ? f.elements.pw.value : '';
+    if (mode === 'up' && !/^[A-Za-z0-9_.]{3,20}$/.test(v('name'))) { err.textContent = 'Usernames are 3-20 letters, numbers, _ or .'; return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { err.textContent = 'That email doesn\'t look right.'; return; }
+    if (mode !== 'reset' && pw.length < 8) { err.textContent = 'Passwords are at least 8 characters.'; return; }
+    const label = go.textContent; go.disabled = true; go.textContent = mode === 'up' ? 'Creating…' : mode === 'in' ? 'Signing in…' : 'Sending…';
+    try {
+      if (mode === 'reset') { await api.resetPw(email); acctNote(d, 'Check your email', `If ${email} has an account, a reset link is on its way.`); return; }
+      if (mode === 'up') { const r = await api.signUp(email, pw, v('name')); if (r === 'confirm') { acctNote(d, 'Confirm your email', `We sent a link to ${email}. Click it, then come back and sign in.`); return; } }
+      else await api.signIn(email, pw);
+      ZN.api = api; await znAuthChanged(); acctDone(d);
+    } catch (er) {
+      const m = znErr(er); err.textContent = /invalid login/i.test(m) ? 'Email or password is wrong.' : /not confirmed/i.test(m) ? 'Confirm your email first: check your inbox for the link.' : /already registered|already exists/i.test(m) ? 'That email already has an account. Sign in instead.' : /duplicate|username/i.test(m) ? 'That username is taken. Try another.' : m;
+      go.disabled = false; go.textContent = label;
+    }
+  });
+}
+function acctNote(d, title, text) {
+  d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form><h2>${title}</h2><p class="acct-sub"></p><button class="acct-go" type="button">Back to sign in</button>`;
+  d.querySelector('.acct-sub').textContent = text; d.querySelector('.acct-go').addEventListener('click', () => acctOpen('in'));
+}
+function acctDone(d) {
+  if (typeof aiWallet === 'function') aiWallet(true);
+  if (typeof rbSyncSoon === 'function') rbSyncSoon(300);
+  if (typeof toast === 'function' && ZN.me) toast('Signed in as @' + ZN.me.username);
+  d.close();
+}
+async function acctMine(d, api) {
+  const me = ZN.me, w = (typeof aiWallet === 'function' && AI_PROV.metrobar) ? await aiWallet(true) : null;
+  const when = w ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';
+  d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
+<div class="acct-me"><span class="av"></span><div><h2></h2><p class="acct-sub mail"></p></div></div>
+${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></div><div><b>${w.plan === 'pro' ? 'Pro' : 'Free'}</b><span>${w.plan === 'pro' ? 'refills ' : 'next ' + w.monthly + ' on '}${when}</span></div></div>
+<button class="acct-go" type="button" data-a="pay">${w.plan === 'pro' ? 'Add credits' : 'Get Pro: ' + ((window.ZONE_CONFIG && ZONE_CONFIG.pay && ZONE_CONFIG.pay.proCredits) || 800) + ' credits a month'}</button>` : ''}
+<div class="acct-row"><button type="button" class="ghost" data-a="zone">My Zone profile</button><button type="button" class="ghost" data-a="out">Sign out</button></div>`;
+  d.querySelector('.av').textContent = (me.username || '?')[0].toUpperCase();
+  d.querySelector('h2').textContent = '@' + me.username;
+  d.querySelector('.mail').textContent = (w && w.email) || 'Signed in';
+  d.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', async () => {
+    const a = b.dataset.a;
+    if (a === 'pay') { d.close(); aiPaywall(); }
+    else if (a === 'zone') { if (typeof rbFlush === 'function') rbFlush(); location.href = 'landing-beat-meter.html#zone'; }
+    else if (a === 'out') { b.disabled = true; try { await api.signOut(); } catch (e) {} ZN.me = null; if (typeof AIW !== 'undefined') AIW.w = null; try { await znAuthChanged(); } catch (e) {} if (typeof aiWalletShow === 'function') aiWalletShow(); d.close(); if (typeof toast === 'function') toast('Signed out. Your songs stay in this browser.'); }
+  }));
+}
 </script>
 <script>
 /* Moving house (Bennie 2026-11-12): MetroBar moves from whatsgoodred.github.io/metrobar-app to metrobarz.com. A browser keeps saved
