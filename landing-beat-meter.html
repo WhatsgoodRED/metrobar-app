@@ -2231,6 +2231,59 @@ html.bb .bk-play { background: var(--accent); color: var(--on-accent); }
 html.bb .be-row > .bs-chk { grid-column: 1 / -1; width: min(46rem, 100%); justify-self: center; text-align: left; }
 @media (min-width: 1001px) { html.bb:not(.bb-nolib) #beDrawerTg { display: none; } }
 html.bb .be-row:not(.has) .be-meter { visibility: hidden; }
+/* polish pass (Bennie 2026-11-12: "do you see the difference in quality?"): Barbook keeps its own accent whatever MetroBar's accent picker says */
+html.bb, html.bb[data-theme] { --accent: #d7ff3e !important; --on-accent: #10130a !important; --accent-text: #d7ff3e !important; }
+.be-cov { display: block; padding: 0; background: linear-gradient(160deg, #23272b, #15181a); box-shadow: inset 0 0 0 1px #2c3136; }
+.be-cov svg { display: block; width: 100%; height: 100%; } .be-cov img { margin: 0; width: 100%; height: 100%; }
+html.bb #beRecent button { grid-template-columns: 44px minmax(0, 1fr); padding: 9px 10px; color: #b9bec3; }
+html.bb #beRecent .be-cov { width: 44px; height: 44px; border-radius: 11px; }
+html.bb #beRecent button[aria-current="true"] { color: #fff; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, var(--card2)), var(--card2)); }
+html.bb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 2px var(--accent); }
+html.bb #beRecent button:hover { background: var(--card2); color: #fff; }
+.bs-lib #rbList button::before { display: none; } .bs-lib #rbList .be-cov { width: 40px; height: 40px; border-radius: 9px; grid-row: span 2; }
+.bs-lib #rbList.grid .be-cov { display: block; width: 100%; height: 86px; border-radius: 10px; grid-row: auto; margin-bottom: 6px; }
+html.bb .be-goal { padding: 9px 10px 9px 9px; gap: 9px; background: linear-gradient(180deg, #171a1c, #121416); }
+html.bb .be-goal > svg { width: 44px; height: 44px; }
+html.bb .be-goal .gr-bg { stroke: #262a2e; stroke-width: 5; } html.bb .be-goal .gr-fg { stroke-width: 5; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 60%, transparent)); }
+html.bb .be-goal text { fill: #fff; font: 700 9.5px var(--body); font-variant-numeric: tabular-nums; }
+html.bb .be-goal > button b { display: none; } html.bb .be-goal > button { position: absolute; width: 44px; height: 44px; border-radius: 50%; } html.bb .be-goal { position: relative; }
+html.bb .be-goal > span { gap: 6px !important; padding: 6px 4px 6px 8px; border-radius: 8px; color: var(--accent) !important; font-weight: 600 !important; }
+html.bb .be-goal > span:hover { background: var(--card2); }
+html.bb .be-goal > span b { color: #fff; font: 700 1rem var(--body); } html.bb .be-goal > span svg { width: 18px; height: 18px; color: var(--accent); }
+html.bb .be-goal > span::after { content: "day streak  ›"; white-space: pre; color: var(--accent); font-weight: 600; font-size: .8rem; }
+html.bb .be-links > button { padding: 12px 2px 10px; gap: 7px; border-radius: 12px; font-weight: 600; font-size: .75rem; background: linear-gradient(180deg, #171a1c, #121416); color: #e3e6e8; }
+html.bb .be-links > button svg { width: 21px; height: 21px; stroke-width: 1.9; }
+html.bb .be-links > button.on, html.bb .be-links > button[aria-expanded="true"] { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); background: color-mix(in srgb, var(--accent) 9%, #121416); color: var(--accent); }
+.bs-stat { display: flex; justify-content: center; align-items: center; gap: 8px; margin: 2px 0; font: 600 .6875rem var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.bs-stat i { font-style: normal; opacity: .5; } .bs-stat button, .bs-stat span { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; padding: 2px 0; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; }
+.bs-stat button { cursor: pointer; } .bs-stat button svg { color: var(--warn); } .bs-stat .on { color: #5fd08a; } .bs-stat button.on { color: #c6cacd; }
+.bs-me { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; padding: 6px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(180deg, #171a1c, #121416); }
+.bs-me .a { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 2px; border: 0; background: none; color: var(--fg); cursor: pointer; text-align: left; font: 600 .9rem var(--body); }
+.bs-me .av { position: relative; flex: none; width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--accent); color: var(--on-accent); }
+.bs-me.on .av::after { content: ""; position: absolute; right: -3px; bottom: -3px; width: 10px; height: 10px; border-radius: 50%; background: #3fb96b; border: 2px solid #121416; }
+.bs-me .a b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .bs-me em { flex: none; padding: 2px 7px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: 6px; color: var(--accent); font: 700 .625rem var(--body); letter-spacing: .14em; font-style: normal; }
+.bs-nav { justify-content: center; }
+/* sharper tool row */
+html.bb .be-rt { height: 52px; padding: 0 9px; border-color: #24282c; background: linear-gradient(180deg, #131517, #0e0f11); box-shadow: 0 1px 0 #ffffff08 inset; }
+html.bb .be-rb { color: #a3a9af; } html.bb .be-rb svg { width: 21px; height: 21px; stroke-width: 2; }
+html.bb .be-rb[data-k="rewrite"] { color: #ff5fae; } html.bb .be-row.has .be-rb[data-k="rewrite"] { color: #38d0ff; }
+html.bb .be-rb[data-k="rhymes"] { color: #ffd23f; } html.bb .be-rb[data-k="rhymes"] svg { filter: drop-shadow(0 0 4px #ffd23f55); }
+html.bb .be-row.has .be-rb[data-k="adlib"] { color: #c9a6ff; }
+html.bb .be-in::placeholder { color: #6b7279; -webkit-text-fill-color: #6b7279; }
+html.bb .be-hin { height: 34px; padding: 0 16px; border-radius: 10px; font-size: .8rem; background: linear-gradient(180deg, #171a1c, #121416); }
+html.bb .be-num { font-size: .75rem; color: #6b7279; }
+html.bb .be-ib { border-radius: 999px; } html.bb .be-head [aria-label="Undo"], html.bb .be-head [aria-label="Redo"] { border: 1px solid var(--line); }
+html.bb .be-pill { border-radius: 999px; }
+/* settings + library details */
+.bs-dlg h4 { text-transform: uppercase; letter-spacing: .14em; font-size: .6875rem; }
+.bs-note { display: flex; align-items: center; gap: 9px; margin: 0 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: #c6cacd; font-size: .85rem; } .bs-note svg { color: var(--accent); flex: none; }
+.bs-tipline { display: flex; align-items: center; gap: 9px; } .bs-tipline[hidden] { display: none; } .bs-tipline svg { color: #ffd23f; flex: none; } .bs-tipline span { flex: 1; } .bs-tipline .be-px { color: var(--muted); }
+.bs-pair { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; } .bs-ltool .bs-pair .be-ib { border: 0 !important; border-radius: 0; }
+.bs-allh { display: flex; align-items: center; gap: 12px; margin: 6px 0 0; } .bs-allh::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.bs-hero em { grid-column: 2; color: var(--accent); font: 500 .8rem var(--body); font-style: normal; }
+.bs-selbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--line)); border-radius: 10px; font-size: .88rem; } .bs-selbar[hidden] { display: none; } .bs-selbar span { margin-right: auto; }
+.bs-lib #rbList.sel button { outline: 1px dashed #3a4046; outline-offset: -1px; } .bs-lib #rbList.sel button.picked { outline: 2px solid var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--card2)); }
+html.bb .rb-bh label.field b { min-width: 3ch; color: var(--fg); font-variant-numeric: tabular-nums; }
 html.bb .be-in:focus-visible, html.bb .be-hin:focus-visible, html.bb #rbTitle:focus-visible, .bs-card textarea:focus-visible { outline: none; }
 html.bb .be-hin { box-sizing: content-box; }
 html.bb .rb-eb { display: flex; align-items: center; gap: 12px; text-transform: uppercase; letter-spacing: .14em; font-size: .6875rem; }
@@ -6953,7 +7006,7 @@ function rbList() {
   const list = RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q))).sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (RB.sort === 'old' ? (a.updated || 0) - (b.updated || 0) : RB.sort === 'az' ? String(a.title || '').localeCompare(String(b.title || '')) : RB.sort === 'new' ? (b.updated || 0) - (a.updated || 0) : 0));
   for (const p of list) {
     const li = h('li'), b = h('button'); b.type = 'button'; b.setAttribute('aria-current', p.id === RB.cur ? 'true' : 'false');
-    if (p.cover) { const im = new Image(); im.className = 'rb-cov'; im.src = p.cover; im.alt = ''; b.append(im); }
+    if (window.BBAPP) b.append(bookMini(p)); else if (p.cover) { const im = new Image(); im.className = 'rb-cov'; im.src = p.cover; im.alt = ''; b.append(im); }
     b.append(h('span', 't' + (p.locked ? ' lock' : '') + (p.pin ? ' pin' : ''), p.title || 'Untitled'), h('span', 'd', (p.folder ? p.folder + ' · ' : '') + rbDate(p.updated)));
     if (window.BBAPP) b.append(h('span', 'p', String(p.text || '').split('\n').filter(x => x.trim() && !/^\s*\[[^\]]*\]\s*$/.test(x)).slice(0, 3).join(' / ')));
     b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; rbSaveNow(); bookOpen(); });
@@ -6968,6 +7021,25 @@ function rbList() {
   });
 }
 function rbFlush() { if (RB.timer) rbSaveNow(); }
+// A song's icon is a small map of its own rhymes (Bennie 2026-11-12: "the icons actually show the layout of the rhyme"): the first bars
+// as rows, every word a short grey dash in its place, every rhyme word a dot in its rhyme colour. A cover photo wins when there is one.
+const MINI = new Map();
+function bookMini(p) {
+  const cv = h('span', 'be-cov'); if (!p) return cv;
+  if (p.cover) { const im = new Image(); im.src = p.cover; im.alt = ''; cv.append(im); return cv; }
+  const key = p.id + ':' + (p.updated || 0); let svg = MINI.get(key);
+  if (svg == null) {
+    const ls = String(p.text || '').split('\n').filter(l => l.trim() && !/^\s*(\[[^\]]*\]\s*$|#)/.test(l)).slice(0, 5); let out = '';
+    if (ls.length) {
+      let rows = []; try { rows = bookHighlight(ls.join('\n')); } catch (e) {}
+      const max = Math.max(24, ...ls.map(l => l.length)), y0 = 19 - (ls.length - 1) * 3.2;
+      ls.forEach((l, i) => (rows[i] || []).forEach(w => { const x = 6 + 26 * w.a / max, wd = Math.max(1.6, 26 * (w.b - w.a) / max - 1), y = y0 + i * 6.4;
+        out += w.c ? `<rect x="${x.toFixed(1)}" y="${(y - 1.9).toFixed(1)}" width="${Math.max(3.8, wd).toFixed(1)}" height="3.8" rx="1.9" fill="hsl(${w.h} 88% ${62 - 6 * (w.d || 0)}%)"/>` : `<rect x="${x.toFixed(1)}" y="${(y - 1.1).toFixed(1)}" width="${wd.toFixed(1)}" height="2.2" rx="1.1" fill="#59616a"/>`; }));
+    } else out = '<rect x="8" y="11" width="22" height="2.2" rx="1.1" fill="#3a4046"/><rect x="8" y="18" width="15" height="2.2" rx="1.1" fill="#3a4046"/><rect x="8" y="25" width="19" height="2.2" rx="1.1" fill="#3a4046"/>';
+    svg = `<svg viewBox="0 0 38 38" aria-hidden="true">${out}</svg>`; if (MINI.size > 1500) MINI.clear(); MINI.set(key, svg);
+  }
+  cv.innerHTML = svg; return cv;
+}
 // ---- Barbook sync (Bennie 2026-11-09): when you're signed in to the Zone account, your pages (and Recently deleted) are kept
 // in your own private rows (book_pages; row level security: only you can read or change them). Posting to the Zone stays a
 // separate button. Two-way: per page, whichever side changed since the last sync wins; both changed = newest edit wins.
@@ -9894,16 +9966,17 @@ var BE = (() => {
     const goalN = store.get('metrobar.bookGoalN', 8), n = g.keys.length, f = Math.min(1, n / goalN), C0 = 2 * Math.PI * 17;
     let streak = 0; try { streak = writeStreak(store.get('metrobar.days', []), todayKey()).streak; } catch (e) {}
     goal.innerHTML = `<svg viewBox="0 0 42 42" width="42" height="42" aria-hidden="true"><circle class="gr-bg" cx="21" cy="21" r="17"/><circle class="gr-fg" cx="21" cy="21" r="17" stroke-dasharray="${C0.toFixed(1)}" stroke-dashoffset="${(C0 * (1 - f)).toFixed(1)}"/></svg>`;
-    const gb = btn('', '', 'Change the daily goal'); gb.append(h('b', '', window.BBAPP ? `${n}/${goalN} today` : `${n}/${goalN} bars today`), h('small', '', n >= goalN ? 'Goal done. Keep going.' : 'Daily goal · tap to change'));
+    if (window.BBAPP) goal.querySelector('svg').insertAdjacentHTML('beforeend', `<text x="21" y="24.500" text-anchor="middle">${n}/${goalN}</text>`);
+    const gb = btn('', '', 'Change the daily goal'); gb.append(h('b', '', window.BBAPP ? 'today' : `${n}/${goalN} bars today`), h('small', '', n >= goalN ? 'Goal done. Keep going.' : 'Daily goal · tap to change'));
     gb.addEventListener('click', () => { const opts = [4, 8, 12, 16, 24], nx = opts[(opts.indexOf(goalN) + 1) % opts.length]; store.set('metrobar.bookGoalN', nx); drawer(); });
-    const st = h('span'); st.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:4px;font:700 .9rem var(--body);font-variant-numeric:tabular-nums;color:var(--accent)'; st.innerHTML = IC.flame; st.append(String(streak)); st.title = `${streak}-day writing streak`;
+    const st = h('span'); st.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:4px;font:700 .9rem var(--body);font-variant-numeric:tabular-nums;color:var(--accent)'; st.innerHTML = IC.flame; st.append(h('b', '', String(streak))); st.title = `${streak}-day writing streak`;
     goal.append(gb, st);
     const stash = typeof STASH !== 'undefined' ? STASH : []; lSaved.querySelector('small').textContent = stash.length ? String(stash.length) : '';
     if (!saved.hidden) savedList();
     const rec = RB.pages.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, window.BBAPP ? 7 : 3);
     const ago = ms => { const m = Math.max(0, Math.round((Date.now() - (ms || 0)) / 60000)); return !ms ? '' : m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : m < 43200 ? Math.round(m / 1440) + 'd ago' : rbDate(ms); };
     recList.replaceChildren(...rec.map(p => { const li = h('li'), b = btn('', ''); b.setAttribute('aria-current', String(p.id === RB.cur));
-      if (window.BBAPP) { const cv = h('span', 'be-cov'); if (p.cover) { const im = new Image(); im.src = p.cover; im.alt = ''; cv.append(im); } else cv.innerHTML = '<i></i><i></i><i></i><i></i>'; b.append(cv); }
+      if (window.BBAPP) b.append(bookMini(p));
       b.append(h('span', '', p.title || 'Untitled'), h('small', '', window.BBAPP ? ago(p.updated) : (p.text || '').split('\n').find(x => x.trim() && !isHead(x)) || 'Empty')); b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; store.set('metrobar.bookCur', p.id); bookOpen(); drawerOpen(false); }); li.append(b); return li; }));
     syncLine.textContent = ($('rbSync') || {}).textContent || '';
   }
@@ -10640,35 +10713,61 @@ var BS = (() => {
     x.addEventListener('click', () => d.close()); d.addEventListener('click', e => { if (e.target === d) d.close(); });
     document.body.append(d); return { d, body };
   }
-  const cover = p => { const cv = h('span', 'be-cov'); if (p && p.cover) { const im = new Image(); im.src = p.cover; im.alt = ''; cv.append(im); } else cv.innerHTML = '<i></i><i></i><i></i><i></i>'; return cv; };
+  const cover = p => bookMini(p);
 
   // Library: every song, search, sort, folder, grid or list
   const LB = dlg('All songs', 'bs-lib', I.lib), hero = h('div', 'bs-hero'), ltool = h('div', 'bs-ltool'), list = $('rbList'), search = $('rbSearch');
   const sortS = h('select', 'num-in'); sortS.setAttribute('aria-label', 'Sort'); [['new', 'Newest first'], ['old', 'Oldest first'], ['az', 'A to Z']].forEach(([v, l]) => sortS.append(new Option(l, v)));
   RB.sort = store.get('metrobar.bookSort', 'new'); sortS.value = RB.sort;
-  const gridB = btn('be-ib', I.grid, 'Cards or a list', 'Cards or a list'); gridB.setAttribute('aria-pressed', String(store.get('metrobar.bookGrid', false)));
-  list.classList.toggle('grid', store.get('metrobar.bookGrid', false));
-  search.placeholder = 'Search your songs'; ltool.append(search, sortS, lib.querySelector('.rb-fsel'), gridB);
-  LB.body.append(hero, ltool, h('p', 'bs-tipline', 'Tip: pin a song to keep it on top. Open Settings on a song for Pin to top and a cover photo.'), list);
+  const gridB = btn('be-ib', I.grid, 'Cards', 'Show songs as cards'), listB = btn('be-ib', IC.menu, 'List', 'Show songs as a list'), selB = btn('be-ib', IC.check, 'Select several songs', 'Select several songs'), pair = h('span', 'bs-pair'); pair.append(gridB, listB);
+  const layout = on => { list.classList.toggle('grid', on); gridB.setAttribute('aria-pressed', String(on)); listB.setAttribute('aria-pressed', String(!on)); store.set('metrobar.bookGrid', on); };
+  listB.addEventListener('click', () => layout(false)); selB.setAttribute('aria-pressed', 'false');
+  layout(store.get('metrobar.bookGrid', false));
+  search.placeholder = 'Search your songs'; ltool.append(search, selB, sortS, lib.querySelector('.rb-fsel'), pair);
+  const tipL = h('p', 'bs-tipline'), tipX = btn('be-px', '×', 'Hide this tip', 'Hide this tip'), selBar = h('div', 'bs-selbar'), allH = h('h4', 'bs-allh', 'All songs'); selBar.hidden = true;
+  tipL.innerHTML = IC.bulb + '<span>Tip: pin a song to keep it on top. Settings on a song has Pin to top and a cover photo.</span>'; tipL.append(tipX); tipL.hidden = store.get('metrobar.bookTipOff', false);
+  tipX.addEventListener('click', () => { tipL.hidden = true; store.set('metrobar.bookTipOff', true); });
+  LB.body.append(hero, ltool, tipL, selBar, allH, list);
+  // select several songs: delete them together (they go to Recently deleted)
+  const SEL = { on: false, ids: new Set() };
+  function selDraw() {
+    selB.setAttribute('aria-pressed', String(SEL.on)); selBar.hidden = !SEL.on; list.classList.toggle('sel', SEL.on);
+    list.querySelectorAll('button').forEach((b, k) => b.classList.toggle('picked', SEL.ids.has(b.dataset.id)));
+    if (!SEL.on) return; selBar.replaceChildren(h('span', '', SEL.ids.size + ' selected'));
+    const del = btn('btn', 'Delete'), no = btn('btn', 'Done'); del.disabled = !SEL.ids.size; selBar.append(del, no);
+    no.addEventListener('click', () => { SEL.on = false; SEL.ids.clear(); selDraw(); });
+    del.addEventListener('click', () => { const gone = RB.pages.filter(p => SEL.ids.has(p.id)); if (!gone.length) return; rbFlush();
+      RB.pages = RB.pages.filter(p => !SEL.ids.has(p.id)); gone.forEach(p => { p.deleted = Date.now(); RB.bin.unshift(p); });
+      if (!RB.pages.length) bookAdd('', '', ''); if (!RB.pages.find(p => p.id === RB.cur)) RB.cur = RB.pages[0].id;
+      SEL.ids.clear(); rbSaveNow(); bookOpen(); rbList(); tagIds(); selDraw(); say(gone.length + (gone.length === 1 ? ' song' : ' songs') + ' moved to Recently deleted.'); });
+  }
+  const shown = () => { const q = search.value.trim().toLowerCase(); return RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q))).sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (RB.sort === 'old' ? (a.updated || 0) - (b.updated || 0) : RB.sort === 'az' ? String(a.title || '').localeCompare(String(b.title || '')) : (b.updated || 0) - (a.updated || 0))); };
+  function tagIds() { const ps = shown(); list.querySelectorAll('li > button').forEach((b, k) => { if (ps[k]) b.dataset.id = ps[k].id; }); }
+  selB.addEventListener('click', () => { SEL.on = !SEL.on; SEL.ids.clear(); tagIds(); selDraw(); });
+  list.addEventListener('click', e => { if (!SEL.on) return; const b = e.target.closest('button'); if (!b) return; e.stopImmediatePropagation(); e.preventDefault(); tagIds(); const id = b.dataset.id; if (!id) return; if (SEL.ids.has(id)) SEL.ids.delete(id); else SEL.ids.add(id); selDraw(); }, true);
+  LB.d.addEventListener('close', () => { SEL.on = false; SEL.ids.clear(); selDraw(); });
   sortS.addEventListener('change', () => { RB.sort = sortS.value; store.set('metrobar.bookSort', RB.sort); rbList(); });
-  gridB.addEventListener('click', () => { const on = !list.classList.contains('grid'); list.classList.toggle('grid', on); gridB.setAttribute('aria-pressed', String(on)); store.set('metrobar.bookGrid', on); });
-  list.addEventListener('click', e => { if (e.target.closest('button')) LB.d.close(); });
+  gridB.addEventListener('click', () => layout(true));
+  list.addEventListener('click', e => { if (!SEL.on && e.target.closest('button')) LB.d.close(); });
   function library(focus) {
     const last = RB.pages.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0))[0]; hero.replaceChildren(); hero.hidden = !last;
     if (last) { const go = btn('bs-big bs-pri', '<span>Continue writing</span>' + I.next); go.addEventListener('click', () => { rbFlush(); RB.cur = last.id; rbSaveNow(); bookOpen(); LB.d.close(); });
-      hero.append(cover(last), h('small', '', 'Your last song'), go, h('b', '', last.title || 'Untitled')); }
+      let stk = 0; try { stk = writeStreak(store.get('metrobar.days', []), todayKey()).streak; } catch (e) {}
+      hero.append(cover(last), h('small', '', 'Your last song'), go, h('b', '', last.title || 'Untitled'), h('em', '', stk > 0 ? stk + '-day streak. Keep it alive.' : 'Write a bar today to start a streak.')); }
     rbList(); BE.drawerOpen(false); if (!LB.d.open) LB.d.showModal(); if (focus) search.focus();
   }
   allA.addEventListener('click', () => library(false)); allS.addEventListener('click', () => library(true));
 
   // Settings: how loosely words rhyme, the AI's vibe, then the page and song settings that used to sit under ⋯
   const ST = dlg('Settings', '', I.gear);
+  const OI = { none: '<circle cx="12" cy="12" r="8.500"/><path d="M6 18L18 6"/>', strict: '<circle cx="12" cy="12" r="8.500"/><circle cx="12" cy="12" r="4.500"/><circle cx="12" cy="12" r="1" fill="currentColor"/>', rap: '<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.500a6 6 0 0 0 12 0M12 17.500V20"/>', loose: '<path d="M12 21c4 0 6.500-2.600 6.500-6.200 0-3.600-2.600-5.600-3.700-9.300-2 1.600-2.600 3.600-2.600 5.300C11 9.300 9.700 8 9.300 6.300 7 8.300 5.500 11.400 5.500 14.800 5.500 18.400 8 21 12 21z"/>',
+    trap: '<path d="M4 18V9M9 18V5M14 18v-7M19 18V8"/>', drill: '<path d="M4 12h3l2-6 4 12 3-9 1.500 3H20"/>', lyrical: '<path d="M4 20h4L19 9l-4-4L4 16v4z"/><path d="M13.500 6.500l4 4"/>', melodic: '<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>' };
   const RHY = [['none', 'None', 'No rhyme colours on the page'], ['strict', 'Strict', 'Perfect and multi-syllable rhymes only'], ['rap', 'Rap', 'Perfect, multi and close rhymes, the way rappers bend them'], ['loose', 'Loose', 'Also near rhymes: same vowel, different ending']];
   const VIBE = [['trap', 'Trap', 'Short bars, bounce, ad-libs'], ['drill', 'Drill', 'Cold, direct, sliding flows'], ['lyrical', 'Lyrical', 'Wordplay, multis, storytelling'], ['melodic', 'Melodic', 'Sung lines, open vowels, hooks']];
   const rhyNow = () => (!RB.look.hi ? 'none' : store.get('metrobar.bookStrict', 'rap'));
   function opts(defs, cur, pick, name, def) {
     const box = h('div'); box.setAttribute('role', 'radiogroup'); box.setAttribute('aria-label', name); box.style.cssText = 'display:grid;gap:8px';
-    const draw = () => { box.replaceChildren(...defs.map(([v, l, d]) => { const b = btn('bs-opt', I.ring + `<b>${l}${v === def ? '<span>default</span>' : ''}</b><small>${d}</small>`); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(cur() === v)); b.addEventListener('click', () => { pick(v); draw(); }); return b; })); };
+    const draw = () => { box.replaceChildren(...defs.map(([v, l, d]) => { const b = btn('bs-opt', sv(OI[v] || '', 22) + `<b>${l}${v === def ? '<span>default</span>' : ''}</b><small>${d}</small>`); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(cur() === v)); b.addEventListener('click', () => { pick(v); draw(); }); return b; })); };
     draw(); return { box, draw };
   }
   function setRhy(v) {
@@ -10679,7 +10778,8 @@ var BS = (() => {
   function rhyApply() { const v = store.get('metrobar.bookStrict', 'rap'); BK_STRICT = v === 'strict'; BK_LOOSE = v === 'loose'; }
   const oR = opts(RHY, rhyNow, setRhy, 'Rhyme detection', 'rap'), oV = opts(VIBE, () => store.get('metrobar.aiVibe', 'lyrical'), v => { store.set('metrobar.aiVibe', v); actSync(); }, 'AI writing vibe', '');
   BE.more.hidden = false;
-  ST.body.append(h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme. Built for English.'), oR.box,
+  { const hs = BE.more.querySelectorAll('h6'); hs.forEach(x => { const n = h('h4', '', x.textContent); x.replaceWith(n); }); }
+  ST.body.append(h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme.'), (() => { const n = h('p', 'bs-note'); n.innerHTML = IC.info + '<span>Rhyme colours are built for English.</span>'; return n; })(), oR.box,
     h('h4', '', 'AI writing vibe'), h('p', '', 'The style Write with AI and Rewrite aim for. Uses your own key, set under Actions > Write with AI.'), oV.box, BE.more);
   function settings() { oR.draw(); oV.draw(); BE.drawerOpen(false); actOpen(false); if (!ST.d.open) ST.d.showModal(); }
   setB.addEventListener('click', settings);
@@ -10737,6 +10837,13 @@ var BS = (() => {
     const n = performance.now(); if (B.taps.length && n - B.taps[B.taps.length - 1] > 2000) B.taps = []; B.taps.push(n); if (B.taps.length > 6) B.taps.shift();
     if (B.taps.length >= 3) { const g = []; for (let k = 1; k < B.taps.length; k++) g.push(B.taps[k] - B.taps[k - 1]); g.sort((a, b) => a - b); const bpm = Math.round(60000 / g[Math.floor(g.length / 2)]); if (bpm >= 50 && bpm <= 220) $('rbBoothBpm').value = bpm; }
   });
+  // scroll speed: 0 = follow the bars with the click; above 0 the sheet rolls on its own, like a teleprompter
+  const spd = h('label', 'field'), spdIn = h('input'), spdOut = h('b', '', '0%'); spdIn.type = 'range'; spdIn.min = 0; spdIn.max = 100; spdIn.step = 5; spdIn.value = store.get('metrobar.boothSpeed', 0);
+  spd.append('Scroll speed ', spdIn, spdOut); tapB.after(spd); spd.title = '0% follows the bars. Higher rolls the sheet on its own.';
+  const spdShow = () => { spdOut.textContent = spdIn.value + '%'; $('rbBoothFollow').checked = +spdIn.value === 0; store.set('metrobar.boothSpeed', +spdIn.value); };
+  spdIn.addEventListener('input', spdShow); spdShow();
+  let rollT = 0, rollAt = 0;
+  const roll = now => { if (!BOOTH.on) return; const sh = $('rbSheet'), v = +spdIn.value; if (v > 0) { rollAt += (now - rollT) / 1000 * (8 + v * 1.4); if (rollAt >= 1) { sh.scrollTop += Math.floor(rollAt); rollAt -= Math.floor(rollAt); } } rollT = now; requestAnimationFrame(roll); };
   fullB.addEventListener('click', () => { B.full = !B.full; store.set('metrobar.boothFull', B.full); fullB.setAttribute('aria-pressed', String(B.full)); boothStop(); boothRender(); });
   function flowLine(text) {
     const f = document.createDocumentFragment(), re = /[A-Za-z0-9']+/g; let m, c = 0;
@@ -10755,7 +10862,7 @@ var BS = (() => {
     if (B.flow) sh.querySelectorAll('.ln').forEach(e => e.replaceChildren(flowLine(e.textContent)));
   };
   const bs0 = boothStart, bx0 = boothStop;
-  boothStart = function () { bs0(); $('rbBoothGo').classList.toggle('on', BOOTH.on); };
+  boothStart = function () { const was = BOOTH.on; bs0(); $('rbBoothGo').classList.toggle('on', BOOTH.on); if (!was && BOOTH.on) { rollT = performance.now(); rollAt = 0; requestAnimationFrame(roll); } };
   boothStop = function () { bx0(); $('rbBoothGo').classList.remove('on'); };
 
   // Compare: every bar next to its drafts. Click a draft to make it the bar; + writes a new one. "Two songs" keeps the old stats view.
@@ -10863,8 +10970,27 @@ var BS = (() => {
   // BE's render calls this with the last written row, so the card stays under the bars it is about
   function place(row) { if (CK.el && row && CK.el.parentNode !== row) row.append(CK.el); }
 
+  // ---- sidebar status: is the AI ready, is the book synced; and who is writing
+  const stat = h('p', 'bs-stat'), sAi = btn('', ''), sSy = h('span'), me = h('div', 'bs-me'), meB = btn('a', ''), meG = btn('bs-ib', I.gear, 'Settings', 'Settings');
+  stat.append(sAi, h('i', '', '·'), sSy); me.append(meB, meG); BE.syncLine.hidden = true; BE.syncLine.after(stat, me); meG.addEventListener('click', settings);
+  sAi.addEventListener('click', () => rbTool('ai', true));
+  function statSync() {
+    let key = false; try { key = AI.prov === 'ollama' || !!(AI.keys && AI.keys[AI.prov]); } catch (e) {}
+    sAi.innerHTML = sv('<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>', 14) + (key ? 'AI ready' : 'AI off'); sAi.classList.toggle('on', key); sAi.title = key ? 'Write with AI uses your own key' : 'Add your own AI key under Actions > Write with AI';
+    const full = ($('rbSync') || {}).textContent || '', synced = /synced|up to date|in your account\b(?!.*sign in)/i.test(full) && !/sign in/i.test(full), busy = /syncing|uploading|checking/i.test(full);
+    sSy.innerHTML = sv('<path d="M7 18a4 4 0 0 1-.5-8A5.500 5.500 0 0 1 17 8.500 4.500 4.500 0 0 1 17.500 18z"/>', 14) + (busy ? 'Syncing' : synced ? 'Synced' : 'This device'); sSy.classList.toggle('on', synced); sSy.title = full;
+    let name = ''; try { name = (window.ZN && ZN.me && (ZN.me.username || (ZN.me.profile && ZN.me.profile.username) || ZN.me.name)) || ''; } catch (e) {}
+    meB.innerHTML = `<span class="av">${sv('<circle cx="12" cy="9" r="3.500"/><path d="M5 20c1-4 4-5.500 7-5.500s6 1.500 7 5.500"/>', 18)}</span><b></b><em>${synced ? 'SYNCED' : 'LOCAL'}</em>`;
+    meB.querySelector('b').textContent = name || (synced ? 'Your account' : 'Guest'); me.classList.toggle('on', synced);
+    meB.title = synced ? 'Your Barbook is kept in your Zone account' : 'Sign in on The Zone to keep your songs in your account';
+  }
+  meB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html#zone'; });
+  if (window.MutationObserver && $('rbSync')) new MutationObserver(statSync).observe($('rbSync'), { childList: true, characterData: true, subtree: true });
+  // the Beat tile lights up while the beat panel is open or a beat plays; Saved bars while its list is open
+  { const bk = $('bkBeat'), tile = () => BE.lBeat.classList.toggle('on', bk.classList.contains('open') || bk.classList.contains('on')); if (bk && window.MutationObserver) { new MutationObserver(tile).observe(bk, { attributes: true, attributeFilter: ['class'] }); tile(); } }
+
   // ---- keep the small things in step
-  const sync = () => { count(); actSync(); };
+  const sync = () => { count(); actSync(); statSync(); };
   BE.drawer = function () { drawer0(); sync(); };
   const open0 = bookOpen;
   bookOpen = function () { if (CK.el) { CK.el.remove(); CK.el = null; } open0(); sync(); if (RB2.view === 'compare') cmp(); if (RB2.view === 'structure') struct(); };
