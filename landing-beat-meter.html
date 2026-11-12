@@ -7860,6 +7860,14 @@ function aiWalletShow() {
   }
   document.dispatchEvent(new Event('aiwallet'));
 }
+// back from Stripe (?paid=pro|pack): say thanks and refresh the wallet once the webhook has filled it
+(function () {
+  const m = /[?&]paid=(pro|pack)\b/.exec(location.search); if (!m) return;
+  history.replaceState(null, '', location.pathname + location.hash);
+  const say = t => { if (typeof toast === 'function') toast(t, { ms: 7000 }); };
+  setTimeout(() => say(m[1] === 'pro' ? 'Welcome to MetroBar Pro. Your 800 AI credits are on their way.' : 'Thanks! 300 AI credits are on their way.'), 1500);
+  [4000, 10000, 25000].forEach(ms => setTimeout(() => { if (typeof aiWallet === 'function') aiWallet(true); }, ms));
+})();
 function aiPay(kind) {
   const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, link = P[kind]; if (!link) return '';
   const w = AIW.w || {}, uid = w.uid || (ZN && ZN.me && ZN.me.id), mail = w.email;
