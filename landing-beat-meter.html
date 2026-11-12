@@ -2,6 +2,17 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
+<script>
+/* Barbook is its own page (Bennie 2026-11-12): barbook.html opens this file with ?barbook. window.BBAPP = that page: own dark shell,
+   no MetroBar header, the address bar shows barbook.html. In MetroBar itself #book sends you there. */
+(function () {
+  var bb = /[?&]barbook\b/.test(location.search); window.BBAPP = bb;
+  if (!bb) { if (location.hash === '#book') location.replace('barbook.html'); return; }
+  document.documentElement.classList.add('bb');
+  try { history.replaceState(null, '', location.pathname + location.search + '#book'); } catch (e) { location.hash = '#book'; }
+  try { history.replaceState(null, '', 'barbook.html#book'); } catch (e) {}
+})();
+</script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MetroBar</title>
 <meta name="theme-color" content="#eef0ec">
@@ -1883,6 +1894,355 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
 .bx-101 li, .bx-new li { margin: 0 0 6px; }
 .be-more .row.bx-song { flex-wrap: wrap; }
 @media (max-width: 560px) { .bx-facts { grid-template-columns: repeat(2, 1fr); } }
+/* ---- Barbook, its own page (Bennie 2026-11-12: "take the user to another page", "forget using my colours" for Barbook). html.bb is set by
+   the boot script when the app is opened as barbook.html. Own dark look: near-black ground, one lime accent, one typeface. Layout ideas
+   (sidebar, top bar, a tool row on every bar, syllable bars, Actions panel) from the RhymeFlux screenshots Bennie sent; own code, own
+   colours, no logo, palette or artwork of theirs. Script: BS (last script). Everything here is scoped to html.bb. */
+html.bb[data-theme] { --bg: #0b0c0d; --panel: #131517; --card2: #1a1d20; --cell: #1a1d20; --line: #24282c; --fg: #eceeef; --muted: #8b9197; --side: #0e0f11;
+  --accent: #d7ff3e; --on-accent: #10130a; --accent-text: #d7ff3e; --warn: #f0b44c; --bad: #ff6b5e;
+  --body: "Instrument Sans", "IBM Plex Sans", system-ui, sans-serif; --display: var(--body); color-scheme: dark; }
+html.bb body { background: var(--bg); color: var(--fg); overflow: hidden; font-family: var(--body); }
+html.bb .wrap { max-width: none; margin: 0; padding: 0; }
+html.bb .wrap > *:not(#viewBook):not(dialog), html.bb #beatStrip, html.bb #cmdkBtn { display: none !important; }
+html.bb #viewBook, html.bb #viewBook.rb-dark { --bg: #0b0c0d; --panel: #131517; --card2: #1a1d20; --line: #24282c; --fg: #eceeef; --muted: #8b9197; --side: #0e0f11;
+  display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 0; margin: 0; padding: 0; height: 100dvh; min-height: 0;
+  border: 0; border-radius: 0; box-shadow: none; background: var(--bg); color: var(--fg); animation: none; }
+html.bb.bb-nolib #viewBook { grid-template-columns: minmax(0, 1fr); }
+html.bb.bb-nolib .rb-lib { display: none; }
+html.bb .rb-top, html.bb .rb-sidetg, html.bb .rb-sidex, html.bb .be-tools, html.bb .be-tip, html.bb .be-done, html.bb .be-title, html.bb #rbZen, html.bb .be-ghost { display: none !important; }
+html.bb button, html.bb input, html.bb select, html.bb textarea { font-family: inherit; }
+html.bb :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.bb .btn { background: var(--card2); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; }
+html.bb .btn:hover { border-color: #3a4046; }
+html.bb .btn.pri, html.bb .bs-pri { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 700; }
+html.bb .num-in { background: var(--card2); color: var(--fg); border: 1px solid var(--line); border-radius: 10px; }
+html.bb .note { color: var(--muted); }
+
+/* sidebar */
+html.bb .rb-lib { position: static; display: flex; flex-direction: column; gap: 0; min-height: 0; overflow: hidden; padding: 0; background: var(--side); border-right: 1px solid var(--line); }
+html.bb .rb-libh, html.bb .rb-lib > .rb-search, html.bb .rb-lib > .rb-fsel, html.bb .be-drh, html.bb .be-links > button:nth-of-type(n+4) { display: none; }
+.bs-brand { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--line); flex: none; }
+.bs-brand b { margin-right: auto; display: flex; align-items: center; gap: 10px; font: 700 1.05rem var(--body); letter-spacing: -.01em; }
+.bs-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; grid-template-rows: repeat(3, 3px); gap: 3px; align-content: center; padding: 0 6px; }
+.bs-mark i { height: 3px; border-radius: 2px; background: var(--on-accent); } .bs-mark i:nth-child(2) { width: 70%; } .bs-mark i:nth-child(3) { width: 45%; }
+.bs-ib { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
+.bs-ib:hover { color: var(--fg); background: var(--card2); }
+.bs-all { display: grid; grid-template-columns: minmax(0, 1fr) 44px; margin: 14px 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); flex: none; }
+.bs-all button { border: 0; background: none; color: var(--fg); cursor: pointer; text-align: left; }
+.bs-all .a { display: grid; grid-template-columns: 34px minmax(0, 1fr); column-gap: 10px; align-items: center; padding: 9px 10px; border-radius: 11px 0 0 11px; }
+.bs-all .a > span { grid-row: span 2; width: 34px; height: 34px; border-radius: 8px; background: var(--card2); display: grid; place-items: center; color: var(--accent); }
+.bs-all .a b { font: 600 .9rem var(--body); } .bs-all .a small { color: var(--muted); font-size: .75rem; font-variant-numeric: tabular-nums; }
+.bs-all .s { display: grid; place-items: center; border-left: 1px solid var(--line); color: var(--muted); border-radius: 0 11px 11px 0; }
+.bs-all button:hover { background: var(--card2); }
+.bs-rech { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 4px 18px; color: var(--muted); font: 600 .75rem var(--body); flex: none; }
+html.bb #rbNew { width: 30px; height: 30px; min-height: 0; padding: 0; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: var(--muted); font-size: 0; }
+html.bb #rbNew:hover { background: var(--card2); color: var(--fg); }
+html.bb .be-dr { display: contents; }
+html.bb #beRecent { flex: 1 1 auto; min-height: 0; overflow: auto; scrollbar-width: thin; padding: 0 8px 8px; gap: 2px; align-content: start; }
+html.bb #beRecent button { grid-template-columns: 38px minmax(0, 1fr); column-gap: 11px; align-items: center; padding: 8px 9px; border-radius: 10px; font: 600 .88rem/1.3 var(--body); }
+html.bb #beRecent button > span:not(.be-cov) { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+html.bb #beRecent button small { grid-column: 2; font-size: .75rem; }
+html.bb #beRecent button[aria-current="true"] { background: var(--card2); box-shadow: inset 3px 0 0 var(--accent); }
+.be-cov { grid-row: span 2; width: 38px; height: 38px; border-radius: 9px; background: var(--card2); overflow: hidden; display: grid; grid-template-rows: repeat(4, 3px); gap: 4px; align-content: center; padding: 0 8px; }
+.be-cov img { grid-row: 1 / -1; width: 38px; height: 38px; margin: 0 -8px; object-fit: cover; }
+.be-cov i { height: 3px; border-radius: 2px; background: #3a4046; } .be-cov i:nth-child(2) { width: 75%; } .be-cov i:nth-child(3) { width: 90%; } .be-cov i:nth-child(4) { width: 50%; }
+.bs-foot { flex: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 12px 12px; border-top: 1px solid var(--line); }
+html.bb .be-goal { padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); gap: 10px; }
+html.bb .be-goal svg { width: 36px; height: 36px; }
+html.bb .be-goal b { font-size: .85rem; } html.bb .be-goal small { display: none; }
+html.bb .be-goal > span { color: var(--fg) !important; font-size: .85rem !important; cursor: pointer; }
+html.bb .be-goal > span svg { width: 16px; height: 16px; color: var(--warn); }
+html.bb .be-goal > span::after { content: "day streak"; margin-left: 2px; font-weight: 500; color: var(--muted); }
+html.bb .be-links { position: relative; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+html.bb .be-links > button { display: grid; justify-items: center; gap: 5px; padding: 10px 2px 9px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); font: 500 .72rem/1.15 var(--body); text-align: center; color: var(--fg); }
+html.bb .be-links > button:hover { background: var(--card2); border-color: #3a4046; }
+html.bb .be-links > button small { position: absolute; margin: -6px 0 0 34px; padding: 0 5px; border-radius: 8px; background: var(--accent); color: var(--on-accent); font-size: .65rem; font-weight: 700; }
+html.bb .be-links > button small:empty { display: none; }
+html.bb .be-saved { position: absolute; z-index: 5; left: 0; right: 0; bottom: calc(100% + 8px); max-height: 50vh; overflow: auto; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 18px 50px #000b; }
+html.bb .be-sync { margin: 0; font-size: .72rem; line-height: 1.35; }
+.bs-nav { display: flex; gap: 14px; font-size: .78rem; }
+.bs-nav a { color: var(--muted); text-decoration: none; } .bs-nav a:hover { color: var(--fg); text-decoration: underline; }
+
+/* main column + top bar */
+html.bb .rb-main { display: block; min-height: 0; overflow: auto; padding: 0; scrollbar-width: thin; scrollbar-color: #2c3136 transparent; }
+html.bb .be-head { position: sticky; top: 0; z-index: 20; height: 60px; margin: 0; padding: 0 18px; gap: 8px; background: color-mix(in srgb, var(--bg) 94%, transparent); border-bottom: 1px solid var(--line); }
+html.bb .be-head #rbTitle { flex: 0 1 15rem; min-width: 4rem; width: auto; height: 36px; padding: 0 6px; border: 0; border-radius: 8px; background: none; color: #c6cacd; font: 700 .82rem var(--body); letter-spacing: .14em; text-transform: uppercase; text-overflow: ellipsis; }
+html.bb .be-head #rbTitle:hover, html.bb .be-head #rbTitle:focus { background: var(--card2); color: var(--fg); outline: none; }
+html.bb .be-pill { height: 38px; padding: 0 12px 0 16px; background: var(--panel); border-color: #3a4046; color: var(--fg); font-weight: 600; gap: 10px; }
+html.bb .be-pill svg { color: var(--accent); }
+html.bb .be-ib { height: 38px; min-width: 38px; background: none; border-color: transparent; color: #c6cacd; }
+html.bb .be-ib:hover { background: var(--card2); color: var(--fg); border-color: transparent; }
+html.bb .be-ib[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+html.bb .be-ib:disabled { opacity: .35; cursor: default; }
+html.bb #bsFlowB { border-color: var(--line); padding: 0 14px; }
+html.bb #bsAct { border-color: #3a4046; padding: 0 14px; font-size: .9rem; color: var(--fg); }
+html.bb #bsAct[aria-expanded="true"] { border-color: var(--accent); }
+html.bb #bsAct svg { color: var(--accent); }
+html.bb .be-find { position: sticky; top: 60px; z-index: 19; margin: 0; padding: 8px 18px; background: var(--bg); border-bottom: 1px solid var(--line); }
+html.bb .rb-view { width: auto; max-width: 82rem; margin: 0 auto; padding: 0 28px 30vh; }
+html.bb .rb-view[data-rbv="write"] { max-width: 82rem; }
+html.bb #rbEd.be-on { --rb-bg: var(--bg); --rb-fg: var(--fg); --rb-rule: var(--line); background: none; border: 0; padding: 0; border-radius: 0; box-shadow: none; font-size: 19px; color: var(--fg); }
+html.bb #rbEd[data-rbfont="sans"] { --rb-font: var(--body); }
+
+/* a bar: number, its tool row, the words over their syllable bar, the count */
+html.bb .be-row { grid-template-columns: 20.5rem minmax(0, 1fr) 3rem; column-gap: 22px; padding: 16px 12px 14px 0; border: 0; border-radius: 12px; }
+html.bb .be-row.off { display: none; }
+html.bb .be-row.cur { background: #101214; }
+html.bb .be-row.cur::before { display: none; }
+.be-lead { display: none; }
+html.bb .be-lead { grid-column: 1; grid-row: 1 / span 2; display: flex; justify-content: flex-end; align-items: flex-start; gap: 8px; align-self: start; }
+html.bb .be-num { padding-top: 2px; min-width: 1.4rem; text-align: right; color: #5d646b; font: 600 .7rem var(--body); font-variant-numeric: tabular-nums; }
+html.bb .be-rt { display: flex; align-items: center; gap: 2px; height: 50px; padding: 0 8px; border: 1px solid #1d2023; border-radius: 12px; background: #0f1012; margin-top: -8px; }
+html.bb .be-rb { width: 37px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 8px; background: none; color: #7d848b; cursor: pointer; }
+html.bb .be-rb svg { width: 19px; height: 19px; }
+html.bb .be-rb:hover { background: var(--card2); color: var(--fg); }
+html.bb .be-rb[data-k="rec"] { margin-right: 6px; position: relative; }
+html.bb .be-rb[data-k="rec"]::after { content: ""; position: absolute; right: -4px; top: 9px; bottom: 9px; width: 1px; background: var(--line); }
+html.bb .be-rb[data-k="rewrite"] { color: #ff7ab8; } html.bb .be-row.has .be-rb[data-k="rewrite"] { color: #5fd4f4; }
+html.bb .be-rb[data-k="rhymes"] { color: #f5c542; }
+html.bb .be-row:not(.has) .be-rb[data-k="adlib"] { opacity: .45; }
+html.bb .be-rb.rec { background: var(--bad); color: #fff; }
+html.bb .be-dp { display: flex; align-items: center; height: 30px; margin-right: 4px; border: 1px solid var(--line); border-radius: 8px; }
+html.bb .be-dp[hidden] { display: none; }
+html.bb .be-dp button { height: 28px; min-width: 22px; padding: 0 3px; display: grid; place-items: center; border: 0; background: none; color: var(--muted); cursor: pointer; font: 600 .72rem var(--body); font-variant-numeric: tabular-nums; }
+html.bb .be-dp button:hover { color: var(--fg); }
+html.bb .be-cell { grid-column: 2; grid-row: 1; }
+html.bb .be-mir, html.bb .be-in { line-height: 1.55; padding: 0 4px; }
+html.bb .be-in { caret-color: var(--accent); }
+html.bb .be-in::placeholder { color: #5d646b; -webkit-text-fill-color: #5d646b; }
+html.bb .be-row.gh .be-in::placeholder { color: transparent; -webkit-text-fill-color: transparent; }
+html.bb .be-gt { position: absolute; left: 4px; top: 0; padding: 0; border: 0; background: none; color: #6fb7e6; font: italic 400 1em/1.55 Georgia, "Iowan Old Style", serif; cursor: pointer; white-space: nowrap; }
+html.bb .be-gt:hover { color: #a5d6f5; }
+html.bb .be-mir .rb-w { border-radius: 5px; box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -2px 0 var(--c); }
+html.bb .be-meter { grid-column: 2; grid-row: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; margin: 12px 4px 0; max-width: 100%; }
+html.bb .be-meter i { width: auto; height: 6px; border-radius: 3px; background: #17191c; }
+html.bb .be-meter i.on { background: #4b5158; }
+html.bb .be-meter i.st { background: var(--accent); }
+html.bb .be-meter i.gap { background: color-mix(in srgb, var(--warn) 34%, #17191c); }
+html.bb .be-meter i.over { background: var(--warn); }
+html.bb .be-side { grid-column: 3; justify-items: end; padding: 0 6px 0 0; gap: 6px; }
+html.bb .be-cnt { border: 0; height: auto; min-width: 0; padding: 0; color: #8b9197; font: 500 .95rem var(--body); font-variant-numeric: tabular-nums; }
+html.bb .be-cnt.near, html.bb .be-cnt.warn { color: var(--warn); } html.bb .be-cnt.bad { color: var(--bad); }
+html.bb .be-dots { color: #6b7279; }
+html.bb .be-pop { grid-column: 2 / -1; background: var(--panel); border-color: var(--line); }
+html.bb .be-chip { background: var(--card2); border-color: var(--line); color: var(--fg); }
+html.bb .be-chip:hover { border-color: var(--accent); }
+html.bb .be-add, html.bb .be-chk { grid-column: 1 / -1; justify-self: center; display: inline-flex; align-items: center; gap: 9px; cursor: pointer; font: 600 .92rem var(--body); }
+html.bb .be-add { margin-top: 26px; height: 46px; padding: 0 22px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: #c6cacd; }
+html.bb .be-add:hover { border-color: #3a4046; color: var(--fg); }
+html.bb .be-chk { margin: 30px 0 4px; padding: 6px 10px; border: 0; border-radius: 8px; background: none; color: var(--accent); }
+html.bb .be-chk:hover { background: var(--card2); }
+/* section divider: line, name, line */
+html.bb .be-row.hd { padding: 34px 0 18px; background: none; }
+html.bb .be-row.hd .be-hd { justify-content: center; gap: 16px; }
+html.bb .be-row.hd .be-hd::before { content: ""; flex: 1; height: 1px; background: var(--line); }
+html.bb .be-hin { flex: none; height: 30px; padding: 0 12px; border: 1px solid #3a4046; border-radius: 8px; background: var(--panel); color: var(--accent); font: 700 .78rem/1 var(--body); letter-spacing: .16em; text-align: center; }
+html.bb .be-hl { background: var(--line); } html.bb .be-hn { position: absolute; right: 12px; color: var(--muted); }
+html.bb .be-offer { display: flex !important; justify-content: center; margin: 14px 0; color: var(--muted); } html.bb .be-offer[hidden] { display: none !important; }
+html.bb .be-offer button { color: var(--accent); }
+/* end of the song: share, hook, next part */
+.bs-end { display: grid; justify-items: center; gap: 14px; margin: 34px 0 0; }
+.bs-end > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.bs-big { height: 50px; padding: 0 24px; display: inline-flex; align-items: center; gap: 10px; border: 1px solid #3a4046; border-radius: 999px; background: var(--panel); color: var(--fg); font: 700 1rem var(--body); cursor: pointer; }
+.bs-big:hover { border-color: #565d64; } .bs-big.bs-pri:hover { filter: brightness(1.06); }
+.bs-sm { height: 34px; padding: 0 14px; border: 1px dashed #3a4046; border-radius: 999px; background: none; color: var(--muted); font: 600 .82rem var(--body); cursor: pointer; }
+.bs-sm:hover { color: var(--fg); border-color: #565d64; }
+/* Check your bars card */
+.bs-chk { max-width: 46rem; margin: 26px auto 0; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); overflow: hidden; }
+.bs-chk > header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; font: 700 1rem var(--body); border-bottom: 1px solid var(--line); }
+.bs-chk details { border-bottom: 1px solid var(--line); }
+.bs-chk summary { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; cursor: pointer; color: #c6cacd; list-style: none; font-size: .95rem; }
+.bs-chk summary::-webkit-details-marker { display: none; }
+.bs-chk summary::after { content: ""; width: 8px; height: 8px; border: solid var(--muted); border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); }
+.bs-chk details[open] summary::after { transform: rotate(-135deg); }
+.bs-fams { display: grid; gap: 8px; padding: 0 20px 16px; }
+.bs-fams div { display: flex; flex-wrap: wrap; gap: 6px 12px; font-size: .95rem; }
+.bs-chk .bs-notes { display: block; width: calc(100% - 40px); margin: 16px 20px; height: 48px; border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--accent) 8%, var(--panel)); color: var(--fg); font: 700 .95rem var(--body); cursor: pointer; }
+.bs-chk ol { list-style: none; margin: 0; padding: 14px 20px 18px; border-top: 1px solid var(--line); display: grid; gap: 8px; counter-reset: b; font-size: 1.05rem; }
+.bs-chk li { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr); column-gap: 8px; counter-increment: b; }
+.bs-chk li::before { content: counter(b); color: #5d646b; font-size: .72rem; padding-top: .35em; text-align: right; font-variant-numeric: tabular-nums; }
+html.bb .bs-chk .rb-w { background: none; box-shadow: none; color: var(--c); font-weight: 600; }
+
+/* Actions panel (was the tools column) */
+html.bb .rb-side { display: none; position: fixed; z-index: 60; top: 66px; right: 14px; left: auto; bottom: auto; width: min(25rem, calc(100vw - 28px)); max-height: calc(100dvh - 82px); overflow: auto; padding: 16px; gap: 10px;
+  border: 1px solid #2f3439; border-radius: 16px; background: var(--panel); box-shadow: 0 24px 70px #000c; transform: none; scrollbar-width: thin; }
+html.bb .rb-side.open { display: grid; }
+html.bb .rb-eb { margin: 8px 0 2px; text-align: center; color: var(--muted) !important; font: 600 .75rem var(--body); letter-spacing: 0; text-transform: none; }
+html.bb .rb-views { border: 0; padding: 0; background: none; gap: 6px; }
+html.bb .rb-views button { padding: 12px 4px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); color: #c6cacd; gap: 4px; }
+html.bb .rb-views button small { display: block; font-size: .6875rem; line-height: 1.25; color: var(--muted); }
+html.bb .rb-views button[aria-selected="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 9%, var(--card2)); color: var(--fg); }
+html.bb .rb-views button[aria-selected="true"] span { color: var(--accent); }
+.bs-wide { height: 42px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); color: #c6cacd; font: 600 .85rem var(--body); cursor: pointer; }
+.bs-wide:hover { border-color: #3a4046; color: var(--fg); } .bs-wide[aria-pressed="true"] { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); color: var(--fg); }
+html.bb .rb-tool { border-color: var(--line); background: var(--card2); border-radius: 12px; }
+html.bb .rb-tool.open { border-color: #3a4046; }
+html.bb .rb-tbtn { grid-template-columns: 36px 1fr auto; padding: 11px 12px; }
+html.bb .rb-tbtn .ti { width: 36px; height: 36px; border-radius: 9px; background: var(--panel); color: var(--accent); }
+html.bb .rb-tool.open .rb-tbtn .ti, html.bb .rb-tbtn:hover .ti { color: var(--accent); }
+.bs-work { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.bs-work button { display: grid; justify-items: center; gap: 6px; padding: 12px 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); color: #c6cacd; font: 600 .78rem/1.2 var(--body); cursor: pointer; }
+.bs-work button:hover { border-color: #3a4046; color: var(--fg); } .bs-work button:first-child svg { color: var(--bad); }
+html.bb #rbBinBox > summary, html.bb #rbSide > .row, html.bb #rbSync, html.bb #rbBinBox:not([open]) { display: none; }
+html.bb #rbBin .row { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; font-size: .85rem; }
+
+/* other views: Booth, Compare, Structure */
+.bs-back { position: fixed; z-index: 30; left: calc(16.5rem + 18px); bottom: 20px; height: 46px; padding: 0 20px; display: none; align-items: center; gap: 10px; border: 1px solid #3a4046; border-radius: 999px; background: var(--panel); color: var(--fg); font: 600 .95rem var(--body); cursor: pointer; box-shadow: 0 12px 34px #000a; }
+html.bb.bb-nolib .bs-back, html.bb[data-bv="booth"] .bs-back { left: 18px; }
+html.bb[data-bv="booth"] .bs-back { top: 14px; bottom: auto; }
+html.bb:not([data-bv="write"]) .bs-back { display: inline-flex; }
+html.bb[data-bv="booth"] .rb-lib, html.bb[data-bv="booth"] .be-head, html.bb[data-bv="booth"] .be-find { display: none; }
+html.bb[data-bv="booth"] #viewBook { grid-template-columns: minmax(0, 1fr); }
+html.bb .rb-booth { max-width: none; padding: 0; display: block; }
+html.bb .rb-booth[hidden] { display: none; }
+.bb .rb-sheet { max-height: none; height: 100dvh; padding: 42vh 24px 50vh; border: 0; border-radius: 0; background: var(--bg); color: var(--fg); justify-items: center; text-align: center; gap: .9em; font: 700 var(--bs)/1.3 var(--body); }
+.bb .rb-sheet .hd { display: flex; align-items: center; gap: 16px; width: min(100%, 78rem); margin: 1.2em 0 .4em; color: var(--accent); font: 700 .78rem var(--body); letter-spacing: .16em; }
+.bb .rb-sheet .hd::before, .bb .rb-sheet .hd::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.bb .rb-sheet .ln { opacity: 1; color: var(--fg); }
+.bb .rb-sheet:not(.idle) .ln { opacity: .4; } .bb .rb-sheet .ln.now { opacity: 1; color: #fff; text-shadow: none; }
+.bb .rb-sheet .ln i { font-style: normal; color: #6b7279; }
+html.bb .rb-booth .rb-bh { position: fixed; z-index: 30; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; flex-wrap: nowrap; align-items: center; gap: 18px; height: 72px; padding: 0 22px 0 14px; max-width: calc(100vw - 110px);
+  border: 1px solid #2f3439; border-radius: 999px; background: var(--panel); box-shadow: 0 16px 44px #000b; font-size: .75rem; color: var(--muted); white-space: nowrap; }
+html.bb #rbBoothGo { width: 50px; height: 50px; min-height: 0; padding: 0; line-height: 0; border-radius: 50%; font-size: 0; display: grid; place-items: center; }
+html.bb #rbBoothGo::before { content: ""; width: 0; height: 0; border-style: solid; border-width: 9px 0 9px 15px; border-color: transparent transparent transparent var(--on-accent); margin-left: 4px; }
+html.bb #rbBoothGo.on::before { width: 14px; height: 14px; border: 0; background: var(--on-accent); border-radius: 2px; margin: 0; }
+html.bb .rb-bh .field { display: flex; align-items: center; gap: 8px; color: var(--muted); font-weight: 600; }
+html.bb .rb-bh input[type="range"] { width: 7rem; accent-color: var(--accent); }
+html.bb .rb-bh input[type="checkbox"] { accent-color: var(--accent); }
+html.bb .rb-bbeat i { background: #2c3136; } html.bb .rb-bbeat i.on { background: var(--accent); }
+.bs-tap, .bs-full { height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #3a4046; background: var(--card2); color: var(--fg); font: 700 .75rem var(--body); cursor: pointer; }
+.bs-full[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.bs-btop { position: fixed; z-index: 30; top: 14px; right: 18px; display: none; gap: 8px; }
+html.bb[data-bv="booth"] .bs-btop { display: flex; }
+.bs-btop button { height: 46px; padding: 0 20px; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #3a4046; border-radius: 999px; background: var(--panel); color: var(--fg); font: 600 .95rem var(--body); cursor: pointer; }
+.bs-btop button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+html.bb .rb-view[data-rbv="compare"], html.bb .rb-view[data-rbv="structure"] { padding-top: 22px; }
+html.bb .rb-view[data-rbv="compare"] > .rb-bh, html.bb .rb-view[data-rbv="structure"] > .rb-bh { display: none; }
+.bs-seg { display: inline-flex; width: max-content; max-width: 100%; gap: 4px; padding: 4px; margin: 0 0 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); }
+.bs-seg button { height: 34px; padding: 0 14px; border: 0; border-radius: 8px; background: none; color: var(--muted); font: 600 .85rem var(--body); cursor: pointer; }
+.bs-seg button[aria-pressed="true"] { background: var(--card2); color: var(--fg); }
+.bs-cmp { display: grid; gap: 14px; }
+.bs-cmp h4 { margin: 14px 0 0; color: var(--accent); font: 700 .78rem var(--body); letter-spacing: .16em; text-transform: uppercase; }
+.bs-crow { display: flex; gap: 14px; align-items: stretch; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.bs-card { position: relative; flex: none; width: 17rem; min-height: 6.4rem; padding: 14px 16px 26px 34px; border: 1.5px solid var(--line); border-radius: 10px; background: var(--panel); color: #9aa0a6; font: 400 1rem/1.5 var(--body); text-align: left; cursor: pointer; }
+.bs-card::before { content: ""; position: absolute; left: 14px; top: 18px; width: 6px; height: 14px; background: radial-gradient(circle, #4b5158 1.4px, transparent 1.6px) 0 0 / 6px 5px; }
+.bs-card.on { border-color: #3fb96b; color: var(--fg); cursor: default; }
+.bs-card.empty { color: #4b5158; }
+.bs-card em { position: absolute; right: 8px; bottom: 6px; padding: 1px 6px; border-radius: 5px; background: var(--card2); color: var(--muted); font: 600 .7rem var(--body); font-style: normal; font-variant-numeric: tabular-nums; }
+.bs-card .x { position: absolute; left: 6px; bottom: 6px; width: 26px; height: 26px; display: none; place-items: center; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.bs-card:hover .x, .bs-card:focus-within .x { display: grid; } .bs-card .x:hover { color: var(--bad); background: var(--card2); }
+.bs-card textarea { width: 100%; min-height: 4.4rem; border: 0; background: none; color: var(--fg); font: inherit; resize: none; outline: none; padding: 0; }
+.bs-plus { flex: none; align-self: center; width: 44px; height: 44px; display: grid; place-items: center; border: 1.5px dashed #3a4046; border-radius: 10px; background: none; color: var(--muted); cursor: pointer; }
+.bs-plus:hover { color: var(--fg); border-color: #565d64; }
+.bs-st { display: grid; gap: 6px; }
+.bs-st h4 { margin: 18px 0 4px; color: var(--accent); font: 700 .78rem var(--body); letter-spacing: .16em; text-transform: uppercase; }
+.bs-srow { display: grid; grid-template-columns: 2.6rem auto auto auto minmax(0, 1fr) 40px; align-items: center; gap: 8px; height: 58px; padding: 0 10px; border-radius: 10px; background: var(--panel); border: 1px solid transparent; }
+.bs-srow.drag { opacity: .4; } .bs-srow.over { border-color: var(--accent); }
+.bs-srow > span:first-child { color: #6b7279; font: 600 .75rem var(--body); font-variant-numeric: tabular-nums; }
+.bs-srow button { width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 9px; background: var(--card2); color: #9aa0a6; cursor: pointer; }
+.bs-srow button.d { color: #ff7a6e; background: #2a1715; } .bs-srow button.c { color: #6fb7e6; background: #14212b; }
+.bs-srow button:hover { filter: brightness(1.25); }
+.bs-srow .tx { padding: 0 8px; border: 0; background: none; color: var(--fg); font: 400 1rem var(--body); text-align: left; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: auto; height: auto; display: block; }
+.bs-srow .tx.e { color: #5d646b; font-style: italic; }
+.bs-srow .g { cursor: grab; }
+
+/* dialogs: settings, library */
+html.bb dialog.bx-dlg, .bs-dlg { background: var(--panel); color: var(--fg); border: 1px solid #2f3439; border-radius: 18px; box-shadow: 0 30px 90px #000d; }
+.bs-dlg { padding: 0; width: min(38rem, calc(100vw - 24px)); max-height: min(90dvh, 60rem); overflow: hidden; }
+.bs-dlg[open] { display: flex; flex-direction: column; }
+.bs-dlg::backdrop, html.bb dialog.bx-dlg::backdrop { background: #000a; }
+.bs-dlg > header { flex: none; display: flex; align-items: center; gap: 10px; padding: 18px 20px; border-bottom: 1px solid var(--line); font: 700 1.15rem var(--body); }
+.bs-dlg > header svg { color: var(--accent); } .bs-dlg > header .be-px { margin-left: auto; background: var(--card2); color: var(--fg); width: 34px; height: 34px; }
+.bs-dlg > div { overflow: auto; padding: 18px 20px 22px; display: grid; gap: 10px; scrollbar-width: thin; }
+.bs-dlg h4 { margin: 12px 0 0; color: var(--muted); font: 600 .78rem var(--body); }
+.bs-dlg h4 + p { margin: 0 0 4px; color: #c6cacd; font-size: .88rem; }
+.bs-opt { display: grid; grid-template-columns: 26px minmax(0, 1fr); column-gap: 14px; align-items: center; padding: 13px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--card2); color: var(--fg); text-align: left; cursor: pointer; }
+.bs-opt svg { grid-row: span 2; color: var(--muted); } .bs-opt b { font: 600 .98rem var(--body); } .bs-opt small { color: var(--muted); font-size: .85rem; }
+.bs-opt b span { margin-left: 8px; padding: 1px 7px; border-radius: 6px; background: var(--panel); color: var(--muted); font-size: .68rem; font-weight: 600; vertical-align: 2px; }
+.bs-opt[aria-checked="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--card2)); }
+.bs-opt[aria-checked="true"] b, .bs-opt[aria-checked="true"] svg { color: var(--accent); }
+.bs-tipline { margin: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; color: #c6cacd; font-size: .85rem; }
+.bs-dlg .be-more { position: static; display: grid; min-width: 0; max-width: none; max-height: none; padding: 0; border: 0; background: none; box-shadow: none; overflow: visible; }
+.bs-dlg .be-more h6 { margin: 12px 0 0; color: var(--muted); font: 600 .78rem var(--body); }
+.bs-dlg .be-more #rbShell, .bs-dlg .be-more #rbHi, .bs-dlg .be-more label:has(#rbTheme), .bs-dlg .be-more label:has(#beStrict) { display: none; }
+html.bb .btn.tg[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.bs-lib { width: min(72rem, calc(100vw - 24px)); height: min(90dvh, 60rem); }
+.bs-hero { display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; column-gap: 16px; align-items: center; padding: 16px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--card2); }
+.bs-hero .be-cov { width: 56px; height: 56px; border-radius: 12px; grid-row: span 2; } .bs-hero .be-cov img { width: 56px; height: 56px; }
+.bs-hero small { color: var(--muted); font-size: .8rem; } .bs-hero b { display: block; font: 700 1.25rem/1.2 var(--body); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bs-hero .bs-big { grid-row: span 2; grid-column: 3; }
+.bs-ltool { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bs-ltool #rbSearch { flex: 1 1 14rem; height: 42px; padding: 0 14px; text-align: left; font: 400 .95rem var(--body); }
+.bs-ltool select { height: 42px; width: auto; font: 500 .88rem var(--body); text-align: left; }
+.bs-ltool .rb-fsel { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: .85rem; }
+.bs-ltool .be-ib { border: 1px solid var(--line) !important; border-radius: 10px; height: 42px; min-width: 42px; }
+.bs-lib #rbList { max-height: none; overflow: visible; gap: 2px; }
+.bs-lib #rbList button { grid-template-columns: 40px minmax(0, 1fr) auto; column-gap: 12px; align-items: center; padding: 9px 10px; border-radius: 10px; color: var(--fg); }
+.bs-lib #rbList button::before { content: ""; grid-row: span 2; width: 40px; height: 40px; border-radius: 9px; background: var(--card2); }
+.bs-lib #rbList button:has(.rb-cov)::before { display: none; } .bs-lib #rbList .rb-cov { width: 40px; height: 40px; border-radius: 9px; }
+.bs-lib #rbList .t { grid-column: 2; font-size: .95rem; } .bs-lib #rbList .d { grid-column: 2; } .bs-lib #rbList .p { display: none; }
+.bs-lib #rbList button[aria-current="true"] { background: var(--card2); box-shadow: inset 3px 0 0 var(--accent); }
+.bs-lib #rbList.grid { grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr)); gap: 10px; }
+.bs-lib #rbList.grid button { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 4px; height: 100%; min-height: 8rem; padding: 14px; border: 1px solid var(--line); background: var(--card2); }
+.bs-lib #rbList.grid button::before, .bs-lib #rbList.grid .rb-cov { display: none; }
+.bs-lib #rbList.grid .t, .bs-lib #rbList.grid .d, .bs-lib #rbList.grid .p { grid-column: 1; }
+.bs-lib #rbList.grid .p { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; color: #9aa0a6; font-size: .82rem; line-height: 1.4; }
+
+/* menus, toasts and the beat panel in Barbook's colours */
+html.bb .be-menu { background: var(--panel); border-color: #2f3439; box-shadow: 0 20px 60px #000c; }
+html.bb .be-menu button.mi.dz { color: var(--bad); }
+html.bb .bk-fab { background: var(--card2); color: var(--fg); border: 1px solid #3a4046; box-shadow: 0 10px 30px #000a; }
+html.bb .bk-fab.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+html.bb .bk-beat { background: var(--panel); border-color: #2f3439; color: var(--fg); box-shadow: 0 24px 70px #000c; }
+html.bb .bk-play { background: var(--accent); color: var(--on-accent); }
+.bk-res { display: grid; gap: 4px; max-height: 19rem; overflow: auto; scrollbar-width: thin; }
+.bk-res:empty { display: none; }
+.bk-res button { display: grid; grid-template-columns: 76px minmax(0, 1fr); column-gap: 11px; align-items: center; padding: 6px; border: 0; border-radius: 10px; background: none; color: inherit; text-align: left; cursor: pointer; font: inherit; }
+.bk-res button:hover, .bk-res button:focus-visible { background: color-mix(in srgb, currentColor 8%, transparent); }
+.bk-res img, .bk-res .ph { grid-row: span 2; width: 76px; height: 43px; border-radius: 6px; object-fit: cover; background: color-mix(in srgb, currentColor 10%, transparent); }
+.bk-res b { font-weight: 600; font-size: .86rem; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.bk-res small { font-size: .74rem; opacity: .65; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bk-res p { margin: 4px 2px; font-size: .84rem; opacity: .8; }
+.bk-dl { display: none !important; } .bk-beat[data-src="file"] .bk-dl, .bk-beat[data-src="mb"] .bk-dl { display: inline-flex !important; }
+
+@media (max-width: 1000px) {
+  html.bb #viewBook, html.bb #viewBook.rb-dark { grid-template-columns: minmax(0, 1fr); }
+  html.bb .rb-lib { position: fixed; z-index: 70; top: 0; left: 0; bottom: 0; width: min(320px, 88vw); padding: 0; transform: translateX(-105%); transition: transform .22s ease-out; box-shadow: 10px 0 40px #000a; }
+  html.bb .rb-lib.be-open { transform: none; }
+  html.bb.bb-nolib .rb-lib { display: flex; }
+  html.bb #bsCol { display: none; }
+  .bs-back { left: 14px !important; }
+  html.bb .be-head { padding: 0 10px; gap: 2px; }
+  html.bb .be-head #rbTitle { flex: 1 1 4rem; letter-spacing: .08em; }
+  html.bb #bsAct span, html.bb #bsFlowB .lbl { display: none; }
+  html.bb .rb-view { padding: 0 12px 40vh; }
+  html.bb .be-row { grid-template-columns: minmax(0, 1fr) 2.4rem; column-gap: 8px; padding: 12px 4px 10px 8px; }
+  html.bb .be-cell { grid-column: 1; } html.bb .be-meter { grid-column: 1; gap: 3px; } html.bb .be-side { grid-column: 2; }
+  html.bb .be-lead { grid-column: 1 / -1; grid-row: 3; display: none; justify-content: flex-start; margin-top: 12px; }
+  html.bb .be-row.cur .be-lead { display: flex; } html.bb .be-rt { margin-top: 0; } html.bb .be-num { display: none; }
+  html.bb .be-pop { grid-column: 1 / -1; }
+  html.bb #rbEd.be-on { font-size: 17px; }
+  html.bb .rb-booth .rb-bh { gap: 10px; height: 64px; max-width: calc(100vw - 20px); overflow-x: auto; bottom: 84px; }
+  .bs-card { width: 14rem; }
+  .bs-srow { grid-template-columns: 2rem auto auto auto minmax(0, 1fr) 36px; gap: 4px; padding: 0 6px; }
+}
+@media (prefers-reduced-motion: reduce) { html.bb .rb-lib { transition: none; } }
+@media (max-width: 640px) { html.bb .be-head [aria-label="Redo"], html.bb .be-head [aria-label="Rhyme Finder"], html.bb .be-head [aria-label="Share"] { display: none; } html.bb #bsFlowB { padding: 0; border-color: transparent; } html.bb .be-pill { padding: 0 8px 0 12px; } }
+html.bb .be-row > .bs-chk { grid-column: 1 / -1; width: min(46rem, 100%); justify-self: center; text-align: left; }
+@media (min-width: 1001px) { html.bb:not(.bb-nolib) #beDrawerTg { display: none; } }
+html.bb .be-row:not(.has) .be-meter { visibility: hidden; }
+html.bb .be-in:focus-visible, html.bb .be-hin:focus-visible, html.bb #rbTitle:focus-visible, .bs-card textarea:focus-visible { outline: none; }
+html.bb .be-hin { box-sizing: content-box; }
+html.bb .rb-eb { display: flex; align-items: center; gap: 12px; text-transform: uppercase; letter-spacing: .14em; font-size: .6875rem; }
+html.bb .rb-eb::before, html.bb .rb-eb::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.bs-lib #rbList button[aria-current="true"]::before { background: #2a2f34; }
+.bs-step { display: inline-flex; align-items: center; gap: 2px; color: var(--fg); } .bs-step b { min-width: 2ch; text-align: center; font: 700 .85rem var(--body); font-variant-numeric: tabular-nums; }
+.bs-step button { width: 32px; height: 32px; border: 1px solid #3a4046; border-radius: 50%; background: var(--card2); color: var(--fg); font-size: 1rem; cursor: pointer; }
+.bb .rb-sheet .ln.now { box-shadow: 0 10px 0 -9px #565d64; }
+html.bb .rb-bh .field[hidden] { display: none; }
+html.bb .be-row.hd .be-lead, html.bb .be-row.hd .be-meter, html.bb .be-row.hd .be-side { display: none; }
+html.bb .be-goal b { white-space: nowrap; font-size: .8rem; } html.bb .be-goal > span { white-space: nowrap; font-size: .8rem !important; }
+html.bb .be-goal > span::after { font-size: .75rem; }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -1895,7 +2255,7 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a><a href="#book">Barbook</a><a href="#zone">The Zone</a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a><a href="barbook.html">Barbook</a><a href="#zone">The Zone</a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
@@ -2358,7 +2718,8 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
       </div>
       <form class="bk-ask" id="bkAsk" autocomplete="off"><input id="bkUrl" class="num-in" type="text" inputmode="search" enterkeyhint="search" list="bkRecent" placeholder="Search beats, or paste a YouTube link" aria-label="Search beats or paste a link"><datalist id="bkRecent"></datalist><button class="btn" type="submit" id="bkGo">Search</button><button class="btn" type="button" id="bkCancel" hidden>Cancel</button><button type="button" id="bkYtBtn" hidden></button></form>
       <div class="bk-genres" id="bkGenres" aria-label="Genres"><button type="button">Trap</button><button type="button">Drill</button><button type="button">Boom bap</button><button type="button">R&amp;B</button><button type="button">Lo-fi</button><button type="button">Grime</button></div>
-      <div class="bk-file"><button class="btn" type="button" id="bkFileBtn" title="Play a beat file from this computer or phone (mp3, wav, m4a)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M5 15v4h14v-4"/></svg><span>Upload a beat</span></button><span>mp3, wav or m4a. Or drop the file here. It stays on this device.</span><button class="btn" type="button" id="bkMb" hidden title="Play the beat loaded on the MetroBar tab">Use the MetroBar beat</button></div>
+      <div class="bk-res" id="bkRes" aria-live="polite" aria-label="Search results"></div>
+      <div class="bk-file"><button class="btn" type="button" id="bkFileBtn" title="Play a beat file from this computer or phone (mp3, wav, m4a)"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4"/><path d="M7.5 8.5L12 4l4.5 4.5"/><path d="M5 15v4h14v-4"/></svg><span>Upload a beat</span></button><button class="btn bk-dl" type="button" id="bkDl" title="Save the beat file you loaded back to this computer or phone"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/></svg> Download</button><span>mp3, wav or m4a. Or drop the file here. It stays on this device.</span><button class="btn" type="button" id="bkMb" hidden title="Play the beat loaded on the MetroBar tab">Use the MetroBar beat</button></div>
       <input type="file" id="bkFile" accept="audio/*,video/mp4" hidden>
       <div class="bk-song" id="bkSong"></div>
       <h4 class="bk-h4">Recent beats</h4>
@@ -3645,6 +4006,7 @@ const bookHead = l => /^\s*#/.test(l) || /^\s*\[[^\]]*\]\s*$/.test(l);
 // Words are compared within the same line and the next 2 lines (blank lines skipped, [Section] lines start fresh).
 // A group's colour comes from its sound: same sound = same colour on the whole page, and a colour is never used for another
 // sound (Bennie: one colour = one rhyme). Colours go out in page order from BOOK_PAL (72: 12 far-apart hues, then shades).
+var BK_LOOSE = false;    // Barbook Settings > Rhyme detection: Loose also colours any shared stressed vowel (slant)
 var BK_STRICT = false;   // Barbook ⋯ > Rhymes: Strict colours only perfect and multi rhymes (no close slant)
 const BOOK_PAL = (() => { const hs = [0, 200, 50, 266, 135, 25, 305, 175, 228, 88, 340, 112, 250, 155, 68, 285], out = [];   // 16 hues (Bennie 2026-11-11: "instead of 12 colors we have 16"); next colour always far from the last few
   for (let s = 0; s < 6; s++) hs.forEach(h => out.push({ h: (h + [0, 12, 0, 12, 6, 18][s]) % 360, d: [0, 2, 1, 2, 1, 0][s] })); return out; })();
@@ -3659,7 +4021,7 @@ function bkRhymes(ta, tb, loose) {   // tails of two words or phrases -> 'perfec
   const t = rhymeTier(ta, tb);
   if (t === 'perfect') return t;
   if (t === 'multi') return bkThinMulti(ta, tb) && !bkClose(ta, tb, true) ? null : t;
-  if (t === 'slant' && bkClose(ta, tb, loose)) return 'close';
+  if (t === 'slant' && (BK_LOOSE || bkClose(ta, tb, loose))) return 'close';
   return null;
 }
 // A "multi" that is really one shared vowel: after the stressed vowel only weak vowels (uh) line up and not one consonant
@@ -5780,7 +6142,7 @@ function setView() {
   const w = location.hash === '#write', b = location.hash === '#book', z = location.hash === '#zone', here = w ? '#write' : b ? '#book' : z ? '#zone' : '#practice';
   document.body.classList.toggle('write', w); document.body.classList.toggle('book', b); document.body.classList.toggle('zone', z);
   $('viewWrite').hidden = !w; $('viewBook').hidden = !b; $('viewZone').hidden = !z; $('viewPractice').hidden = w || b || z;
-  { const nm = w ? 'Write' : b ? 'Barbook' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' ? 'MetroBar' : nm + ' · MetroBar'; }
+  { const nm = w ? 'Write' : b ? 'Barbook' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
   document.querySelectorAll('.views a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === here ? 'page' : 'false'));
   if (w) { wrOpen(); return; }
   if (b) { wrFlush(); if (typeof bookOpen === 'function') bookOpen(); if (typeof bookPop === 'function') bookPop(); return; }
@@ -5793,6 +6155,11 @@ function setView() {
   }
 }
 window.addEventListener('hashchange', setView);
+// Barbook lives on its own page: from MetroBar, #book goes there; from Barbook, any other tab goes back to MetroBar's page
+window.addEventListener('hashchange', () => {
+  if (window.BBAPP) { if (location.hash !== '#book') { try { if (typeof rbFlush === 'function') rbFlush(); } catch (e) {} location.href = 'landing-beat-meter.html' + (location.hash || ''); } }
+  else if (location.hash === '#book') { try { if (typeof rbSaveNow === 'function') rbSaveNow(); } catch (e) {} location.href = 'barbook.html'; }
+});
 // ---- wiring
 Object.entries(TEMPLATES).forEach(([id, t]) => { const o = h('option', '', t.name); o.value = id; $('wrTpl').append(o); });
 $('wrText').addEventListener('input', wrInput);
@@ -6583,11 +6950,12 @@ function rbList() {
   const fs = rbFolders(), sel = $('rbFolder'), keep = RB.folder;
   sel.replaceChildren(new Option('All', '')); fs.forEach(f => sel.append(new Option(f, f))); sel.value = fs.includes(keep) ? keep : ''; RB.folder = sel.value;
   $('rbFolders').replaceChildren(...fs.map(f => new Option(f)));
-  const list = RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q))).sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0));
+  const list = RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q))).sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (RB.sort === 'old' ? (a.updated || 0) - (b.updated || 0) : RB.sort === 'az' ? String(a.title || '').localeCompare(String(b.title || '')) : RB.sort === 'new' ? (b.updated || 0) - (a.updated || 0) : 0));
   for (const p of list) {
     const li = h('li'), b = h('button'); b.type = 'button'; b.setAttribute('aria-current', p.id === RB.cur ? 'true' : 'false');
     if (p.cover) { const im = new Image(); im.className = 'rb-cov'; im.src = p.cover; im.alt = ''; b.append(im); }
     b.append(h('span', 't' + (p.locked ? ' lock' : '') + (p.pin ? ' pin' : ''), p.title || 'Untitled'), h('span', 'd', (p.folder ? p.folder + ' · ' : '') + rbDate(p.updated)));
+    if (window.BBAPP) b.append(h('span', 'p', String(p.text || '').split('\n').filter(x => x.trim() && !/^\s*\[[^\]]*\]\s*$/.test(x)).slice(0, 3).join(' / ')));
     b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; rbSaveNow(); bookOpen(); });
     li.append(b); ul.append(li);
   }
@@ -7252,6 +7620,9 @@ const aiModel = () => AI.models[AI.prov] || AI_PROV[AI.prov].model;
 const aiReady = () => AI.prov === 'ollama' || !!AI.keys[AI.prov];
 function aiWho() { $('rbAiWho').textContent = aiReady() ? `${AI_PROV[AI.prov].name} · ${aiModel()}` : 'Off until you add a key or Ollama'; }
 const AI_FAMS = 'shadows/silhouettes/darkness; fire/flames/embers/ashes/phoenix; chains/wings/rise above; concrete jungle/streets is cold; grind/hustle/chasing dreams/to the top; heart of stone/broken inside/demons/the storm; money on my mind/racks/ice on my wrist; haters/fake friends/snakes; top of the game/king of the city/level up; sky is the limit; at the end of the day/it is what it is';
+// Barbook Settings > AI writing vibe: the style the AI writes in
+const AI_VIBE = { trap: 'Style: trap. Short punchy phrases, triplet pockets, room for ad-libs, hard rhythm.', drill: 'Style: drill. Staccato delivery, dark energy, sliding flows, clipped end rhymes.',
+  lyrical: 'Style: lyrical. Wordplay, metaphors and multi-syllable rhymes that carry a thought across bars.', melodic: 'Style: melodic. Singable lines, open vowels at the line ends, emotion first.' };
 function aiSystem() {
   const T = RB2.topic, sp = T ? `${T.place}, ${T.object}, ${T.person}, ${T.change}` : '';
   const my = (typeof WR !== 'undefined' && WR.myCl) || [];
@@ -7260,6 +7631,7 @@ function aiSystem() {
     'Avoid worn end rhymes (time/grind/mind/shine, real/feel/deal, top/stop/drop, game/fame/name, pain/rain/gain) unless inside a multi-syllable rhyme.',
     'Be concrete: every bar needs a specific thing (a place, an object, a person, a moment that changed).' + (sp ? ' Specifics for this song if they fit: ' + sp + '.' : ''),
     AI.keeps.length ? 'Bars the rapper marked as their style (match the voice, never copy):\n' + AI.keeps.slice(-15).map(k => '- ' + k).join('\n') : '',
+    AI_VIBE[store.get('metrobar.aiVibe', 'lyrical')] || '',
     'Reply with JSON only, no markdown.'].filter(Boolean).join('\n');
 }
 async function aiAsk(user, temp = 1) {
@@ -8187,8 +8559,11 @@ $('znMe').addEventListener('click', () => { if (!ZN.api) return zoneOpen(); ZN.m
 // Post to the Zone from the Rhyme Book
 $('rbPost').addEventListener('click', () => {
   const p = rbPage(); if (!p || !p.text.trim()) { $('rbMsg').textContent = 'Write something first.'; return; }
-  rbFlush(); ZN.draft = { title: (p.title || 'Untitled').slice(0, 80), body: p.text.slice(0, 8000) }; ZN.view = 'compose'; location.hash = '#zone';
+  rbFlush(); ZN.draft = { title: (p.title || 'Untitled').slice(0, 80), body: p.text.slice(0, 8000) }; ZN.view = 'compose';
+  try { sessionStorage.setItem('metrobar.zoneDraft', JSON.stringify(ZN.draft)); } catch (e) {}   // Barbook is another page: the draft travels with you
+  location.hash = '#zone';
 });
+try { const zd = sessionStorage.getItem('metrobar.zoneDraft'); if (zd && !window.BBAPP) { sessionStorage.removeItem('metrobar.zoneDraft'); ZN.draft = JSON.parse(zd); ZN.view = 'compose'; } } catch (e) {}
 if (location.hash === '#zone') setView();
 </script>
 <script>
@@ -8519,7 +8894,7 @@ var BKB = (() => {
   const S = Object.assign({ src: 'none', name: '', yt: null, sc: null, vol: 0.8, loop: true, bpm: 0, tab: 'yt' }, (() => { try { return JSON.parse(localStorage.getItem('metrobar.bookBeat')) || {}; } catch { return {}; } })());
   let recent = (() => { try { return JSON.parse(localStorage.getItem('metrobar.bookBeatRecent')) || []; } catch { return []; } })().map(r => r.kind ? r : Object.assign({ kind: 'yt' }, r));
   const audio = new Audio(); audio.preload = 'auto';
-  let url = '', peaks = null, yt = null, ytReady = null, ytWant = false, raf = 0, mbFile = null, restored = false, msgT = 0;
+  let url = '', fileName = '', peaks = null, yt = null, ytReady = null, ytWant = false, raf = 0, mbFile = null, restored = false, msgT = 0;
   const sc = { w: null, ready: null, ok: false, on: false, pos: 0, dur: 0, want: false, art: '' };
   const save = () => { try { localStorage.setItem('metrobar.bookBeat', JSON.stringify({ src: S.src, name: S.name, yt: S.yt, sc: S.sc, vol: S.vol, loop: S.loop, bpm: S.bpm, tab: S.tab })); } catch {} };
   const fmt = t => { t = Math.max(0, Math.floor(t || 0)); const h = Math.floor(t / 3600), m = Math.floor(t / 60) % 60, s = String(t % 60).padStart(2, '0'); return h ? `${h}:${String(m).padStart(2, '0')}:${s}` : `${m}:${s}`; };
@@ -8542,7 +8917,7 @@ var BKB = (() => {
     paint();
   }
   const SUB = { yt: 'YouTube', sc: 'SoundCloud', mb: 'MetroBar beat', file: 'Your file' };
-  const PH = { yt: 'Search YouTube beats, or paste a link', sc: 'Search SoundCloud beats, or paste a link', file: '' };
+  const PH = { yt: 'Search YouTube beats, or paste a link', sc: 'Paste a SoundCloud link to play it here', file: '' };
   function ui() {
     dock.dataset.src = S.src; dock.dataset.tab = S.tab; const on = playing(); dock.classList.toggle('on', on); fab.classList.toggle('on', on);
     dock.querySelectorAll('.bk-tabs button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tab === S.tab)));
@@ -8587,7 +8962,7 @@ var BKB = (() => {
     if (!f) return;
     if (!/^audio\//.test(f.type) && !/\.(mp3|wav|m4a|aac|ogg|oga|flac|aiff?|webm|mp4)$/i.test(f.name || '')) { say('That is not an audio file. Try an mp3, wav or m4a.'); return; }
     stopOthers('file'); audio.pause(); if (url) URL.revokeObjectURL(url);
-    url = URL.createObjectURL(f); audio.src = url; audio.loop = S.loop; audio.volume = S.vol;
+    url = URL.createObjectURL(f); fileName = f.name || ''; audio.src = url; audio.loop = S.loop; audio.volume = S.vol;
     Object.assign(S, { src: from || 'file', name: (f.name || 'Beat').replace(/\.[a-z0-9]{2,4}$/i, ''), bpm: 0, tab: 'file' }); peaks = null; save(); ui();
     if (from !== 'mb') idb('readwrite', { blob: f, name: f.name || 'Beat', type: f.type });
     if (!quiet) play();
@@ -8764,14 +9139,45 @@ var BKB = (() => {
   el('bkFile').addEventListener('change', e => { useFile(e.target.files[0]); e.target.value = ''; });
   el('bkYtBtn').addEventListener('click', () => { S.tab = 'yt'; ui(); el('bkUrl').focus(); });
   el('bkCancel').addEventListener('click', () => { el('bkUrl').value = ''; ui(); });
-  function search(q) {
-    q = String(q || '').trim(); if (!q) { el('bkUrl').focus(); return; }
-    if (ytParse(q)) { useYt(q); return; } if (scParse(q)) { useSc(q); return; }
-    const beat = /\bbeats?\b|instrumental/i.test(q) ? q : q + ' type beat';
-    const sc0 = S.tab === 'sc', href = sc0 ? 'https://soundcloud.com/search/sounds?q=' + encodeURIComponent(beat) : 'https://www.youtube.com/results?search_query=' + encodeURIComponent(beat);
-    window.open(href, '_blank', 'noopener');
-    say(`Opened ${sc0 ? 'SoundCloud' : 'YouTube'} in a new tab. Copy the link of a beat you like and paste it here.`, 7000);
+  // ---- search inside the app (Bennie 2026-11-12: "they dont forward you to youtube website"). The results show up in the panel and a
+  // click plays one right here; nothing opens youtube.com or soundcloud.com. YouTube results come from public Piped search servers (only
+  // the search words are sent, no account, no key). SoundCloud has no open search for a browser app, so there a pasted link plays.
+  const PIPED = ['https://api.piped.private.coffee', 'https://pipedapi.kavin.rocks', 'https://pipedapi.adminforge.de', 'https://api.piped.yt', 'https://pipedapi.leptons.xyz'];
+  let seq = 0, pipedOk = '';
+  async function getJ(u, ms) { const c = new AbortController(), tm = setTimeout(() => c.abort(), ms); try { const r = await fetch(u, { signal: c.signal, credentials: 'omit', referrerPolicy: 'no-referrer' }); if (!r.ok) throw new Error(String(r.status)); return await r.json(); } finally { clearTimeout(tm); } }
+  async function ytFind(q) {
+    for (const base of (pipedOk ? [pipedOk] : []).concat(PIPED.filter(x => x !== pipedOk))) {
+      try {
+        const j = await getJ(base + '/search?q=' + encodeURIComponent(q) + '&filter=videos', 7000);
+        const out = (j && j.items || []).map(x => { const m = /[?&]v=([\w-]{11})/.exec(x.url || ''); return m ? { kind: 'yt', id: m[1], title: String(x.title || 'YouTube beat'), by: String(x.uploaderName || ''), dur: +x.duration || 0 } : null; }).filter(Boolean).slice(0, 14);
+        if (out.length) { pipedOk = base; return out; }
+      } catch {}
+    }
+    return null;
   }
+  function resMsg(t) { const p = document.createElement('p'); p.textContent = t; el('bkRes').replaceChildren(p); }
+  function resShow(list) {
+    el('bkRes').replaceChildren(...list.map(r => {
+      const b = document.createElement('button'), i = document.createElement('img'), t = document.createElement('b'), sm = document.createElement('small'); b.type = 'button';
+      i.src = `https://i.ytimg.com/vi/${r.id}/mqdefault.jpg`; i.alt = ''; i.loading = 'lazy'; i.referrerPolicy = 'no-referrer';
+      t.textContent = r.title; sm.textContent = [r.by, r.dur > 0 ? fmt(r.dur) : ''].filter(Boolean).join(' · '); b.title = 'Play ' + r.title + ' here';
+      b.append(i, t, sm); b.addEventListener('click', () => useYt({ id: r.id, t: 0 })); return b;
+    }));
+  }
+  async function search(q) {
+    q = String(q || '').trim(); if (!q) { el('bkUrl').focus(); return; }
+    if (ytParse(q)) { el('bkRes').replaceChildren(); useYt(q); return; } if (scParse(q)) { el('bkRes').replaceChildren(); useSc(q); return; }
+    if (S.tab === 'sc') { resMsg('SoundCloud has no open search for apps. Paste the link of a SoundCloud track here and it plays in Barbook. Or search on the YouTube tab.'); return; }
+    if (S.tab === 'file') { S.tab = 'yt'; ui(); }
+    const beat = /\bbeats?\b|instrumental/i.test(q) ? q : q + ' type beat', my = ++seq;
+    resMsg('Searching for “' + beat + '”…');
+    const list = await ytFind(beat); if (my !== seq) return;
+    if (list) resShow(list); else resMsg(navigator.onLine === false ? 'You are offline. Search needs the internet.' : 'Search is not reachable right now. Paste a YouTube or SoundCloud link here and it plays in Barbook.');
+  }
+  el('bkDl').addEventListener('click', () => {
+    if (!url || (S.src !== 'file' && S.src !== 'mb')) return;
+    const a = document.createElement('a'); a.href = url; a.download = fileName || (S.name || 'beat') + '.mp3'; document.body.append(a); a.click(); a.remove();
+  });
   el('bkAsk').addEventListener('submit', e => { e.preventDefault(); search(el('bkUrl').value); });
   el('bkGenres').querySelectorAll('button').forEach(b => b.addEventListener('click', () => search(b.textContent)));
   el('bkUrl').addEventListener('paste', e => { const t = (e.clipboardData || window.clipboardData).getData('text'); if (ytParse(t)) { e.preventDefault(); useYt(t); } else if (scParse(t)) { e.preventDefault(); useSc(t); } });
@@ -8816,7 +9222,7 @@ var BKB = (() => {
    Page data added: page.drafts {line: [versions]}. Takes (Record) live in IndexedDB metrobar-takes. Goal: metrobar.bookGoal / bookGoalN. */
 var BE = (() => {
   const t = $('rbText'), ed = $('rbEd'), view = document.querySelector('#viewBook .rb-view[data-rbv="write"]');
-  const S = { L: [], rows: [], cur: -1, pos: 0, rep: null, pop: '', flow: store.get('metrobar.bookFlow', false), find: '', hits: [], hit: -1, rec: null, menu: null, urls: [], C: null, at: -1 };
+  const S = { extra: 0, dpos: {}, one: store.get('metrobar.bookOne', false), oneSec: 0, L: [], rows: [], cur: -1, pos: 0, rep: null, pop: '', flow: store.get('metrobar.bookFlow', false), find: '', hits: [], hit: -1, rec: null, menu: null, urls: [], C: null, at: -1 };
   const isHead = l => /^\s*\[[^\]]*\]\s*$/.test(l);
   const isNote = l => /^\s*#/.test(l);
   // a part name typed as a bar ("Verse 2", "Hook:", "[chorus]" is already a heading) -> "[Verse 2]"
@@ -8825,6 +9231,7 @@ var BE = (() => {
   const sv = (d, w = 18) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const IC = {
     mic: sv('<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V20"/>', 16),
+    bulb: sv('<path d="M9 17h6M10 20h4"/><path d="M12 4a5.5 5.5 0 0 0-3.4 9.8c.6.5.9 1.2.9 2V17h5v-1.200c0-.8.300-1.500.900-2A5.500 5.500 0 0 0 12 4z"/>', 16),
     wand: sv('<path d="M5 19L15 9"/><path d="M14 4l1 2 2 1-2 1-1 2-1-2-2-1 2-1zM19 11l.7 1.3L21 13l-1.3.7L19 15l-.7-1.3L17 13l1.3-.7z"/>', 16),
     rhy: sv('<circle cx="9" cy="12" r="4.5"/><circle cx="15" cy="12" r="4.5"/>', 16),
     ad: sv('<path d="M5 6h14v9H9l-4 3.5z"/><path d="M9 10.5h6"/>', 16),
@@ -8892,11 +9299,15 @@ var BE = (() => {
   // ---- the text model
   // like RhymeFlux: there are always a few empty bars ("Type bar 23…") waiting under the last one. They are only rows, not text:
   // trailing empty lines are cut when the page is saved, and typing in one of them makes it (and any above it) real.
-  const PAD = 4;
+  // 2026-11-12 (Bennie: "there is already verse structure and thus more empty lines"): the last section is laid out in full, a verse as
+  // 16 bars and any other part as 8, plus the rows asked for with Add bar (S.extra). Still rows only, never text.
+  const PAD = 4, padFor = name => (/^\s*(verse|bars|freestyle|16)/i.test(name) ? 16 : 8);
   function lines() {
-    const L = t.value === '' ? ['[Verse 1]'] : t.value.split('\n'); let e = 0;
-    for (let k = L.length - 1; k >= 0 && L[k] === ''; k--) e++;
-    for (let k = e; k < PAD; k++) L.push('');
+    const L = t.value === '' ? ['[Verse 1]'] : t.value.split('\n');
+    while (L.length > 1 && L[L.length - 1] === '') L.pop();
+    let hi = -1; for (let k = L.length - 1; k >= 0; k--) if (isHead(L[k])) { hi = k; break; }
+    const have = L.length - 1 - hi, want = Math.max(1, padFor(hi >= 0 ? L[hi].trim().slice(1, -1) : 'verse') - have) + (S.extra || 0);
+    for (let k = 0; k < want; k++) L.push('');
     return L;
   }
   const textOf = L => { const M = L.slice(); while (M.length && M[M.length - 1] === '') M.pop(); const v = M.join('\n'); return v === '[Verse 1]' ? '' : v; };
@@ -8980,7 +9391,29 @@ var BE = (() => {
     const side = h('div', 'be-side'), cnt = h('span', 'be-cnt'), dots = btn('be-dots', IC.dots, 'Bar options', 'Bar options'); dots.setAttribute('aria-haspopup', 'menu'); side.append(cnt, dots);
     const meter = h('div', 'be-meter'); meter.setAttribute('aria-hidden', 'true');
     const hd = h('div', 'be-hd'), hin = h('input', 'be-hin'), hn = h('span', 'be-hn'); hin.setAttribute('aria-label', 'Section name'); hin.autocomplete = 'off'; hd.append(hin, h('i', 'be-hl'), hn);
-    r.append(hd, cell, side, meter); r._ = { cell, mir, inp, cnt, dots, meter, hin, hn }; wire(r); return r;
+    // every bar carries its own number and tool row (2026-11-12): drafts pager, takes, rewrite, rhymes, ad-lib, add a bar
+    const num = h('span', 'be-num'), rt = h('div', 'be-rt'), dp = h('span', 'be-dp'); num.setAttribute('aria-hidden', 'true'); rt.setAttribute('role', 'toolbar'); rt.setAttribute('aria-label', 'Bar tools');
+    const dpL = btn('', sv('<path d="M14 7l-5 5 5 5"/>', 13), 'Previous version of this bar', 'Previous version'), dpN = btn('be-dpn', '', 'All versions of this bar'), dpR = btn('', sv('<path d="M10 7l5 5-5 5"/>', 13), 'Next version of this bar', 'Next version');
+    dp.append(dpL, dpN, dpR); dp.hidden = true; rt.append(dp);
+    [dpL, dpN, dpR].forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+    dpL.addEventListener('click', () => draftStep(+r.dataset.i, -1)); dpR.addEventListener('click', () => draftStep(+r.dataset.i, 1)); dpN.addEventListener('click', () => rowTool(r, 'drafts'));
+    [['rec', IC.mic, 'Takes for this bar: record yourself rapping it'], ['rewrite', IC.wand, 'Rewrite this bar'], ['rhymes', IC.bulb, 'Rhymes for this bar'], ['adlib', IC.ad, 'Add an ad-lib'], ['add', IC.plus, 'Add a bar under this one']].forEach(([k, ic, ti]) => {
+      const b = btn('be-rb', ic, ti, ti); b.dataset.k = k; b.tabIndex = -1; b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => rowTool(r, k)); rt.append(b);
+    });
+    const lead = h('div', 'be-lead'); lead.append(num, rt);
+    r.append(hd, lead, cell, side, meter); r._ = { cell, mir, inp, cnt, dots, meter, hin, hn, num, rt, dp, dpN }; wire(r); return r;
+  }
+  function rowTool(r, k) {
+    const i = +r.dataset.i; if (S.cur !== i || document.activeElement !== r._.inp) focusRow(i, S.cur === i ? S.pos : undefined);
+    if (k === 'add') { if (!locked()) addBar(i); } else if (k === 'rec') { if (S.rec) recToggle(); else popOpen('takes'); } else popOpen(k);
+  }
+  // step through the versions of a bar: the one on the page swaps places with the next (or previous) draft
+  function draftStep(i, d) {
+    const p = page(), list = p && p.drafts && p.drafts[i]; if (!list || !list.length || locked()) return;
+    const L = S.L.slice(), cur0 = L[i], nl = list.slice(); let nx;
+    if (d > 0) { nx = nl.shift(); if (cur0.trim()) nl.push(cur0); } else { nx = nl.pop(); if (cur0.trim()) nl.unshift(cur0); }
+    p.drafts[i] = nl; const key = p.id + ':' + i, n = nl.length + 1; S.dpos[key] = (((S.dpos[key] || 1) - 1 + d + n * 4) % n) + 1;
+    rowsChanged(L.map((x, k) => (k === i ? nx : x)), i, nx.length);
   }
   const hinW = v => `calc(${Math.max(3, (v || '').length) * 1.3 + 1}ch)`;
   function upd(r, i, L, C) {
@@ -8993,6 +9426,8 @@ var BE = (() => {
     if (o.inp.value !== l) { const f = document.activeElement === o.inp, a = o.inp.selectionStart; o.inp.value = l; if (f) try { o.inp.setSelectionRange(a, a); } catch (e) {} }
     o.inp.readOnly = ro; o.inp.spellcheck = !!RB.look.auto; o.inp.setAttribute('autocorrect', RB.look.auto ? 'on' : 'off');
     o.inp.placeholder = isNote(l) ? '' : `Type bar ${C.num[i] || i + 1}…`; o.inp.setAttribute('aria-label', `Bar ${C.num[i] || i + 1}`);
+    o.num.textContent = isNote(l) ? '' : String(C.num[i] || ''); r.classList.toggle('has', !!l.trim());
+    { const p = page(), dl = p && p.drafts && p.drafts[i], n = dl ? dl.length : 0; o.dp.hidden = !n; if (n) o.dpN.textContent = `${Math.min(n + 1, S.dpos[p.id + ':' + i] || 1)}/${n + 1}`; }
     paintMir(o.mir, i, l); meterOf(o, C.syl[i], C.med[C.secOf[i]]);
     // rhyme bloom: the bar you're writing just landed a rhyme -> its newest rhyme word blooms once
     const ws = o.mir.querySelectorAll('.rb-w'), nc = ws.length;
@@ -9005,7 +9440,10 @@ var BE = (() => {
     o.cnt.title = n ? `${n} syllable${n === 1 ? '' : 's'}` + (med ? ` · bars in this section have about ${med}` + (dft >= 4 ? `: ${dft} ${n > med ? 'more' : 'fewer'}, check it fits` : '') : '') : '';
     const segs = Math.max(16, n), m = o.meter;
     while (m.children.length < segs) m.append(h('i')); while (m.children.length > segs) m.lastChild.remove();
-    for (let k = 0; k < segs; k++) { const e = m.children[k], c = k < n ? (S.flow && sy.st[k] ? 'on st' : 'on') : ''; if (e.className !== c) e.className = c; }
+    // 2+ syllables off the section's usual count: the missing (or extra) ones show in amber
+    const lo = med && n && dft >= 2 ? Math.min(n, med) : -1, hi = lo < 0 ? -1 : Math.max(n, med);
+    for (let k = 0; k < segs; k++) { const e = m.children[k], off = k >= lo && k < hi && lo >= 0, c = k < n ? (S.flow && sy.st[k] ? 'on st' : off ? 'on over' : 'on') : off ? 'gap' : ''; if (e.className !== c) e.className = c; }
+    o.cnt.classList.toggle('near', dft >= 2 && dft < 4);
   }
   // repaint one row straight away while typing (colours from the last paint; the full paint follows a moment later)
   function quick(r) {
@@ -9018,8 +9456,31 @@ var BE = (() => {
     while (S.rows.length > L.length) S.rows.pop().remove();
     if (S.cur >= L.length) S.cur = L.length - 1;
     S.rows.forEach((r, i) => upd(r, i, L, C));
-    place(); focusMarks(); info(); secLabel(); ghost(); if (S.find) findRun(false);
+    extras(); oneSync(); place(); focusMarks(); info(); secLabel(); ghost(); if (S.find) findRun(false);
   }
+  // under the last bar of every section: Add bar. Under the last bar you wrote: Check these N bars.
+  function extras() {
+    rowsBox.querySelectorAll('.be-add, .be-chk').forEach(e => e.remove());
+    const L = S.L, C = S.C, ro = locked(); let lastW = -1;
+    L.forEach((l, i) => {
+      if (C.syl[i].n) lastW = i;
+      if (ro || isHead(l) || !(i === L.length - 1 || isHead(L[i + 1]))) return;
+      const b = btn('be-add', IC.plus + '<span>Add bar</span>', 'Add an empty bar at the end of this part'); b.addEventListener('mousedown', e => e.preventDefault());
+      b.addEventListener('click', () => { if (i === S.L.length - 1) { S.extra++; render(); focusRow(S.L.length - 1, 0); } else addBar(i); });
+      rowAt(i).append(b);
+    });
+    const n = lastW < 0 ? 0 : C.syl.filter((x, i) => x.n && C.secOf[i] === C.secOf[lastW]).length;
+    if (n >= 2) { const b = btn('be-chk', IC.wand + `<span>Check these ${n} bars</span>`, 'What rhymes in these bars, and notes on them'); b.addEventListener('click', () => { if (window.BS && BS.check) BS.check(C.secOf[lastW]); else doneB.click(); }); rowAt(lastW).append(b); }
+    if (window.BS && BS.place) BS.place(lastW >= 0 ? rowAt(lastW) : null);
+  }
+  // one section at a time (Actions > "Back to one section"): only the part you are in is on the page
+  function oneSync() {
+    const C = S.C, on = !!S.one && C.heads.length > 1; rowsBox.classList.toggle('be-one', on);
+    if (on && S.cur >= 0 && C.secOf[S.cur] != null) S.oneSec = Math.max(0, C.secOf[S.cur]);
+    if (on && S.oneSec >= C.heads.length) S.oneSec = C.heads.length - 1;
+    S.rows.forEach((r, i) => r.classList.toggle('off', on && Math.max(0, C.secOf[i]) !== S.oneSec));
+  }
+  function setOne(on) { S.one = !!on; store.set('metrobar.bookOne', S.one); oneSync(); const r = rowAt(S.cur); if (r) reveal(r); }
   function info() {
     const bars = S.C ? S.C.syl.filter(x => x.n).length : 0;
     done.hidden = bars < 4; doneT.textContent = `${bars} bars done.`;
@@ -9032,9 +9493,13 @@ var BE = (() => {
     if (typeof toast === 'function') toast('Sections made.', { undo: () => rowsChanged(before, Math.max(0, S.cur), 0) });
   });
   // ghost rhymes (idea from RhymeFlux, own code): under the empty bar after the one you're on, rhymes for the end word above it
-  const ghostBox = h('div', 'be-ghost'), GH = {};
+  // 2026-11-12: shown inside the empty bar itself as "town - brown…", one rhyme at a time; click or Tab puts the word in.
+  const ghostEl = btn('be-gt', '', 'End this bar on that word: click or press Tab, then write the bar in front of it'), GH = {}, GS = { row: -1, words: [], k: 0, end: '', tm: 0 };
+  ghostEl.tabIndex = -1; ghostEl.addEventListener('mousedown', e => e.preventDefault()); ghostEl.addEventListener('click', () => ghostTake());
+  const ghShow = () => { ghostEl.textContent = GS.end + ' - ' + GS.words[GS.k % GS.words.length] + '…'; };
   function ghost() {
-    ghostBox.remove(); if (locked() || (typeof RB2 !== 'undefined' && RB2.view !== 'write')) return;
+    clearInterval(GS.tm); ghostEl.remove(); if (GS.row >= 0 && rowAt(GS.row)) rowAt(GS.row).classList.remove('gh'); GS.row = -1;
+    if (locked() || (typeof RB2 !== 'undefined' && RB2.view !== 'write')) return;
     const L = S.L, bar = k => k >= 0 && L[k] != null && L[k].trim() && !isHead(L[k]) && !isNote(L[k]);
     let from = bar(S.cur) ? S.cur : bar(S.cur - 1) && L[S.cur] === '' ? S.cur - 1 : -1;
     if (from < 0) for (let k = L.length - 1; k >= 0; k--) if (bar(k)) { from = k; break; }
@@ -9042,11 +9507,11 @@ var BE = (() => {
     const ws = bookWords(noAd(L[from])), end = ws[ws.length - 1]; if (!end) return;
     let r = GH[end.k]; if (!r) { r = rbWordList(end.k, 30); if (r) GH[end.k] = r; } if (!r) return;
     const words = [...r.perfect, ...r.multi].filter(x => x !== end.k).slice(0, 12); if (!words.length) return;
-    const i = from + 1; ghostBox.replaceChildren(h('span', 'be-gk', L[from].slice(end.a, end.b) + ' →'));
-    words.forEach(x => ghostBox.append(chip(x, 0, () => { const M = S.L.slice(); M[i] = ' ' + x; rowsChanged(M, i, 0); }, 'gh')));
-    ghostBox.title = 'End the next bar on one of these: click to put it in, then write the bar in front of it';
-    rowAt(i).append(ghostBox);
+    GS.row = from + 1; GS.words = words; GS.k = 0; GS.end = L[from].slice(end.a, end.b).toLowerCase(); ghShow();
+    const gr = rowAt(GS.row); gr._.cell.append(ghostEl); gr.classList.add('gh');
+    if (!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) GS.tm = setInterval(() => { GS.k++; ghShow(); }, 2600);
   }
+  function ghostTake() { if (GS.row < 0 || !GS.words.length || locked()) return false; const i = GS.row, x = GS.words[GS.k % GS.words.length], M = S.L.slice(); M[i] = ' ' + x; rowsChanged(M, i, 0); return true; }
   function secOfCur() { const C = S.C; if (!C || !C.heads.length) return null; const s = S.cur >= 0 ? C.secOf[S.cur] : 0; return C.heads[Math.max(0, s)] || C.heads[0]; }
   function secLabel() { const s = secOfCur(); secBtn.querySelector('span').textContent = s ? s.name : 'Song'; }
 
@@ -9054,6 +9519,7 @@ var BE = (() => {
   const rowAt = i => S.rows[i];
   function focusRow(i, pos, sel) {
     const r = rowAt(i); if (!r) return; const l = S.L[i] || '';
+    if (S.one && S.C && r.classList.contains('off')) { S.oneSec = Math.max(0, S.C.secOf[i]); S.rows.forEach((x, k) => x.classList.toggle('off', Math.max(0, S.C.secOf[k]) !== S.oneSec)); }
     if (isHead(l)) { r._.hin.focus({ preventScroll: true }); try { const n = r._.hin.value.length; r._.hin.setSelectionRange(n, n); } catch (e) {} setCur(i, 0); reveal(r); return; }
     const p = pos == null ? l.length : Math.max(0, Math.min(pos, l.length));
     r._.inp.focus({ preventScroll: true }); try { r._.inp.setSelectionRange(sel ? 0 : p, sel ? l.length : p); } catch (e) {}
@@ -9070,7 +9536,7 @@ var BE = (() => {
   }
   function setCur(i, pos) {
     const was = S.at; S.at = i; caret(i, pos == null ? S.pos : pos);
-    if (was !== i) { if (S.pop && !S.rec) popClose(true); S.rep = null; S.rows.forEach((r, k) => r.classList.toggle('cur', k === i && !isHead(S.L[k]))); place(); secLabel(); countGoal(was); ghost(); }
+    if (was !== i) { if (S.pop && !S.rec) popClose(true); S.rep = null; S.rows.forEach((r, k) => r.classList.toggle('cur', k === i && !isHead(S.L[k]))); oneSync(); place(); secLabel(); countGoal(was); ghost(); }
   }
   // side tools that follow the caret (line-above rhymes, spotlight, Focus list, the Rhymes tool on a click)
   function follow(click) {
@@ -9081,7 +9547,11 @@ var BE = (() => {
   }
 
   // ---- editing
-  function rowsChanged(L, i, pos) { if (!commit(L, i, pos)) { render(); return; } render(); focusRow(i, pos); }
+  function rowsChanged(L, i, pos) {
+    if (!commit(L, i, pos)) { render(); return; } render();
+    if (i >= S.L.length) { S.extra += i - S.L.length + 1; render(); }   // a new bar after the last empty row: one more row
+    focusRow(i, pos);
+  }
   function split(i, a, b) { const L = S.L.slice(), v = L[i]; L.splice(i, 1, v.slice(0, a), v.slice(b)); shiftDrafts(i + 1, 1); rowsChanged(L, i + 1, 0); }
   function mergeUp(i) {
     const L = S.L.slice(), prev = L[i - 1];
@@ -9108,7 +9578,7 @@ var BE = (() => {
       if (/\n/.test(v)) { const parts = v.replace(/\r/g, '').split('\n'), a = o.inp.selectionStart; L.splice(i, 1, ...parts); shiftDrafts(i + 1, parts.length - 1); rowsChanged(L, i + parts.length - 1, Math.max(0, parts[parts.length - 1].length - (v.length - a))); return; }
       L[i] = v; if (!commit(L, i, o.inp.selectionStart)) { o.inp.value = S.L[i]; return; }
       if (S.rep && S.rep.i === i) S.rep = null;
-      quick(r); info();
+      quick(r); info(); r.classList.toggle('has', !!v.trim()); if (GS.row === i) ghost();
     });
     o.inp.addEventListener('paste', e => {
       const tx = (e.clipboardData || window.clipboardData).getData('text'); if (!/\n/.test(tx) || o.inp.readOnly) return;
@@ -9124,7 +9594,8 @@ var BE = (() => {
       if (e.isComposing || e.keyCode === 229) return;
       if (histKey(e)) return;
       const i = I(), v = o.inp.value, a = o.inp.selectionStart, b = o.inp.selectionEnd, plain = !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey;
-      if (e.key === 'Enter' && plain) { e.preventDefault(); split(i, a, b); }
+      if (e.key === 'Tab' && plain && GS.row === i && !v) { e.preventDefault(); ghostTake(); }
+      else if (e.key === 'Enter' && plain) { e.preventDefault(); split(i, a, b); }
       else if (e.key === 'Backspace' && a === 0 && b === 0 && i > 0 && plain) { e.preventDefault(); mergeUp(i); }
       else if (e.key === 'Delete' && a === v.length && b === a && i < S.L.length - 1 && plain) { e.preventDefault(); mergeDown(i); }
       else if (e.key === 'ArrowUp' && plain && i > 0 && (a === 0 || oneLine(o.inp))) { e.preventDefault(); focusRow(i - 1, a); }
@@ -9269,6 +9740,7 @@ var BE = (() => {
       }
     } else if (k === 'takes') {
       pop.append(popHead(S.rec ? 'Recording…' : 'Takes of this bar'));
+      { const rb = btn('btn' + (S.rec ? ' pri' : ''), S.rec ? 'Stop' : 'Record a take'); rb.addEventListener('click', recToggle); pop.append(rb); }
       if (S.rec) pop.append(h('p', 'note', 'Rap the bar. Press Stop when you are done.'));
       takesFor(RB.cur).then(list => {
         if (S.pop !== 'takes') return; const mine = list.filter(x => x.li === i || (l.trim() && x.text === l)).sort((a, b) => b.at - a.at);
@@ -9296,6 +9768,7 @@ var BE = (() => {
   function recUi() {
     const b = tb.rec; if (S.rec) { const s = Math.floor((Date.now() - S.rec.t0) / 1000); b.classList.add('rec'); b.innerHTML = '<span class="be-dot"></span><span>Stop ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + '</span>'; }
     else { b.classList.remove('rec'); b.innerHTML = IC.mic + '<span>Record</span>'; }
+    rowsBox.querySelectorAll('.be-rb.rec').forEach(x => x.classList.remove('rec')); const rr = S.rec && rowAt(S.rec.i); if (rr) rr.querySelector('.be-rb[data-k="rec"]').classList.add('rec');
   }
   async function recToggle() {
     if (S.rec) { S.rec.mr.stop(); return; }
@@ -9310,7 +9783,7 @@ var BE = (() => {
       if (blob.size) await tq('readwrite', st => st.add({ page: pg, li: i, text, at: Date.now(), dur: (Date.now() - t0) / 1000, blob }));
       if (S.cur === i && RB.cur === pg) popOpen('takes', true);
     };
-    mr.start(); S.rec = { mr, t0, tm: setInterval(recUi, 500) }; recUi(); popOpen('takes', true);
+    mr.start(); S.rec = { mr, t0, i, tm: setInterval(recUi, 500) }; recUi(); popOpen('takes', true);
     if (window.BKB && BKB.S.src !== 'none' && !BKB.playing()) BKB.play();
   }
 
@@ -9372,14 +9845,16 @@ var BE = (() => {
         }, 'dz');
       }
       if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section'));
-      SECS.forEach(n => mi(m, n, () => {
-        const L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
-        while (L.length > 1 && L[L.length - 1] === '' && !isHead(L[L.length - 2])) L.pop();
-        L.push('[' + name + ']', ''); rowsChanged(L, L.length - 1, 0);
-      }));
+      SECS.forEach(n => mi(m, n, () => addSec(n)));
     }, 'left');
   }
+  function addSec(n) {
+    if (locked()) return; const C = S.C, L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
+    while (L.length > 1 && L[L.length - 1] === '' && !isHead(L[L.length - 2])) L.pop();
+    S.extra = 0; L.push('[' + name + ']', ''); rowsChanged(L, L.length - 1, 0);
+  }
   function moreOpen(on) {
+    if (window.BBAPP) { if (on && window.BS && BS.settings) BS.settings(); return; }   // Barbook page: these live in Settings
     more.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); if (!on) return;
     const r = moreBtn.getBoundingClientRect(); more.style.left = Math.max(12, Math.min(innerWidth - more.offsetWidth - 12, r.right - more.offsetWidth)) + 'px'; more.style.top = (r.bottom + 6) + 'px';
   }
@@ -9419,14 +9894,17 @@ var BE = (() => {
     const goalN = store.get('metrobar.bookGoalN', 8), n = g.keys.length, f = Math.min(1, n / goalN), C0 = 2 * Math.PI * 17;
     let streak = 0; try { streak = writeStreak(store.get('metrobar.days', []), todayKey()).streak; } catch (e) {}
     goal.innerHTML = `<svg viewBox="0 0 42 42" width="42" height="42" aria-hidden="true"><circle class="gr-bg" cx="21" cy="21" r="17"/><circle class="gr-fg" cx="21" cy="21" r="17" stroke-dasharray="${C0.toFixed(1)}" stroke-dashoffset="${(C0 * (1 - f)).toFixed(1)}"/></svg>`;
-    const gb = btn('', '', 'Change the daily goal'); gb.append(h('b', '', `${n}/${goalN} bars today`), h('small', '', n >= goalN ? 'Goal done. Keep going.' : 'Daily goal · tap to change'));
+    const gb = btn('', '', 'Change the daily goal'); gb.append(h('b', '', window.BBAPP ? `${n}/${goalN} today` : `${n}/${goalN} bars today`), h('small', '', n >= goalN ? 'Goal done. Keep going.' : 'Daily goal · tap to change'));
     gb.addEventListener('click', () => { const opts = [4, 8, 12, 16, 24], nx = opts[(opts.indexOf(goalN) + 1) % opts.length]; store.set('metrobar.bookGoalN', nx); drawer(); });
     const st = h('span'); st.style.cssText = 'margin-left:auto;display:flex;align-items:center;gap:4px;font:700 .9rem var(--body);font-variant-numeric:tabular-nums;color:var(--accent)'; st.innerHTML = IC.flame; st.append(String(streak)); st.title = `${streak}-day writing streak`;
     goal.append(gb, st);
     const stash = typeof STASH !== 'undefined' ? STASH : []; lSaved.querySelector('small').textContent = stash.length ? String(stash.length) : '';
     if (!saved.hidden) savedList();
-    const rec = RB.pages.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, 3);
-    recList.replaceChildren(...rec.map(p => { const li = h('li'), b = btn('', ''); b.append(h('span', '', p.title || 'Untitled'), h('small', '', (p.text || '').split('\n').find(x => x.trim() && !isHead(x)) || 'Empty')); b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; store.set('metrobar.bookCur', p.id); bookOpen(); drawerOpen(false); }); li.append(b); return li; }));
+    const rec = RB.pages.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0)).slice(0, window.BBAPP ? 7 : 3);
+    const ago = ms => { const m = Math.max(0, Math.round((Date.now() - (ms || 0)) / 60000)); return !ms ? '' : m < 1 ? 'just now' : m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : m < 43200 ? Math.round(m / 1440) + 'd ago' : rbDate(ms); };
+    recList.replaceChildren(...rec.map(p => { const li = h('li'), b = btn('', ''); b.setAttribute('aria-current', String(p.id === RB.cur));
+      if (window.BBAPP) { const cv = h('span', 'be-cov'); if (p.cover) { const im = new Image(); im.src = p.cover; im.alt = ''; cv.append(im); } else cv.innerHTML = '<i></i><i></i><i></i><i></i>'; b.append(cv); }
+      b.append(h('span', '', p.title || 'Untitled'), h('small', '', window.BBAPP ? ago(p.updated) : (p.text || '').split('\n').find(x => x.trim() && !isHead(x)) || 'Empty')); b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; store.set('metrobar.bookCur', p.id); bookOpen(); drawerOpen(false); }); li.append(b); return li; }));
     syncLine.textContent = ($('rbSync') || {}).textContent || '';
   }
   function savedList() {
@@ -9474,12 +9952,14 @@ var BE = (() => {
   }, 0));
   const _open = window.bookOpen;
   window.bookOpen = bookOpen = function () {
-    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); _open(); histReset(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
+    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; S.extra = 0; S.oneSec = 0; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); _open(); histReset(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
   };
   const _apply = rbApplyLook; rbApplyLook = function () { _apply.apply(this, arguments); if (S.rows.length) render(); };
   window.addEventListener('hashchange', () => { if (location.hash === '#book') drawer(); else { drawerOpen(false); moreOpen(false); menuClose(); if (S.rec) S.rec.mr.stop(); } });
   render(); drawer(); histReset();
-  return { S, render, focusRow, drawer, lines, head, moreBtn, more, rowsBox, done, links, goal, IC, btn, sv, page, locked, isHead, rowsChanged, addBar, menu, mi, popOpen };
+  return { S, render, focusRow, drawer, lines, head, moreBtn, more, rowsBox, done, links, goal, IC, btn, sv, page, locked, isHead, isNote, rowsChanged, addBar, delBar, menu, mi, popOpen,
+    addSec, setOne, secOfCur, sylOf, context, shiftDrafts, colours, find, title, tip, offer, lib, dr, saved, recH, recList, libH, syncLine, flowBtn, findBtn, zenBtn, undoBtn, redoBtn, secBtn, drawerTg, drawerOpen, view, ed,
+    lSaved, lBeat, lCheck, doneB, ghostTake, noAd, chip, say };
 })();
 </script>
 <script>
@@ -10077,6 +10557,320 @@ var BX = (() => {
 
   startSync();
   return { finder, share, card, stats, hook, lyricsText };
+})();
+</script>
+<script>
+/* ---- Barbook, its own page (Bennie 2026-11-12: "take the user to another page", "forget using my colours" for Barbook; layout ideas
+   from the RhymeFlux screenshots he sent, own code and own look). Runs only when the app is opened as barbook.html (window.BBAPP, html.bb).
+   BS turns the Barbook view into the whole page: sidebar (brand, library button, recent songs, goal, Beat / Saved bars / Check), top bar
+   (song title, section pill, undo/redo, Flow, search, share, Actions), the Actions panel (was the tools column), Library and Settings
+   dialogs, the Check card, the end-of-song buttons, and the Booth / Compare / Structure views. The editor itself is still BE. */
+var BS = (() => {
+  if (!window.BBAPP || typeof BE === 'undefined' || !BE.head) return {};
+  const { btn, sv, IC } = BE, root = document.documentElement, vb = $('viewBook'), side = $('rbSide'), main = vb.querySelector('.rb-main'), lib = BE.lib;
+  const say = (m, o) => { if (typeof toast === 'function') toast(m, o); };
+  let ready = false;
+  const I = {
+    home: sv('<path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/>', 18),
+    gear: sv('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>', 18),
+    col: sv('<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9.5 5v14"/>', 18),
+    lib: sv('<path d="M5 5v14M9.5 5v14M14 6l4.5 12.5"/>', 18),
+    grid: sv('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>', 17),
+    bin: sv('<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>', 18),
+    dl: sv('<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/>', 18),
+    up: sv('<path d="M12 15V4M8 8l4-4 4 4"/><path d="M5 19h14"/>', 18),
+    copy: sv('<rect x="8" y="8" width="11" height="11" rx="2"/><path d="M5 15V6a1 1 0 0 1 1-1h9"/>', 17),
+    move: sv('<path d="M5 9h11l-3-3M19 15H8l3 3"/>', 17),
+    grip: sv('<circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="15" cy="7" r="1.2" fill="currentColor"/><circle cx="9" cy="12" r="1.2" fill="currentColor"/><circle cx="15" cy="12" r="1.2" fill="currentColor"/><circle cx="9" cy="17" r="1.2" fill="currentColor"/><circle cx="15" cy="17" r="1.2" fill="currentColor"/>', 18),
+    back: sv('<path d="M11 6l-6 6 6 6M5 12h14"/>', 17), next: sv('<path d="M5 12h14M13 6l6 6-6 6"/>', 17),
+    ring: sv('<circle cx="12" cy="12" r="8.5"/>', 22), share: sv('<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 13v6h14v-6"/>', 17),
+    acts: sv('<path d="M12 4l1.8 5.2L19 11l-5.2 1.8L12 18l-1.8-5.2L5 11l5.2-1.800z"/>', 17), x: sv('<path d="M6 6l12 12M18 6L6 18"/>', 15)
+  };
+  { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap'; document.head.append(l); }
+
+  // ---- always the dark Barbook look here
+  const look0 = rbApplyLook;
+  rbApplyLook = function () { RB.look.shell = 'dark'; RB.look.theme = 'dark'; look0(); vb.classList.add('rb-dark'); };
+  rbApplyLook();
+  root.dataset.bv = 'write';
+
+  // ---- top bar: drawer, song title, section, undo, redo, Flow, search, finder, share, Actions
+  main.prepend(BE.head, BE.find);
+  const titleIn = $('rbTitle'); titleIn.placeholder = 'Untitled song'; BE.head.insertBefore(titleIn, BE.secBtn);
+  BE.zenBtn.style.display = 'none'; BE.moreBtn.style.display = 'none';
+  BE.flowBtn.id = 'bsFlowB';
+  const actB = btn('be-ib', I.acts + '<span>Actions</span>', 'Views, tools and your work', 'Actions'); actB.id = 'bsAct'; actB.setAttribute('aria-haspopup', 'dialog'); actB.setAttribute('aria-expanded', 'false'); actB.setAttribute('aria-controls', 'rbSide');
+  BE.head.append(actB);
+  const actOpen = on => { side.classList.toggle('open', on); actB.setAttribute('aria-expanded', String(on)); if (on) actSync(); };
+  actB.addEventListener('click', () => actOpen(!side.classList.contains('open')));
+  document.addEventListener('pointerdown', e => {
+    if (!side.classList.contains('open') || side.contains(e.target) || actB.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('dialog, .be-menu, .toasts, .toast, .bk-beat, .bk-fab')) return;
+    actOpen(false);
+  });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') actB.setAttribute('aria-expanded', 'false'); });
+  // the sidebar: collapses on wide screens, a drawer on narrow ones
+  const nolib = on => { root.classList.toggle('bb-nolib', on); store.set('metrobar.bookNoLib', on); };
+  if (store.get('metrobar.bookNoLib', false)) root.classList.add('bb-nolib');
+  BE.drawerTg.title = 'Show the songs'; BE.drawerTg.addEventListener('click', e => { if (innerWidth > 1000) { e.stopImmediatePropagation(); nolib(false); } }, true);
+
+  // ---- sidebar
+  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><i></i><i></i><i></i></span>Barbook';
+  const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), setB = btn('bs-ib', I.gear, 'Settings', 'Settings'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
+  brand.append(bname, homeB, setB, colB);
+  homeB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html'; });
+  colB.addEventListener('click', () => nolib(true));
+  const all = h('div', 'bs-all'), allA = btn('a', `<span>${I.lib}</span><b>All songs</b><small></small>`, 'Your full library'), allS = btn('s', IC.find, 'Search your songs', 'Search your songs'); all.append(allA, allS);
+  const rech = h('div', 'bs-rech'); rech.append(h('span', '', 'Recent'));
+  const newB = $('rbNew'); newB.innerHTML = IC.plus; newB.title = 'New song'; newB.setAttribute('aria-label', 'New song'); rech.append(newB);
+  const foot = h('div', 'bs-foot'), nav = h('nav', 'bs-nav'); nav.setAttribute('aria-label', 'MetroBar');
+  nav.innerHTML = '<a href="landing-beat-meter.html">MetroBar</a><a href="landing-beat-meter.html#write">Write</a><a href="landing-beat-meter.html#zone">The Zone</a>';
+  foot.append(BE.goal, BE.links, BE.syncLine, nav);
+  lib.prepend(brand, all, rech, BE.recList, foot);
+  nav.addEventListener('click', () => rbFlush());
+  BE.lCheck.addEventListener('click', e => { e.stopImmediatePropagation(); BE.drawerOpen(false); const s = BE.secOfCur(); check(s ? BE.S.C.heads.indexOf(s) : 0); }, true);
+  BE.goal.addEventListener('click', e => { if (e.target.closest('span[title]') && window.BX && BX.stats) BX.stats(); });
+  const drawer0 = BE.drawer;
+  const count = () => { allA.querySelector('small').textContent = RB.pages.length + (RB.pages.length === 1 ? ' song' : ' songs'); };
+
+  // ---- dialogs
+  function dlg(title, cls, icon) {
+    const d = document.createElement('dialog'); d.className = 'bs-dlg' + (cls ? ' ' + cls : ''); d.setAttribute('aria-label', title);
+    const hd = h('header'), x = btn('be-px', '×', 'Close', 'Close'), body = h('div'); hd.innerHTML = icon || ''; hd.append(h('span', '', title), x); d.append(hd, body);
+    x.addEventListener('click', () => d.close()); d.addEventListener('click', e => { if (e.target === d) d.close(); });
+    document.body.append(d); return { d, body };
+  }
+  const cover = p => { const cv = h('span', 'be-cov'); if (p && p.cover) { const im = new Image(); im.src = p.cover; im.alt = ''; cv.append(im); } else cv.innerHTML = '<i></i><i></i><i></i><i></i>'; return cv; };
+
+  // Library: every song, search, sort, folder, grid or list
+  const LB = dlg('All songs', 'bs-lib', I.lib), hero = h('div', 'bs-hero'), ltool = h('div', 'bs-ltool'), list = $('rbList'), search = $('rbSearch');
+  const sortS = h('select', 'num-in'); sortS.setAttribute('aria-label', 'Sort'); [['new', 'Newest first'], ['old', 'Oldest first'], ['az', 'A to Z']].forEach(([v, l]) => sortS.append(new Option(l, v)));
+  RB.sort = store.get('metrobar.bookSort', 'new'); sortS.value = RB.sort;
+  const gridB = btn('be-ib', I.grid, 'Cards or a list', 'Cards or a list'); gridB.setAttribute('aria-pressed', String(store.get('metrobar.bookGrid', false)));
+  list.classList.toggle('grid', store.get('metrobar.bookGrid', false));
+  search.placeholder = 'Search your songs'; ltool.append(search, sortS, lib.querySelector('.rb-fsel'), gridB);
+  LB.body.append(hero, ltool, h('p', 'bs-tipline', 'Tip: pin a song to keep it on top. Open Settings on a song for Pin to top and a cover photo.'), list);
+  sortS.addEventListener('change', () => { RB.sort = sortS.value; store.set('metrobar.bookSort', RB.sort); rbList(); });
+  gridB.addEventListener('click', () => { const on = !list.classList.contains('grid'); list.classList.toggle('grid', on); gridB.setAttribute('aria-pressed', String(on)); store.set('metrobar.bookGrid', on); });
+  list.addEventListener('click', e => { if (e.target.closest('button')) LB.d.close(); });
+  function library(focus) {
+    const last = RB.pages.slice().sort((a, b) => (b.updated || 0) - (a.updated || 0))[0]; hero.replaceChildren(); hero.hidden = !last;
+    if (last) { const go = btn('bs-big bs-pri', '<span>Continue writing</span>' + I.next); go.addEventListener('click', () => { rbFlush(); RB.cur = last.id; rbSaveNow(); bookOpen(); LB.d.close(); });
+      hero.append(cover(last), h('small', '', 'Your last song'), go, h('b', '', last.title || 'Untitled')); }
+    rbList(); BE.drawerOpen(false); if (!LB.d.open) LB.d.showModal(); if (focus) search.focus();
+  }
+  allA.addEventListener('click', () => library(false)); allS.addEventListener('click', () => library(true));
+
+  // Settings: how loosely words rhyme, the AI's vibe, then the page and song settings that used to sit under ⋯
+  const ST = dlg('Settings', '', I.gear);
+  const RHY = [['none', 'None', 'No rhyme colours on the page'], ['strict', 'Strict', 'Perfect and multi-syllable rhymes only'], ['rap', 'Rap', 'Perfect, multi and close rhymes, the way rappers bend them'], ['loose', 'Loose', 'Also near rhymes: same vowel, different ending']];
+  const VIBE = [['trap', 'Trap', 'Short bars, bounce, ad-libs'], ['drill', 'Drill', 'Cold, direct, sliding flows'], ['lyrical', 'Lyrical', 'Wordplay, multis, storytelling'], ['melodic', 'Melodic', 'Sung lines, open vowels, hooks']];
+  const rhyNow = () => (!RB.look.hi ? 'none' : store.get('metrobar.bookStrict', 'rap'));
+  function opts(defs, cur, pick, name, def) {
+    const box = h('div'); box.setAttribute('role', 'radiogroup'); box.setAttribute('aria-label', name); box.style.cssText = 'display:grid;gap:8px';
+    const draw = () => { box.replaceChildren(...defs.map(([v, l, d]) => { const b = btn('bs-opt', I.ring + `<b>${l}${v === def ? '<span>default</span>' : ''}</b><small>${d}</small>`); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(cur() === v)); b.addEventListener('click', () => { pick(v); draw(); }); return b; })); };
+    draw(); return { box, draw };
+  }
+  function setRhy(v) {
+    if (v !== 'none') store.set('metrobar.bookStrict', v);
+    if (RB.look.hi !== (v !== 'none')) $('rbHi').click();
+    rhyApply(); rbPaint(); actSync();
+  }
+  function rhyApply() { const v = store.get('metrobar.bookStrict', 'rap'); BK_STRICT = v === 'strict'; BK_LOOSE = v === 'loose'; }
+  const oR = opts(RHY, rhyNow, setRhy, 'Rhyme detection', 'rap'), oV = opts(VIBE, () => store.get('metrobar.aiVibe', 'lyrical'), v => { store.set('metrobar.aiVibe', v); actSync(); }, 'AI writing vibe', '');
+  BE.more.hidden = false;
+  ST.body.append(h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme. Built for English.'), oR.box,
+    h('h4', '', 'AI writing vibe'), h('p', '', 'The style Write with AI and Rewrite aim for. Uses your own key, set under Actions > Write with AI.'), oV.box, BE.more);
+  function settings() { oR.draw(); oV.draw(); BE.drawerOpen(false); actOpen(false); if (!ST.d.open) ST.d.showModal(); }
+  setB.addEventListener('click', settings);
+  { const del = $('rbDel'); if (del) del.addEventListener('click', () => ST.d.close()); }
+
+  // ---- Actions panel: views with a line each, one section / whole song, Flow, tools, your work
+  const SUB = { write: 'Your bars, one row each', booth: 'Read it back in time', compare: 'Drafts side by side', structure: 'Move bars around' };
+  document.querySelectorAll('.rb-views button').forEach(b => { const s = b.querySelector('small'); if (s) s.textContent = SUB[b.dataset.rbv] || s.textContent; });
+  const oneB = btn('bs-wide', ''), flowW = btn('bs-wide', 'Show Flow: which syllables you hit');
+  side.querySelector('.rb-views').after(oneB, flowW);
+  oneB.addEventListener('click', () => { BE.setOne(!BE.S.one); actSync(); if (RB2.view !== 'write') rbView('write'); });
+  flowW.addEventListener('click', () => { BE.flowBtn.click(); actSync(); });
+  const toolRow = (icon, name, sub, fn) => { const box = h('div', 'rb-tool'), b = btn('rb-tbtn', `<span class="ti">${icon}</span><span><b>${name}</b><small>${sub}</small></span><span class="chev">${sv('<path d="M9 6l6 6-6 6"/>', 14)}</span>`); box.append(b); b.addEventListener('click', fn); return box; };
+  const vibeRow = toolRow(I.gear, 'Rhyme &amp; Vibe', '', settings);
+  const r101 = toolRow(IC.bulb, 'Rhymes 101', 'Perfect, slant, multi: the short version', () => { actOpen(false); const b = [...BE.more.querySelectorAll('button')].find(z => z.textContent === 'Rhymes 101'); if (b) b.click(); });
+  const firstTool = side.querySelector('.rb-tool'); firstTool.before(vibeRow); side.querySelector('.rb-tool[data-tool="topic"]').after(r101);
+  const work = h('div', 'bs-work'), wBin = btn('', I.bin + '<span>Recently deleted</span>'), wBack = btn('', I.dl + '<span>Backup</span>', 'Download all of Barbook as one backup file'), wLoad = btn('', I.up + '<span>Load</span>', 'Open .txt files, a lyrics export or a Barbook backup');
+  work.append(wBin, wBack, wLoad); $('rbBinBox').before(work);
+  wBin.addEventListener('click', () => { const b = $('rbBinBox'); b.open = !b.open; if (b.open && !RB.bin.length) { b.open = false; say('Nothing in Recently deleted.'); } else if (b.open) b.scrollIntoView({ block: 'nearest' }); });
+  wBack.addEventListener('click', () => $('rbBackup').click()); wLoad.addEventListener('click', () => $('rbImport').click());
+  function actSync() {
+    const many = BE.S.C && BE.S.C.heads.length > 1;
+    oneB.textContent = BE.S.one ? 'Show the whole song' : 'Back to one section'; oneB.setAttribute('aria-pressed', String(!!BE.S.one)); oneB.disabled = !many; oneB.style.opacity = many ? '' : '.45';
+    flowW.setAttribute('aria-pressed', BE.flowBtn.getAttribute('aria-pressed'));
+    const r = RHY.find(x => x[0] === rhyNow()), v = VIBE.find(x => x[0] === store.get('metrobar.aiVibe', 'lyrical'));
+    vibeRow.querySelector('small').textContent = (r ? r[1] : 'Rap') + ' · ' + (v ? v[1] : 'Lyrical');
+    wBin.querySelector('span').textContent = 'Recently deleted' + (RB.bin.length ? ' (' + RB.bin.length + ')' : '');
+  }
+  const tool0 = rbTool;
+  RB2.tools.slice().forEach(n => tool0(n, false));   // the panel opens with every tool folded, so the whole list fits
+  rbTool = function (name, open) { tool0(name, open); if (open && ready) { actOpen(true); const b = document.querySelector(`.rb-tool[data-tool="${name}"]`); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest' }); } };
+
+  // ---- views
+  const backB = btn('bs-back', I.back + '<span>Back to writing</span>'); document.body.append(backB); backB.addEventListener('click', () => rbView('write'));
+  const view0 = rbView;
+  rbView = function (v) {
+    view0(v); root.dataset.bv = v; if (ready) actOpen(false);
+    if (v === 'compare') cmp(); if (v === 'structure') struct();
+    if (v !== 'write') main.scrollTop = 0;
+  };
+
+  // Booth: the lyric sheet, centred and big; Flow dims the syllables you don't hit; tap the tempo; this part or the full song
+  const B = { flow: store.get('metrobar.boothFlow', true), full: store.get('metrobar.boothFull', true), taps: [] };
+  const btop = h('div', 'bs-btop'), bFlow = btn('', IC.flow + '<span>Flow</span>', 'Dim the syllables you don\'t hit'), bShare = btn('', I.share + '<span>Share</span>');
+  btop.append(bFlow, bShare); document.body.append(btop); bFlow.setAttribute('aria-pressed', String(B.flow));
+  bFlow.addEventListener('click', () => { B.flow = !B.flow; store.set('metrobar.boothFlow', B.flow); bFlow.setAttribute('aria-pressed', String(B.flow)); boothRender(); });
+  bShare.addEventListener('click', () => { if (window.BX && BX.share) BX.share(); });
+  const bh = vb.querySelector('.rb-booth .rb-bh'), tapB = btn('bs-tap', 'TAP', 'Tap the tempo: four taps set the BPM'), fullB = btn('bs-full', 'FULL SONG', 'The whole song, or only the part you were writing');
+  $('rbBoothGo').setAttribute('aria-label', 'Play or stop'); $('rbBoothGo').after(tapB); bh.append(fullB); fullB.setAttribute('aria-pressed', String(B.full));
+  { const rg = $('rbBoothSize'), sz = rg.closest('label'), st = h('span', 'bs-step'), mi = btn('', '−', 'Smaller text', 'Smaller text'), pl = btn('', '+', 'Bigger text', 'Bigger text'), out = h('b', '', rg.value);
+    const set = d => { rg.value = Math.max(+rg.min, Math.min(+rg.max, +rg.value + d)); out.textContent = rg.value; store.set('metrobar.boothSize', +rg.value); rg.dispatchEvent(new Event('input')); };
+    rg.value = store.get('metrobar.boothSize', 30); out.textContent = rg.value; mi.addEventListener('click', () => set(-2)); pl.addEventListener('click', () => set(2));
+    st.append(mi, out, pl); if (sz) { sz.hidden = true; sz.after(st); } }
+  tapB.addEventListener('click', () => {
+    const n = performance.now(); if (B.taps.length && n - B.taps[B.taps.length - 1] > 2000) B.taps = []; B.taps.push(n); if (B.taps.length > 6) B.taps.shift();
+    if (B.taps.length >= 3) { const g = []; for (let k = 1; k < B.taps.length; k++) g.push(B.taps[k] - B.taps[k - 1]); g.sort((a, b) => a - b); const bpm = Math.round(60000 / g[Math.floor(g.length / 2)]); if (bpm >= 50 && bpm <= 220) $('rbBoothBpm').value = bpm; }
+  });
+  fullB.addEventListener('click', () => { B.full = !B.full; store.set('metrobar.boothFull', B.full); fullB.setAttribute('aria-pressed', String(B.full)); boothStop(); boothRender(); });
+  function flowLine(text) {
+    const f = document.createDocumentFragment(), re = /[A-Za-z0-9']+/g; let m, c = 0;
+    while ((m = re.exec(text))) {
+      if (m.index > c) f.append(text.slice(c, m.index)); c = m.index + m[0].length;
+      const w = m[0], key = w.toLowerCase(); let n = 1, st = [true], parts = [w];
+      try { n = Math.max(1, sylCount(key)); st = wordStress(key, n); const ps = splitSyl(key, n); if (ps.length === n && ps.join('').length === w.length) { let o = 0; parts = ps.map(x => { const s = w.slice(o, o + x.length); o += x.length; return s; }); } else { parts = [w]; st = [st.some(Boolean)]; } } catch (e) { parts = [w]; st = [true]; }
+      parts.forEach((p, j) => { if (st[j]) f.append(p); else f.append(h('i', '', p)); });
+    }
+    f.append(text.slice(c)); return f;
+  }
+  const booth0 = boothRender;
+  boothRender = function () {
+    booth0(); const sh = $('rbSheet'), C = BE.S.C, sec = BE.secOfCur(), idx = sec && C ? C.heads.indexOf(sec) : -1;
+    if (!B.full && C && C.heads.length > 1 && idx >= 0) { let k = -1, n = 0; [...sh.children].forEach(e => { if (e.classList.contains('hd')) k++; if (k !== idx) e.remove(); else if (e.classList.contains('ln')) e.dataset.n = n++; }); }
+    if (B.flow) sh.querySelectorAll('.ln').forEach(e => e.replaceChildren(flowLine(e.textContent)));
+  };
+  const bs0 = boothStart, bx0 = boothStop;
+  boothStart = function () { bs0(); $('rbBoothGo').classList.toggle('on', BOOTH.on); };
+  boothStop = function () { bx0(); $('rbBoothGo').classList.remove('on'); };
+
+  // Compare: every bar next to its drafts. Click a draft to make it the bar; + writes a new one. "Two songs" keeps the old stats view.
+  const CM = { mode: 'drafts' }, cmpV = vb.querySelector('.rb-view[data-rbv="compare"]'), cmpSeg = h('div', 'bs-seg'), cmpBox = h('div', 'bs-cmp');
+  [['drafts', 'Drafts of each bar'], ['songs', 'Two songs']].forEach(([m, l]) => { const b = btn('', l); b.dataset.m = m; b.addEventListener('click', () => { CM.mode = m; cmp(); }); cmpSeg.append(b); });
+  cmpV.prepend(cmpSeg); $('rbCmp').before(cmpBox);
+  const realLines = () => BE.S.L.slice();   // with the empty rows that wait under the last part, like the page itself
+  function cmp() {
+    [...cmpSeg.children].forEach(b => b.setAttribute('aria-pressed', String(b.dataset.m === CM.mode)));
+    const songs = CM.mode === 'songs'; cmpV.querySelector('.rb-bh').style.display = songs ? 'flex' : ''; $('rbCmp').hidden = !songs; cmpBox.hidden = songs;
+    if (songs) { cmpRender(); return; }
+    const p = BE.page(), L = realLines(), ro = BE.locked(); cmpBox.replaceChildren(); let any = false, n = 0;
+    L.forEach((l, i) => {
+      if (BE.isHead(l)) { cmpBox.append(h('h4', '', l.trim().slice(1, -1))); n = 0; return; }
+      if (BE.isNote(l)) return; n++;
+      const dl = (p && p.drafts && p.drafts[i]) || []; if (l.trim() || dl.length) any = true;
+      const row = h('div', 'bs-crow'), card = (text, cls) => { const c = h('div', 'bs-card' + (cls ? ' ' + cls : ''), text.trim() || 'Empty…'); if (!text.trim()) c.classList.add('empty'); c.append(h('em', '', String(BE.sylOf(text).n))); return c; };
+      const cur = card(l, 'on'); cur.title = 'Bar ' + n + ': the version on the page'; row.append(cur);
+      dl.forEach((x, j) => {
+        const c = card(x); c.tabIndex = 0; c.setAttribute('role', 'button'); c.title = 'Use this version';
+        const del = btn('x', I.bin, 'Delete this draft', 'Delete this draft'); c.append(del);
+        const use = () => { if (ro) return; const M = BE.S.L.slice(), old = M[i], nl = dl.slice(); nl.splice(j, 1); if (old.trim() && !nl.includes(old)) nl.unshift(old); M[i] = x; p.drafts[i] = nl; BE.rowsChanged(M, i, x.length); if (document.activeElement) document.activeElement.blur(); cmp(); };
+        c.addEventListener('click', e => { if (!del.contains(e.target)) use(); });
+        c.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target === c) use(); });
+        del.addEventListener('click', () => { dl.splice(j, 1); if (!dl.length) delete p.drafts[i]; p.updated = Date.now(); rbSave(); cmp(); });
+        row.append(c);
+      });
+      if (!ro) { const plus = btn('bs-plus', IC.plus, 'Write another version of this bar', 'New draft'); row.append(plus);
+        plus.addEventListener('click', () => {
+          const c = h('div', 'bs-card'), ta = h('textarea'); ta.placeholder = 'Empty…'; ta.setAttribute('aria-label', 'New draft of bar ' + n); c.append(ta); plus.before(c); ta.focus();
+          const keep = () => { const v = ta.value.replace(/\s*\n\s*/g, ' ').trim(); if (v) { p.drafts = p.drafts || {}; p.drafts[i] = (p.drafts[i] || []).filter(x => x !== v).concat([v]).slice(0, 12); p.updated = Date.now(); rbSave(); BE.render(); } cmp(); };
+          ta.addEventListener('blur', keep); ta.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); ta.blur(); } if (e.key === 'Escape') { ta.value = ''; ta.blur(); } });
+        }); }
+      cmpBox.append(row);
+    });
+    if (!any) cmpBox.prepend(h('p', 'note', 'Write a few bars first. Then every bar sits here next to its drafts, and + adds another version to try.'));
+  }
+
+  // Structure: every bar as a row. Delete, duplicate, move to another part, or drag it somewhere else. Drafts travel with their bar.
+  const stBox = h('div', 'bs-st'); $('rbSt').before(stBox); $('rbSt').hidden = true;
+  let dragI = -1;
+  function relay(M, order, at) {
+    const p = BE.page(); if (!p || BE.locked()) return;
+    if (p.drafts) { const o = {}; order.forEach((old, ni) => { if (old >= 0 && p.drafts[old]) o[ni] = p.drafts[old]; }); p.drafts = o; }
+    BE.rowsChanged(M, Math.max(0, Math.min(M.length - 1, at)), 0); if (document.activeElement && document.activeElement !== document.body) document.activeElement.blur(); struct();
+  }
+  function moveLine(a, b) { const L = realLines(), order = L.map((_, k) => k); if (a === b || a < 0 || b < 0) return; const [l] = L.splice(a, 1), [o] = order.splice(a, 1); L.splice(b, 0, l); order.splice(b, 0, o); relay(L, order, b); }
+  function struct() {
+    const L = realLines(), ro = BE.locked(), heads = BE.S.C.heads; stBox.replaceChildren(); let n = 0, bars = 0;
+    L.forEach((l, i) => {
+      if (BE.isHead(l)) { stBox.append(h('h4', '', l.trim().slice(1, -1))); n = 0; return; }
+      if (BE.isNote(l)) return; n++; bars++;
+      const row = h('div', 'bs-srow'), del = btn('d', I.bin, 'Delete this bar', 'Delete bar ' + n), dup = btn('c', I.copy, 'Duplicate this bar', 'Duplicate bar ' + n), mv = btn('', I.move, 'Move to another part', 'Move bar ' + n + ' to another part');
+      const tx = btn('tx' + (l.trim() ? '' : ' e'), ''); tx.textContent = l.trim() || 'Empty bar…'; tx.title = 'Go to this bar';
+      const grip = h('span', 'g'); grip.innerHTML = I.grip; grip.title = 'Drag to move';
+      row.append(h('span', '', '#' + n), del, dup, mv, tx, grip); row.draggable = !ro; [del, dup, mv].forEach(b => { b.disabled = ro; });
+      del.addEventListener('click', () => { const M = realLines(), order = M.map((_, k) => k), gone = M[i]; M.splice(i, 1); order.splice(i, 1); const p = BE.page(), d0 = p && p.drafts ? JSON.parse(JSON.stringify(p.drafts)) : null, before = L.slice();
+        relay(M.length ? M : [''], order, i - 1); if (gone.trim()) say('Bar deleted.', { undo: () => { const q = BE.page(); if (q && d0) q.drafts = d0; BE.rowsChanged(before, i, 0); if (document.activeElement) document.activeElement.blur(); struct(); } }); });
+      dup.addEventListener('click', () => { const M = realLines(), order = M.map((_, k) => k); M.splice(i + 1, 0, M[i]); order.splice(i + 1, 0, -1); relay(M, order, i + 1); });
+      mv.addEventListener('click', () => BE.menu(mv, m => { if (!heads.length) { BE.mi(m, 'No other parts yet', () => {}); return; }
+        heads.forEach(s => BE.mi(m, s.name, () => { const M = realLines(); let end = s.i; while (end + 1 < M.length && !BE.isHead(M[end + 1])) end++; while (end > s.i && M[end] === '' && end !== i) end--; moveLine(i, end >= i ? end : end + 1); })); }, 'left'));
+      tx.addEventListener('click', () => { rbView('write'); BE.focusRow(i, (L[i] || '').length); });
+      row.addEventListener('dragstart', e => { dragI = i; row.classList.add('drag'); try { e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(i)); } catch (er) {} });
+      row.addEventListener('dragend', () => { dragI = -1; row.classList.remove('drag'); stBox.querySelectorAll('.over').forEach(x => x.classList.remove('over')); });
+      row.addEventListener('dragover', e => { if (dragI < 0 || dragI === i) return; e.preventDefault(); row.classList.add('over'); });
+      row.addEventListener('dragleave', () => row.classList.remove('over'));
+      row.addEventListener('drop', e => { e.preventDefault(); const a = dragI; dragI = -1; if (a >= 0 && a !== i) moveLine(a, i); });
+      stBox.append(row);
+    });
+    if (!bars) stBox.append(h('p', 'note', 'No bars yet. Write a few and they line up here, ready to move around.'));
+    const add = h('div', 'bs-end'), r = h('div'); [['Verse', '+ Verse'], ['Hook', '+ Hook'], ['Bridge', '+ Bridge']].forEach(([k, l]) => { const b = btn('bs-sm', l); b.addEventListener('click', () => { BE.addSec(k); if (document.activeElement) document.activeElement.blur(); struct(); }); r.append(b); }); add.append(r); if (!ro) stBox.append(add);
+  }
+
+  // ---- under the bars: share, the hook, the next part
+  const end = h('div', 'bs-end'), e1 = h('div'), e2 = h('div');
+  const shB = btn('bs-big', I.share + '<span>Share your bars</span>'), hkB = btn('bs-big bs-pri', '<span>Write the hook</span>' + I.next);
+  e1.append(shB, hkB); [['Verse', '+ Verse'], ['Hook', '+ Hook'], ['Bridge', '+ Bridge'], ['Outro', '+ Outro']].forEach(([k, l]) => { const b = btn('bs-sm', l, 'Add a ' + k.toLowerCase() + ' under this one'); b.addEventListener('click', () => BE.addSec(k)); e2.append(b); });
+  end.append(e1, e2); BE.ed.after(end);
+  shB.addEventListener('click', () => { if (window.BX && BX.share) BX.share(); }); hkB.addEventListener('click', () => { if (window.BX && BX.hook) BX.hook(); });
+
+  // ---- Check card: which words rhyme in this part, the bars with only the rhymes lit, and the way to the notes
+  const CK = { el: null, sec: -1 };
+  function check(sec) {
+    if (RB2.view !== 'write') rbView('write');
+    const C = BE.S.C, L = BE.S.L; sec = Math.max(0, sec | 0);
+    const idx = L.map((l, i) => i).filter(i => Math.max(0, C.secOf[i]) === sec && C.syl[i].n);
+    if (!idx.length) { say('Write a couple of bars first, then check them.'); return; }
+    const card = h('section', 'bs-chk'); card.setAttribute('aria-label', 'Check your bars');
+    const hd = h('header'), x = btn('be-px', '×', 'Close', 'Close'); hd.append(h('span', '', 'Check your bars'), x); x.addEventListener('click', () => { card.remove(); CK.el = null; });
+    const fams = new Map(); let rhymed = 0; const ol = h('ol');
+    idx.forEach(i => { const l = L[i], li = h('li'), sp = h('span'); let c = 0;
+      BE.colours(i, l).forEach(w => { if (w.a < c) return; sp.append(l.slice(c, w.a)); const s = h('span', 'rb-w', l.slice(w.a, w.b)); bookPaint(s, w); sp.append(s); c = w.b; rhymed++;
+        let g = fams.get(w.c); if (!g) fams.set(w.c, g = { w, keys: [] }); const k = l.slice(w.a, w.b).toLowerCase(); if (!g.keys.includes(k)) g.keys.push(k); });
+      sp.append(l.slice(c)); li.append(sp); ol.append(li); });
+    const det = h('details'), sum = h('summary', '', rhymed ? `${rhymed} rhyming word${rhymed === 1 ? '' : 's'}` : 'No rhymes yet in these bars'), fb = h('div', 'bs-fams');
+    fams.forEach(g => { const d = h('div'); g.keys.forEach(k => { const s = h('span', 'rb-w', k); bookPaint(s, g.w); d.append(s); }); fb.append(d); });
+    if (!rhymed) fb.append(h('p', 'note', 'Two words that rhyme within three lines light up. Try ending the next bar on the same sound.'));
+    det.append(sum, fb);
+    const notes = btn('bs-notes', 'Notes on these bars?', 'Score, weak spots and what to try next');
+    notes.addEventListener('click', () => rbTool('check', true));
+    card.append(hd, det, notes, ol);
+    if (CK.el) CK.el.remove(); CK.el = card; CK.sec = sec; place(BE.S.rows[idx[idx.length - 1]]);
+    card.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+  // BE's render calls this with the last written row, so the card stays under the bars it is about
+  function place(row) { if (CK.el && row && CK.el.parentNode !== row) row.append(CK.el); }
+
+  // ---- keep the small things in step
+  const sync = () => { count(); actSync(); };
+  BE.drawer = function () { drawer0(); sync(); };
+  const open0 = bookOpen;
+  bookOpen = function () { if (CK.el) { CK.el.remove(); CK.el = null; } open0(); sync(); if (RB2.view === 'compare') cmp(); if (RB2.view === 'structure') struct(); };
+  if (window.MutationObserver) new MutationObserver(count).observe(BE.recList, { childList: true });
+  rhyApply(); ready = true; rbPaint(); sync();
+  return { settings, library, check, place, actOpen, cmp, struct };
 })();
 </script>
 </body>
