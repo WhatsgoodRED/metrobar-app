@@ -2340,6 +2340,22 @@ html.bb .rb-bh .field[hidden] { display: none; }
 html.bb .be-row.hd .be-lead, html.bb .be-row.hd .be-meter, html.bb .be-row.hd .be-side { display: none; }
 html.bb .be-goal b { white-space: nowrap; font-size: .8rem; } html.bb .be-goal > span { white-space: nowrap; font-size: .8rem !important; }
 html.bb .be-goal > span::after { font-size: .75rem; }
+
+/* MetroBar AI credits (2026-11-12): wallet line in the AI panel + the Get more sheet */
+.ai-wal { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: .86rem; }
+.ai-wal .btn { flex: none; }
+dialog.ai-pay { width: min(56rem, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow: auto; padding: 28px; border: 1px solid #ffffff1f; border-radius: 22px; background: #111315; color: #f2f2f2; box-shadow: 0 30px 90px #000a; }
+dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
+.ai-pay h2 { margin: 0 0 6px; font-size: 1.5rem; letter-spacing: -.01em; } .ai-pay .sub { margin: 0 0 20px; color: #a3a7ab; }
+.ai-pay .x { position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; border-radius: 50%; border: 1px solid #ffffff1f; background: none; color: inherit; font-size: 1.2rem; cursor: pointer; }
+.ai-pay .plans { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 12px; }
+.ai-pay .plan { display: flex; flex-direction: column; gap: 4px; padding: 18px; border: 1px solid #ffffff1a; border-radius: 16px; background: #16191b; }
+.ai-pay .plan.pro { border-color: color-mix(in srgb, var(--accent) 60%, transparent); box-shadow: 0 0 40px -18px var(--accent); }
+.ai-pay .plan b { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: #a3a7ab; } .ai-pay .plan.pro b { color: var(--accent); }
+.ai-pay .plan strong { font-size: 2.4rem; font-variant-numeric: tabular-nums; line-height: 1.1; } .ai-pay .plan small { color: #a3a7ab; }
+.ai-pay .plan ul { margin: 10px 0 14px; padding-left: 1.1em; color: #cfd2d4; font-size: .88rem; line-height: 1.5; flex: 1; }
+.ai-pay .plan .btn { justify-content: center; text-align: center; text-decoration: none; } .ai-pay .plan .btn.off { opacity: .5; pointer-events: none; }
+.ai-pay .plan .cur { min-height: 1.4em; color: #a3a7ab; font-size: .82rem; } .ai-pay .note { margin: 16px 0 0; color: #8b8f93; font-size: .8rem; }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -7009,6 +7025,7 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
 // ---- Rhyme Book (#book): its own pages, folders, lock and bin; Rhymer's-Block-style highlight (core bookHighlight). Saved in localStorage.
 var RB = { pages: store.get('metrobar.book', []), bin: store.get('metrobar.bookBin', []), cur: store.get('metrobar.bookCur', null),
   look: Object.assign({ theme: 'white', font: 'sans', hi: true, syl: true, auto: false, shell: 'light' }, store.get('metrobar.bookLook', {})), folder: '', timer: 0, paintT: 0 };
+RB.seen = Object.fromEntries(RB.pages.map(p => [p.id, +p.updated || 0]));   // what this tab last saw stored, per song (two-tab merge)
 // Barbook full page (Bennie 2026-11-09): white is the look now; move a saved dark default over once, keep any other picks
 if (!store.get('metrobar.bookWhite', false)) { RB.look.shell = 'light'; if (RB.look.theme === 'dark') RB.look.theme = 'white'; store.set('metrobar.bookLook', RB.look); store.set('metrobar.bookWhite', true); }
 const RB_THEMES = { white: 'White', dark: 'MetroBar dark', paper: 'Paper', notebook: 'Notebook', sky: 'Sky', blush: 'Blush', night: 'Night', studio: 'Studio', chalk: 'Chalkboard' };
@@ -7031,7 +7048,47 @@ function rbGFont(name) {   // load one Google font once; returns its CSS family 
   return `"${name}", ${RB_GFALL[grp]}`;
 }
 function rbPage() { return RB.pages.find(p => p.id === RB.cur); }
-function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon(); }
+// Two Barbook tabs (Bennie 2026-11-12 had two open and lost bars): saving used to write this tab's whole list over the stored one,
+// so a tab that was behind wiped the other tab's newer bars and songs. Now every save first takes in what other tabs stored
+// (per song, the newest edit wins; songs another tab added or deleted are kept that way), and other tabs follow along live.
+function rbPurge(id) { store.set('metrobar.bookPurged', store.get('metrobar.bookPurged', []).filter(x => x !== id).concat([id]).slice(-500)); }
+function rbMergeStored() {
+  const gone = new Set(store.get('metrobar.bookPurged', []));
+  const st = store.get('metrobar.book', []).filter(o => o && o.id && !gone.has(o.id)), stBin = store.get('metrobar.bookBin', []).filter(o => o && o.id && !gone.has(o.id));
+  if (!Array.isArray(st) || !Array.isArray(stBin)) return { changed: false, cur: false };
+  const mine = new Map(RB.pages.map(p => [p.id, p])), myBin = new Map(RB.bin.map(p => [p.id, p]));
+  const stamp = p => Math.max(+p.updated || 0, +p.deleted || 0);
+  let changed = false, cur = false; const seen = RB.seen || (RB.seen = {});
+  st.forEach(o => {
+    const m = mine.get(o.id), b = myBin.get(o.id), was = seen[o.id];
+    seen[o.id] = Math.max(+o.updated || 0, was || 0);
+    if (m) {
+      if ((+o.updated || 0) > (+m.updated || 0)) {
+        if (was != null && (+m.updated || 0) > was && (m.text || '').trim() && m.text !== o.text) { rbKeepOld(Object.assign({}, m)); if (typeof toast === 'function') toast('Another tab saved this song after you. Your version is in Recently deleted.'); }
+        Object.assign(m, o); changed = true; if (m.id === RB.cur) cur = true;
+      }
+      // both tabs changed this song since this tab last looked: this tab's newer text wins, the other tab's version stays in Recently deleted
+      else if (was != null && (+o.updated || 0) > was && (o.text || '').trim() && o.text !== m.text) { rbKeepOld(o); changed = true; if (typeof toast === 'function') toast('Another tab changed this song too. Its version is in Recently deleted.'); }
+    }
+    else if (b) { if ((+o.updated || 0) > stamp(b)) { RB.bin = RB.bin.filter(x => x !== b); const n = Object.assign({}, o); delete n.deleted; RB.pages.push(n); changed = true; } }  // restored elsewhere
+    else { RB.pages.push(Object.assign({}, o)); changed = true; }      // added in another tab
+  });
+  stBin.forEach(o => {
+    const m = mine.get(o.id);
+    if (m && stamp(o) > (+m.updated || 0)) { RB.pages = RB.pages.filter(x => x !== m); RB.bin.unshift(Object.assign({}, o)); changed = true; if (m.id === RB.cur) cur = true; }  // deleted elsewhere
+    else if (!m && !myBin.has(o.id)) { RB.bin.push(Object.assign({}, o)); changed = true; }
+  });
+  if (changed) RB.pages.sort((x, y) => (+y.updated || 0) - (+x.updated || 0) || 0);
+  if (cur && !rbPage()) RB.cur = RB.pages.length ? RB.pages[0].id : null;
+  return { changed, cur };
+}
+window.addEventListener('storage', e => {
+  if (e.key !== 'metrobar.book' && e.key !== 'metrobar.bookBin') return;
+  if (RB.timer) return;                              // this tab has unsaved typing; its own save will merge
+  const r = rbMergeStored(); if (!r.changed) return;
+  if (location.hash === '#book' || window.BBAPP) { try { if (r.cur) { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } else rbList(); } catch (er) { console.warn(er); } }
+});
+function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; rbMergeStored(); RB.pages.forEach(p => { RB.seen[p.id] = +p.updated || 0; }); store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon(); }
 function rbSave() { clearTimeout(RB.timer); RB.timer = setTimeout(rbSaveNow, 400); }
 function rbLookSave() { store.set('metrobar.bookLook', RB.look); }
 function rbId() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -7126,7 +7183,7 @@ async function bookSync() {
       else if (rbStamp(r) > rbStamp(l)) take.push(r); else put.push(l);   // changed on both sides: newest edit wins
     }
     for (const [id, l] of local) if (!byId.has(id)) {
-      if (map[id] != null && map[id] === rbSig(l)) { RB.pages = RB.pages.filter(x => x !== l); RB.bin = RB.bin.filter(x => x !== l); delete map[id]; changed = true; }   // deleted for good on another device
+      if (map[id] != null && map[id] === rbSig(l)) { RB.pages = RB.pages.filter(x => x !== l); RB.bin = RB.bin.filter(x => x !== l); rbPurge(id); delete map[id]; changed = true; }   // deleted for good on another device
       else put.push(l);
     }
     const editing = document.activeElement === $('rbText') || document.activeElement === $('rbTitle');
@@ -7723,19 +7780,69 @@ function checkRender() {
 // ---- Write with AI: bring your own key (stays in this browser) or local Ollama. Nothing is sent until you press an AI button,
 // and only the section you are in goes out. Every answer goes through MetroBar's checker (syllables, rhyme, technique, clichés) first.
 const AI_PROV = {
+  metrobar: { name: 'MetroBar AI (credits)', model: 'included', key: false, help: ['landing-beat-meter.html#zone', 'Sign in on The Zone: free credits every month'] },
   gemini: { name: 'Gemini', model: 'gemini-3.5-flash-lite', key: true, help: ['https://aistudio.google.com/apikey', 'Free key from Google AI Studio'] },
   openai: { name: 'OpenAI', model: 'gpt-5-mini', key: true, help: ['https://platform.openai.com/api-keys', 'Key from the OpenAI platform (paid per use)'] },
   anthropic: { name: 'Claude', model: 'claude-haiku-5-5', key: true, help: ['https://console.anthropic.com/settings/keys', 'Key from the Anthropic console (paid per use)'] },
   openrouter: { name: 'OpenRouter', model: 'openrouter/auto', key: true, help: ['https://openrouter.ai/keys', 'One key for many models, some free'] },
   ollama: { name: 'Ollama (this computer)', model: 'gemma4', key: false, help: ['https://ollama.com/download', 'Install Ollama, then run: ollama pull gemma4'] }
 };
-var AI = Object.assign({ prov: 'gemini', keys: {}, models: {}, url: 'http://localhost:11434', tech: '', rhyme: 'auto' }, store.get('metrobar.ai', {}));
+// MetroBar AI shows up once the server side is switched on (zone-config.js: ai: true)
+if (!(window.ZONE_CONFIG && ZONE_CONFIG.ai)) delete AI_PROV.metrobar;
+var AI = Object.assign({ prov: AI_PROV.metrobar ? 'metrobar' : 'gemini', keys: {}, models: {}, url: 'http://localhost:11434', tech: '', rhyme: 'auto' }, store.get('metrobar.ai', {}));
+if (!AI_PROV[AI.prov]) AI.prov = 'gemini';
 AI.keeps = store.get('metrobar.aiKeeps', []);
 const aiSave = () => store.set('metrobar.ai', { prov: AI.prov, keys: AI.keys, models: AI.models, url: AI.url, tech: AI.tech, rhyme: AI.rhyme });
 const GEM_FALLBACK = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite'];
-const aiModel = () => AI.models[AI.prov] || AI_PROV[AI.prov].model;
-const aiReady = () => AI.prov === 'ollama' || !!AI.keys[AI.prov];
-function aiWho() { $('rbAiWho').textContent = aiReady() ? `${AI_PROV[AI.prov].name} · ${aiModel()}` : 'Off until you add a key or Ollama'; }
+const aiModel = () => AI.prov === 'metrobar' ? 'included' : AI.models[AI.prov] || AI_PROV[AI.prov].model;
+const aiReady = () => AI.prov === 'ollama' || (AI.prov === 'metrobar' ? !!(typeof znCfg === 'function' && znCfg()) : !!AI.keys[AI.prov]);
+function aiWho() { $('rbAiWho').textContent = AI.prov === 'metrobar' ? (AIW.w ? `MetroBar AI · ${AIW.w.left} credits left` : 'MetroBar AI · sign in for free credits') : aiReady() ? `${AI_PROV[AI.prov].name} · ${aiModel()}` : 'Off until you add a key or Ollama'; }
+// ---- MetroBar AI credits (Bennie 2026-11-12): the key lives on the server (edge function "ai"), every account has a wallet.
+// Free: a few credits every month; Pro: lots; packs add bonus credits. 1 press = 1 credit, a failed answer is given back.
+var AIW = { w: null, t: 0 };
+async function aiWallet(force) {
+  if (!force && AIW.w && Date.now() - AIW.t < 60000) return AIW.w;
+  try { const api = typeof rbSyncApi === 'function' ? await rbSyncApi() : null; AIW.w = api && api.wallet ? await api.wallet() : null; } catch (e) { AIW.w = null; }
+  AIW.t = Date.now(); aiWalletShow(); return AIW.w;
+}
+function aiWalletShow() {
+  try { aiWho(); } catch (e) {}
+  const el = document.getElementById('aiWal'); if (el) {
+    const w = AIW.w; el.replaceChildren();
+    if (AI.prov !== 'metrobar') { el.hidden = true; } else {
+      el.hidden = false;
+      const t = h('span'); t.textContent = w ? `${w.left} AI credits left` + (w.plan === 'pro' ? ' · Pro' : ` · ${w.monthly} free every month`) : 'Sign in on The Zone to get free AI credits every month.';
+      const more = h('button', 'btn', w ? (w.plan === 'pro' ? 'Add credits' : 'Get Pro') : 'Sign in'); more.type = 'button';
+      more.addEventListener('click', () => w ? aiPaywall() : (location.href = 'landing-beat-meter.html#zone'));
+      el.append(t, more);
+    }
+  }
+  document.dispatchEvent(new Event('aiwallet'));
+}
+function aiPay(kind) {
+  const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, link = P[kind]; if (!link) return '';
+  const uid = ZN && ZN.me && ZN.me.id, mail = ZN && ZN.user && ZN.user.email;
+  return link + (link.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(uid || '') + (mail ? '&prefilled_email=' + encodeURIComponent(mail) : '');
+}
+function aiPaywall(why) {
+  const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, w = AIW.w;
+  let d = document.getElementById('aiPayDlg');
+  if (!d) { d = document.createElement('dialog'); d.id = 'aiPayDlg'; d.className = 'ai-pay'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
+  const free = w ? w.monthly : 15, proN = P.proCredits || 800, packN = P.packCredits || 300;
+  d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
+<h2>${why === 'no_credits' ? 'You used all your AI credits' : 'More AI for your bars'}</h2>
+<p class="sub">${w ? `${w.left} left now. Free credits come back on ${new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' })}.` : 'Sign in on The Zone first, so the credits land in your account.'}</p>
+<div class="plans">
+ <div class="plan"><b>Free</b><strong>${free}</strong><small>AI credits every month</small><ul><li>Next bar, Fit this bar, rhyme ammo, notes</li><li>Every answer checked by MetroBar's engine</li></ul><span class="cur">${w && w.plan === 'free' ? 'Your plan' : ''}</span></div>
+ <div class="plan pro"><b>Pro</b><strong>${proN}</strong><small>AI credits every month</small><ul><li>Everything in Free, 50x the AI</li><li>Cancel any time</li></ul><a class="btn pri" data-k="pro">${P.proPrice || 'Get Pro'}</a></div>
+ <div class="plan"><b>Credit pack</b><strong>${packN}</strong><small>credits, one payment, never expire</small><ul><li>On top of any plan</li></ul><a class="btn" data-k="pack">${P.packPrice || 'Buy pack'}</a></div>
+</div><p class="note">1 press = 1 credit. If the AI fails, the credit comes back. Payments run on Stripe; MetroBar never sees your card.</p>`;
+  d.querySelectorAll('a[data-k]').forEach(a => { const u = aiPay(a.dataset.k);
+    if (!w) { a.href = 'landing-beat-meter.html#zone'; a.textContent = 'Sign in first'; }
+    else if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { setTimeout(() => aiWallet(true), 15000); }); }
+    else { a.removeAttribute('href'); a.classList.add('off'); a.textContent = 'Coming soon'; } });
+  if (!d.open) d.showModal();
+}
 const AI_FAMS = 'shadows/silhouettes/darkness; fire/flames/embers/ashes/phoenix; chains/wings/rise above; concrete jungle/streets is cold; grind/hustle/chasing dreams/to the top; heart of stone/broken inside/demons/the storm; money on my mind/racks/ice on my wrist; haters/fake friends/snakes; top of the game/king of the city/level up; sky is the limit; at the end of the day/it is what it is';
 // Barbook Settings > AI writing vibe: the style the AI writes in
 const AI_VIBE = { trap: 'Style: trap. Short punchy phrases, triplet pockets, room for ad-libs, hard rhythm.', drill: 'Style: drill. Staccato delivery, dark energy, sliding flows, clipped end rhymes.',
@@ -7754,6 +7861,12 @@ function aiSystem() {
 async function aiAsk(user, temp = 1) {
   const sys = aiSystem(), P = AI.prov, key = AI.keys[P], model = aiModel(); let r, d, txt;
   const net = async (url, opt) => { try { return await fetch(url, opt); } catch (e) { throw new Error(P === 'ollama' ? `Can't reach Ollama at ${AI.url}. Open the Ollama app (or run "ollama serve").` : `No connection to ${AI_PROV[P].name}. Check your internet.`); } };
+  if (P === 'metrobar') {
+    const api = typeof rbSyncApi === 'function' ? await rbSyncApi() : null;
+    if (!api || !api.ai) throw new Error('Sign in on The Zone to use MetroBar AI (free credits every month).');
+    try { const res = await api.ai({ system: sys, user, temp }); if (AIW.w) { AIW.w.left = res.left; AIW.t = Date.now(); aiWalletShow(); } else aiWallet(true); return aiJson(res.text); }
+    catch (e) { if (e.code === 'no_credits' || e.code === 'daily_cap') { aiWallet(true).then(() => aiPaywall(e.code)); } throw e; }
+  }
   if (P !== 'ollama' && !key) throw new Error(`Paste your ${AI_PROV[P].name} key in AI settings first.`);
   if (P === 'gemini') {
     // Google retires and overloads models often (2026-11-12: gemini-flash-latest hung with no answer), so: 25 s per try, then the next model
@@ -7793,6 +7906,7 @@ function aiJson(t) {
 }
 async function aiTest() {
   const P = AI.prov, key = AI.keys[P]; let r, names = [];
+  if (P === 'metrobar') { const w = await aiWallet(true); if (!w) throw new Error('Sign in on The Zone first. Then MetroBar AI works without a key.'); return `Works. ${w.left} credits left.`; }
   if (P === 'ollama') {
     try { r = await fetch(AI.url.replace(/\/$/, '') + '/api/tags'); } catch { throw new Error(`Can't reach Ollama at ${AI.url}. Open the Ollama app (or run "ollama serve").`); }
     names = ((await r.json()).models || []).map(m => m.name);
@@ -7961,6 +8075,7 @@ function aiRender() {
   root.innerHTML = `<div class="two"><label>Technique <select id="aiTech"></select></label><label>Rhyme <select id="aiRhyme"><option value="auto">auto (pairs)</option><option value="above">with the bar above</option><option value="free">free</option></select></label></div>
 <div class="ai-go"><button class="btn" type="button" data-go="fit" title="Rewrite the bar at your cursor: same meaning, weight on the beat">Fit this bar</button><button class="btn" type="button" data-go="next" title="Candidates for the bar under your cursor">Next bar</button><button class="btn" type="button" data-go="ammo" title="Rhymes for the word at your cursor (or your selection)">Rhyme ammo</button><button class="btn" type="button" data-go="notes" title="Checker findings + notes on meaning and imagery">Notes</button></div>
 <div class="msg" id="aiMsg" role="status"></div><div class="out" id="aiOut"></div>
+<div class="ai-wal" id="aiWal" hidden></div>
 <details id="aiSet"><summary>AI settings</summary>
 <label>AI <select id="aiProv"></select></label>
 <label id="aiKeyL">Your key <input id="aiKey" type="password" autocomplete="off" spellcheck="false"></label>
@@ -7974,9 +8089,9 @@ function aiRender() {
   tech.value = AI.tech; tech.addEventListener('change', () => { AI.tech = tech.value; aiSave(); });
   $('aiRhyme').value = AI.rhyme; $('aiRhyme').addEventListener('change', () => { AI.rhyme = $('aiRhyme').value; aiSave(); });
   Object.entries(AI_PROV).forEach(([k, p]) => $('aiProv').append(new Option(p.name, k)));
-  const sync = () => { const P = AI_PROV[AI.prov]; $('aiProv').value = AI.prov; $('aiKeyL').hidden = !P.key; $('aiUrlL').hidden = P.key; $('aiKey').value = AI.keys[AI.prov] || ''; $('aiUrl').value = AI.url; $('aiModel').value = aiModel();
-    $('aiHelp').replaceChildren(); const a = h('a', '', P.help[1]); a.href = P.help[0]; a.target = '_blank'; a.rel = 'noopener'; $('aiHelp').append(a, P.key ? '. It stays in this browser only.' : '. Nothing leaves this computer.');
-    $('aiPriv').textContent = P.key ? `Only the section you're in (plus your Keep bars) is sent to ${P.name}, and only when you press an AI button. For lyrics nobody should see yet, use Ollama.` : 'Private: the model runs on this computer.';
+  const sync = () => { const P = AI_PROV[AI.prov]; $('aiProv').value = AI.prov; $('aiKeyL').hidden = !P.key; $('aiUrlL').hidden = AI.prov !== 'ollama'; $('aiModel').closest('label').hidden = AI.prov === 'metrobar'; $('aiTest').hidden = AI.prov === 'metrobar'; aiWalletShow(); if (AI.prov === 'metrobar') aiWallet(); $('aiKey').value = AI.keys[AI.prov] || ''; $('aiUrl').value = AI.url; $('aiModel').value = aiModel();
+    $('aiHelp').replaceChildren(); const a = h('a', '', P.help[1]); a.href = P.help[0]; a.target = '_blank'; a.rel = 'noopener'; $('aiHelp').append(a, AI.prov === 'metrobar' ? '. No key needed. Or pick your own AI above.' : P.key ? '. It stays in this browser only.' : '. Nothing leaves this computer.');
+    $('aiPriv').textContent = AI.prov === 'metrobar' ? "Only the section you're in (plus your Keep bars) is sent to MetroBar AI, and only when you press an AI button. It runs Google Gemini on MetroBar's server; nothing is kept after the answer." : P.key ? `Only the section you're in (plus your Keep bars) is sent to ${P.name}, and only when you press an AI button. For lyrics nobody should see yet, use Ollama.` : 'Private: the model runs on this computer.';
     $('aiKeepN').textContent = AI.keeps.length; aiWho(); };
   $('aiProv').addEventListener('change', () => { AI.prov = $('aiProv').value; aiSave(); sync(); $('aiModels').replaceChildren(); });
   $('aiKey').addEventListener('change', () => { AI.keys[AI.prov] = $('aiKey').value.trim(); aiSave(); sync(); });
@@ -7994,6 +8109,7 @@ function aiRender() {
     const out = $('aiOut'), tmp = h('div'); await AI_GO[b.dataset.go](tmp); out.replaceChildren(...tmp.childNodes);
   })));
   sync(); if (!aiReady()) $('aiSet').open = true;
+  if (AI.prov === 'metrobar' && !$('aiWal').dataset.on) { $('aiWal').dataset.on = 1; aiWallet(true); }
 }
 aiWho();
 </script>
@@ -8305,6 +8421,19 @@ function znSupabase(cfg) {
     async signOut() { await sb.auth.signOut(); },
     // Barbook sync: the signed-in user's own pages (table book_pages, row level security = only you)
     async userId() { return meId(); },
+    // MetroBar AI: edge function "ai" (key on the server, credits in ai_wallets)
+    async wallet() { if (!(await meId())) return null; const r = await sb.rpc('my_ai_wallet'); if (r.error) return null; return r.data; },
+    async ai(body) {
+      const { data } = await sb.auth.getSession(), tok = data.session && data.session.access_token;
+      const fail = (m, code, left) => { const e = new Error(m); e.code = code; e.left = left; return e; };
+      if (!tok) throw fail('Sign in on The Zone to use MetroBar AI (free credits every month).', 'sign_in');
+      let r; try { r = await fetch(cfg.url.replace(/\/$/, '') + '/functions/v1/ai', { method: 'POST', headers: { 'Content-Type': 'application/json', apikey: cfg.key, Authorization: 'Bearer ' + tok }, body: JSON.stringify(body) }); }
+      catch (e) { throw fail('No connection to MetroBar AI. Check your internet.', 'offline'); }
+      const d = await r.json().catch(() => ({}));
+      if (r.status === 404) throw fail('MetroBar AI is not switched on yet. Pick your own AI in AI settings for now.', 'off');
+      if (!r.ok) throw fail(d.message || 'MetroBar AI: ' + r.status, d.error, d.left);
+      return d;
+    },
     async bookRows() { const all = []; for (let a = 0; ; a += 1000) { const r = chk(await sb.from('book_pages').select('id,title,text,folder,locked,created,updated,deleted').range(a, a + 999)); all.push(...r); if (r.length < 1000) return all; } },
     async bookPut(rows) { for (let i = 0; i < rows.length; i += 100) chk(await sb.from('book_pages').upsert(rows.slice(i, i + 100), { onConflict: 'user_id,id' })); },
     async bookDel(ids) { for (let i = 0; i < ids.length; i += 100) chk(await sb.from('book_pages').delete().in('id', ids.slice(i, i + 100))); },
@@ -8487,6 +8616,7 @@ window.zoneOpen = zoneOpen;
 async function znAuthChanged(first) {
   try { ZN.me = await ZN.api.session(); ZN.admin = ZN.me ? await ZN.api.isAdmin() : false; ZN.blocked = new Set(ZN.me ? await ZN.api.blockedIds() : []); }
   catch (e) { ZN.me = null; znSay(znErr(e)); }
+  if (typeof aiWallet === 'function') aiWallet(true);
   $('znMe').textContent = ZN.me ? '@' + ZN.me.username : 'Sign in';
   znSay(ZN.api.demo ? 'Demo: made-up posts that live only in this tab. Nothing is saved or sent.' : '');
   if (ZN.draft) { ZN.view = ZN.me ? 'compose' : 'auth'; if (!ZN.me) znSay('Sign in to post your page.'); }
@@ -10722,7 +10852,8 @@ var BS = (() => {
   main.prepend(BE.head, BE.find);
   const titleIn = $('rbTitle'); titleIn.placeholder = 'Untitled song'; BE.head.insertBefore(titleIn, BE.secBtn);
   BE.zenBtn.style.display = 'none'; BE.moreBtn.style.display = 'none';
-  BE.flowBtn.id = 'bsFlowB';
+  BE.flowBtn.id = 'bsFlowB';   // Bennie 2026-11-12: in Barbook this is called High-Light
+  BE.flowBtn.querySelector('.lbl').textContent = 'High-Light'; BE.flowBtn.title = 'High-Light: light up the stressed syllables in each bar'; BE.flowBtn.setAttribute('aria-label', 'High-Light');
   const actB = btn('be-ib', I.acts + '<span>Actions</span>', 'Views, tools and your work', 'Actions'); actB.id = 'bsAct'; actB.setAttribute('aria-haspopup', 'dialog'); actB.setAttribute('aria-expanded', 'false'); actB.setAttribute('aria-controls', 'rbSide');
   BE.head.append(actB);
   const actOpen = on => { side.classList.toggle('open', on); actB.setAttribute('aria-expanded', String(on)); if (on) actSync(); };
@@ -10845,7 +10976,7 @@ var BS = (() => {
   // ---- Actions panel: views with a line each, one section / whole song, Flow, tools, your work
   const SUB = { write: 'Your bars, one row each', booth: 'Read it back in time', compare: 'Drafts side by side', structure: 'Move bars around' };
   document.querySelectorAll('.rb-views button').forEach(b => { const s = b.querySelector('small'); if (s) s.textContent = SUB[b.dataset.rbv] || s.textContent; });
-  const oneB = btn('bs-wide', ''), flowW = btn('bs-wide', 'Show Flow: which syllables you hit');
+  const oneB = btn('bs-wide', ''), flowW = btn('bs-wide', 'Show High-Light: which syllables you hit');
   side.querySelector('.rb-views').after(oneB, flowW);
   oneB.addEventListener('click', () => { BE.setOne(!BE.S.one); actSync(); if (RB2.view !== 'write') rbView('write'); });
   flowW.addEventListener('click', () => { BE.flowBtn.click(); actSync(); });
@@ -11032,8 +11163,8 @@ var BS = (() => {
   stat.append(sAi, h('i', '', '·'), sSy); me.append(meB, meG); BE.syncLine.hidden = true; BE.syncLine.after(stat, me); meG.addEventListener('click', settings);
   sAi.addEventListener('click', () => rbTool('ai', true));
   function statSync() {
-    let key = false; try { key = AI.prov === 'ollama' || !!(AI.keys && AI.keys[AI.prov]); } catch (e) {}
-    sAi.innerHTML = sv('<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>', 14) + (key ? 'AI ready' : 'AI off'); sAi.classList.toggle('on', key); sAi.title = key ? 'Write with AI uses your own key' : 'Add your own AI key under Actions > Write with AI';
+    let key = false, cr = ''; try { key = AI.prov === 'metrobar' ? !!AIW.w : AI.prov === 'ollama' || !!(AI.keys && AI.keys[AI.prov]); if (AI.prov === 'metrobar' && AIW.w) cr = `AI ${AIW.w.left}` + (AIW.w.plan === 'pro' ? ' · PRO' : `/${AIW.w.monthly}`); } catch (e) {}
+    sAi.innerHTML = sv('<path d="M13 3L5 14h6l-1 7 8-11h-6z"/>', 14) + (cr || (key ? 'AI ready' : 'AI off')); sAi.classList.toggle('on', key); sAi.title = AI.prov === 'metrobar' ? (key ? 'MetroBar AI credits left' : 'Sign in on The Zone for free AI credits') : key ? 'Write with AI uses your own key' : 'Add your own AI key under Actions > Write with AI';
     const full = ($('rbSync') || {}).textContent || '', synced = /synced|up to date|in your account\b(?!.*sign in)/i.test(full) && !/sign in/i.test(full), busy = /syncing|uploading|checking/i.test(full);
     sSy.innerHTML = sv('<path d="M7 18a4 4 0 0 1-.5-8A5.500 5.500 0 0 1 17 8.500 4.500 4.500 0 0 1 17.500 18z"/>', 14) + (busy ? 'Syncing' : synced ? 'Synced' : 'This device'); sSy.classList.toggle('on', synced); sSy.title = full;
     let name = ''; try { name = (window.ZN && ZN.me && (ZN.me.username || (ZN.me.profile && ZN.me.profile.username) || ZN.me.name)) || ''; } catch (e) {}
@@ -11043,6 +11174,7 @@ var BS = (() => {
   }
   meB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html#zone'; });
   if (window.MutationObserver && $('rbSync')) new MutationObserver(statSync).observe($('rbSync'), { childList: true, characterData: true, subtree: true });
+  document.addEventListener('aiwallet', statSync); if (AI.prov === 'metrobar') setTimeout(() => aiWallet(), 2500);
   // the Beat tile lights up while the beat panel is open or a beat plays; Saved bars while its list is open
   { const bk = $('bkBeat'), tile = () => BE.lBeat.classList.toggle('on', bk.classList.contains('open') || bk.classList.contains('on')); if (bk && window.MutationObserver) { new MutationObserver(tile).observe(bk, { attributes: true, attributeFilter: ['class'] }); tile(); } }
 
