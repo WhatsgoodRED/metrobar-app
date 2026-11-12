@@ -1821,6 +1821,68 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
   .tg-row { padding-inline: 4px; }
 }
 @media (prefers-reduced-motion: reduce) { dialog.tg[open], .tg-mark.tg-pop, .tg-verdict.tg-bump, .tg-pad.tg-hit { animation: none; } .tg-ring { display: none; } .tg-prog i, .tg-bar, .tg-b { transition: none; } }
+/* ---- Barbook extras (BX, 2026-11-12): ghost rhymes, rhyme bloom, undo/redo, song pin + cover, Rhyme Finder, Share, Writing stats, starter, hook */
+.be-ghost { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 4px; padding: 2px 0 8px; }
+.be-ghost .be-gk { font: 600 .72rem var(--body); color: color-mix(in srgb, var(--rb-fg) 50%, transparent); margin-right: 2px; }
+.be-chip.gh { padding: 2px 9px; font-size: .8rem; border-style: dashed; background: transparent; color: color-mix(in srgb, var(--rb-fg) 70%, transparent); }
+.be-chip.gh:hover { color: var(--rb-fg); border-style: solid; }
+.be-mir .rb-w.be-bloom { animation: beBloom .7s ease-out; }
+@keyframes beBloom { 0% { background: color-mix(in srgb, var(--c) 55%, transparent); box-shadow: 0 0 0 5px color-mix(in srgb, var(--c) 30%, transparent), inset 0 -2px 0 var(--c); } }
+@media (prefers-reduced-motion: reduce) { .be-mir .rb-w.be-bloom { animation: none; } }
+.be-ib:disabled { opacity: .35; cursor: default; }
+.be-goal > span[title] { cursor: pointer; }
+#rbList .rb-cov { width: 34px; height: 34px; border-radius: 6px; object-fit: cover; grid-row: span 2; }
+#rbList button:has(.rb-cov) { grid-template-columns: 34px minmax(0, 1fr); column-gap: 9px; align-items: center; }
+#rbList .t.pin::before { content: ''; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: middle; }
+.bx-dlg { --bx-line: color-mix(in srgb, var(--fg) 14%, transparent); --rb-bg: var(--bg); --rb-fg: var(--fg); --rb-rule: var(--bx-line); --rb-font: var(--body);
+  width: min(560px, calc(100vw - 32px)); max-height: min(86vh, 900px); padding: 0; border: 1px solid var(--bx-line); border-radius: 16px; background: var(--bg); color: var(--fg); box-shadow: 0 24px 60px -20px rgba(0,0,0,.5); overflow: hidden; }
+.bx-dlg[open] { display: flex; flex-direction: column; }
+.bx-dlg::backdrop { background: rgba(0,0,0,.4); }
+.bx-h { display: flex; align-items: center; gap: 8px; padding: 14px 14px 10px 20px; border-bottom: 1px solid var(--bx-line); }
+.bx-h h3 { margin: 0 auto 0 0; font: 700 1.05rem var(--body); }
+.bx-b { padding: 14px 20px 20px; overflow: auto; font: 400 .92rem/1.45 var(--body); }
+.bx-b h5 { margin: 14px 0 6px; font: 700 .75rem var(--body); color: color-mix(in srgb, var(--fg) 55%, transparent); }
+.bx-b .note { color: color-mix(in srgb, var(--fg) 60%, transparent); font-size: .85rem; margin: 6px 0; }
+.bx-q { width: 100%; font-size: 1rem; padding: 10px 12px; box-sizing: border-box; }
+.bx-act { display: grid; gap: 2px; width: 100%; text-align: left; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--bx-line); border-radius: 12px; background: none; color: inherit; font: inherit; cursor: pointer; }
+.bx-act:hover { border-color: var(--accent); }
+.bx-act small { color: color-mix(in srgb, var(--fg) 55%, transparent); }
+.bx-card img { width: 100%; border-radius: 10px; display: block; margin-bottom: 12px; }
+.bx-card .be-chips { display: flex; gap: 8px; }
+.bx-big b { font: 800 2.4rem var(--body); font-variant-numeric: tabular-nums; }
+.bx-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; height: 120px; margin: 8px 0 14px; }
+.bx-week .c { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; height: 100%; }
+.bx-week i { width: 70%; max-width: 34px; border-radius: 6px 6px 3px 3px; background: var(--accent); }
+.bx-week i.z { background: color-mix(in srgb, var(--fg) 10%, transparent); height: 4px !important; }
+.bx-week i.on0 { background: color-mix(in srgb, var(--accent) 35%, transparent); height: 8px !important; }
+.bx-week span, .bx-week small { font: 600 .7rem var(--body); color: color-mix(in srgb, var(--fg) 55%, transparent); font-variant-numeric: tabular-nums; }
+.bx-week .now span { color: var(--accent); }
+.bx-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+.bx-facts > div { padding: 10px; border: 1px solid var(--bx-line); border-radius: 10px; display: grid; gap: 2px; }
+.bx-facts b { font: 800 1.3rem var(--body); font-variant-numeric: tabular-nums; }
+.bx-facts small { font-size: .72rem; color: color-mix(in srgb, var(--fg) 55%, transparent); }
+.bx-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.bx-badges span { padding: 5px 10px; border-radius: 999px; border: 1px dashed var(--bx-line); font: 600 .78rem var(--body); opacity: .55; }
+.bx-badges span.on { border-style: solid; border-color: var(--accent); color: var(--accent); opacity: 1; }
+.bx-heat { display: grid; grid-template-columns: repeat(26, 1fr); gap: 3px; }
+.bx-heat i { aspect-ratio: 1; border-radius: 3px; background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.bx-heat i.l1 { background: color-mix(in srgb, var(--accent) 40%, transparent); }
+.bx-heat i.l2 { background: color-mix(in srgb, var(--accent) 70%, transparent); }
+.bx-heat i.l3 { background: var(--accent); }
+.bx-heat i.fut { background: none; }
+.bx-start { margin: 6px 0 12px; padding: 14px 16px; border: 1px dashed color-mix(in srgb, var(--accent) 45%, var(--rb-rule)); border-radius: 14px; font: 400 .9rem/1.4 var(--body); color: var(--rb-fg); }
+.bx-start > b { font-weight: 700; }
+.bx-start .be-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.bx-res { display: grid; gap: 8px; margin-top: 10px; }
+.bx-pick { display: grid; gap: 2px; text-align: left; padding: 10px 12px; border: 1px solid var(--rb-rule); border-radius: 10px; background: var(--rb-bg); color: var(--rb-fg); font: 500 1rem var(--rb-font); cursor: pointer; }
+.bx-pick:hover { border-color: var(--accent); }
+.bx-pick small { font: 400 .75rem var(--body); color: color-mix(in srgb, var(--rb-fg) 55%, transparent); }
+.bx-hook .sug { padding: 12px; border: 1px solid var(--bx-line); border-radius: 12px; margin-bottom: 10px; display: grid; gap: 4px; }
+.bx-hook .sug .btn { justify-self: start; margin-top: 6px; }
+.bx-101 ul, .bx-new ul { padding-left: 18px; margin: 4px 0 10px; }
+.bx-101 li, .bx-new li { margin: 0 0 6px; }
+.be-more .row.bx-song { flex-wrap: wrap; }
+@media (max-width: 560px) { .bx-facts { grid-template-columns: repeat(2, 1fr); } }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -6521,10 +6583,11 @@ function rbList() {
   const fs = rbFolders(), sel = $('rbFolder'), keep = RB.folder;
   sel.replaceChildren(new Option('All', '')); fs.forEach(f => sel.append(new Option(f, f))); sel.value = fs.includes(keep) ? keep : ''; RB.folder = sel.value;
   $('rbFolders').replaceChildren(...fs.map(f => new Option(f)));
-  const list = RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q)));
+  const list = RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q))).sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0));
   for (const p of list) {
     const li = h('li'), b = h('button'); b.type = 'button'; b.setAttribute('aria-current', p.id === RB.cur ? 'true' : 'false');
-    b.append(h('span', 't' + (p.locked ? ' lock' : ''), p.title || 'Untitled'), h('span', 'd', (p.folder ? p.folder + ' · ' : '') + rbDate(p.updated)));
+    if (p.cover) { const im = new Image(); im.className = 'rb-cov'; im.src = p.cover; im.alt = ''; b.append(im); }
+    b.append(h('span', 't' + (p.locked ? ' lock' : '') + (p.pin ? ' pin' : ''), p.title || 'Untitled'), h('span', 'd', (p.folder ? p.folder + ' · ' : '') + rbDate(p.updated)));
     b.addEventListener('click', () => { rbFlush(); RB.cur = p.id; rbSaveNow(); bookOpen(); });
     li.append(b); ul.append(li);
   }
@@ -7385,7 +7448,11 @@ const AI_GO = {
 function aiReplace(bar, text) {
   const t = $('rbText'), ls = t.value.split('\n'); let k = bar.line; if ((ls[k] || '').trim() !== bar.text) k = ls.findIndex(l => l.trim() === bar.text);
   if (k < 0) { $('rbMsg').textContent = 'That bar changed, so nothing was swapped.'; return; }
+  // the old version is kept as a draft of that bar (Drafts on the bar toolbar), like RhymeFlux's Rewrite; own code
+  const p = rbPage(), old = (ls[k] || '').trim();
+  if (p && old && old !== String(text).trim()) { p.drafts = p.drafts || {}; const dl = p.drafts[k] || []; p.drafts[k] = [old, ...dl.filter(x => x !== old)].slice(0, 12); }
   ls[k] = ls[k].match(/^\s*/)[0] + text; rbSetText(ls.join('\n'), ls.slice(0, k + 1).join('\n').length);
+  if (p && old && typeof toast === 'function') toast('Swapped in. Your old version is under Drafts.');
 }
 function aiAddAfter(after, text, n) {
   const t = $('rbText'), ls = t.value.split('\n'); let k = after ? ls.findIndex((l, i) => i >= after.line - 30 && l.trim() === after.text) : -1;
@@ -8752,6 +8819,9 @@ var BE = (() => {
   const S = { L: [], rows: [], cur: -1, pos: 0, rep: null, pop: '', flow: store.get('metrobar.bookFlow', false), find: '', hits: [], hit: -1, rec: null, menu: null, urls: [], C: null, at: -1 };
   const isHead = l => /^\s*\[[^\]]*\]\s*$/.test(l);
   const isNote = l => /^\s*#/.test(l);
+  // a part name typed as a bar ("Verse 2", "Hook:", "[chorus]" is already a heading) -> "[Verse 2]"
+  const PART = /^\s*((?:verse|hook|chorus|pre-?hook|pre-?chorus|bridge|intro|outro|refrain|break)(?:\s*\d{1,2})?)\s*:?\s*$/i;
+  const asHead = l => { const m = String(l).match(PART); return m ? '[' + m[1].replace(/\s+/g, ' ').replace(/^./, c => c.toUpperCase()) + ']' : null; };
   const sv = (d, w = 18) => `<svg viewBox="0 0 24 24" width="${w}" height="${w}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const IC = {
     mic: sv('<path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3z"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V20"/>', 16),
@@ -8780,7 +8850,9 @@ var BE = (() => {
   const findBtn = btn('be-ib', IC.find, 'Search this song (Ctrl+F)', 'Search this song'); findBtn.setAttribute('aria-pressed', 'false');
   const zenBtn = btn('be-ib', IC.focus, 'Focus: only your page and a live list of rhymes. Esc brings everything back.', 'Focus');
   const moreBtn = btn('be-ib', IC.dots, 'Page settings and actions', 'More'); moreBtn.setAttribute('aria-haspopup', 'dialog');
-  head.append(drawerTg, secBtn, h('span', 'be-sp'), flowBtn, findBtn, zenBtn, moreBtn);
+  const undoBtn = btn('be-ib', sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', 17), 'Undo (Ctrl/⌘+Z)', 'Undo'), redoBtn = btn('be-ib', sv('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', 17), 'Redo (Ctrl/⌘+Shift+Z)', 'Redo');
+  undoBtn.disabled = redoBtn.disabled = true; [undoBtn, redoBtn].forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
+  head.append(drawerTg, secBtn, h('span', 'be-sp'), undoBtn, redoBtn, flowBtn, findBtn, zenBtn, moreBtn);
   const find = h('div', 'be-find'); find.hidden = true;
   const findIn = h('input', 'num-in'); findIn.type = 'search'; findIn.placeholder = 'Find in this song'; findIn.setAttribute('aria-label', 'Find in this song');
   const findN = h('small'), findUp = btn('be-ib', sv('<path d="M7 14l5-5 5 5"/>', 16), 'Previous match', 'Previous match'), findDn = btn('be-ib', IC.down, 'Next match', 'Next match');
@@ -8791,7 +8863,8 @@ var BE = (() => {
   ed.classList.add('be-on'); ed.append(rowsBox);
   const tip = h('p', 'be-tip', 'Stuck? Tap Rhymes, or double-tap any word.');
   const done = h('p', 'be-done'); done.hidden = true; const doneT = h('span'), doneB = btn('', 'Check them', 'Open Check your bars'); done.append(doneT, doneB);
-  view.prepend(head, find, title); ed.after(tip, done);
+  const offer = h('p', 'be-done be-offer'); offer.hidden = true; const offerT = h('span'), offerB = btn('', 'Make them sections', 'Turn lines like “Verse 2” into section dividers'); offer.append(offerT, offerB);
+  view.prepend(head, find, title); ed.after(tip, offer, done);
   // ⋯ panel: the page's settings and actions (the same buttons as before, moved here)
   const more = h('div', 'be-menu be-more'); more.hidden = true; more.setAttribute('role', 'dialog'); more.setAttribute('aria-label', 'Page settings');
   { const r1 = h('div', 'row'), r2 = h('div', 'row'), r3 = h('div', 'row');
@@ -8848,6 +8921,22 @@ var BE = (() => {
     Object.keys(p.drafts).forEach(k => { const n = +k; if (d < 0 && n >= from && n < from - d) return; o[n >= from ? n + d : n] = p.drafts[k]; }); p.drafts = o;
   }
   function swapDrafts(a, b) { const p = page(); if (!p || !p.drafts) return; const x = p.drafts[a], y = p.drafts[b]; delete p.drafts[a]; delete p.drafts[b]; if (y) p.drafts[a] = y; if (x) p.drafts[b] = x; }
+  // undo / redo for the whole page (2026-11-12): every change to the page text is recorded, typing bursts (<0.8 s apart) count as one step
+  S.und = []; S.red = []; S.lastV = t.value; S.lastT = 0; S.hist = false;
+  t.addEventListener('input', () => {
+    if (S.hist) return; const v = t.value; if (v === S.lastV) return; const n = Date.now();
+    if (n - S.lastT > 800 || !S.und.length) { S.und.push(S.lastV); if (S.und.length > 200) S.und.shift(); }
+    S.lastT = n; S.lastV = v; S.red = []; histUi();
+  });
+  function hist(d) {
+    const from = d < 0 ? S.und : S.red, to = d < 0 ? S.red : S.und; if (!from.length || locked()) return;
+    const was = t.value, v = from.pop(); to.push(was); S.hist = true; t.value = v; t.dispatchEvent(new Event('input', { bubbles: true })); S.hist = false; S.lastV = v; S.lastT = 0;
+    const a = was.split('\n'), b = v.split('\n'); let k = 0; while (k < a.length && k < b.length && a[k] === b[k]) k++;
+    render(); focusRow(Math.min(k, S.L.length - 1)); histUi();
+  }
+  function histUi() { if (typeof undoBtn !== 'undefined') { undoBtn.disabled = !S.und.length; redoBtn.disabled = !S.red.length; } }
+  function histReset() { S.und = []; S.red = []; S.lastV = t.value; S.lastT = 0; histUi(); }
+  const histKey = e => { if (!(e.metaKey || e.ctrlKey) || e.altKey) return false; const k = e.key.toLowerCase(); if (k === 'z') { e.preventDefault(); hist(e.shiftKey ? 1 : -1); return true; } if (k === 'y' && !e.shiftKey) { e.preventDefault(); hist(1); return true; } return false; };
 
   // ---- syllables, sections, colours
   const fx = () => (typeof fix !== 'undefined' ? fix : {});
@@ -8905,6 +8994,10 @@ var BE = (() => {
     o.inp.readOnly = ro; o.inp.spellcheck = !!RB.look.auto; o.inp.setAttribute('autocorrect', RB.look.auto ? 'on' : 'off');
     o.inp.placeholder = isNote(l) ? '' : `Type bar ${C.num[i] || i + 1}…`; o.inp.setAttribute('aria-label', `Bar ${C.num[i] || i + 1}`);
     paintMir(o.mir, i, l); meterOf(o, C.syl[i], C.med[C.secOf[i]]);
+    // rhyme bloom: the bar you're writing just landed a rhyme -> its newest rhyme word blooms once
+    const ws = o.mir.querySelectorAll('.rb-w'), nc = ws.length;
+    if (o.nc != null && nc > o.nc && i === S.cur && ws.length && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) ws[ws.length - 1].classList.add('be-bloom');
+    o.nc = nc;
   }
   function meterOf(o, sy, med) {
     const n = sy.n; o.cnt.textContent = n ? String(n) : '';
@@ -8925,11 +9018,34 @@ var BE = (() => {
     while (S.rows.length > L.length) S.rows.pop().remove();
     if (S.cur >= L.length) S.cur = L.length - 1;
     S.rows.forEach((r, i) => upd(r, i, L, C));
-    place(); focusMarks(); info(); secLabel(); if (S.find) findRun(false);
+    place(); focusMarks(); info(); secLabel(); ghost(); if (S.find) findRun(false);
   }
   function info() {
     const bars = S.C ? S.C.syl.filter(x => x.n).length : 0;
     done.hidden = bars < 4; doneT.textContent = `${bars} bars done.`;
+    const plain = S.L.filter(l => asHead(l)).length; offer.hidden = !plain || locked();
+    if (plain) offerT.textContent = plain === 1 ? `“${S.L.find(l => asHead(l)).trim()}” looks like a part name. ` : `${plain} lines look like part names. `;
+  }
+  offerB.addEventListener('click', () => {
+    if (locked()) return; const before = S.L.slice(), L = S.L.map(l => asHead(l) || l);
+    rowsChanged(L, Math.max(0, S.cur), 0); say('Made them sections.');
+    if (typeof toast === 'function') toast('Sections made.', { undo: () => rowsChanged(before, Math.max(0, S.cur), 0) });
+  });
+  // ghost rhymes (idea from RhymeFlux, own code): under the empty bar after the one you're on, rhymes for the end word above it
+  const ghostBox = h('div', 'be-ghost'), GH = {};
+  function ghost() {
+    ghostBox.remove(); if (locked() || (typeof RB2 !== 'undefined' && RB2.view !== 'write')) return;
+    const L = S.L, bar = k => k >= 0 && L[k] != null && L[k].trim() && !isHead(L[k]) && !isNote(L[k]);
+    let from = bar(S.cur) ? S.cur : bar(S.cur - 1) && L[S.cur] === '' ? S.cur - 1 : -1;
+    if (from < 0) for (let k = L.length - 1; k >= 0; k--) if (bar(k)) { from = k; break; }
+    if (from < 0 || L[from + 1] !== '' || !rowAt(from + 1)) return;
+    const ws = bookWords(noAd(L[from])), end = ws[ws.length - 1]; if (!end) return;
+    let r = GH[end.k]; if (!r) { r = rbWordList(end.k, 30); if (r) GH[end.k] = r; } if (!r) return;
+    const words = [...r.perfect, ...r.multi].filter(x => x !== end.k).slice(0, 12); if (!words.length) return;
+    const i = from + 1; ghostBox.replaceChildren(h('span', 'be-gk', L[from].slice(end.a, end.b) + ' →'));
+    words.forEach(x => ghostBox.append(chip(x, 0, () => { const M = S.L.slice(); M[i] = ' ' + x; rowsChanged(M, i, 0); }, 'gh')));
+    ghostBox.title = 'End the next bar on one of these: click to put it in, then write the bar in front of it';
+    rowAt(i).append(ghostBox);
   }
   function secOfCur() { const C = S.C; if (!C || !C.heads.length) return null; const s = S.cur >= 0 ? C.secOf[S.cur] : 0; return C.heads[Math.max(0, s)] || C.heads[0]; }
   function secLabel() { const s = secOfCur(); secBtn.querySelector('span').textContent = s ? s.name : 'Song'; }
@@ -8954,7 +9070,7 @@ var BE = (() => {
   }
   function setCur(i, pos) {
     const was = S.at; S.at = i; caret(i, pos == null ? S.pos : pos);
-    if (was !== i) { if (S.pop && !S.rec) popClose(true); S.rep = null; S.rows.forEach((r, k) => r.classList.toggle('cur', k === i && !isHead(S.L[k]))); place(); secLabel(); countGoal(was); }
+    if (was !== i) { if (S.pop && !S.rec) popClose(true); S.rep = null; S.rows.forEach((r, k) => r.classList.toggle('cur', k === i && !isHead(S.L[k]))); place(); secLabel(); countGoal(was); ghost(); }
   }
   // side tools that follow the caret (line-above rhymes, spotlight, Focus list, the Rhymes tool on a click)
   function follow(click) {
@@ -8997,12 +9113,16 @@ var BE = (() => {
     o.inp.addEventListener('paste', e => {
       const tx = (e.clipboardData || window.clipboardData).getData('text'); if (!/\n/.test(tx) || o.inp.readOnly) return;
       e.preventDefault(); const i = I(), v = o.inp.value, a = o.inp.selectionStart, b = o.inp.selectionEnd, parts = tx.replace(/\r\n?/g, '\n').replace(/\n+$/, '').split('\n');
-      const L = S.L.slice(), last = parts.length - 1, rows = parts.map((p, k) => (k === 0 ? v.slice(0, a) : '') + p + (k === last ? v.slice(b) : ''));
+      const L = S.L.slice(), before = S.L.slice(), last = parts.length - 1, rows = parts.map((p, k) => (k === 0 ? v.slice(0, a) : '') + p + (k === last ? v.slice(b) : ''));
+      // part names on their own line ("Verse 2", "Hook:") become sections; Undo puts them back as bars
+      const raw = rows.slice(); let conv = 0; rows.forEach((x, k) => { const hh = asHead(x); if (hh) { rows[k] = hh; conv++; } });
       L.splice(i, 1, ...rows); shiftDrafts(i + 1, last); rowsChanged(L, i + last, (last ? 0 : a) + parts[last].length);
+      if (conv && typeof toast === 'function') toast(`Split into ${conv} section${conv === 1 ? '' : 's'}.`, { undo: () => { const M = before.slice(); M.splice(i, 1, ...raw); rowsChanged(M, i + last, 0); } });
     });
     o.inp.addEventListener('keydown', e => {
       if (o.inp.readOnly) { lockSay(e); return; }
       if (e.isComposing || e.keyCode === 229) return;
+      if (histKey(e)) return;
       const i = I(), v = o.inp.value, a = o.inp.selectionStart, b = o.inp.selectionEnd, plain = !e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey;
       if (e.key === 'Enter' && plain) { e.preventDefault(); split(i, a, b); }
       else if (e.key === 'Backspace' && a === 0 && b === 0 && i > 0 && plain) { e.preventDefault(); mergeUp(i); }
@@ -9022,7 +9142,7 @@ var BE = (() => {
     o.hin.addEventListener('focus', () => setCur(I(), 0));
     o.hin.addEventListener('input', () => { const i = I(), L = S.L.slice(); L[i] = '[' + o.hin.value.replace(/[\[\]\n]/g, '') + ']'; if (!commit(L, i, 0)) return; o.hin.style.width = hinW(o.hin.value); S.C = context(S.L); secLabel(); });
     o.hin.addEventListener('keydown', e => {
-      if (o.hin.readOnly) { lockSay(e); return; } const i = I();
+      if (o.hin.readOnly) { lockSay(e); return; } if (histKey(e)) return; const i = I();
       if (e.key === 'Enter') { e.preventDefault(); if (S.L[i + 1] === '') focusRow(i + 1, 0); else addBar(i); }
       else if (e.key === 'Backspace' && !o.hin.value) { e.preventDefault(); const L = S.L.slice(); L.splice(i, 1); if (!L.length) L.push(''); shiftDrafts(i, -1); const j = Math.max(0, i - 1); rowsChanged(L, j, (L[j] || '').length); }
       else if (e.key === 'ArrowDown' && i < S.L.length - 1) { e.preventDefault(); focusRow(i + 1, 0); }
@@ -9219,7 +9339,15 @@ var BE = (() => {
     menu(anchor, m => {
       if (l.trim()) mi(m, 'Save to Saved bars', () => { if (typeof stashMerge === 'function') { stashMerge([{ text: l.trim(), at: Date.now() }]); say('Saved. Find it under Saved bars.'); drawer(); } });
       if (!ro) { mi(m, 'Duplicate', () => addBar(i, l)); if (i > 0 && !isHead(S.L[i - 1])) mi(m, 'Move up', () => moveBar(i, -1)); if (i < S.L.length - 1 && !isHead(S.L[i + 1])) mi(m, 'Move down', () => moveBar(i, 1)); }
+      if (!ro && l.trim()) mi(m, 'New draft', () => {
+        const p = page(); if (!p) return; p.drafts = p.drafts || {}; const dl = p.drafts[i] || []; p.drafts[i] = [l, ...dl.filter(x => x !== l)].slice(0, 12);
+        const L = S.L.slice(); L[i] = ''; rowsChanged(L, i, 0); say('This version waits under Drafts. Write the new one.');
+      }, '', 'keep this one, start fresh');
+      if (!ro) mi(m, 'Add ad-lib', () => { focusRow(i, l.length); popOpen('adlib', true); });
       if (l.trim()) mi(m, 'Copy', () => { try { navigator.clipboard.writeText(l); say('Bar copied.'); } catch (e) {} });
+      if (!ro && i > 0 && !isHead(S.L[i - 1]) && l.trim()) mi(m, 'Split song here', () => {
+        const L = S.L.slice(), n = S.C.heads.filter(s => /^verse\b/i.test(s.name)).length + 1; L.splice(i, 0, `[Verse ${n}]`); shiftDrafts(i, 1); rowsChanged(L, i + 1, 0);
+      }, '', 'a new section starts at this bar');
       mi(m, 'Takes of this bar', () => { focusRow(i, S.pos); popOpen('takes', true); });
       if (!ro) { m.append(h('hr')); mi(m, 'Delete bar', () => delBar(i), 'dz'); }
     });
@@ -9229,7 +9357,21 @@ var BE = (() => {
     const C = S.C, cur = secOfCur();
     menu(secBtn, m => {
       if (C.heads.length) { m.append(h('h6', '', 'Jump to')); C.heads.forEach(s => { const b = mi(m, s.name, () => { const j = S.L[s.i + 1] != null && !isHead(S.L[s.i + 1]) ? s.i + 1 : s.i; focusRow(j, 0); }, '', s.bars ? `${s.bars} bar${s.bars === 1 ? '' : 's'}` : ''); if (cur && s.i === cur.i) b.setAttribute('aria-current', 'true'); }); }
-      if (locked()) return; if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section'));
+      if (locked()) return;
+      if (cur) {
+        const end = (() => { const nx = C.heads.find(s => s.i > cur.i); let e = nx ? nx.i : S.L.length; while (e > cur.i + 1 && S.L[e - 1] === '' && !nx) e--; return e; })();
+        m.append(h('hr'), h('h6', '', cur.name));
+        mi(m, 'Rename section', () => { const r = rowAt(cur.i); if (r) { r._.hin.focus(); r._.hin.select(); } });
+        mi(m, 'Duplicate section', () => {
+          const L = S.L.slice(), blk = L.slice(cur.i, end); blk[0] = '[' + cur.name + ' (copy)]'; L.splice(end, 0, ...blk); shiftDrafts(end, blk.length); rowsChanged(L, end, 0);
+        });
+        mi(m, 'Delete section', () => {
+          const p = page(), pd = p && p.drafts ? JSON.parse(JSON.stringify(p.drafts)) : null;
+          const before = S.L.slice(), L = S.L.slice(); L.splice(cur.i, end - cur.i); if (!L.length) L.push(''); shiftDrafts(cur.i, -(end - cur.i)); const j = Math.max(0, cur.i - 1); rowsChanged(L, j, (L[j] || '').length);
+          if (typeof toast === 'function') toast(`“${cur.name}” deleted.`, { undo: () => { if (p) p.drafts = pd || undefined; rowsChanged(before, cur.i, 0); } });
+        }, 'dz');
+      }
+      if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section'));
       SECS.forEach(n => mi(m, n, () => {
         const L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
         while (L.length > 1 && L[L.length - 1] === '' && !isHead(L[L.length - 2])) L.pop();
@@ -9245,6 +9387,7 @@ var BE = (() => {
   moreBtn.addEventListener('click', () => moreOpen(more.hidden));
   flowBtn.addEventListener('click', () => { S.flow = !S.flow; store.set('metrobar.bookFlow', S.flow); flowBtn.setAttribute('aria-pressed', String(S.flow)); render(); });
   zenBtn.addEventListener('click', () => rbZen(true));
+  undoBtn.addEventListener('click', () => hist(-1)); redoBtn.addEventListener('click', () => hist(1));
   doneB.addEventListener('click', () => { rbTool('check', true); if (innerWidth <= 1000) $('rbSide').classList.add('open'); const b = document.querySelector('.rb-tool[data-tool="check"]'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); });
 
   // ---- search in the song
@@ -9267,7 +9410,9 @@ var BE = (() => {
     if (i == null || i < 0) return; const l = (S.L[i] || '').trim(); if (!l || isHead(l) || isNote(l) || bookWords(l).length < 3) return;
     let g = store.get('metrobar.bookGoal', { day: '', keys: [] }); const d = todayKey(); if (g.day !== d) g = { day: d, keys: [] };
     const key = RB.cur + ':' + l.toLowerCase().replace(/\s+/g, ' '); if (g.keys.includes(key)) return;
-    g.keys.push(key); store.set('metrobar.bookGoal', g); if (typeof markDay === 'function') try { markDay(); } catch (e) {} drawer();
+    g.keys.push(key); store.set('metrobar.bookGoal', g); if (typeof markDay === 'function') try { markDay(); } catch (e) {}
+    const bb = store.get('metrobar.bookBars', {}); bb[d] = (bb[d] || 0) + 1; const ks = Object.keys(bb).sort(); ks.slice(0, Math.max(0, ks.length - 400)).forEach(k => delete bb[k]); store.set('metrobar.bookBars', bb);   // bars per day, for Writing stats
+    drawer();
   }
   function drawer() {
     let g = store.get('metrobar.bookGoal', { day: '', keys: [] }); if (g.day !== todayKey()) g = { day: todayKey(), keys: [] };
@@ -9329,12 +9474,12 @@ var BE = (() => {
   }, 0));
   const _open = window.bookOpen;
   window.bookOpen = bookOpen = function () {
-    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; if (S.pop) popClose(true); _open(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
+    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); _open(); histReset(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
   };
   const _apply = rbApplyLook; rbApplyLook = function () { _apply.apply(this, arguments); if (S.rows.length) render(); };
   window.addEventListener('hashchange', () => { if (location.hash === '#book') drawer(); else { drawerOpen(false); moreOpen(false); menuClose(); if (S.rec) S.rec.mr.stop(); } });
-  render(); drawer();
-  return { S, render, focusRow, drawer, lines };
+  render(); drawer(); histReset();
+  return { S, render, focusRow, drawer, lines, head, moreBtn, more, rowsBox, done, links, goal, IC, btn, sv, page, locked, isHead, rowsChanged, addBar, menu, mi, popOpen };
 })();
 </script>
 <script>
@@ -9686,6 +9831,252 @@ const TG = (() => {
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
   return { open, openFit, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
     week, tap: t => hit(t, false), heard: () => R ? heard() : 0, ladder: playLadder, cal: playCal, mode: setMode, start } };
+})();
+</script>
+<script>
+/* ---- Barbook extras (Bennie 2026-11-12: "I need to have all the features" of RhymeFlux, mapped with REA in its signed-in app;
+   ideas only, own code, nothing of theirs copied). Last script: BX. Rhyme Finder (Ctrl/⌘+J), Share (card image with the rhymes lit,
+   Copy lyrics, Save .txt), Writing stats (this week, best day, badges, 26 weeks; bars per day in metrobar.bookBars), a starter on an
+   empty page (3 AI opening bars / paste / skip; skipped pages in metrobar.bookStartSkip), Write the hook (AI), song Pin + cover photo
+   (page.pin, page.cover = 320px JPEG), Rhymes 101 and What's new. AI goes through the same aiAsk/aiJudge as Write with AI. */
+var BX = (() => {
+  if (typeof BE === 'undefined' || !BE.head) return {};
+  const { btn, sv } = BE, t = $('rbText');
+  const say = m => { if (typeof toast === 'function') toast(m); };
+  const pg = () => BE.page();
+  function sheet(title, build, cls) {
+    const d = document.createElement('dialog'); d.className = 'bx-dlg' + (cls ? ' ' + cls : ''); d.setAttribute('aria-label', title);
+    const hd = h('div', 'bx-h'), x = btn('be-px', '×', 'Close', 'Close'), body = h('div', 'bx-b'); hd.append(h('h3', '', title), x); d.append(hd, body);
+    x.addEventListener('click', () => d.close()); d.addEventListener('close', () => d.remove()); d.addEventListener('click', e => { if (e.target === d) d.close(); });
+    document.body.append(d); build(body, d); d.showModal(); return d;
+  }
+  const chip = (text, fn, cls) => { const c = h('button', 'be-chip' + (cls ? ' ' + cls : ''), text); c.type = 'button'; c.addEventListener('click', fn); return c; };
+  const fileName = (ext) => (((pg() || {}).title || 'Barbook').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'Barbook') + ext;
+  function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
+  function lyricsText() {
+    const p = pg(), v = t.value.replace(/\s+$/, ''); let out = [], first = true;
+    v.split('\n').forEach(l => { if (BE.isHead(l)) { if (!first) out.push(''); out.push(l.trim()); } else out.push(l); first = false; });
+    return ((p && p.title ? p.title + '\n\n' : '') + out.join('\n')).replace(/\n{3,}/g, '\n\n');
+  }
+  async function copyLyrics() { try { await navigator.clipboard.writeText(lyricsText()); say('Lyrics copied.'); } catch (e) { say('Copy is blocked here. Use Save .txt instead.'); } }
+  const aiSetup = () => { rbTool('ai', true); if (innerWidth <= 1000) $('rbSide').classList.add('open'); const s = $('aiSet'); if (s) s.open = true; const b = document.querySelector('.rb-tool[data-tool="ai"]'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest' }); };
+
+  // ---- head buttons: Rhyme Finder + Share (next to ⋯)
+  const rfB = btn('be-ib', sv('<path d="M4 6h8M4 12h5M4 18h8"/><circle cx="16.5" cy="13.5" r="3.5"/><path d="M19 16l2.5 2.5"/>', 17), 'Rhyme Finder (Ctrl/⌘+J)', 'Rhyme Finder');
+  const shB = btn('be-ib', sv('<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 13v6h14v-6"/>', 17), 'Share: a card with your rhymes lit, copy lyrics or save .txt', 'Share');
+  BE.head.insertBefore(rfB, BE.moreBtn); BE.head.insertBefore(shB, BE.moreBtn);
+  rfB.addEventListener('click', () => finder()); shB.addEventListener('click', () => share());
+
+  // ---- Rhyme Finder: type a word, click a result to put it at your cursor (Shift-click copies)
+  function finder(q0) {
+    if (q0 == null) { try { q0 = rbCaretInfo().here || ''; } catch (e) { q0 = ''; } }
+    sheet('Rhyme Finder', (b, d) => {
+      const f = h('input', 'num-in bx-q'), out = h('div'); f.type = 'search'; f.placeholder = 'Type a word'; f.setAttribute('aria-label', 'Word to rhyme');
+      b.append(f, out, h('p', 'note', 'Click a word to put it at your cursor, Shift-click copies it. Esc closes, Ctrl/⌘+J opens it again.'));
+      const run = () => {
+        const w = cleanKey((f.value.trim().split(/\s+/).pop() || '')); out.replaceChildren();
+        if (!w) { out.append(h('p', 'note', 'Type a word to find rhymes.')); return; }
+        const r = rbWordList(w, 60); if (!r) { out.append(h('p', 'note', typeof DICTUI !== 'undefined' && DICTUI.state === 'loading' ? 'Loading the dictionary…' : 'Rhymes need the pronunciation dictionary (open MetroBar from its web address).')); return; }
+        let any = 0; const grp = (label, list) => { if (!list.length) return; any++; out.append(h('h5', '', label)); const box = h('div', 'be-chips');
+          list.forEach(x => box.append(chip(x, e => { if (e.shiftKey || BE.locked()) { try { navigator.clipboard.writeText(x); say(`Copied “${x}”.`); } catch (er) {} return; } d.close(); rbInsert(x); say(`Added “${x}”.`); }))); out.append(box); };
+        grp('Rhymes', r.perfect.slice(0, 40)); grp('Multis', r.multi.slice(0, 30)); grp('Near', r.slant.slice(0, 30));
+        try { const dd = typeof doubleRhymes === 'function' && DICT ? doubleRhymes(w, { len: 0, max: 24 }) : null; if (dd && dd.k >= 2) grp('Phrases', (dd.phrases || []).map(x => x.w).slice(0, 16)); } catch (e) {}
+        if (!any) out.append(h('p', 'note', `No rhymes found for “${w}”.`));
+      };
+      let tm; f.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(run, 120); }); f.value = q0; run(); setTimeout(() => { f.focus(); f.select(); }, 0);
+    }, 'bx-rf');
+  }
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey && e.key.toLowerCase() === 'j' && document.body.classList.contains('book')) { e.preventDefault(); if (!document.querySelector('.bx-rf[open]')) finder(); }
+  });
+
+  // ---- Share
+  function share() {
+    if (!t.value.trim()) { say('Write a few bars first.'); return; }
+    sheet('Share', (b, d) => {
+      const act = (label, small, fn) => { const x = btn('bx-act', ''); x.append(h('b', '', label), h('small', '', small)); x.addEventListener('click', fn); b.append(x); };
+      act('Share card', 'An image of this section with your rhymes lit up', () => { d.close(); card(); });
+      act('Copy lyrics', 'Paste in Notes, a DM or a caption', () => { copyLyrics(); d.close(); });
+      act('Save .txt', 'A small text file, e.g. to mail a producer', () => { download(new Blob([lyricsText() + '\n'], { type: 'text/plain' }), fileName('.txt')); d.close(); });
+      if (typeof ZN !== 'undefined' && $('rbPost')) act('Post to the Zone', 'Share it with the MetroBar community', () => { d.close(); $('rbPost').click(); });
+    });
+  }
+  // the card: the section you're on (max 16 bars), each rhyme word in its colour with a tint + underline, as on the page
+  async function card() {
+    const p = pg(), L = BE.lines(), S = BE.S; if (!p) return;
+    let a = Math.max(0, Math.min(S.cur, L.length - 1)); while (a > 0 && !BE.isHead(L[a])) a--; let e = a + 1; while (e < L.length && !BE.isHead(L[e])) e++;
+    const sec = BE.isHead(L[a]) ? L[a].trim().slice(1, -1).trim() : '', rows = [];
+    for (let i = BE.isHead(L[a]) ? a + 1 : a; i < e && rows.length < 16; i++) if (L[i].trim() && !/^\s*#/.test(L[i])) rows.push(i);
+    if (!rows.length) { say('This section has no bars yet.'); return; }
+    const W = 1080, H = 1350, pad = 84, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+    x.fillStyle = '#121413'; x.fillRect(0, 0, W, H); x.fillStyle = '#af0000'; x.fillRect(0, 0, W, 10);
+    let y = pad + 20;
+    if (p.cover) { const im = await new Promise(ok => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => ok(null); i.src = p.cover; });
+      if (im) { x.save(); x.beginPath(); if (x.roundRect) x.roundRect(W - pad - 140, pad - 10, 140, 140, 18); else x.rect(W - pad - 140, pad - 10, 140, 140); x.clip(); x.drawImage(im, W - pad - 140, pad - 10, 140, 140); x.restore(); } }
+    const titleW = W - pad * 2 - (p.cover ? 170 : 0);
+    x.fillStyle = '#e9ece8'; x.font = '800 58px "IBM Plex Sans", system-ui, sans-serif'; let tt = p.title || 'Untitled'; while (x.measureText(tt).width > titleW && tt.length > 4) tt = tt.slice(0, -2).trimEnd() + '…'; x.fillText(tt, pad, y + 30);
+    if (sec) { x.fillStyle = '#8e9893'; x.font = '600 30px "IBM Plex Sans", system-ui, sans-serif'; x.fillText(sec.toUpperCase(), pad, y + 82); }
+    y += p.cover ? 170 : 140;
+    const fs = rows.length > 12 ? 34 : rows.length > 8 ? 38 : 44, lh = Math.round(fs * 1.62), maxW = W - pad * 2; x.font = `500 ${fs}px "IBM Plex Sans", system-ui, sans-serif`; x.textBaseline = 'alphabetic';
+    for (const i of rows) {
+      const l = L[i], ws = (RB.rows && RB.rows[i]) || [], bw = bookWords(l), col = [];
+      bw.forEach((w, j) => { let m = ws[j] && ws[j].k === w.k && ws[j].c ? ws[j] : null; if (!m) m = ws.find(z => z.c && z.k === w.k) || null; if (m) col.push({ a: w.a, b: w.b, h: m.h, d: m.d || 0 }); });
+      let cx = pad; const toks = l.trim() ? l.match(/\S+\s*/g) : []; let off = l.length - l.trimStart().length;
+      for (const tk of toks) {
+        const word = tk.trimEnd(), wW = x.measureText(word).width, tW = x.measureText(tk).width;
+        if (cx > pad && cx + wW > pad + maxW) { cx = pad + 24; y += lh; }
+        const cc = col.find(z => off < z.b && off + word.length > z.a), ad = /^\(.*\)?$|^\(|\)$/.test(word);
+        if (cc) { const hue = cc.h, li = 64 - 7 * cc.d; x.fillStyle = `hsla(${hue}, 80%, ${li}%, .2)`; x.fillRect(cx - 3, y - fs * .92, wW + 6, fs * 1.18); x.fillStyle = `hsl(${hue}, 80%, ${li}%)`; x.fillRect(cx - 3, y + fs * .2, wW + 6, 4); x.fillStyle = '#f2f4f1'; }
+        else x.fillStyle = ad ? '#7d8782' : '#e9ece8';
+        x.fillText(word, cx, y); cx += tW; off += tk.length;
+      }
+      y += lh; if (y > H - pad - 60) break;
+    }
+    x.fillStyle = '#8e9893'; x.font = '600 26px "IBM Plex Sans", system-ui, sans-serif'; x.fillText('Written in Barbook · MetroBar', pad, H - pad + 10);
+    const blob = await new Promise(ok => c.toBlob(ok, 'image/png')); if (!blob) { say('The card could not be drawn here.'); return; }
+    const name = fileName('.png'), url = URL.createObjectURL(blob), file = typeof File === 'function' ? new File([blob], name, { type: 'image/png' }) : null;
+    sheet('Share card', (b, d) => {
+      const im = new Image(); im.src = url; im.alt = 'Share card preview'; b.append(im); const row = h('div', 'be-chips');
+      const save = btn('btn pri', 'Save image'); save.addEventListener('click', () => { download(blob, name); say('Saved ' + name + '.'); }); row.append(save);
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { const sh = btn('btn', 'Share…'); sh.addEventListener('click', async () => { try { await navigator.share({ files: [file], title: p.title || 'Barbook' }); } catch (er) {} }); row.append(sh); }
+      b.append(row, h('p', 'note', 'Square-ish 1080 × 1350, the size feeds and stories like.')); d.addEventListener('close', () => URL.revokeObjectURL(url));
+    }, 'bx-card');
+  }
+
+  // ---- Writing stats: from the drawer (streak flame or the Writing stats link)
+  function stats() {
+    const days = store.get('metrobar.days', []), bb = store.get('metrobar.bookBars', {}), td = today(), s = writeStreak(days, td);
+    sheet('Writing stats', b => {
+      const DAY = 864e5, key = ms => new Date(ms).toLocaleDateString('en-CA'), now = new Date(td + 'T12:00:00').getTime(), dow = (new Date(now).getDay() + 6) % 7, mon = now - dow * DAY;
+      const wk = []; for (let k = 0; k < 7; k++) { const d = key(mon + k * DAY); wk.push({ d, n: bb[d] || 0, on: days.includes(d) }); }
+      const week = wk.reduce((q, z) => q + z.n, 0), mx = Math.max(1, ...wk.map(z => z.n)), best = Object.entries(bb).sort((p1, p2) => p2[1] - p1[1])[0];
+      const top = h('div', 'bx-big'); top.append(h('b', '', String(week)), ` bar${week === 1 ? '' : 's'} this week`); b.append(top);
+      const ch = h('div', 'bx-week'); ch.setAttribute('role', 'img'); ch.setAttribute('aria-label', 'Bars per day this week: ' + wk.map((z, k) => 'MTWTFSS'[k] + ' ' + z.n).join(', '));
+      wk.forEach((z, k) => { const col = h('div', 'c' + (z.d === td ? ' now' : '')), bar = h('i'); bar.style.height = Math.round(6 + 80 * z.n / mx) + 'px'; if (!z.n) bar.className = z.on ? 'on0' : 'z'; col.title = `${z.d}: ${z.n} bar${z.n === 1 ? '' : 's'}`; col.append(h('small', '', z.n ? String(z.n) : ''), bar, h('span', '', 'MTWTFSS'[k])); ch.append(col); });
+      b.append(ch);
+      const facts = h('div', 'bx-facts');
+      [[s.streak, 'day streak'], [s.best, 'best streak'], [s.total, 'days written'], [best ? best[1] : 0, best ? 'best day · ' + rbDate(new Date(best[0] + 'T12:00:00').getTime()) : 'best day']].forEach(([n, l]) => { const f = h('div'); f.append(h('b', '', String(n)), h('small', '', l)); facts.append(f); });
+      b.append(facts, h('h5', '', 'Earned'));
+      const bmax = best ? best[1] : 0, bd = h('div', 'bx-badges');
+      [['7-day streak', s.best >= 7], ['30-day streak', s.best >= 30], ['100-day streak', s.best >= 100], ['50-bar day', bmax >= 50], ['100-bar day', bmax >= 100]].forEach(([l, on]) => { const z = h('span', on ? 'on' : '', l); z.title = on ? 'Earned' : 'Not yet'; bd.append(z); });
+      b.append(bd, h('h5', '', 'Last 26 weeks'));
+      const grid = h('div', 'bx-heat'), start = mon - 25 * 7 * DAY; grid.setAttribute('role', 'img'); grid.setAttribute('aria-label', `${s.total} days written`);
+      for (let w = 0; w < 26; w++) for (let k = 0; k < 7; k++) { const ms = start + (w * 7 + k) * DAY, d = key(ms), n = bb[d] || 0, on = days.includes(d) || n > 0, cell = h('i', ms > now ? 'fut' : on ? (n >= 24 ? 'l3' : n >= 8 ? 'l2' : 'l1') : ''); cell.style.gridColumn = String(w + 1); cell.style.gridRow = String(k + 1); if (on) cell.title = d + (n ? `: ${n} bar${n === 1 ? '' : 's'}` : ''); grid.append(cell); }
+      b.append(grid, h('p', 'note', 'Every lit square is a day you wrote. Missed days stay dark; nothing resets your history.'));
+      const gN = store.get('metrobar.bookGoalN', 8), gr = h('div', 'be-chips'); gr.append(h('span', 'note', 'Daily goal'));
+      [4, 8, 12, 16, 24].forEach(n => { const c = chip(n + ' bars', () => { store.set('metrobar.bookGoalN', n); BE.drawer(); gr.querySelectorAll('button').forEach(z => { z.classList.toggle('pf', z === c); z.setAttribute('aria-pressed', String(z === c)); }); }, n === gN ? 'pf' : ''); c.setAttribute('aria-pressed', String(n === gN)); gr.append(c); });
+      b.append(h('h5', '', 'Goal'), gr);
+    }, 'bx-stats');
+  }
+  const stB = btn('', sv('<path d="M5 19V11M12 19V5M19 19v-6"/>', 17) + '<span>Writing stats</span>'); BE.links.append(stB); stB.addEventListener('click', () => stats());
+  BE.goal.addEventListener('click', e => { const sp = e.target.closest('span[title]'); if (sp && /streak/.test(sp.title)) stats(); });
+
+  // ---- starter on an empty page: three AI openers, paste what you wrote, or skip
+  const start = h('div', 'bx-start'); start.hidden = true; BE.rowsBox.before(start);
+  const skip = new Set(store.get('metrobar.bookStartSkip', []));
+  function startSync() {
+    const p = pg(), on = !!p && !p.locked && !t.value.trim() && !skip.has(p.id) && RB2.view === 'write';
+    start.hidden = !on; if (on && start.dataset.for !== p.id) { start.dataset.for = p.id; startBuild(); }
+  }
+  function startBuild(res) {
+    const ready = aiReady();
+    start.replaceChildren(h('b', '', 'Need a first line?'), h('p', 'note', ready ? 'Three openers from your AI, checked by MetroBar. Pick one, then write the next bar.' : 'Get three openers from AI (your own key or Ollama on this computer), bring in what you wrote, or just start.'));
+    const row = h('div', 'be-chips'), ai = btn('btn pri', ready ? '3 opening bars' : 'Set up AI for openers'), paste = btn('btn', 'Paste what you wrote'), no = btn('btn', 'Skip, I’ll write');
+    row.append(ai, paste, no); start.append(row); if (res) start.append(res);
+    ai.addEventListener('click', () => openers(ai));
+    paste.addEventListener('click', () => { rbTool('paste', true); if (innerWidth <= 1000) $('rbSide').classList.add('open'); const bx = document.querySelector('.rb-tool[data-tool="paste"]'); if (bx && bx.scrollIntoView) bx.scrollIntoView({ block: 'nearest' }); });
+    no.addEventListener('click', () => { const p = pg(); if (p) { skip.add(p.id); store.set('metrobar.bookStartSkip', [...skip].slice(-200)); } start.hidden = true; BE.focusRow(1, 0); });
+  }
+  async function openers(b) {
+    if (!aiReady()) { aiSetup(); return; }
+    const was = b.textContent; b.disabled = true; b.textContent = 'Writing…';
+    const T = RB2.topic, about = T ? Object.values(T).filter(v => typeof v === 'string' && v.trim()).slice(0, 5).join(' · ') : '';
+    try {
+      const d = await aiAsk([`Write 8 different opening bars for a new rap verse${about ? '. Topic and specifics: ' + about : ''}.`, 'Each is one bar of 9 to 14 syllables that grabs attention with one concrete picture and leaves room for the next bar to rhyme with it.', 'JSON: {"bars":[{"bar":"..."}]}'].join('\n'), 1.05);
+      const list = aiList(d, 'bars').map(z => aiJudge(z.text, { bars: [z.text], i: 0, range: [8, 15], tech: '', rw: null })).sort((p1, p2) => p2.score - p1.score).slice(0, 3);
+      const res = h('div', 'bx-res'); if (!list.length) res.append(h('p', 'note', 'Nothing came back. Press again.'));
+      list.forEach(j => { const c = btn('bx-pick', ''); c.append(h('span', '', j.text)); if (j.bad.length) c.append(h('small', '', j.bad.join(' · ')));
+        c.addEventListener('click', () => { const M = BE.lines().slice(), k = BE.isHead(M[0]) ? 1 : 0; M[k] = j.text; start.hidden = true; BE.rowsChanged(M, k + 1, 0); }); res.append(c); });
+      startBuild(res);
+    } catch (e) { say(e.message || String(e)); b.disabled = false; b.textContent = was; }
+  }
+  const _bo = bookOpen; window.bookOpen = bookOpen = function () { _bo.apply(this, arguments); start.dataset.for = ''; startSync(); };
+  t.addEventListener('input', startSync); document.querySelectorAll('.rb-views button').forEach(x => x.addEventListener('click', () => setTimeout(startSync, 0)));
+
+  // ---- Write the hook (AI): two 4-bar hooks from the song so far; Add as Hook puts one at the end as a [Hook] section
+  const hookB = btn('', 'Write the hook', 'AI writes two hooks from the bars you have'); BE.done.append(hookB); hookB.addEventListener('click', () => hook());
+  function hook() {
+    if (!aiReady()) { aiSetup(); say('Set up Write with AI first: your own key, or Ollama on this computer.'); return; }
+    const bars = rbBars(t.value).map(z => z.text).slice(0, 32); if (bars.length < 2) { say('Write a few bars first.'); return; }
+    sheet('Write the hook', (b, d) => {
+      const msg = h('p', 'note'), out = h('div'), again = btn('btn', 'Again'); b.append(msg, out, again);
+      const go = async () => {
+        again.disabled = true; out.replaceChildren(); msg.textContent = 'Writing two hooks from your song…';
+        try {
+          const r = await aiAsk([`Song so far:\n${numbered(bars)}`, 'Write 2 different hooks (choruses) for this song. Each hook: 4 bars, one central phrase that repeats at least twice, short and chantable (6 to 10 syllables a bar), rhyming in pairs, same world and voice as the verses.', 'JSON: {"hooks":[{"bars":["...","...","...","..."],"why":"one short line"}]}'].join('\n'), 1);
+          const hooks = (Array.isArray(r.hooks) ? r.hooks : []).map(z => ({ bars: (Array.isArray(z.bars) ? z.bars : []).map(aiClean).filter(Boolean).slice(0, 8), why: z.why || '' })).filter(z => z.bars.length >= 2);
+          msg.textContent = hooks.length ? 'Pick one. It goes in as a Hook section at the end; edit it like any bars.' : 'Nothing usable came back. Press Again.';
+          hooks.forEach(z => { const c = h('div', 'sug'); z.bars.forEach(l => c.append(h('div', 'bar', l))); if (z.why) c.append(h('small', 'note', z.why));
+            const add = btn('btn pri', 'Add as Hook'); add.addEventListener('click', () => {
+              if (BE.locked()) { say('Unlock the page first.'); return; }
+              const L = BE.lines().slice(); while (L.length && L[L.length - 1] === '') L.pop(); const n = L.filter(l => /^\s*\[hook/i.test(l)).length, at = L.length + 1;
+              L.push(`[Hook${n ? ' ' + (n + 1) : ''}]`, ...z.bars); BE.rowsChanged(L, at, 0); d.close(); say('Hook added.');
+            }); c.append(add); out.append(c); });
+        } catch (e) { msg.textContent = e.message || String(e); }
+        again.disabled = false;
+      };
+      again.addEventListener('click', go); go();
+    }, 'bx-hook');
+  }
+
+  // ---- song options in ⋯: Pin to top, cover photo, Copy lyrics; Help: Rhymes 101, What's new
+  const songH = [...BE.more.querySelectorAll('h6')].find(z => z.textContent === 'Song'), songRow = h('div', 'row bx-song');
+  const pinB = btn('btn', 'Pin to top'), covB = btn('btn', 'Cover photo'), covX = btn('btn', 'Remove cover'), cpB = btn('btn', 'Copy lyrics'), covIn = h('input');
+  covIn.type = 'file'; covIn.accept = 'image/*'; covIn.hidden = true; songRow.append(pinB, covB, covX, cpB, covIn);
+  if (songH) songH.after(songRow); else BE.more.append(songRow);
+  const helpRow = h('div', 'row'), r101 = btn('btn', 'Rhymes 101'), rNew = btn('btn', 'What’s new'); helpRow.append(r101, rNew); BE.more.append(h('h6', '', 'Help'), helpRow);
+  function songSync() { const p = pg(); pinB.textContent = p && p.pin ? 'Unpin' : 'Pin to top'; covX.hidden = !(p && p.cover); covB.textContent = p && p.cover ? 'Change cover' : 'Cover photo'; }
+  BE.moreBtn.addEventListener('click', songSync); songSync();
+  pinB.addEventListener('click', () => { const p = pg(); if (!p) return; p.pin = !p.pin; rbSaveNow(); rbList(); songSync(); say(p.pin ? 'Pinned to the top of your songs.' : 'Unpinned.'); });
+  cpB.addEventListener('click', copyLyrics);
+  covB.addEventListener('click', () => covIn.click());
+  covIn.addEventListener('change', async () => {
+    const f = covIn.files && covIn.files[0]; covIn.value = ''; const p = pg(); if (!f || !p) return;
+    try { p.cover = await square(f, 320); p.updated = Date.now(); rbSaveNow(); rbList(); songSync(); say('Cover set. It shows in your songs and on the share card.'); } catch (e) { say('That image could not be read.'); }
+  });
+  covX.addEventListener('click', () => { const p = pg(); if (!p) return; delete p.cover; p.updated = Date.now(); rbSaveNow(); rbList(); songSync(); });
+  function square(file, max) {
+    return new Promise((ok, no) => { const u = URL.createObjectURL(file), im = new Image();
+      im.onload = () => { const side = Math.min(im.width, im.height), c = document.createElement('canvas'); c.width = c.height = Math.round(Math.min(max, side)); c.getContext('2d').drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, c.width, c.height); URL.revokeObjectURL(u); ok(c.toDataURL('image/jpeg', 0.82)); };
+      im.onerror = () => { URL.revokeObjectURL(u); no(new Error('bad image')); }; im.src = u; });
+  }
+  const list = (b, items) => { const ul = h('ul'); items.forEach(([k, v]) => { const li = h('li'); if (k) li.append(h('b', '', k + ' ')); li.append(v); ul.append(li); }); b.append(ul); };
+  r101.addEventListener('click', () => sheet('Rhymes 101', b => {
+    b.append(h('p', 'note', 'How Barbook picks the colours on your page.'));
+    list(b, [['Same colour = same sound.', 'Words that rhyme share a colour. Each sound keeps its colour on the whole page, and a colour never goes to a different sound (16 colours in 3 shades).'],
+      ['It listens, it doesn’t read.', 'Every word is split into its sounds with the CMU pronouncing dictionary, so “dirty, thirty, early” match and “cough, though” don’t.'],
+      ['What counts as a rhyme.', 'Perfect rhymes, multi-syllable rhymes and close slants (same vowel, same kind of ending). Strict mode under ⋯ › Rhymes keeps only perfect and multi.'],
+      ['Close by.', 'A word is compared with its own bar and the next two bars of the same section. Bar ends also try their last two words as one sound (“let me” / “Presley”).'],
+      ['Small words.', '“the”, “and”, “a”… only join on a perfect rhyme in the same or the next bar.'],
+      ['Ad-libs and sections.', '(yeah) in brackets and [Verse 2] lines never get a colour or syllables.'],
+      ['Line ends.', 'The number is the syllables in the bar, the letter is the rhyme scheme (A A B B…).'],
+      ['Spotlight.', 'Put the cursor in a rhyme word, or click a row in the Rhyme map, and every other rhyme dims.']]);
+  }, 'bx-101'));
+  rNew.addEventListener('click', () => sheet('What’s new', b => {
+    b.append(h('h5', '', '12 Nov 2026'));
+    list(b, [['', 'Undo and Redo for the whole page (Ctrl/⌘+Z, Ctrl/⌘+Shift+Z).'], ['', 'Ghost rhymes: under the next empty bar, rhymes for the bar above. Click one, then write in front of it.'],
+      ['', 'A rhyme blooms when your bar lands one.'], ['', 'Rhyme Finder: Ctrl/⌘+J, or the new button in the top bar.'], ['', 'Share: a card image with your rhymes lit, Copy lyrics, Save .txt.'],
+      ['', 'Writing stats: this week, best day, badges and 26 weeks of history (tap the streak flame).'], ['', 'New page: three AI opening bars, paste what you wrote, or skip.'],
+      ['', 'Write the hook (AI) under your bars. AI rewrites keep your old version under Drafts.'],
+      ['', 'Bar ⋯: New draft, Add ad-lib, Split song here. Section menu: rename, duplicate, delete. Pasting “Verse 2” or “Hook” lines makes sections.'],
+      ['', 'Songs: Pin to top and a cover photo (⋯ › Song).']]);
+    b.append(h('h5', '', 'Earlier'));
+    list(b, [['', 'Editor with one row per bar, drafts, takes, ad-libs and a toolbar on the bar you’re on (11 Nov).'], ['', 'Beat panel: your file, YouTube or SoundCloud (11 Nov).'],
+      ['', 'Focus mode and the live rhyme list (10 Nov).'], ['', 'New rhyme highlight and the Rhyme map (10 Nov).'], ['', 'Barbook syncs to your Zone account (9 Nov).']]);
+  }, 'bx-new'));
+
+  startSync();
+  return { finder, share, card, stats, hook, lyricsText };
 })();
 </script>
 </body>
