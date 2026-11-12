@@ -2341,6 +2341,31 @@ html.bb .be-row.hd .be-lead, html.bb .be-row.hd .be-meter, html.bb .be-row.hd .b
 html.bb .be-goal b { white-space: nowrap; font-size: .8rem; } html.bb .be-goal > span { white-space: nowrap; font-size: .8rem !important; }
 html.bb .be-goal > span::after { font-size: .75rem; }
 
+/* Bar tools, quiet pass (Bennie 2026-11-12: "Barbook still has shitty buttons"; taste-skill app-screen rules): no tray, no
+   gradient, no glow, no rainbow. One quiet set of monochrome icons that only shows on the bar you're on or point at; the rest of
+   the page is just your bars. Accent only on the AI wand of the current bar. Same buttons, same order, same clicks. */
+html.bb .be-rt { height: 38px; padding: 0 2px; gap: 2px; border: 0; border-radius: 10px; background: none; box-shadow: none; margin-top: -6px;
+  opacity: 0; pointer-events: none; transition: opacity .16s ease; }
+html.bb .be-row:hover .be-rt, html.bb .be-row:focus-within .be-rt, html.bb .be-row.cur .be-rt { opacity: 1; pointer-events: auto; }
+html.bb .be-row:not(.cur):not(:hover):not(:focus-within) .be-rt { opacity: 0; pointer-events: none; }
+html.bb .be-row:not(.cur):hover .be-rt { opacity: .75; }
+html.bb .be-row.cur .be-rt { border: 0; box-shadow: none; background: #15181a; }
+html.bb .be-rb, html.bb .be-rb[data-k], html.bb .be-row.has .be-rb[data-k] { width: 34px; height: 34px; border-radius: 8px; color: #8b9196; background: none; box-shadow: none; opacity: 1; }
+html.bb .be-rb svg, html.bb .be-rb[data-k] svg { width: 18px; height: 18px; stroke-width: 1.75; filter: none !important; }
+html.bb .be-rb:hover, html.bb .be-rb[data-k]:hover { color: #f4f5f6; background: #22262a; transform: none; }
+html.bb .be-rb:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+html.bb .be-rb:active { transform: scale(.94); }
+html.bb .be-rb[aria-expanded="true"], html.bb .be-rb.on { color: #fff; background: #262a2e; box-shadow: none; }
+html.bb .be-row.cur .be-rb[data-k="rewrite"] { color: var(--accent); }
+html.bb .be-row:not(.has) .be-rb[data-k="adlib"] { opacity: .4; }
+html.bb .be-rb[data-k="rec"] { margin-right: 8px; } html.bb .be-rb[data-k="rec"]::after { display: none; }
+html.bb .be-rb.rec, html.bb .be-rb.rec:hover { color: #fff; background: var(--bad); }
+html.bb .be-num { color: #5d6368; font-variant-numeric: tabular-nums; } html.bb .be-row.cur .be-num { color: #c9cdd0; }
+html.bb .be-row.cur, html.bb .be-row.cur:hover { background: #121416; box-shadow: inset 2px 0 0 var(--accent); }
+@media (hover: none) { html.bb .be-row:not(.cur) .be-rt, html.bb .be-row:not(.cur):hover .be-rt { opacity: 0; pointer-events: none; } }
+@media (prefers-reduced-motion: reduce) { html.bb .be-rt { transition: none; } }
+.mb-move { position: fixed; z-index: 2000; left: 50%; bottom: 16px; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px; padding: 12px 16px; border-radius: 14px; background: #af0000; color: #fff; font: 600 14px/1.4 system-ui, sans-serif; box-shadow: 0 12px 40px #0008; }
+.mb-move button { padding: 7px 14px; border: 0; border-radius: 999px; background: #fff; color: #111; font: inherit; cursor: pointer; } .mb-move button:disabled { opacity: .85; cursor: default; }
 /* MetroBar AI credits (2026-11-12): wallet line in the AI panel + the Get more sheet */
 .ai-wal { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: .86rem; }
 .ai-wal .btn { flex: none; }
@@ -7025,7 +7050,7 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
 // ---- Rhyme Book (#book): its own pages, folders, lock and bin; Rhymer's-Block-style highlight (core bookHighlight). Saved in localStorage.
 var RB = { pages: store.get('metrobar.book', []), bin: store.get('metrobar.bookBin', []), cur: store.get('metrobar.bookCur', null),
   look: Object.assign({ theme: 'white', font: 'sans', hi: true, syl: true, auto: false, shell: 'light' }, store.get('metrobar.bookLook', {})), folder: '', timer: 0, paintT: 0 };
-RB.seen = Object.fromEntries(RB.pages.map(p => [p.id, +p.updated || 0]));   // what this tab last saw stored, per song (two-tab merge)
+RB.seen = {}; RB.pages.concat(RB.bin).forEach(p => { RB.seen[p.id] = Math.max(+p.updated || 0, +p.deleted || 0); });   // what this tab last saw stored, per song (two-tab merge)
 // Barbook full page (Bennie 2026-11-09): white is the look now; move a saved dark default over once, keep any other picks
 if (!store.get('metrobar.bookWhite', false)) { RB.look.shell = 'light'; if (RB.look.theme === 'dark') RB.look.theme = 'white'; store.set('metrobar.bookLook', RB.look); store.set('metrobar.bookWhite', true); }
 const RB_THEMES = { white: 'White', dark: 'MetroBar dark', paper: 'Paper', notebook: 'Notebook', sky: 'Sky', blush: 'Blush', night: 'Night', studio: 'Studio', chalk: 'Chalkboard' };
@@ -7053,42 +7078,58 @@ function rbPage() { return RB.pages.find(p => p.id === RB.cur); }
 // (per song, the newest edit wins; songs another tab added or deleted are kept that way), and other tabs follow along live.
 function rbPurge(id) { store.set('metrobar.bookPurged', store.get('metrobar.bookPurged', []).filter(x => x !== id).concat([id]).slice(-500)); }
 function rbMergeStored() {
+  // One rule (after Fable's review): this tab only acts on stored changes it has not seen yet (stamp > RB.seen[id]).
+  // Its own earlier writes, and songs it removed itself (bin cap, sync), are never "news" and never come back.
   const gone = new Set(store.get('metrobar.bookPurged', []));
-  const st = store.get('metrobar.book', []).filter(o => o && o.id && !gone.has(o.id)), stBin = store.get('metrobar.bookBin', []).filter(o => o && o.id && !gone.has(o.id));
+  let st = store.get('metrobar.book', []), stBin = store.get('metrobar.bookBin', []);
   if (!Array.isArray(st) || !Array.isArray(stBin)) return { changed: false, cur: false };
+  st = st.filter(o => o && o.id && !gone.has(o.id)); stBin = stBin.filter(o => o && o.id && !gone.has(o.id));
+  let changed = false, cur = false; const seen = RB.seen || (RB.seen = {});
+  if (RB.pages.some(p => gone.has(p.id)) || RB.bin.some(p => gone.has(p.id))) {   // deleted for good in another tab
+    if (RB.pages.some(p => p.id === RB.cur && gone.has(p.id))) cur = true;
+    RB.pages = RB.pages.filter(p => !gone.has(p.id)); RB.bin = RB.bin.filter(p => !gone.has(p.id)); changed = true;
+  }
   const mine = new Map(RB.pages.map(p => [p.id, p])), myBin = new Map(RB.bin.map(p => [p.id, p]));
   const stamp = p => Math.max(+p.updated || 0, +p.deleted || 0);
-  let changed = false, cur = false; const seen = RB.seen || (RB.seen = {});
+  const edited = (m, was) => was != null && (+m.updated || 0) > was && (m.text || '').trim();   // this tab changed it since it last saved
+  const take = (m, o) => { Object.keys(m).forEach(k => { if (!(k in o)) delete m[k]; }); Object.assign(m, o); };
+  const say = t => { if (typeof toast === 'function') toast(t); };
   st.forEach(o => {
-    const m = mine.get(o.id), b = myBin.get(o.id), was = seen[o.id];
-    seen[o.id] = Math.max(+o.updated || 0, was || 0);
+    const m = mine.get(o.id), b = myBin.get(o.id), was = seen[o.id], t = +o.updated || 0;
+    if (was != null && t <= was) return;                                   // nothing new from another tab
+    seen[o.id] = Math.max(t, was || 0);
     if (m) {
-      if ((+o.updated || 0) > (+m.updated || 0)) {
-        if (was != null && (+m.updated || 0) > was && (m.text || '').trim() && m.text !== o.text) { rbKeepOld(Object.assign({}, m)); if (typeof toast === 'function') toast('Another tab saved this song after you. Your version is in Recently deleted.'); }
-        Object.assign(m, o); changed = true; if (m.id === RB.cur) cur = true;
-      }
-      // both tabs changed this song since this tab last looked: this tab's newer text wins, the other tab's version stays in Recently deleted
-      else if (was != null && (+o.updated || 0) > was && (o.text || '').trim() && o.text !== m.text) { rbKeepOld(o); changed = true; if (typeof toast === 'function') toast('Another tab changed this song too. Its version is in Recently deleted.'); }
-    }
-    else if (b) { if ((+o.updated || 0) > stamp(b)) { RB.bin = RB.bin.filter(x => x !== b); const n = Object.assign({}, o); delete n.deleted; RB.pages.push(n); changed = true; } }  // restored elsewhere
-    else { RB.pages.push(Object.assign({}, o)); changed = true; }      // added in another tab
+      if (t > (+m.updated || 0)) {
+        if (edited(m, was) && m.text !== o.text) { rbKeepOld(Object.assign({}, m)); say('Another tab saved this song after you. Your version is in Recently deleted.'); }
+        take(m, o); changed = true; if (m.id === RB.cur) cur = true;
+      } else if (was != null && (o.text || '').trim() && o.text !== m.text) { rbKeepOld(o); changed = true; say('Another tab changed this song too. Its version is in Recently deleted.'); }
+    } else if (b) { if (t > stamp(b)) { RB.bin = RB.bin.filter(x => x !== b); const n = Object.assign({}, o); delete n.deleted; RB.pages.push(n); changed = true; } }   // put back in another tab
+    else if (was == null) { RB.pages.push(Object.assign({}, o)); changed = true; }   // made in another tab
   });
   stBin.forEach(o => {
-    const m = mine.get(o.id);
-    if (m && stamp(o) > (+m.updated || 0)) { RB.pages = RB.pages.filter(x => x !== m); RB.bin.unshift(Object.assign({}, o)); changed = true; if (m.id === RB.cur) cur = true; }  // deleted elsewhere
-    else if (!m && !myBin.has(o.id)) { RB.bin.push(Object.assign({}, o)); changed = true; }
+    const m = mine.get(o.id), was = seen[o.id], t = stamp(o);
+    if (was != null && t <= was) return;
+    seen[o.id] = Math.max(t, was || 0);
+    if (m) {
+      if (t > (+m.updated || 0)) {                                        // deleted in another tab
+        if (edited(m, was)) rbKeepOld(Object.assign({}, m));
+        RB.pages = RB.pages.filter(x => x !== m); RB.bin.unshift(Object.assign({}, o)); changed = true; if (m.id === RB.cur) cur = true;
+      }
+    } else if (!myBin.has(o.id) && was == null) { RB.bin.push(Object.assign({}, o)); changed = true; }
   });
-  if (changed) RB.pages.sort((x, y) => (+y.updated || 0) - (+x.updated || 0) || 0);
+  if (changed) RB.pages.sort((x, y) => (+y.updated || 0) - (+x.updated || 0));
   if (cur && !rbPage()) RB.cur = RB.pages.length ? RB.pages[0].id : null;
   return { changed, cur };
 }
+function rbSeenAll() { const s = RB.seen || (RB.seen = {}); RB.pages.forEach(p => { s[p.id] = Math.max(s[p.id] || 0, +p.updated || 0); }); RB.bin.forEach(p => { s[p.id] = Math.max(s[p.id] || 0, +p.updated || 0, +p.deleted || 0); }); }
 window.addEventListener('storage', e => {
   if (e.key !== 'metrobar.book' && e.key !== 'metrobar.bookBin') return;
   if (RB.timer) return;                              // this tab has unsaved typing; its own save will merge
   const r = rbMergeStored(); if (!r.changed) return;
   if (location.hash === '#book' || window.BBAPP) { try { if (r.cur) { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } else rbList(); } catch (er) { console.warn(er); } }
 });
-function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; rbMergeStored(); RB.pages.forEach(p => { RB.seen[p.id] = +p.updated || 0; }); store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon(); }
+function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; const mg = rbMergeStored(); rbSeenAll(); store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon();
+  if (mg.cur && !RB.opening && (location.hash === '#book' || window.BBAPP)) { RB.opening = 1; try { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } catch (e) { console.warn(e); } RB.opening = 0; } }
 function rbSave() { clearTimeout(RB.timer); RB.timer = setTimeout(rbSaveNow, 400); }
 function rbLookSave() { store.set('metrobar.bookLook', RB.look); }
 function rbId() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -7117,7 +7158,7 @@ function rbList() {
   $('rbBinN').textContent = RB.bin.length; const bin = $('rbBin'); bin.replaceChildren();
   RB.bin.slice(0, 30).forEach(p => {
     const r = h('div', 'row'), back = h('button', 'mini', 'Put back'); r.append(h('span', '', p.title || 'Untitled'), back);
-    back.addEventListener('click', () => { RB.bin = RB.bin.filter(x => x !== p); delete p.deleted; RB.pages.unshift(p); RB.cur = p.id; rbSaveNow(); bookOpen(); });
+    back.addEventListener('click', () => { RB.bin = RB.bin.filter(x => x !== p); delete p.deleted; p.updated = Date.now(); RB.pages.unshift(p); RB.cur = p.id; rbSaveNow(); bookOpen(); });
     bin.append(r);
   });
 }
@@ -7193,7 +7234,7 @@ async function bookSync() {
       if (old && (old.text || '').trim() && old.text !== r.text) rbKeepOld(old);   // the version being replaced stays recoverable
       const p = { id: r.id, title: r.title, text: r.text, folder: r.folder, locked: r.locked, created: +r.created || Date.now(), updated: +r.updated || Date.now() };
       if (r.deleted) p.deleted = +r.deleted;
-      if (old) { RB.pages = RB.pages.filter(x => x !== old); RB.bin = RB.bin.filter(x => x !== old); }
+      if (old) { RB.pages = RB.pages.filter(x => x.id !== r.id); RB.bin = RB.bin.filter(x => x.id !== r.id); }   // by id: a merge may have swapped the object
       if (p.deleted) RB.bin.unshift(p); else RB.pages.push(p);
       map[r.id] = rbSig(p); changed = true;
     }
@@ -7426,13 +7467,13 @@ Object.entries(RB_THEMES).forEach(([k, v]) => $('rbTheme').append(new Option(v, 
   Object.entries(RB_GFONTS).forEach(([grp, list]) => { const g = document.createElement('optgroup'); g.label = grp; list.forEach(n => g.append(new Option(n, 'g:' + n))); sel.append(g); }); })();
 $('rbTheme').addEventListener('change', () => { RB.look.theme = $('rbTheme').value; rbLookSave(); rbApplyLook(); });
 $('rbFont').addEventListener('change', () => { RB.look.font = $('rbFont').value; rbLookSave(); rbApplyLook(); rbGrow(); });
-$('rbLock').addEventListener('click', () => { const p = rbPage(); if (!p) return; p.locked = !p.locked; rbSaveNow(); bookOpen(); $('rbMsg').textContent = p.locked ? 'Locked.' : 'Unlocked.'; });
+$('rbLock').addEventListener('click', () => { const p = rbPage(); if (!p) return; p.locked = !p.locked; p.updated = Date.now(); rbSaveNow(); bookOpen(); $('rbMsg').textContent = p.locked ? 'Locked.' : 'Unlocked.'; });
 $('rbDel').addEventListener('click', () => {
   const p = rbPage(); if (!p) return;
   if (p.locked) { $('rbMsg').textContent = 'Unlock the page first.'; return; }
-  const go = () => { RB.pages = RB.pages.filter(x => x !== p); p.deleted = Date.now(); RB.bin.unshift(p); RB.bin = RB.bin.slice(0, 50); RB.cur = RB.pages[0] ? RB.pages[0].id : null; rbSaveNow(); bookOpen(); };
+  const go = () => { RB.pages = RB.pages.filter(x => x !== p); p.deleted = Date.now(); RB.bin.unshift(p); RB.bin.slice(50).forEach(x => rbPurge(x.id)); RB.bin = RB.bin.slice(0, 50); RB.cur = RB.pages[0] ? RB.pages[0].id : null; rbSaveNow(); bookOpen(); };
   go(); // goes to Recently deleted, so no confirm step; Undo puts it back
-  if (typeof toast === 'function') toast('Page moved to Recently deleted.', { undo: () => { RB.bin = RB.bin.filter(x => x !== p); delete p.deleted; RB.pages.unshift(p); RB.cur = p.id; rbSaveNow(); bookOpen(); } });
+  if (typeof toast === 'function') toast('Page moved to Recently deleted.', { undo: () => { RB.bin = RB.bin.filter(x => x !== p); delete p.deleted; p.updated = Date.now(); RB.pages.unshift(p); RB.cur = p.id; rbSaveNow(); bookOpen(); } });
   else $('rbMsg').textContent = 'Page moved to Recently deleted.';
 });
 $('rbToWrite').addEventListener('click', () => {
@@ -7821,7 +7862,7 @@ function aiWalletShow() {
 }
 function aiPay(kind) {
   const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, link = P[kind]; if (!link) return '';
-  const uid = ZN && ZN.me && ZN.me.id, mail = ZN && ZN.user && ZN.user.email;
+  const w = AIW.w || {}, uid = w.uid || (ZN && ZN.me && ZN.me.id), mail = w.email;
   return link + (link.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(uid || '') + (mail ? '&prefilled_email=' + encodeURIComponent(mail) : '');
 }
 function aiPaywall(why) {
@@ -7965,7 +8006,7 @@ const aiList = (d, k) => (Array.isArray(d && d[k]) ? d[k] : []).map(x => (typeof
 async function aiGraded(prompt, c, n) {
   const all = [], seen = new Set(), add = list => list.forEach(x => { const k = cleanKey(x.text); if (seen.has(k)) return; seen.add(k); const j = aiJudge(x.text, c); j.why = x.why; all.push(j); });
   add(aiList(await aiAsk(prompt), 'bars'));
-  if (all.filter(j => j.pass).length < 3) {
+  if (AI.prov !== 'metrobar' && all.filter(j => j.pass).length < 3) {   // MetroBar AI: 1 press = 1 credit, so no automatic second call
     const fails = all.filter(j => !j.pass).slice(0, 8).map(j => `"${j.text}" -> ${j.bad.join('; ')}`).join('\n');
     const d = await aiAsk(prompt + '\n\nYour last answers failed these checks; fix exactly that:\n' + fails + `\nWrite ${n} new ones.`, 1.1).catch(() => null); if (d) add(aiList(d, 'bars'));
   }
@@ -8422,7 +8463,7 @@ function znSupabase(cfg) {
     // Barbook sync: the signed-in user's own pages (table book_pages, row level security = only you)
     async userId() { return meId(); },
     // MetroBar AI: edge function "ai" (key on the server, credits in ai_wallets)
-    async wallet() { if (!(await meId())) return null; const r = await sb.rpc('my_ai_wallet'); if (r.error) return null; return r.data; },
+    async wallet() { const { data: ss } = await sb.auth.getSession(), u = ss.session && ss.session.user; if (!u) return null; const r = await sb.rpc('my_ai_wallet'); if (r.error || !r.data) return null; return Object.assign({}, r.data, { uid: u.id, email: u.email || '' }); },
     async ai(body) {
       const { data } = await sb.auth.getSession(), tok = data.session && data.session.access_token;
       const fail = (m, code, left) => { const e = new Error(m); e.code = code; e.left = left; return e; };
@@ -8616,7 +8657,7 @@ window.zoneOpen = zoneOpen;
 async function znAuthChanged(first) {
   try { ZN.me = await ZN.api.session(); ZN.admin = ZN.me ? await ZN.api.isAdmin() : false; ZN.blocked = new Set(ZN.me ? await ZN.api.blockedIds() : []); }
   catch (e) { ZN.me = null; znSay(znErr(e)); }
-  if (typeof aiWallet === 'function') aiWallet(true);
+  if (typeof aiWallet === 'function' && AI_PROV.metrobar) aiWallet(true);
   $('znMe').textContent = ZN.me ? '@' + ZN.me.username : 'Sign in';
   znSay(ZN.api.demo ? 'Demo: made-up posts that live only in this tab. Nothing is saved or sent.' : '');
   if (ZN.draft) { ZN.view = ZN.me ? 'compose' : 'auth'; if (!ZN.me) znSay('Sign in to post your page.'); }
@@ -10771,7 +10812,7 @@ var BX = (() => {
   const helpRow = h('div', 'row'), r101 = btn('btn', 'Rhymes 101'), rNew = btn('btn', 'What’s new'); helpRow.append(r101, rNew); BE.more.append(h('h6', '', 'Help'), helpRow);
   function songSync() { const p = pg(); pinB.textContent = p && p.pin ? 'Unpin' : 'Pin to top'; covX.hidden = !(p && p.cover); covB.textContent = p && p.cover ? 'Change cover' : 'Cover photo'; }
   BE.moreBtn.addEventListener('click', songSync); songSync();
-  pinB.addEventListener('click', () => { const p = pg(); if (!p) return; p.pin = !p.pin; rbSaveNow(); rbList(); songSync(); say(p.pin ? 'Pinned to the top of your songs.' : 'Unpinned.'); });
+  pinB.addEventListener('click', () => { const p = pg(); if (!p) return; p.pin = !p.pin; p.updated = Date.now(); rbSaveNow(); rbList(); songSync(); say(p.pin ? 'Pinned to the top of your songs.' : 'Unpinned.'); });
   cpB.addEventListener('click', copyLyrics);
   covB.addEventListener('click', () => covIn.click());
   covIn.addEventListener('change', async () => {
@@ -11174,7 +11215,7 @@ var BS = (() => {
   }
   meB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html#zone'; });
   if (window.MutationObserver && $('rbSync')) new MutationObserver(statSync).observe($('rbSync'), { childList: true, characterData: true, subtree: true });
-  document.addEventListener('aiwallet', statSync); if (AI.prov === 'metrobar') setTimeout(() => aiWallet(), 2500);
+  document.addEventListener('aiwallet', statSync); if (AI_PROV.metrobar && AI.prov === 'metrobar') setTimeout(() => aiWallet(), 2500);
   // the Beat tile lights up while the beat panel is open or a beat plays; Saved bars while its list is open
   { const bk = $('bkBeat'), tile = () => BE.lBeat.classList.toggle('on', bk.classList.contains('open') || bk.classList.contains('on')); if (bk && window.MutationObserver) { new MutationObserver(tile).observe(bk, { attributes: true, attributeFilter: ['class'] }); tile(); } }
 
@@ -11186,6 +11227,52 @@ var BS = (() => {
   if (window.MutationObserver) new MutationObserver(count).observe(BE.recList, { childList: true });
   rhyApply(); ready = true; rbPaint(); sync();
   return { settings, library, check, place, actOpen, cmp, struct };
+})();
+</script>
+<script>
+/* Moving house (Bennie 2026-11-12): MetroBar moves from whatsgoodred.github.io/metrobar-app to metrobarz.com. A browser keeps saved
+   songs per address, so the old address offers one click that hands everything (songs, Barbook, settings) to the new one, top-level
+   window to top-level window with postMessage, both sides checking the other's exact origin. Songs merge by id, newest edit wins;
+   nothing at the new address is thrown away. Recordings (takes) stay where they are. */
+(function () {
+  const NEW = 'https://metrobarz.com', OLD = 'https://whatsgoodred.github.io';
+  const listKeys = { 'metrobar.book': 1, 'metrobar.bookBin': 1, 'metrobar.songs': 1, 'metrobar.bin': 1 };
+  const all = () => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^metrobar\./.test(k) && k !== 'metrobar.zoneAuth') o[k] = localStorage.getItem(k); } return o; };
+  const parse = v => { try { return JSON.parse(v); } catch { return null; } };
+  function take(data) {
+    let songs = 0;
+    Object.entries(data || {}).forEach(([k, v]) => {
+      if (!/^metrobar\./.test(k) || typeof v !== 'string' || k === 'metrobar.zoneAuth') return;
+      const cur = localStorage.getItem(k);
+      if (listKeys[k]) {
+        const a = parse(cur) || [], b = parse(v) || []; if (!Array.isArray(a) || !Array.isArray(b)) return;
+        const m = new Map(a.filter(x => x && x.id).map(x => [x.id, x]));
+        b.forEach(x => { if (!x || !x.id) return; const y = m.get(x.id); if (!y || Math.max(+x.updated || 0, +x.deleted || 0) > Math.max(+y.updated || 0, +y.deleted || 0)) { m.set(x.id, x); songs++; } });
+        localStorage.setItem(k, JSON.stringify([...m.values()].sort((x, y) => (+y.updated || 0) - (+x.updated || 0))));
+      } else if (cur == null) localStorage.setItem(k, v);
+    });
+    return songs;
+  }
+  if (location.origin === OLD) {
+    const bar = document.createElement('div'); bar.className = 'mb-move';
+    bar.innerHTML = '<span>MetroBar now lives at <b>metrobarz.com</b>. Your songs are saved in this browser at this address.</span><button type="button">Move my songs there</button>';
+    const go = bar.querySelector('button');
+    go.addEventListener('click', () => {
+      const w = window.open(NEW + '/landing-beat-meter.html#move', '_blank'); if (!w) { go.textContent = 'Allow pop-ups, then press again'; return; }
+      go.textContent = 'Moving…'; const payload = all();
+      const on = e => { if (e.origin !== NEW || !e.data) return;
+        if (e.data.mb === 'ready') w.postMessage({ mb: 'data', data: payload }, NEW);
+        if (e.data.mb === 'done') { removeEventListener('message', on); go.textContent = `Moved (${e.data.songs} songs updated). Use metrobarz.com from now on.`; go.disabled = true; } };
+      addEventListener('message', on);
+    });
+    const put = () => document.body.prepend(bar); document.body ? put() : addEventListener('DOMContentLoaded', put);
+  }
+  if (location.origin === NEW && location.hash === '#move' && window.opener) {
+    const on = e => { if (e.origin !== OLD || !e.data || e.data.mb !== 'data') return; removeEventListener('message', on);
+      const n = take(e.data.data); try { e.source.postMessage({ mb: 'done', songs: n }, OLD); } catch (er) {}
+      location.replace('landing-beat-meter.html?moved=' + n + (localStorage.getItem('metrobar.book') ? '#book' : '')); };
+    addEventListener('message', on); window.opener.postMessage({ mb: 'ready' }, OLD);
+  }
 })();
 </script>
 </body>
