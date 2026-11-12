@@ -2273,7 +2273,7 @@ html.bb .bs-opt:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(
 @media (prefers-reduced-motion: reduce) { html.bb .be-rb:hover, html.bb .be-links > button:hover { transform: none; } }
 @media (max-width: 640px) { html.bb .be-head [aria-label="Redo"], html.bb .be-head [aria-label="Rhyme Finder"], html.bb .be-head [aria-label="Share"] { display: none; } html.bb #bsFlowB { padding: 0; border-color: transparent; } html.bb .be-pill { padding: 0 8px 0 12px; } }
 html.bb .be-row > .bs-chk { grid-column: 1 / -1; width: min(46rem, 100%); justify-self: center; text-align: left; }
-@media (min-width: 1001px) { html.bb:not(.bb-nolib) #beDrawerTg { display: none; } }
+@media (min-width: 1001px) { html.bb:not(.bb-nolib) #beDrawerTg { display: none; } html.bb.bb-nolib #beDrawerTg { display: inline-flex; } }
 html.bb .be-row:not(.has) .be-meter { visibility: hidden; }
 /* polish pass (Bennie 2026-11-12: "do you see the difference in quality?"): Barbook keeps its own accent whatever MetroBar's accent picker says */
 html.bb, html.bb[data-theme] { --accent: var(--bb-a, #ff3b4e) !important; --on-accent: var(--bb-on, #fff) !important; --accent-text: var(--bb-a, #ff3b4e) !important; --glow: color-mix(in srgb, var(--bb-a, #ff3b4e) 55%, transparent); }
@@ -7723,7 +7723,7 @@ function checkRender() {
 // ---- Write with AI: bring your own key (stays in this browser) or local Ollama. Nothing is sent until you press an AI button,
 // and only the section you are in goes out. Every answer goes through MetroBar's checker (syllables, rhyme, technique, clichés) first.
 const AI_PROV = {
-  gemini: { name: 'Gemini', model: 'gemini-flash-latest', key: true, help: ['https://aistudio.google.com/apikey', 'Free key from Google AI Studio'] },
+  gemini: { name: 'Gemini', model: 'gemini-3.5-flash-lite', key: true, help: ['https://aistudio.google.com/apikey', 'Free key from Google AI Studio'] },
   openai: { name: 'OpenAI', model: 'gpt-5-mini', key: true, help: ['https://platform.openai.com/api-keys', 'Key from the OpenAI platform (paid per use)'] },
   anthropic: { name: 'Claude', model: 'claude-haiku-5-5', key: true, help: ['https://console.anthropic.com/settings/keys', 'Key from the Anthropic console (paid per use)'] },
   openrouter: { name: 'OpenRouter', model: 'openrouter/auto', key: true, help: ['https://openrouter.ai/keys', 'One key for many models, some free'] },
@@ -7732,6 +7732,7 @@ const AI_PROV = {
 var AI = Object.assign({ prov: 'gemini', keys: {}, models: {}, url: 'http://localhost:11434', tech: '', rhyme: 'auto' }, store.get('metrobar.ai', {}));
 AI.keeps = store.get('metrobar.aiKeeps', []);
 const aiSave = () => store.set('metrobar.ai', { prov: AI.prov, keys: AI.keys, models: AI.models, url: AI.url, tech: AI.tech, rhyme: AI.rhyme });
+const GEM_FALLBACK = ['gemini-3.5-flash-lite', 'gemini-flash-lite-latest', 'gemini-3.1-flash-lite'];
 const aiModel = () => AI.models[AI.prov] || AI_PROV[AI.prov].model;
 const aiReady = () => AI.prov === 'ollama' || !!AI.keys[AI.prov];
 function aiWho() { $('rbAiWho').textContent = aiReady() ? `${AI_PROV[AI.prov].name} · ${aiModel()}` : 'Off until you add a key or Ollama'; }
@@ -7755,9 +7756,15 @@ async function aiAsk(user, temp = 1) {
   const net = async (url, opt) => { try { return await fetch(url, opt); } catch (e) { throw new Error(P === 'ollama' ? `Can't reach Ollama at ${AI.url}. Open the Ollama app (or run "ollama serve").` : `No connection to ${AI_PROV[P].name}. Check your internet.`); } };
   if (P !== 'ollama' && !key) throw new Error(`Paste your ${AI_PROV[P].name} key in AI settings first.`);
   if (P === 'gemini') {
-    r = await net(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp, responseMimeType: 'application/json' } }) });
-    d = await r.json().catch(() => ({})); if (r.ok) { const c = d.candidates && d.candidates[0]; txt = c && c.content ? c.content.parts.map(x => x.text || '').join('') : ''; }
+    // Google retires and overloads models often (2026-11-12: gemini-flash-latest hung with no answer), so: 25 s per try, then the next model
+    const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp, responseMimeType: 'application/json' } });
+    for (const m of [...new Set([model].concat(GEM_FALLBACK))]) {
+      const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 25000);
+      try { r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body }); }
+      catch (e) { clearTimeout(tm); if (ac.signal.aborted) { r = { ok: false, status: 504 }; d = { error: { message: `${m} took too long` } }; continue; } throw new Error('No connection to Gemini. Check your internet.'); }
+      clearTimeout(tm); d = await r.json().catch(() => ({}));
+      if (r.ok || ![404, 500, 503, 504].includes(r.status)) break;
+    } if (r.ok) { const c = d.candidates && d.candidates[0]; txt = c && c.content ? c.content.parts.map(x => x.text || '').join('') : ''; }
   } else if (P === 'anthropic') {
     r = await net('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
       body: JSON.stringify({ model, max_tokens: 2000, temperature: Math.min(1, temp), system: sys, messages: [{ role: 'user', content: user }] }) });
