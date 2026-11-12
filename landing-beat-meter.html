@@ -11249,8 +11249,14 @@ var BS = (() => {
         const m = new Map(a.filter(x => x && x.id).map(x => [x.id, x]));
         b.forEach(x => { if (!x || !x.id) return; const y = m.get(x.id); if (!y || Math.max(+x.updated || 0, +x.deleted || 0) > Math.max(+y.updated || 0, +y.deleted || 0)) { m.set(x.id, x); songs++; } });
         localStorage.setItem(k, JSON.stringify([...m.values()].sort((x, y) => (+y.updated || 0) - (+x.updated || 0))));
-      } else if (cur == null) localStorage.setItem(k, v);
+      } else if (k === 'metrobar.bookCur' || k === 'metrobar.curSong') localStorage.setItem(k, v);   // open the song you were writing
+      else if (k === 'metrobar.bookNoLib') return;                       // always arrive with the song list showing
+      else if (cur == null) localStorage.setItem(k, v);
     });
+    try {   // an empty page this browser made on a first visit must not hide the songs that just arrived
+      const bk = JSON.parse(localStorage.getItem('metrobar.book') || '[]'), keep = bk.filter(p => (p.text || '').trim() || (p.title && p.title !== 'Untitled') || bk.length === 1);
+      if (keep.length < bk.length) localStorage.setItem('metrobar.book', JSON.stringify(keep));
+    } catch (e) {}
     return songs;
   }
   if (location.origin === OLD) {
