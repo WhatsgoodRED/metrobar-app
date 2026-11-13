@@ -131,6 +131,20 @@ header > .hright { grid-column: 3; grid-row: 1; justify-self: end; align-self: s
 .metro .m-wheel { fill: none; stroke: var(--m-ink); stroke-width: .8; }
 .metro .m-pend { transform-box: view-box; transform-origin: 70px 136px; }
 @media (max-width: 560px) { .deck-box { padding: 10px; } .metro svg { width: 140px; } }
+/* The metronome is hidden until Start (start() sets .deck.on, stop() clears it). Wide screens: it stands beside the tile box, outside the
+   page column, at the same size, so nothing on the page moves. Narrower screens have no room beside it: it grows in above the box instead. */
+.metro { transition: opacity .35s ease, transform .45s cubic-bezier(.2, .8, .2, 1); }
+.deck:not(.on) .metro { opacity: 0; pointer-events: none; }
+@media (min-width: 1320px) {
+  .metro { position: absolute; right: calc(100% + 28px); bottom: 0; margin: 0; }
+  .deck:not(.on) .metro { transform: translateX(24px); }
+}
+@media (max-width: 1319.98px) {
+  .deck { grid-template-rows: 1fr auto; transition: grid-template-rows .45s cubic-bezier(.2, .8, .2, 1); }
+  .deck:not(.on) { grid-template-rows: 0fr auto; }
+  .deck:not(.on) .metro { min-height: 0; overflow: hidden; margin-bottom: 0; transform: translateY(24px); }
+}
+@media (prefers-reduced-motion: reduce) { .metro, .deck { transition: none; } }
 .bar { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
 .beat { display: grid; gap: 6px; align-content: start; }
 .beat .num { font-family: var(--display); font-weight: 900; font-size: clamp(3rem, 14vw, 6rem); line-height: .85; text-align: center;
@@ -5109,7 +5123,7 @@ function start() {
   lastBar = -2; playedBars = 0; rateDirty = false; stopBeat(); landTimes = []; tapOffs = [];
   metroReset(); step = 0; bar = $('countIn').checked ? -1 : loopRange().lo; queue = []; nextTime = ctx.currentTime + 0.08; nextSec = nextTime;
   timer = setInterval(schedule, 25); schedule(); raf = requestAnimationFrame(draw);
-  running = true; bbRun(true); stepCur = -1; $('logo').classList.add('run'); stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
+  running = true; bbRun(true); stepCur = -1; $('logo').classList.add('run'); deck.classList.add('on'); stripBar(bar, bpm()); stripVis(); $('go').textContent = 'Stop'; $('wrPlay').textContent = '■ Stop'; $('wrPlay').setAttribute('aria-pressed', 'true'); $('go').setAttribute('aria-pressed', 'true'); $('state').textContent = trainerOn ? 'trainer' : 'running';
 }
 function tapLanding() {
   const lat = ctx.outputLatency || ctx.baseLatency || 0, t = ctx.currentTime - lat;
@@ -5127,7 +5141,7 @@ function stop() {
   clearInterval(timer); cancelAnimationFrame(raf); running = false; queue = []; stopBeat(); metroReset(); dropStop();
   subEls.forEach(e => e.classList.remove('on')); beatEls.forEach(e => e.num.classList.remove('on'));
   stripEls.forEach(e => e.classList.remove('on')); stripVis();
-  $('logo').classList.remove('run'); logoEls.forEach(e => e.classList.remove('on', 'one')); logoWave();
+  $('logo').classList.remove('run'); deck.classList.remove('on'); logoEls.forEach(e => e.classList.remove('on', 'one')); logoWave();
   $('go').textContent = 'Start'; $('go').setAttribute('aria-pressed', 'false'); $('state').textContent = 'stopped'; $('wrPlay').textContent = '▶ Beat'; $('wrPlay').setAttribute('aria-pressed', 'false');
   playSave(); stepsStop(); bbRun(false);
   showBar(practice ? loopRange().lo : 0);
