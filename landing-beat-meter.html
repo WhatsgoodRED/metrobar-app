@@ -2820,6 +2820,18 @@ html.bb.bb-day .be-cyb .be-why { color:var(--dz-t2, #555b62); }
 html.bb.bb-day .be-ai { border-top:1px solid var(--dz-l2, #d9dce0); }
 html.bb.bb-day .bs-mark .mk-bg { fill:var(--dz-bg0, #ffffff); }
 /* HZ-DAY:END */
+/* Section menu as three cards side by side (Bennie 2026-11-13): the middle one (Jump to) drops down, the other two slide out from under it */
+html.bb .be-menu.be-secm { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(12rem, 14rem); align-items: start; gap: 8px; max-width: calc(100vw - 24px); max-height: none; padding: 0; overflow: visible; border: 0; background: none; box-shadow: none; }
+html.bb .be-secm .be-sc { position: relative; max-height: min(70vh, 32rem); overflow: auto; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 20px 60px #000c; scrollbar-width: thin; }
+html.bb.bb-day .be-secm .be-sc { box-shadow: 0 20px 50px #00000024; }
+html.bb .be-secm .be-sc.l { order: 0; z-index: 1; animation: beScL .38s cubic-bezier(.2, .8, .2, 1) .1s both; }
+html.bb .be-secm .be-sc.c { order: 1; z-index: 2; animation: beScC .24s cubic-bezier(.2, .8, .2, 1) both; }
+html.bb .be-secm .be-sc.r { order: 2; z-index: 1; animation: beScR .38s cubic-bezier(.2, .8, .2, 1) .1s both; }
+@keyframes beScC { from { opacity: 0; transform: translateY(-14px); } }
+@keyframes beScL { 0% { opacity: 0; transform: translateX(calc(100% + 8px)); } 25% { opacity: 1; } }
+@keyframes beScR { 0% { opacity: 0; transform: translateX(calc(-100% - 8px)); } 25% { opacity: 1; } }
+@media (max-width: 640px) { html.bb .be-menu.be-secm { grid-auto-flow: row; grid-auto-columns: auto; width: min(20rem, calc(100vw - 24px)); } html.bb .be-secm .be-sc { max-height: 40vh; } html.bb .be-secm .be-sc.l, html.bb .be-secm .be-sc.r { animation-name: beScC; } }
+@media (prefers-reduced-motion: reduce) { html.bb .be-secm .be-sc { animation: none !important; } }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -10733,7 +10745,7 @@ var BE = (() => {
     menuClose(); const m = h('div', 'be-menu'); m.setAttribute('role', 'menu'); build(m); document.body.append(m); S.menu = { m, anchor };
     anchor.setAttribute('aria-expanded', 'true');
     const r = anchor.getBoundingClientRect(), w = m.offsetWidth, hh = m.offsetHeight;
-    let x = side === 'left' ? r.left : r.right - w; x = Math.max(12, Math.min(innerWidth - w - 12, x));
+    let x = side === 'left' ? r.left : side === 'center' ? r.left + r.width / 2 - w / 2 : r.right - w; x = Math.max(12, Math.min(innerWidth - w - 12, x));
     let y = r.bottom + 6; if (y + hh > innerHeight - 12) y = Math.max(12, r.top - hh - 6);
     m.style.left = x + 'px'; m.style.top = y + 'px'; const f = m.querySelector('button'); if (f) f.focus({ preventScroll: true });
   }
@@ -10766,12 +10778,16 @@ var BE = (() => {
   const SECS = ['Verse', 'Hook', 'Pre-hook', 'Bridge', 'Intro', 'Outro'];
   function secMenu() {
     const C = S.C, cur = secOfCur();
-    menu(secBtn, m => {
+    // three cards side by side (Bennie 2026-11-13): Jump to drops down in the middle, this section's actions and Add a section slide out from under it, left and right
+    menu(secBtn, M => {
+      M.classList.add('be-secm'); const cC = h('div', 'be-sc c'), cL = h('div', 'be-sc l'), cR = h('div', 'be-sc r'); let m = cC;
+      const put = () => [cC, cL, cR].forEach(d => { if (d.childElementCount) M.append(d); });
       if (C.heads.length) { m.append(h('h6', '', 'Jump to')); C.heads.forEach(s => { const b = mi(m, s.name, () => { const j = S.L[s.i + 1] != null && !isHead(S.L[s.i + 1]) ? s.i + 1 : s.i; focusRow(j, 0); }, '', s.bars ? `${s.bars} bar${s.bars === 1 ? '' : 's'}` : ''); if (cur && s.i === cur.i) b.setAttribute('aria-current', 'true'); }); }
-      if (locked()) return;
+      if (locked()) { put(); return; }
       if (cur) {
+        m = cL;
         const end = (() => { const nx = C.heads.find(s => s.i > cur.i); let e = nx ? nx.i : S.L.length; while (e > cur.i + 1 && S.L[e - 1] === '' && !nx) e--; return e; })();
-        m.append(h('hr'), h('h6', '', cur.name));
+        m.append(h('h6', '', cur.name));
         mi(m, 'Rename section', () => { const r = rowAt(cur.i); if (r) { r._.hin.focus(); r._.hin.select(); } });
         mi(m, 'Duplicate section', () => {
           const L = S.L.slice(), blk = L.slice(cur.i, end); blk[0] = '[' + cur.name + ' (copy)]'; L.splice(end, 0, ...blk); shiftDrafts(end, blk.length); rowsChanged(L, end, 0);
@@ -10785,11 +10801,12 @@ var BE = (() => {
         if (k > 0 || (k === 0 && cur.i > 0 && S.L.slice(0, cur.i).some(x => x.trim()))) mi(m, 'Move section up', () => moveSec(cur.i, -1));
         if (k >= 0 && k < C.heads.length - 1) mi(m, 'Move section down', () => moveSec(cur.i, 1));
       }
-      if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section at the end'));
+      m = cR; m.append(h('h6', '', 'Add a section at the end'));
       SECS.forEach(n => mi(m, n, () => addSec(n)));
       m.append(h('hr'), h('h6', '', 'Add a section on top'));
       ['Intro', 'Hook', 'Verse'].forEach(n => mi(m, n, () => addSec(n, true), '', 'first on the page'));
-    }, 'left');
+      put();
+    }, 'center');
   }
   function addSec(n, top) {
     if (locked()) return; const C = S.C, L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
