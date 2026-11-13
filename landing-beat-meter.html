@@ -68,9 +68,10 @@ input[type=file]::file-selector-button:hover { border-color: var(--muted); }
 /* Top bar on desktop: logo in the top-left corner (the Write song list sits under it on wide screens), MetroBar/Write tabs in the middle,
    readout + i right. Phones (<=700px) stack all three, centred. */
 header { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 12px; }
-header > .logo { grid-column: 1; grid-row: 1; justify-self: start; }
-header > .views { grid-column: 2; grid-row: 1; }
-header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
+/* Bennie 2026-11-13: the logo sits centred on the page, tabs centred under it, readout + i stay top right */
+header > .logo { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
+header > .views { grid-column: 2; grid-row: 2; }
+header > .hright { grid-column: 3; grid-row: 1; justify-self: end; align-self: start; }
 @media (max-width: 700px) {
   header { grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 10px; }
   header > .logo, header > .views, header > .hright { grid-column: 1; grid-row: auto; justify-self: center; }
@@ -1351,10 +1352,9 @@ body.book #viewBook:not(.rb-dark) .rb-views button { background: none; }
 .rb-sidetg { font-weight: 600; }
 @media (max-width: 700px) { .rb-ov .rb-k { right: -4em; } .rb-ov, #rbText { padding-right: 4em; } }
 /* tablets: the tabs get their own row so they never run into the logo */
-@media (min-width: 701px) and (max-width: 980px) {
-  header { grid-template-columns: auto minmax(0, 1fr); }
-  header > .logo { grid-column: 1; grid-row: 1; width: min(31rem, 55vw); } header > .hright { grid-column: 2; grid-row: 1; }
-  header > .views { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+@media (min-width: 701px) and (max-width: 1080px) {
+  header > .logo { width: min(31rem, 60vw); }
+  header > .hright { grid-column: 1 / -1; grid-row: 3; justify-self: center; align-self: center; display: flex; align-items: center; gap: 10px; }
 }
 body.book .rb-lib { padding-inline: 16px; }
 @media (max-width: 1000px) { .rb-side { box-shadow: none; } .rb-side.open { box-shadow: -10px 0 40px #0006; } body.book .rb-main { padding-inline: 16px; } body.book .rb-bar { margin-inline: -16px; padding-inline: 16px; } }
