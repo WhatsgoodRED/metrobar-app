@@ -17,6 +17,7 @@
 <title>MetroBar</title>
 <meta name="theme-color" content="#eef0ec">
 <meta name="description" content="MetroBar: rap practice tool. Detect the beat, fit lyrics to bars, drill the landing.">
+<link rel="preload" href="fonts/Panchang-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -85,7 +86,9 @@ header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
 .logo-sub i { transition: background .08s, color .08s; }
 .logo.run .logo-sub i.a:not(.on) { background: var(--cell); color: var(--muted); }
 .logo.run .logo-sub i.on { background: var(--accent); color: var(--on-accent); }
-.wm { display: block; font-family: var(--display); font-weight: 900; font-size: clamp(1.9rem, 9vw, 2.6rem); line-height: 1; letter-spacing: .01em; text-transform: uppercase; white-space: nowrap; text-align: center; }
+/* Logo wordmark (Bennie 2026-11-13): Panchang by Indian Type Foundry (Fontshare, ITF Free Font License, self-hosted in fonts/), weight 605, all caps */
+@font-face { font-family: 'Panchang'; src: url('fonts/Panchang-Variable.woff2') format('woff2-variations'), url('fonts/Panchang-Variable.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
+.wm { display: block; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.1rem, 5.4vw, 1.4rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; white-space: nowrap; text-align: center; }
 .logo-sub { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .logo-sub i { font-style: normal; font-family: var(--mono); font-weight: 600; font-size: .8rem; text-align: center; padding-block: 4px; border-radius: 6px; background: var(--cell); color: var(--muted); }
 .logo-sub i.a { background: var(--accent); color: var(--on-accent); }
@@ -1365,12 +1368,12 @@ h1.sr-only { font-size: 1.25rem; margin: 0; }
   body.book header > .views { grid-column: 2; grid-row: 1; justify-self: center; }
   body.book header > .hright { grid-column: 3; grid-row: 1; }
   body.book .logo-tile { padding: 6px 12px 5px; border-radius: 9px; }
-  body.book .logo .wm { font-size: 1.3rem; }
+  body.book .logo .wm { font-size: .95rem; }
   body.book .lwave { inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); }
   body.book .logo-sub, body.book .readout { display: none; }
   body.book #viewBook { margin-top: 0; }
 }
-@media (max-width: 700px) { body.book .logo-sub, body.book .readout { display: none; } body.book .logo { width: auto; } body.book .logo-tile { padding: 6px 14px 5px; border-radius: 9px; } body.book .logo .wm { font-size: 1.45rem; } body.book .lwave { inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); } body.book header { gap: 8px; } }
+@media (max-width: 700px) { body.book .logo-sub, body.book .readout { display: none; } body.book .logo { width: auto; } body.book .logo-tile { padding: 6px 14px 5px; border-radius: 9px; } body.book .logo .wm { font-size: 1rem; } body.book .lwave { inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); } body.book header { gap: 8px; } }
 @keyframes rbPop { from { opacity: 0; transform: translateY(16px) scale(.985); } }
 body.book #viewBook.rb-pop { animation: rbPop .24s cubic-bezier(.2, .9, .3, 1.15) both; transform-origin: 50% 0; }
 @media (prefers-reduced-motion: reduce) { body.book #viewBook.rb-pop { animation: none; } }
