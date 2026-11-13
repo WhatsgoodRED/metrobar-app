@@ -76,7 +76,7 @@ header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
   header > .logo, header > .views, header > .hright { grid-column: 1; grid-row: auto; justify-self: center; }
   header > .hright { display: flex; align-items: center; gap: 10px; }
 }
-.logo { display: grid; gap: 6px; width: min(100%, 15.5rem); }
+.logo { display: grid; gap: 6px; width: min(100%, 31rem); container-type: inline-size; }   /* 2x (Bennie 2026-11-13); the wordmark scales with the tile */
 .logo-tile { position: relative; background: var(--cell); border-radius: 12px; padding: 10px 20px; overflow: hidden; }
 /* Live logo: with a beat loaded the wordmark becomes the instrumental's waveform (whole file when stopped, live while it plays);
    while running, the 1-2-3-4 tiles light on each beat */
@@ -88,7 +88,7 @@ header > .hright { grid-column: 3; grid-row: 1; justify-self: end; }
 .logo.run .logo-sub i.on { background: var(--accent); color: var(--on-accent); }
 /* Logo wordmark (Bennie 2026-11-13): Panchang by Indian Type Foundry (Fontshare, ITF Free Font License, self-hosted in fonts/), weight 605, all caps */
 @font-face { font-family: 'Panchang'; src: url('fonts/Panchang-Variable.woff2') format('woff2-variations'), url('fonts/Panchang-Variable.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
-.wm { display: block; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.1rem, 5.4vw, 1.4rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; white-space: nowrap; text-align: center; }
+.wm { display: block; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.1rem, 9cqi, 2.8rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; white-space: nowrap; text-align: center; }
 .logo-sub { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .logo-sub i { font-style: normal; font-family: var(--mono); font-weight: 600; font-size: .8rem; text-align: center; padding-block: 4px; border-radius: 6px; background: var(--cell); color: var(--muted); }
 .logo-sub i.a { background: var(--accent); color: var(--on-accent); }
@@ -1353,7 +1353,7 @@ body.book #viewBook:not(.rb-dark) .rb-views button { background: none; }
 /* tablets: the tabs get their own row so they never run into the logo */
 @media (min-width: 701px) and (max-width: 980px) {
   header { grid-template-columns: auto minmax(0, 1fr); }
-  header > .logo { grid-column: 1; grid-row: 1; } header > .hright { grid-column: 2; grid-row: 1; }
+  header > .logo { grid-column: 1; grid-row: 1; width: min(31rem, 55vw); } header > .hright { grid-column: 2; grid-row: 1; }
   header > .views { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
 }
 body.book .rb-lib { padding-inline: 16px; }
