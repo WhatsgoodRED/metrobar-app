@@ -2539,6 +2539,16 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 .views, .views.ff-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 0; background: none; border-radius: 0; container-type: inline-size; }
 .views a, .views a[aria-current="page"], .views.ff-nav a { display: grid; place-items: center; min-width: 0; padding: 9px 2px; border-radius: 6px; background: var(--cell); text-align: center; white-space: nowrap; font-size: clamp(.62rem, 3.9cqi, .92rem); }
 .views a[aria-current="page"] { color: var(--fg); }
+/* active tab = the same red as the 4 tile with white text (Bennie 2026-11-13). Layers, bottom to top: tile background
+   (a::before), the glass bubble canvas (now a solid accent drop, FF.nav fill), the label (span), so the bubble shows while it travels. */
+.views { isolation: isolate; position: relative; }
+.views a, .views.ff-nav a { background: none; }
+.views a::before { content: ""; position: absolute; inset: 0; z-index: 0; border-radius: 6px; background: var(--cell); pointer-events: none; }
+.views a > span { position: relative; z-index: 2; }
+.views.ff-nav > .ff-cv { z-index: 1; }
+.views.ff-nav > a[aria-current="page"]::before { background: none; }
+.views:not(.ff-nav) > a[aria-current="page"]::before { background: var(--accent); }
+.views > a[aria-current="page"], .views.ff-nav > a[aria-current="page"] { color: var(--on-accent, #fff) !important; }
 @media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
 </style>
@@ -2553,7 +2563,7 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a><a href="barbook.html" aria-label="The Highlight Zone" title="The Highlight Zone">Rhyme</a><a href="#zone">The Zone</a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="barbook.html" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="#zone"><span>The Zone</span></a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
@@ -9068,7 +9078,7 @@ var FF = (() => {
   const cssRgb = (el, name, fb) => hexRgb(getComputedStyle(el).getPropertyValue(name)) || fb;
   const FRAG = `precision highp float;
 uniform vec2 uRes;uniform float uDpr;uniform float uTime;uniform vec4 uBlob[6];uniform float uSy[6];
-uniform vec4 uSpk;uniform vec3 uMag;uniform vec3 uTint;
+uniform vec4 uSpk;uniform vec3 uMag;uniform vec3 uTint;uniform float uFill;
 float sdCap(vec2 p,vec4 B,float sy){p-=B.xy;p.y/=sy;p.x=max(abs(p.x)-B.z,0.);return(length(p)-B.w)*min(1.,sy);}
 float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
 float base(vec2 p){float d=1e4;for(int i=0;i<6;i++){if(uBlob[i].w>.5)d=smin(d,sdCap(p,uBlob[i],uSy[i]),uSpk.w);}return d;}
@@ -9088,6 +9098,9 @@ void main(){
  float rim=smoothstep(-6.,0.,d);
  vec3 g=mix(vec3(1.),uTint,.1+.25*rim*dn);
  float ga=.34+.4*rim+.25*fr;
+ // filled drop (the menu): a solid accent body with a lighter rim; same shape, motion and highlights
+ vec3 gf=mix(uTint,mix(uTint,vec3(1.),.28),clamp(rim*dn*.7+fr*.2,0.,1.));
+ g=mix(g,gf,uFill);ga=mix(ga,1.,uFill);
  g=mix(g,vec3(1.),clamp(s1*1.6+s2*1.2,0.,1.));ga=max(ga,clamp(s1*1.6+s2,0.,1.));
  float al=ga*a;
  gl_FragColor=vec4(g*al,al+sh*(1.-al));
@@ -9106,7 +9119,7 @@ void main(){
       g.useProgram(pr); g.bindBuffer(g.ARRAY_BUFFER, g.createBuffer());
       g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), g.STATIC_DRAW);
       const loc = g.getAttribLocation(pr, 'a'); g.enableVertexAttribArray(loc); g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
-      const u = {}; ['uRes', 'uDpr', 'uTime', 'uBlob', 'uSy', 'uSpk', 'uMag', 'uTint'].forEach(n => { u[n] = g.getUniformLocation(pr, n); });
+      const u = {}; ['uRes', 'uDpr', 'uTime', 'uBlob', 'uSy', 'uSpk', 'uMag', 'uTint', 'uFill'].forEach(n => { u[n] = g.getUniformLocation(pr, n); });
       g.enable(g.SCISSOR_TEST);
       cv.addEventListener('webglcontextlost', e => { e.preventDefault(); GL = null; });
       GL = { g, u, cv };
@@ -9121,7 +9134,7 @@ void main(){
     g.viewport(0, 0, W, H); g.scissor(0, 0, W, H);
     g.uniform2f(u.uRes, W / dpr, H / dpr); g.uniform1f(u.uDpr, dpr); g.uniform1f(u.uTime, o.time);
     g.uniform4fv(u.uBlob, o.blobs); g.uniform1fv(u.uSy, o.sy); g.uniform4f(u.uSpk, 0, 0, 0, o.k);
-    g.uniform3f(u.uMag, o.mag[0], o.mag[1], o.mag[2]); g.uniform3f(u.uTint, ...o.tint);
+    g.uniform3f(u.uMag, o.mag[0], o.mag[1], o.mag[2]); g.uniform3f(u.uTint, ...o.tint); g.uniform1f(u.uFill, o.fill || 0);
     g.clearColor(0, 0, 0, 0); g.clear(g.COLOR_BUFFER_BIT); g.drawArrays(g.TRIANGLES, 0, 3);
     ctx.clearRect(0, 0, W, H); ctx.drawImage(cv, 0, cv.height - H, W, H, 0, 0, W, H);
   }
@@ -9140,7 +9153,7 @@ void main(){
     const ctx = cv.getContext('2d');
     const s = { a: { x: 0, v: 0 }, b: { x: 0, v: 0 }, cy: { x: 0, v: 0 }, sy: { s: 1, v: 0 }, lead: 0, lagFrom: 0, sats: [],
       T: { x: 0, cy: 0, q: 0, r: 10 }, q: 0, mouse: { x: 0, y: 0, s: 0, on: false }, moving: false, split: false, ready: false, show: false,
-      w: 0, h: 0, visible: true, raf: 0, last: 0, time: 0, tint: [.686, 0, 0], dpr: 1 };
+      w: 0, h: 0, visible: true, raf: 0, last: 0, time: 0, tint: [.686, 0, 0], dpr: 1, fill: el.classList.contains('views') ? 1 : 0 };
     function draw() {
       const W = cv.width, Hh = cv.height;
       if (!s.show) { ctx.clearRect(0, 0, W, Hh); return; }
@@ -9149,7 +9162,7 @@ void main(){
       blobs.set([head.x, s.cy.x, s.q * (1 - .25 * thin), T.r * (1 - .12 * thin), tail.x, s.cy.x, s.q * (1 - .8 * thin), T.r * (1 - .5 * thin)], 0);
       sy[0] = sy[1] = s.sy.s;
       s.sats.slice(0, 4).forEach((d, i) => blobs.set([d.x, d.y, 0, d.r], 8 + i * 4));
-      paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint });
+      paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint, fill: s.fill });
     }
     function step(dt, now) {
       const T = s.T, bodies = [s.a, s.b]; let still = true;
