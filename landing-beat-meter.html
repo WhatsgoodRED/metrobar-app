@@ -2427,17 +2427,19 @@ html.bb .be-rl { display: none; font: 600 .78rem/1 var(--body); letter-spacing: 
 html.bb .be-row.cur .be-rl { display: block; }
 html.bb .be-row.cur .be-rb { height: 56px; min-width: 0; padding: 0 6px; gap: 5px; }
 html.bb .be-row.cur .be-rb[data-k="rec"] .be-rl, html.bb .be-row.cur .be-rb[data-k="add"] .be-rl, html.bb .be-row.cur .be-rb[data-k="adlib"] .be-rl { color: #9aa1a7; }
-/* Drafts pager: only on the bar you're on */
+/* Drafts pager: on every bar that has drafts (Bennie 2026-11-13: drafts must stay visible after you move to the next bar) */
 html.bb .be-dp, html.bb .be-dp[hidden] { display: none; }
-html.bb .be-row.cur.vers .be-dp { display: flex; align-items: center; height: 56px; margin: 0 10px 0 0; padding: 0 2px; border: 1px solid #2a2f33; border-radius: 10px; background: #121417; position: relative; }
-html.bb .be-row.cur .be-dp::after { content: ""; position: absolute; right: -7px; top: 10px; bottom: 10px; width: 1px; background: #2c3135; }
+html.bb .be-row.vers .be-dp { display: flex; align-items: center; height: 56px; margin: 0 10px 0 0; padding: 0 2px; border: 1px solid #2a2f33; border-radius: 10px; background: #121417; position: relative; }
+html.bb .be-row.vers:not(.cur) .be-dp { height: 38px; margin-right: 8px; }
+html.bb .be-row.vers:not(.cur) .be-dp > button { height: 34px; }
+html.bb .be-row.vers .be-dp::after { content: ""; position: absolute; right: -7px; top: 10px; bottom: 10px; width: 1px; background: #2c3135; }
 html.bb .be-dp > button { width: 20px; min-width: 0; height: 46px; padding: 0; color: #7e868c; }
 html.bb .be-dp > button:disabled { opacity: .35; cursor: default; }
 html.bb .be-dpc { display: grid; justify-items: center; gap: 5px; min-width: 46px; }
 html.bb .be-dpn { display: inline-flex !important; align-items: center; gap: 3px; height: auto !important; padding: 0 !important; border: 0; background: none; color: #d6dadd; font: 600 .82rem var(--body); font-variant-numeric: tabular-nums; cursor: pointer; }
 html.bb .be-dpv svg { width: 11px; height: 11px; display: block; transition: transform .15s ease; }
 html.bb .be-row.cur .be-dpc .be-rl { color: #9aa1a7; }
-html.bb .be-row.vers.cur .be-dpn, html.bb .be-row.vers.cur .be-dpc .be-rl { color: color-mix(in srgb, var(--accent) 70%, #fff); }
+html.bb .be-row.vers .be-dpn, html.bb .be-row.vers.cur .be-dpc .be-rl { color: color-mix(in srgb, var(--accent) 70%, #fff); }
 html.bb .be-row.dd .be-dpv svg { transform: rotate(180deg); }
 /* the bar you're on */
 html.bb .be-row.cur, html.bb .be-row.cur:hover { border-radius: 0 12px 12px 0; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, #0f1113), #0f1113 38%); box-shadow: inset 3px 0 0 var(--accent); }
@@ -2480,6 +2482,19 @@ html.bb .be-pk { display: grid; gap: 4px; text-align: left; padding: 12px 14px; 
 html.bb .be-pk:hover, html.bb .be-pk:focus-visible { border-color: color-mix(in srgb, var(--t-rw) 60%, transparent); background: #14191c; outline: 0; }
 html.bb .be-pk small { font: 600 .7rem var(--mono, monospace); letter-spacing: .14em; text-transform: uppercase; color: var(--t-rw); }
 html.bb .be-pk span { font-size: 1.05rem; } html.bb .be-pk em { font-style: normal; font-size: .76rem; color: #7c848a; }
+/* Choose your bar (Bennie 2026-11-13, layout from his RhymeFlux screenshots, own code): opens right under the bar, three cards */
+html.bb .be-pop.be-cyb { padding: 0; overflow: hidden; background: #15171a; border-color: #2a2f33; box-shadow: 0 18px 40px -18px #000c; animation: beCyb .18s ease-out; }
+html.bb .be-cyb .be-ph { padding: 14px 16px; border-bottom: 1px solid #23272b; }
+html.bb .be-cyb .be-ph b { font: 700 .78rem var(--body); letter-spacing: .18em; text-transform: uppercase; color: var(--t-rw); }
+html.bb .be-cyb .be-picks { padding: 10px; gap: 8px; } html.bb .be-cyb > .note { margin: 0; padding: 0 16px 12px; }
+html.bb .be-cyb .be-pk { padding: 14px 16px; gap: 6px; background: #1b1e21; border-color: transparent; }
+html.bb .be-cyb .be-pk small { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; color: #9aa1a7; letter-spacing: .12em; }
+html.bb .be-cyb .be-pk small svg { flex: none; } html.bb .be-cyb .be-pk small i { font-style: normal; letter-spacing: 0; text-transform: none; font-family: var(--body); font-weight: 400; color: #7c848a; }
+html.bb .be-cyb .be-pk-complete small svg { color: var(--t-rw); } html.bb .be-cyb .be-pk-punch small svg { color: var(--t-rhy); } html.bb .be-cyb .be-pk-switch small svg { color: #c9a6ff; }
+html.bb .be-cyb .be-pk span { font-size: 1.1rem; color: #eceeef; }
+html.bb .be-cyb .be-why { margin: 0; font-size: .84rem; line-height: 1.4; color: #9aa1a7; }
+@keyframes beCyb { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { html.bb .be-pop.be-cyb { animation: none; } }
 html.bb .be-ai { margin-top: 12px; padding-top: 10px; border-top: 1px solid #23272b; } html.bb .be-aio > .btn { margin-top: 8px; }
 html.bb .be-tn { font-size: .82rem; }
 html.bb .be-cnt[role="button"] { cursor: help; }
@@ -2613,6 +2628,14 @@ html.bb[data-paper="lined"] .be-row:not(.hd) .be-cell { background: linear-gradi
 .bs-paper { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .bs-paper button { height: 36px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: var(--fg); font: 500 .9rem var(--body); cursor: pointer; }
 .bs-paper button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+/* Highlight Zone logo (Bennie 2026-11-13): styled like the bar tool box (rounded tile, thin icon strokes) with a white border.
+   Night: black tile. Day: the tool box's light tile with the bar tools' own icon colours. Kept after HZ-DAY so the generator leaves it alone. */
+html.bb .bs-mark { border-radius: 8px; box-shadow: none !important; }
+html.bb .bs-mark .mk-bg { fill: #000; stroke: #fff; stroke-width: 1.5; }
+html.bb .bs-mark .mk1, html.bb .bs-mark .mk6 { stroke: #ff5fae; } html.bb .bs-mark .mk2 { stroke: #ffd23f; } html.bb .bs-mark .mk3 { stroke: #38d0ff; } html.bb .bs-mark .mk4 { stroke: #c9a6ff; } html.bb .bs-mark .mk5 { stroke: #c3c8cd; }
+html.bb.bb-day .bs-mark { box-shadow: 0 1px 3px #0000001f !important; }
+html.bb.bb-day .bs-mark .mk-bg { fill: var(--dz-bg1, #f7f8f9); stroke: #fff; }
+html.bb.bb-day .bs-mark .mk1, html.bb.bb-day .bs-mark .mk6 { stroke: var(--t-rw); } html.bb.bb-day .bs-mark .mk2 { stroke: var(--t-rhy); } html.bb.bb-day .bs-mark .mk3 { stroke: var(--t-rec); } html.bb.bb-day .bs-mark .mk4 { stroke: var(--t-ad); } html.bb.bb-day .bs-mark .mk5 { stroke: var(--t-add); }
 /* HZ-DAY:BEGIN (generated by tools/hz-day-theme.py, do not edit by hand) */
 html.bb.bb-day .rb-sheet { background:var(--rb-sheet, var(--dz-bg1, #f7f8f9)); color:var(--dz-t0, #15171a); }
 html.bb.bb-day .rb-sheet .ln.now { color:var(--dz-t0, #15171a); }
@@ -2740,12 +2763,12 @@ html.bb.bb-day .be-row.cur, html.bb.bb-day .be-row.cur:hover { background:var(--
 html.bb.bb-day .be-rt { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg1, #f7f8f9); }
 html.bb.bb-day .be-rb[data-k="rec"]::after { background:var(--dz-bg3, #e9ebee); }
 html.bb.bb-day .be-row.cur .be-rb[data-k="rec"] .be-rl, html.bb.bb-day .be-row.cur .be-rb[data-k="add"] .be-rl, html.bb.bb-day .be-row.cur .be-rb[data-k="adlib"] .be-rl { color:var(--dz-t2, #555b62); }
-html.bb.bb-day .be-row.cur.vers .be-dp { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg2, #f1f2f4); }
-html.bb.bb-day .be-row.cur .be-dp::after { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-row.vers .be-dp { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg2, #f1f2f4); }
+html.bb.bb-day .be-row.vers .be-dp::after { background:var(--dz-bg3, #e9ebee); }
 html.bb.bb-day .be-dp > button { color:var(--dz-t2, #555b62); }
 html.bb.bb-day .be-dpn { color:var(--dz-t0, #15171a); }
 html.bb.bb-day .be-row.cur .be-dpc .be-rl { color:var(--dz-t2, #555b62); }
-html.bb.bb-day .be-row.vers.cur .be-dpn, html.bb.bb-day .be-row.vers.cur .be-dpc .be-rl { color:color-mix(in srgb, var(--accent) 70%, var(--dz-t0, #15171a)); }
+html.bb.bb-day .be-row.vers .be-dpn, html.bb.bb-day .be-row.vers.cur .be-dpc .be-rl { color:color-mix(in srgb, var(--accent) 70%, var(--dz-t0, #15171a)); }
 html.bb.bb-day .be-row.cur, html.bb.bb-day .be-row.cur:hover { background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, var(--dz-bg1, #f7f8f9)), var(--dz-bg1, #f7f8f9) 38%); }
 html.bb.bb-day .be-row.cur .be-cell { background:var(--dz-bg1, #f7f8f9); }
 html.bb.bb-day .be-nav { color:var(--dz-t2, #555b62); }
@@ -2766,7 +2789,16 @@ html.bb.bb-day .be-row.inword .be-rb[data-k="rhymes"] { color:#c026d3; }
 html.bb.bb-day .be-pk { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg2, #f1f2f4); color:var(--dz-t0, #15171a); }
 html.bb.bb-day .be-pk:hover, html.bb.bb-day .be-pk:focus-visible { background:var(--dz-bg3, #e9ebee); }
 html.bb.bb-day .be-pk em { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-pop.be-cyb { background:var(--dz-bg2, #f1f2f4); border-color:var(--dz-l2, #d9dce0); box-shadow:0 18px 40px -18px #0000001f; }
+html.bb.bb-day .be-cyb .be-ph { border-bottom:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-cyb .be-pk { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-cyb .be-pk small { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-cyb .be-pk small i { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-cyb .be-pk-switch small svg { color:#7c4dcc; }
+html.bb.bb-day .be-cyb .be-pk span { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-cyb .be-why { color:var(--dz-t2, #555b62); }
 html.bb.bb-day .be-ai { border-top:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-mark .mk-bg { fill:var(--dz-bg0, #ffffff); }
 /* HZ-DAY:END */
 </style>
 <script src="zone-config.js"></script>
@@ -8503,6 +8535,24 @@ async function aiNextCore() {
   const list = await aiGraded(prompt, { bars: upto.concat(['']), i, tech: AI.tech, range, rw }, 16);
   return { w, upto, i, range, rw, list };
 }
+// New bar (Bennie 2026-11-13: "Choose your bar"): one AI call, three picks. Complete it + The punch end on a real rhyme for the bar
+// above; Switch up starts a new rhyme sound. Every pick is graded by aiJudge and carries a short "why".
+async function aiNewBarCore() {
+  const w = aiWhere(), upto = w.bars.slice(0, w.cur + 1).map(x => x.text), i = upto.length, range = aiRange(AI.tech, upto.slice(-4).length ? upto.slice(-4) : ['a bar of about ten syllables']);
+  const rw = upto[i - 1] || null, end = rw ? aiLast(rw) : '';
+  const prompt = [upto.length ? `Section so far${w.head ? ' ' + w.head : ''}:\n${numbered(upto)}` : 'Start of a section. No bars yet.', `Write the next bar (bar ${i + 1}). Carry the thought forward, don't repeat it.`,
+    AI.tech ? 'Technique: ' + techSpec(AI.tech) : 'Match the rhythm and length of the bars above.', `Length: ${range[0]} to ${range[1]} syllables.`,
+    rw ? `Three lists. "complete": 6 bars that finish the thought and END on a word that truly rhymes with "${end}" (multi-syllable rhymes beat one-syllable ones; never end on "${end}" itself). "punch": 6 punchlines (wordplay, a twist, a hard image) that also END on a true rhyme for "${end}". "switch": 4 bars that switch it up: a new angle that ends on a NEW rhyme sound, not rhyming with "${end}".`
+       : 'Three lists of opening bars: "complete": 6 that set the scene, "punch": 6 opening punchlines, "switch": 4 with an unexpected angle.',
+    'Every bar gets "why": one short line on why it works.', 'JSON: {"complete":[{"bar":"...","why":"..."}],"punch":[{"bar":"...","why":"..."}],"switch":[{"bar":"...","why":"..."}]}'].join('\n');
+  const d = await aiAsk(prompt, 1.05), c = { bars: upto.concat(['']), i, tech: AI.tech, range }, seen = new Set();
+  const judge = (k, rwX) => aiList(d, k).map(x => { const j = aiJudge(x.text, Object.assign({}, c, { rw: rwX })); j.why = x.why; return j; }).sort((a, b) => b.score - a.score);
+  const rhymes = j => !rw || ['perfect', 'multi'].includes(aiRhyme(j.text, rw)), fresh = j => !rw || !['perfect', 'multi', 'same', 'slant'].includes(aiRhyme(j.text, rw));
+  const take = (list, ok) => { const j = list.filter(x => ok(x) && !seen.has(cleanKey(x.text))).sort((a, b) => (b.pass - a.pass) || (b.score - a.score))[0]; if (j) seen.add(cleanKey(j.text)); return j; };
+  const comp = judge('complete', rw), pun = judge('punch', rw), sw = judge('switch', null), all = comp.concat(pun);
+  const top = [['complete', take(comp, rhymes) || take(all, rhymes)], ['punch', take(pun, rhymes) || take(all, rhymes)], ['switch', take(sw, fresh) || take(sw, () => true)]].filter(x => x[1]).map(([kind, j]) => Object.assign(j, { kind }));
+  return { w, upto, i, range, rw, top };
+}
 const AI_GO = {
   async fit(out) {
     const { w, i, bar, list } = await aiFitCore();
@@ -10338,7 +10388,7 @@ var BE = (() => {
     if (i >= S.L.length) { S.extra += i - S.L.length + 1; render(); }   // a new bar after the last empty row: one more row
     focusRow(i, pos);
   }
-  function split(i, a, b) { const L = S.L.slice(), v = L[i]; L.splice(i, 1, v.slice(0, a), v.slice(b)); shiftDrafts(i + 1, 1); rowsChanged(L, i + 1, 0); }
+  function split(i, a, b) { const L = S.L.slice(), v = L[i]; L.splice(i, 1, v.slice(0, a), v.slice(b)); shiftDrafts(!v.slice(0, a).trim() && v.slice(b).trim() ? i : i + 1, 1); rowsChanged(L, i + 1, 0); }
   function mergeUp(i) {
     const L = S.L.slice(), prev = L[i - 1];
     if (isHead(prev)) { if (L[i] === '' && i < L.length - 1) { L.splice(i, 1); shiftDrafts(i, -1); rowsChanged(L, i - 1, 0); } else focusRow(i - 1); return; }
@@ -10464,7 +10514,7 @@ var BE = (() => {
     L[i] = pre + ins + post; rowsChanged(L, i, p + ins.length);
   }
   function popBuild() {
-    S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; pop.replaceChildren(); pop.classList.remove('be-dd');
+    S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; pop.replaceChildren(); pop.classList.remove('be-dd', 'be-cyb');
     const k = S.pop, i = S.cur, l = S.L[i] || '', p = page();
     if (k === 'rhymes') {
       const q = rhymeWord(); pop.append(popHead(q.rep ? 'Swap' : q.above ? 'Rhymes for the bar above:' : 'Rhymes for', q.w));
@@ -10535,11 +10585,14 @@ var BE = (() => {
         }
       }
     } else if (k === 'pick') {
-      const P = S.pick && S.pick.i === i ? S.pick.top : []; pop.append(popHead('Pick your bar'));
-      const box = h('div', 'be-picks'), names = ['Finish the thought', 'The punch', 'Switch it up'];
-      P.forEach((j, n) => { const b = h('button', 'be-pk'); b.type = 'button'; b.append(h('small', '', names[n] || 'Option ' + (n + 1)), h('span', '', j.text), h('em', '', `${sylN(j.text)} syl` + (j.tier ? ' · ' + j.tier + ' rhyme' : '')));
+      const P = S.pick && S.pick.i === i ? S.pick.top : [], end = (S.pick && S.pick.end) || ''; pop.append(popHead('Choose your bar')); pop.classList.add('be-cyb');
+      const box = h('div', 'be-picks'), KIND = { complete: ['Complete it', '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r=".6"/>', end ? `finishes the thought, rhymes with “${end}”` : 'sets the scene'],
+        punch: ['The punch', '<path d="M13 3L5 13.5h6L10 21l8-10.5h-6L13 3z"/>', end ? `punchline, rhymes with “${end}”` : 'opening punchline'], switch: ['Switch up', '<path d="M16 4h4v4M4 20L20 4M20 16v4h-4M15 15l5 5M4 4l5 5"/>', end ? 'new rhyme sound' : 'a different angle'] };
+      P.forEach((j, n) => { const k = KIND[j.kind] || ['Option ' + (n + 1), '', ''], b = h('button', 'be-pk be-pk-' + (j.kind || 'x')); b.type = 'button';
+        const lab = h('small'); lab.innerHTML = sv(k[1], 16) + '<b></b>'; lab.querySelector('b').textContent = k[0]; const tag = h('i', '', k[2]); lab.append(tag);
+        b.append(lab, h('span', '', j.text)); if (j.why) b.append(h('p', 'be-why', j.why)); b.append(h('em', '', `${sylN(j.text)} syl` + (j.tier && j.tier !== 'same' ? ' · ' + j.tier + ' rhyme' : '')));
         b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => { const L = S.L.slice(); L[i] = j.text; S.pick = null; popClose(true); rowsChanged(L, i, j.text.length); }); box.append(b); });
-      pop.append(box, h('p', 'note', 'Pick one to put it on this bar. Ask again for three new ones.'));
+      pop.append(box, h('p', 'note', 'Pick one to put it on this bar. Press New bar again for three new ones.'));
     } else if (k === 'takes') {
       pop.append(popHead(S.rec ? 'Recording…' : 'Takes of this bar'));
       { const rb = btn('btn' + (S.rec ? ' pri' : ''), S.rec ? 'Stop' : 'Record a take'); rb.addEventListener('click', recToggle); pop.append(rb); }
@@ -10577,11 +10630,10 @@ var BE = (() => {
     stop.addEventListener('click', () => { ac.abort(); done(); if (typeof toast === 'function') toast(AI.prov === 'metrobar' ? 'Stopped. Your bar is unchanged (the credit was already used).' : 'Stopped. Your bar is unchanged.'); });
     caret(i, S.pos);   // the AI reads the bar at the caret
     if (gen) {
-      aiNextCore().then(({ list }) => {
+      aiNewBarCore().then(({ top, rw }) => {
         if (ac.signal.aborted) return; done();
-        const top = (list.filter(j => j.pass).length >= 3 ? list.filter(j => j.pass) : list).slice(0, 3);
         if (!top.length) { if (typeof toast === 'function') toast('No bar this time. Try again.'); return; }
-        S.pick = { i, top }; popOpen('pick');
+        S.pick = { i, top, end: rw ? aiLast(rw) : '' }; popOpen('pick', true);
       }).catch(e => { if (ac.signal.aborted) return; done(); if (typeof toast === 'function') toast((e && e.message) || 'Writing a bar failed. Try again.'); });
       return;
     }
@@ -10709,15 +10761,36 @@ var BE = (() => {
           const before = S.L.slice(), L = S.L.slice(); L.splice(cur.i, end - cur.i); if (!L.length) L.push(''); shiftDrafts(cur.i, -(end - cur.i)); const j = Math.max(0, cur.i - 1); rowsChanged(L, j, (L[j] || '').length);
           if (typeof toast === 'function') toast(`“${cur.name}” deleted.`, { undo: () => { if (p) p.drafts = pd || undefined; rowsChanged(before, cur.i, 0); } });
         }, 'dz');
+        const k = C.heads.findIndex(s => s.i === cur.i);
+        if (k > 0 || (k === 0 && cur.i > 0 && S.L.slice(0, cur.i).some(x => x.trim()))) mi(m, 'Move section up', () => moveSec(cur.i, -1));
+        if (k >= 0 && k < C.heads.length - 1) mi(m, 'Move section down', () => moveSec(cur.i, 1));
       }
-      if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section'));
+      if (C.heads.length) m.append(h('hr')); m.append(h('h6', '', 'Add a section at the end'));
       SECS.forEach(n => mi(m, n, () => addSec(n)));
+      m.append(h('hr'), h('h6', '', 'Add a section on top'));
+      ['Intro', 'Hook', 'Verse'].forEach(n => mi(m, n, () => addSec(n, true), '', 'first on the page'));
     }, 'left');
   }
-  function addSec(n) {
+  function addSec(n, top) {
     if (locked()) return; const C = S.C, L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
     while (L.length > 1 && L[L.length - 1] === '' && !isHead(L[L.length - 2])) L.pop();
+    if (top) {   // Bennie 2026-11-13: a song can start with an intro or hook: the new part goes above everything; bars that had no heading become a verse
+      const ins = ['[' + name + ']', '']; if (!isHead(L[0] || '') && L.some(x => x.trim())) ins.push('[Verse ' + (C.heads.filter(s => /^verse\b/i.test(s.name)).length + 1) + ']');
+      L.splice(0, 0, ...ins); shiftDrafts(0, ins.length); S.extra = 0; rowsChanged(L, 1, 0); const r = rowAt(1); if (r) reveal(r); return;
+    }
     S.extra = 0; L.push('[' + name + ']', ''); rowsChanged(L, L.length - 1, 0);
+  }
+  // move a whole section (heading + its bars + their drafts) above the previous one or below the next one
+  function moveSec(hi, d) {
+    if (locked()) return; const C = S.C, L = S.L.slice(); let end = L.length; while (end > 0 && L[end - 1] === '') end--;
+    const st = C.heads.map(s => s.i), k = st.indexOf(hi); if (k < 0) return;
+    const blk = j => j < 0 ? [0, st[0]] : [st[j], j + 1 < st.length ? st[j + 1] : end];   // j = -1: the bars above the first heading
+    const a = d < 0 ? k - 1 : k, b = a + 1; if (b >= st.length || (a < 0 && !L.slice(0, st[0]).some(x => x.trim()))) return;
+    const A = blk(a), B = blk(b), idx = (x, y) => Array.from({ length: Math.max(0, y - x) }, (_, n) => x + n);
+    const order = [...idx(0, A[0]), ...idx(B[0], B[1]), ...idx(A[0], A[1]), ...idx(B[1], end)];
+    const M = order.map(o => L[o]), p = page();
+    if (p) ['drafts', 'dpos'].forEach(key => { if (!p[key]) return; const o = {}; order.forEach((old, ni) => { if (p[key][old] != null) o[ni] = p[key][old]; }); p[key] = o; });
+    const ni = order.indexOf(hi); rowsChanged(M, ni + 1 < M.length && !isHead(M[ni + 1]) ? ni + 1 : ni, 0); const r = rowAt(ni); if (r) reveal(r);
   }
   function moreOpen(on) {
     if (window.BBAPP) { if (on && window.BS && BS.settings) BS.settings(); return; }   // Barbook page: these live in Settings
@@ -11486,7 +11559,7 @@ var BS = (() => {
   BE.drawerTg.title = 'Show the songs'; BE.drawerTg.addEventListener('click', e => { if (innerWidth > 1000) { e.stopImmediatePropagation(); nolib(false); } }, true);
 
   // ---- sidebar
-  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect width="26" height="26" rx="7" fill="#14161a"/><g stroke-width="3" stroke-linecap="round"><path d="M6.5 8h4.5" stroke="#ff2e88"/><path d="M14 8h5.5" stroke="#ffd60a"/><path d="M6.5 13h8" stroke="#23d5ff"/><path d="M17.5 13h2" stroke="#ff7a1a"/><path d="M6.5 18h2.5" stroke="#8cff2e"/><path d="M12 18h5" stroke="#ff2e88"/></g></svg></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
+  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect class="mk-bg" x=".75" y=".75" width="24.5" height="24.5" rx="6.5"/><g fill="none" stroke-width="2" stroke-linecap="round"><path class="mk1" d="M7 8.5h4"/><path class="mk2" d="M13.5 8.5h5.5"/><path class="mk3" d="M7 13h7.5"/><path class="mk4" d="M17 13h2"/><path class="mk5" d="M7 17.5h2.5"/><path class="mk6" d="M12 17.5h5"/></g></svg></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
   const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), setB = btn('bs-ib', I.gear, 'Settings', 'Settings'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
   const dayB = btn('bs-ib', '', '', ''); dayB.id = 'bsDay';
   const dayShow = () => { const d = isDay(); dayB.innerHTML = d ? I.moon : I.sun; dayB.title = d ? 'Night mode' : 'Day mode'; dayB.setAttribute('aria-label', dayB.title); dayB.setAttribute('aria-pressed', String(!d)); };
