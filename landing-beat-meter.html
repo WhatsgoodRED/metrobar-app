@@ -1940,6 +1940,8 @@ html.bb .rb-lib { position: static; display: flex; flex-direction: column; gap: 
 html.bb .rb-libh, html.bb .rb-lib > .rb-search, html.bb .rb-lib > .rb-fsel, html.bb .be-drh, html.bb .be-links > button:nth-of-type(n+4) { display: none; }
 .bs-brand { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--line); flex: none; }
 .bs-brand b { margin-right: auto; display: flex; align-items: center; gap: 10px; font: 700 1.05rem var(--body); letter-spacing: -.01em; }
+.bs-brand .bs-nm { display: grid; line-height: 1.05; white-space: nowrap; }   /* "The" small on top, "Highlight Zone" under it: fits the sidebar on one line */
+.bs-brand .bs-nm small { font-size: .62rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #8b8f93); }
 .bs-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; grid-template-rows: repeat(3, 3px); gap: 3px; align-content: center; padding: 0 6px; }
 .bs-mark i { height: 3px; border-radius: 2px; background: var(--on-accent); } .bs-mark i:nth-child(2) { width: 70%; } .bs-mark i:nth-child(3) { width: 45%; }
 .bs-ib { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
@@ -2381,6 +2383,94 @@ html.bb .be-num { color: #5d6368; font-variant-numeric: tabular-nums; } html.bb 
 html.bb .be-row.cur, html.bb .be-row.cur:hover { background: #121416; box-shadow: inset 2px 0 0 var(--accent); }
 @media (hover: none) { html.bb .be-row:not(.cur) .be-rt, html.bb .be-row:not(.cur):hover .be-rt { opacity: 0; pointer-events: none; } }
 @media (prefers-reduced-motion: reduce) { html.bb .be-rt { transition: none; } }
+/* Bar tools v3 (Bennie 2026-11-13: "it should look like this", his RhymeFlux screenshots; layout idea only, own code and our colours).
+   Every bar has a boxed tool row: icons only. The bar you're on opens it up: Drafts pager ‹ n/N ⌄ › + labels under the icons, the bar
+   gets an accent edge and its text an accent box, big ‹ › on its edges flip through its versions. Each tool keeps its own colour. */
+html.bb { --t-rec: #c9ced3; --t-rw: #3fd0f2; --t-rhy: #ffc83d; --t-ad: #c9ced3; --t-add: #8d949a; }
+html.bb .be-row { grid-template-columns: 28.5rem minmax(0, 1fr) 3rem; }
+@media (max-width: 1440px) { html.bb .be-row { grid-template-columns: 22.5rem minmax(0, 1fr) 2.6rem; } html.bb .be-row.cur .be-rb { min-width: 0 !important; padding: 0 4px !important; } html.bb .be-rl { font-size: .72rem !important; } }
+html.bb .be-rt, html.bb .be-row:not(.cur) .be-rt, html.bb .be-row:not(.cur):hover .be-rt { opacity: 1 !important; pointer-events: auto !important; }   /* beats the quiet pass, which hid them off the current bar */
+html.bb .be-rt { height: auto; min-height: 50px; padding: 5px 8px; gap: 2px; border: 1px solid #23272b; border-radius: 12px; background: #0d0f11; margin-top: -8px; }
+html.bb .be-row:not(.has):not(.cur) .be-rt { opacity: .5 !important; }
+html.bb .be-rb, html.bb .be-rb[data-k], html.bb .be-row.has .be-rb[data-k] { width: auto; min-width: 42px; height: 38px; padding: 0 6px; display: inline-grid; place-items: center; align-content: center; gap: 2px; border-radius: 9px; }
+html.bb .be-rb svg, html.bb .be-rb[data-k] svg { width: 22px; height: 22px; stroke-width: 1.8; }
+html.bb .be-rb[data-k="rec"], html.bb .be-row.has .be-rb[data-k="rec"] { color: var(--t-rec); margin-right: 10px; position: relative; }
+html.bb .be-rb[data-k="rec"]::after { display: block; content: ""; position: absolute; right: -6px; top: 8px; bottom: 8px; width: 1px; background: #2c3135; }
+html.bb .be-rb[data-k="rewrite"], html.bb .be-row.has .be-rb[data-k="rewrite"], html.bb .be-row.cur .be-rb[data-k="rewrite"] { color: var(--t-rw); }
+html.bb .be-rb[data-k="rhymes"], html.bb .be-row.has .be-rb[data-k="rhymes"] { color: var(--t-rhy); }
+html.bb .be-rb[data-k="adlib"], html.bb .be-row.has .be-rb[data-k="adlib"] { color: var(--t-ad); }
+html.bb .be-rb[data-k="add"], html.bb .be-row.has .be-rb[data-k="add"] { color: var(--t-add); }
+html.bb .be-row:not(.has) .be-rb[data-k="adlib"] { opacity: 1; }
+html.bb .be-rb:hover, html.bb .be-rb[data-k]:hover { background: color-mix(in srgb, currentColor 12%, transparent); color: inherit; }
+html.bb .be-rb[data-k]:hover { filter: brightness(1.15); }
+html.bb .be-rb[aria-expanded="true"], html.bb .be-rb.on { background: color-mix(in srgb, currentColor 16%, transparent); box-shadow: 0 0 18px -6px currentColor; }
+html.bb .be-rb.on svg { filter: drop-shadow(0 0 6px color-mix(in srgb, currentColor 80%, transparent)) !important; }
+html.bb .be-rl { display: none; font: 600 .78rem/1 var(--body); letter-spacing: .01em; white-space: nowrap; }
+html.bb .be-row.cur .be-rl { display: block; }
+html.bb .be-row.cur .be-rb { height: 56px; min-width: 0; padding: 0 6px; gap: 5px; }
+html.bb .be-row.cur .be-rb[data-k="rec"] .be-rl, html.bb .be-row.cur .be-rb[data-k="add"] .be-rl, html.bb .be-row.cur .be-rb[data-k="adlib"] .be-rl { color: #9aa1a7; }
+/* Drafts pager: only on the bar you're on */
+html.bb .be-dp, html.bb .be-dp[hidden] { display: none; }
+html.bb .be-row.cur.vers .be-dp { display: flex; align-items: center; height: 56px; margin: 0 10px 0 0; padding: 0 2px; border: 1px solid #2a2f33; border-radius: 10px; background: #121417; position: relative; }
+html.bb .be-row.cur .be-dp::after { content: ""; position: absolute; right: -7px; top: 10px; bottom: 10px; width: 1px; background: #2c3135; }
+html.bb .be-dp > button { width: 20px; min-width: 0; height: 46px; padding: 0; color: #7e868c; }
+html.bb .be-dp > button:disabled { opacity: .35; cursor: default; }
+html.bb .be-dpc { display: grid; justify-items: center; gap: 5px; min-width: 46px; }
+html.bb .be-dpn { display: inline-flex !important; align-items: center; gap: 3px; height: auto !important; padding: 0 !important; border: 0; background: none; color: #d6dadd; font: 600 .82rem var(--body); font-variant-numeric: tabular-nums; cursor: pointer; }
+html.bb .be-dpv svg { width: 11px; height: 11px; display: block; transition: transform .15s ease; }
+html.bb .be-row.cur .be-dpc .be-rl { color: #9aa1a7; }
+html.bb .be-row.vers.cur .be-dpn, html.bb .be-row.vers.cur .be-dpc .be-rl { color: color-mix(in srgb, var(--accent) 70%, #fff); }
+html.bb .be-row.dd .be-dpv svg { transform: rotate(180deg); }
+/* the bar you're on */
+html.bb .be-row.cur, html.bb .be-row.cur:hover { border-radius: 0 12px 12px 0; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, #0f1113), #0f1113 38%); box-shadow: inset 3px 0 0 var(--accent); }
+html.bb .be-row.cur .be-cell { border-radius: 4px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 24px -10px var(--accent); background: #0b0c0e; }
+html.bb .be-row.cur .be-mir, html.bb .be-row.cur .be-in { padding: 6px 10px; }
+html.bb .be-nav { display: none; position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 22px; height: 40px; padding: 0; place-items: center; border: 0; border-radius: 8px; background: none; color: #8a9197; cursor: pointer; }
+html.bb .be-nav.l { left: -24px; } html.bb .be-nav.r { right: -24px; }
+html.bb .be-row.cur.vers .be-nav, html.bb .be-row.vers:hover .be-nav { display: grid; } html.bb .be-nav:hover { color: #fff; background: #ffffff0d; } html.bb .be-nav:disabled { opacity: .3; }
+/* Drafts dropdown */
+html.bb .be-pop.be-dd { padding: 0; overflow: hidden; background: #15171a; border-color: #2a2f33; }
+html.bb .be-dd .be-ph { padding: 10px 14px; border-bottom: 1px solid #23272b; } html.bb .be-dd .be-ph b { font: 600 .74rem var(--mono, monospace); letter-spacing: .16em; text-transform: uppercase; color: #9aa1a7; }
+html.bb .be-dd .be-drafts { display: grid; gap: 0; max-height: 22rem; overflow: auto; }
+html.bb .be-draft { position: relative; display: grid; gap: 6px; padding: 14px 44px 12px 14px; border-bottom: 1px solid #202427; cursor: pointer; }
+html.bb .be-draft:hover, html.bb .be-draft:focus-visible { background: #1b1e21; outline: 0; }
+html.bb .be-draft.on { background: color-mix(in srgb, var(--accent) 10%, #15171a); box-shadow: inset 3px 0 0 var(--accent); }
+html.bb .be-dtx { font-size: 1.05rem; color: #e6e8ea; } html.bb .be-dno { font: 500 .74rem var(--mono, monospace); color: #6f777d; letter-spacing: .04em; }
+html.bb .be-draft .be-px { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); opacity: 0; } html.bb .be-draft:hover .be-px, html.bb .be-draft:focus-within .be-px { opacity: 1; }
+html.bb .be-dd > .btn { margin: 10px 14px 12px; }
+/* Rewrite running on the bar: a strip over the bar with the status and STOP */
+html.bb .be-load { position: absolute; inset: -2px; z-index: 3; display: flex; align-items: center; gap: 12px; padding: 0 6px 0 12px; border-radius: 6px; background: linear-gradient(90deg, #0d1316, #0f1215); box-shadow: 0 0 0 1px color-mix(in srgb, var(--t-rw) 40%, transparent); overflow: hidden; }
+html.bb .be-load::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--t-rw) 14%, transparent), transparent); transform: translateX(-100%); animation: beSweep 1.4s ease-in-out infinite; }
+@keyframes beSweep { to { transform: translateX(100%); } }
+html.bb .be-lic { color: var(--t-rw); display: grid; } html.bb .be-lic svg { width: 20px; height: 20px; animation: bePulse 1.2s ease-in-out infinite; }
+@keyframes bePulse { 50% { opacity: .45; transform: scale(.9); } }
+html.bb .be-lmsg { flex: 1; font: 600 .82rem var(--mono, monospace); letter-spacing: .18em; text-transform: uppercase; color: #dfe6ea; }
+html.bb .be-stop { position: relative; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid #2f3438; border-radius: 8px; background: #1a1d20; color: #f1f3f4; font: 700 .76rem var(--body); letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+html.bb .be-stop:hover { background: #24282c; }
+html.bb .be-cell { position: relative; }
+html.bb .be-row.busy .be-rb[data-k="rewrite"] { background: color-mix(in srgb, var(--t-rw) 16%, transparent); }
+@media (prefers-reduced-motion: reduce) { html.bb .be-load::before, html.bb .be-lic svg { animation: none; } }
+/* bar tools v3, behaviour pass (from the RhymeFlux map, 2026-11-13) */
+html.bb .be-row.inword .be-rb[data-k="rhymes"] { color: #e879f9; background: color-mix(in srgb, #e879f9 14%, transparent); box-shadow: 0 0 16px -4px #e879f9; }
+html.bb .be-rb:disabled { opacity: .35; cursor: default; }
+html.bb .be-rb.rec, html.bb .be-rb.rec:hover { color: #fff; background: #d6304a; border-radius: 999px; min-width: 64px; display: inline-flex; gap: 6px; }
+html.bb .be-rb.rec .be-rl { display: block; font-variant-numeric: tabular-nums; }
+html.bb .be-dot { width: 9px; height: 9px; border-radius: 2px; background: #fff; }
+html.bb .be-draft.ask .be-px { opacity: 1; width: auto; padding: 0 10px; border-radius: 8px; background: #d6304a; color: #fff; font: 600 .78rem var(--body); }
+html.bb .be-picks { display: grid; gap: 8px; }
+html.bb .be-pk { display: grid; gap: 4px; text-align: left; padding: 12px 14px; border: 1px solid #2a2f33; border-radius: 12px; background: #121417; color: #eceeef; cursor: pointer; }
+html.bb .be-pk:hover, html.bb .be-pk:focus-visible { border-color: color-mix(in srgb, var(--t-rw) 60%, transparent); background: #14191c; outline: 0; }
+html.bb .be-pk small { font: 600 .7rem var(--mono, monospace); letter-spacing: .14em; text-transform: uppercase; color: var(--t-rw); }
+html.bb .be-pk span { font-size: 1.05rem; } html.bb .be-pk em { font-style: normal; font-size: .76rem; color: #7c848a; }
+html.bb .be-ai { margin-top: 12px; padding-top: 10px; border-top: 1px solid #23272b; } html.bb .be-aio > .btn { margin-top: 8px; }
+html.bb .be-tn { font-size: .82rem; }
+html.bb .be-cnt[role="button"] { cursor: help; }
+@media (max-width: 1000px) {
+  html.bb .be-row { grid-template-columns: minmax(0, 1fr) 2.4rem; }
+  html.bb .be-row:not(.cur) .be-lead { display: none; }
+  html.bb .be-nav { display: none !important; }
+  html.bb .be-row.cur .be-rt { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
+}
 .mb-move { position: fixed; z-index: 2000; left: 50%; bottom: 16px; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px; padding: 12px 16px; border-radius: 14px; background: #af0000; color: #fff; font: 600 14px/1.4 system-ui, sans-serif; box-shadow: 0 12px 40px #0008; }
 .mb-move button { padding: 7px 14px; border: 0; border-radius: 999px; background: #fff; color: #111; font: inherit; cursor: pointer; } .mb-move button:disabled { opacity: .85; cursor: default; }
 /* Account sheet (2026-11-13) */
@@ -2424,6 +2514,20 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
 .ai-pay .plan ul { margin: 10px 0 14px; padding-left: 1.1em; color: #cfd2d4; font-size: .88rem; line-height: 1.5; flex: 1; }
 .ai-pay .plan .btn { justify-content: center; text-align: center; text-decoration: none; } .ai-pay .plan .btn.off { opacity: .5; pointer-events: none; }
 .ai-pay .plan .cur { min-height: 1.4em; color: #a3a7ab; font-size: .82rem; } .ai-pay .note { margin: 16px 0 0; color: #8b8f93; font-size: .8rem; }
+.ai-pay .pay-h { margin: 22px 0 10px; font-size: 1rem; } .ai-pay .pay-h small { margin-left: 6px; color: #8b8f93; font-weight: 400; font-size: .8rem; }
+.ai-pay .packs { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 10px; }
+.ai-pay .pack { display: grid; gap: 2px; padding: 14px 16px; border: 1px solid #ffffff1a; border-radius: 14px; background: #16191b; color: inherit; text-decoration: none; cursor: pointer; transition: border-color .15s, background .15s; }
+.ai-pay .pack strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.1; } .ai-pay .pack small { color: #a3a7ab; font-size: .78rem; }
+.ai-pay .pack b { margin-top: 8px; font-size: .95rem; } .ai-pay .pack:hover { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: #1b1f21; }
+.ai-pay .pack.off { opacity: .5; pointer-events: none; }
+/* The Highlight Zone gate (Bennie 2026-11-13: Pro opens The Highlight Zone): a sheet over the page for Free or signed-out users.
+   Songs stay in the browser and can always be downloaded; offline or no answer from the server = the page stays open. */
+.hz-gate { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: #000c; backdrop-filter: blur(10px); }
+.hz-card { width: min(30rem, 100%); padding: 30px 28px 24px; border: 1px solid #ffffff1f; border-radius: 22px; background: #111315; color: #f2f2f2; box-shadow: 0 30px 90px #000a; }
+.hz-card h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: -.01em; } .hz-card p { margin: 0 0 20px; color: #a3a7ab; line-height: 1.5; }
+.hz-card .hz-go { display: block; width: 100%; padding: 13px 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--bb-on, #fff); font: 600 1rem var(--body); cursor: pointer; }
+.hz-card .hz-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.hz-card .hz-row > * { flex: 1 1 auto; padding: 10px 12px; border: 1px solid #ffffff24; border-radius: 12px; background: none; color: inherit; font: 500 .9rem var(--body); text-align: center; text-decoration: none; cursor: pointer; }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -2436,7 +2540,7 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a><a href="barbook.html">Barbook</a><a href="#zone">The Zone</a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page">MetroBar</a><a href="#write">Write</a><a href="barbook.html">The Highlight Zone</a><a href="#zone">The Zone</a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
@@ -2736,7 +2840,7 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
       <button class="cbtn ghost" id="tplWrite" title="Put the template's lyric skeleton (section headings plus example bars) in the box">Lyric template</button>
       <button class="cbtn ghost" id="tplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my lyrics</button>
       <button class="cbtn ghost" id="saveSong" title="Save these lyrics as a song in Write, the writing companion">Save to Songs</button>
-      <button class="cbtn ghost" id="bookCopy" title="Copy these lyrics into Barbook as a new page">Copy to Barbook</button>
+      <button class="cbtn ghost" id="bookCopy" title="Copy these lyrics into The Highlight Zone as a new page">Copy to Highlight Zone</button>
       <span class="det" id="tplMsg" role="status"></span>
     </div>
     </div>
@@ -2814,7 +2918,7 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
         <button class="btn" id="wrTplWrite" title="Add the template's section headings and example bars at the end of the song">Lyric template</button>
         <button class="btn" id="wrTplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my bars</button>
         <button class="btn tg" id="wrPlay" aria-pressed="false" title="Play the click (and the beat you loaded in MetroBar) while you write. Space does not work here, so use this button.">▶ Beat</button>
-        <button class="btn" id="wrToBook" title="Copy this song into Barbook as a new page">To Barbook</button>
+        <button class="btn" id="wrToBook" title="Copy this song into The Highlight Zone as a new page">To Highlight Zone</button>
         <button class="btn pri" id="wrPractice" title="Open this song in MetroBar: Fit, Compare and Practice it on the beat">Practice in MetroBar</button>
         <span class="wr-toast" id="wrMsg" role="status"></span>
       </div>
@@ -2909,13 +3013,13 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
       <p class="bk-msg" id="bkMsg" role="status"></p>
     </section>
     <div class="rb-top"><input id="rbTitle" placeholder="Untitled" aria-label="Page title" autocomplete="off"><input id="rbFolderIn" class="num-in" list="rbFolders" placeholder="Folder" aria-label="Folder" autocomplete="off"><datalist id="rbFolders"></datalist><span class="rb-stat" id="rbStat"></span><span class="wr-toast" id="rbMsg" role="status"></span><span class="rb-acts"><button class="btn rb-zenbtn" type="button" id="rbZen" aria-pressed="false" title="Focus: only your page and a live list of rhymes for the word you just wrote. Esc brings everything back."><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Focus</button><button class="btn tg" type="button" id="rbLock" aria-pressed="false" title="Lock this page so it can't be changed by accident">Lock</button><button class="btn pri" type="button" id="rbPost" title="Share this page in the Zone, the MetroBar community">Post to the Zone</button><button class="btn" type="button" id="rbToWrite" title="Copy this page to Write as a new song, to count bars and practise it">Copy to Write</button><button class="btn" type="button" id="rbDel" title="Move this page to Recently deleted">Delete</button></span></div>
-    <aside class="rb-lib" id="rbLib" aria-label="Barbook songs">
-      <div class="rb-libh"><h2>Barbook</h2><button class="btn" type="button" id="rbNew" title="Start a new page">+ New</button></div>
-      <input id="rbSearch" class="num-in rb-search" type="search" placeholder="Search" aria-label="Search Barbook">
+    <aside class="rb-lib" id="rbLib" aria-label="The Highlight Zone songs">
+      <div class="rb-libh"><h2>The Highlight Zone</h2><button class="btn" type="button" id="rbNew" title="Start a new page">+ New</button></div>
+      <input id="rbSearch" class="num-in rb-search" type="search" placeholder="Search" aria-label="Search The Highlight Zone">
       <label class="field rb-fsel">Folder <select id="rbFolder" class="num-in"><option value="">All</option></select></label>
       <ul id="rbList"></ul>
     </aside>
-    <section class="rb-main" aria-label="Barbook page">
+    <section class="rb-main" aria-label="The Highlight Zone page">
       <div class="rb-view" data-rbv="write">
         <div class="rb-sug" id="rbSug" aria-label="Rhymes for the line above: click one to add it"></div>
         <div class="rb-ed" id="rbEd" data-rbtheme="white" data-rbfont="sans">
@@ -2942,13 +3046,13 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
         <div class="rb-bh"><label class="field">Add <select id="rbStAdd" class="num-in"><option value="">a section…</option><option>Intro</option><option>Verse</option><option>Pre-hook</option><option>Hook</option><option>Bridge</option><option>Outro</option></select></label><span class="note">Click a section to write in it.</span></div>
         <div class="rb-st" id="rbSt"></div>
       </div>
-      <div class="rb-bar" role="toolbar" aria-label="Barbook tools">
+      <div class="rb-bar" role="toolbar" aria-label="The Highlight Zone tools">
         <button class="btn tg" type="button" id="rbHi" aria-pressed="true" title="Colour words that really rhyme: each rhyme gets its own colour, used for nothing else on the page">Highlight</button>
         <button class="btn tg" type="button" id="rbSylBtn" aria-pressed="true" title="Show the syllable count and the rhyme letter (A, B…) at the end of each line">Syllables</button>
         <button class="btn tg" type="button" id="rbAuto" aria-pressed="false" title="Let the phone or browser correct spelling. Off by default so slang stays as you wrote it.">Autocorrect</button>
         <label class="field">Page <select id="rbTheme" class="num-in" style="width:auto"></select></label>
         <label class="field">Font <select id="rbFont" class="num-in" style="width:auto"></select></label>
-        <button class="btn tg" type="button" id="rbShell" aria-pressed="true" title="Dark studio around the page (off = the white Barbook page)">Dark</button>
+        <button class="btn tg" type="button" id="rbShell" aria-pressed="true" title="Dark studio around the page (off = the white page)">Dark</button>
       </div>
     </section>
     <aside class="rb-side" id="rbSide" aria-label="Views and tools">
@@ -3000,9 +3104,9 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
       <h5 class="rb-eb">Your work</h5>
       <details id="rbBinBox"><summary>Recently deleted (<span id="rbBinN">0</span>)</summary><div id="rbBin"></div></details>
       <div class="row" style="gap:6px">
-        <button class="btn" type="button" id="rbImport" title="Open .txt files as pages, a lyrics export with many songs in one file, or a Barbook backup (.json)">Import</button>
+        <button class="btn" type="button" id="rbImport" title="Open .txt files as pages, a lyrics export with many songs in one file, or a Highlight Zone backup (.json)">Import</button>
         <input type="file" id="rbImportFile" accept=".txt,.md,.json,text/plain,application/json" multiple hidden>
-        <button class="btn" type="button" id="rbBackup" title="Download all of Barbook as one backup file (.json)">Backup</button>
+        <button class="btn" type="button" id="rbBackup" title="Download everything in The Highlight Zone as one backup file (.json)">Backup</button>
       </div>
       <p class="note" id="rbSync" role="status">Saved in this browser as you type. Back it up now and then.</p>
       <button class="btn mini" type="button" id="rbSyncNow" hidden>Sync now</button>
@@ -6323,7 +6427,7 @@ function setView() {
   const w = location.hash === '#write', b = location.hash === '#book', z = location.hash === '#zone', here = w ? '#write' : b ? '#book' : z ? '#zone' : '#practice';
   document.body.classList.toggle('write', w); document.body.classList.toggle('book', b); document.body.classList.toggle('zone', z);
   $('viewWrite').hidden = !w; $('viewBook').hidden = !b; $('viewZone').hidden = !z; $('viewPractice').hidden = w || b || z;
-  { const nm = w ? 'Write' : b ? 'Barbook' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
+  { const nm = w ? 'Write' : b ? 'The Highlight Zone' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
   document.querySelectorAll('.views a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === here ? 'page' : 'false'));
   if (w) { wrOpen(); return; }
   if (b) { wrFlush(); if (typeof bookOpen === 'function') bookOpen(); if (typeof bookPop === 'function') bookPop(); return; }
@@ -7887,6 +7991,9 @@ function aiWho() { $('rbAiWho').textContent = AI.prov === 'metrobar' ? (AIW.w ? 
 // ---- MetroBar AI credits (Bennie 2026-11-12): the key lives on the server (edge function "ai"), every account has a wallet.
 // Free: a few credits every month; Pro: lots; packs add bonus credits. 1 press = 1 credit, a failed answer is given back.
 var AIW = { w: null, t: 0 };
+// Plans (Bennie 2026-11-13): Free = MetroBar + 15 AI credits a month; Pro (€15/month) = + The Highlight Zone; Super Pro (€20/month) = everything in Pro + 800 AI credits a month.
+const planName = p => p === 'super' ? 'Super Pro' : p === 'pro' ? 'Pro' : 'Free';
+const planPaid = w => !!w && (w.plan === 'pro' || w.plan === 'super');
 async function aiWallet(force) {
   if (!force && AIW.w && Date.now() - AIW.t < 60000) return AIW.w;
   try { const api = typeof rbSyncApi === 'function' ? await rbSyncApi() : null; AIW.w = api && api.wallet ? await api.wallet() : null; } catch (e) { AIW.w = null; }
@@ -7898,8 +8005,8 @@ function aiWalletShow() {
     const w = AIW.w; el.replaceChildren();
     if (AI.prov !== 'metrobar') { el.hidden = true; } else {
       el.hidden = false;
-      const t = h('span'); t.textContent = w ? `${w.left} AI credits left` + (w.plan === 'pro' ? ' · Pro' : ` · ${w.monthly} free every month`) : 'Sign in on The Zone to get free AI credits every month.';
-      const more = h('button', 'btn', w ? (w.plan === 'pro' ? 'Add credits' : 'Get Pro') : 'Sign in'); more.type = 'button';
+      const t = h('span'); t.textContent = w ? `${w.left} AI credits left · ${planName(w.plan)}` + (w.plan === 'super' ? '' : ` · ${w.monthly} every month`) : 'Sign in on The Zone to get free AI credits every month.';
+      const more = h('button', 'btn', w ? (w.plan === 'super' ? 'Add credits' : 'More AI') : 'Sign in'); more.type = 'button';
       more.addEventListener('click', () => w ? aiPaywall() : acctOpen('in'));
       el.append(t, more);
     }
@@ -7908,10 +8015,10 @@ function aiWalletShow() {
 }
 // back from Stripe (?paid=pro|pack): say thanks and refresh the wallet once the webhook has filled it
 (function () {
-  const m = /[?&]paid=(pro|pack)\b/.exec(location.search); if (!m) return;
+  const m = /[?&]paid=(pro|super|pack)\b/.exec(location.search); if (!m) return;
   history.replaceState(null, '', location.pathname + location.hash);
   const say = t => { if (typeof toast === 'function') toast(t, { ms: 7000 }); };
-  setTimeout(() => say(m[1] === 'pro' ? 'Welcome to MetroBar Pro. Your 800 AI credits are on their way.' : 'Thanks! 300 AI credits are on their way.'), 1500);
+  setTimeout(() => say(m[1] === 'super' ? 'Welcome to Super Pro. The Highlight Zone and your 800 AI credits are on their way.' : m[1] === 'pro' ? 'Welcome to Pro. The Highlight Zone opens in a moment.' : 'Thanks! Your AI credits are on their way.'), 1500);
   [4000, 10000, 25000].forEach(ms => setTimeout(() => { if (typeof aiWallet === 'function') aiWallet(true); }, ms));
 })();
 function aiPay(kind) {
@@ -7920,23 +8027,26 @@ function aiPay(kind) {
   return link + (link.includes('?') ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(uid || '') + (mail ? '&prefilled_email=' + encodeURIComponent(mail) : '');
 }
 function aiPaywall(why) {
-  const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, w = AIW.w;
+  const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, w = AIW.w, cur = w ? w.plan : '';
   let d = document.getElementById('aiPayDlg');
   if (!d) { d = document.createElement('dialog'); d.id = 'aiPayDlg'; d.className = 'ai-pay'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
-  const free = P.freeCredits || 15, proN = P.proCredits || 800, packN = P.packCredits || 300, pro = w && w.plan === 'pro';
+  const free = P.freeCredits || 15, supN = P.superCredits || 800, packs = P.packs || [];
   const when = w ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';
+  const btnFor = (plan, k, label) => cur === plan ? '<span class="cur">Your plan</span>' : `<a class="btn${plan === 'super' ? ' pri' : ''}" data-k="${k}">${label}</a>`;
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
-<h2>${why === 'no_credits' ? 'You used all your AI credits' : pro ? 'Your MetroBar AI' : 'More AI for your bars'}</h2>
-<p class="pay-sub">${!w ? 'Sign in first, so the credits land in your account.' : pro ? `${w.left} credits left. Your ${proN} come back on ${when}.` : `${w.left} left now. Your free ${free} come back on ${when}.`}</p>
+<h2>${why === 'zone' ? 'The Highlight Zone is part of Pro' : why === 'no_credits' ? 'You used all your AI credits' : 'Plans and AI credits'}</h2>
+<p class="pay-sub">${!w ? 'Sign in first, so your plan lands in your account.' : `${planName(cur)} · ${w.left} AI credits left. ${cur === 'super' ? `Your ${supN} come back on ${when}.` : `Your ${w.monthly} come back on ${when}.`}`}</p>
 <div class="plans">
- <div class="plan"><b>Free</b><strong>${free}</strong><small>AI credits every month</small><ul><li>Next bar, Fit this bar, rhyme ammo, notes</li><li>Every answer checked by MetroBar's engine</li></ul><span class="cur">${w && w.plan === 'free' ? 'Your plan' : ''}</span></div>
- <div class="plan pro"><b>Pro</b><strong>${proN}</strong><small>AI credits every month</small><ul><li>Everything in Free, 50x the AI</li><li>Cancel any time</li></ul>${pro ? '<span class="cur">Your plan</span>' : `<a class="btn pri" data-k="pro">${P.proPrice || 'Get Pro'}</a>`}</div>
- <div class="plan"><b>Credit pack</b><strong>${packN}</strong><small>credits, one payment, never expire</small><ul><li>On top of any plan</li></ul><a class="btn" data-k="pack">${P.packPrice || 'Buy pack'}</a></div>
-</div><p class="note">1 press = 1 credit. If the AI fails, the credit comes back. Payments run on Stripe; MetroBar never sees your card.</p>`;
+ <div class="plan"><b>Free</b><strong>€0</strong><small>MetroBar, Write and The Zone</small><ul><li>${free} AI credits every month</li><li>Practice, Fit, flows, the Flow game</li></ul>${cur === 'free' ? '<span class="cur">Your plan</span>' : ''}</div>
+ <div class="plan"><b>Pro</b><strong>${P.proPrice || '€15'}</strong><small>per month</small><ul><li>The Highlight Zone: your rhymes lit up, syllables, drafts, beats</li><li>${free} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('pro', 'pro', 'Get Pro')}</div>
+ <div class="plan pro"><b>Super Pro</b><strong>${P.superPrice || '€20'}</strong><small>per month</small><ul><li>Everything in Pro</li><li>${supN} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('super', 'super', 'Get Super Pro')}</div>
+</div>
+${packs.length ? `<h3 class="pay-h">Credit packs <small>one payment, never expire, on top of any plan</small></h3><div class="packs">${packs.map(k => `<a class="pack" data-k="${k.k}"><strong>${k.credits}</strong><small>AI credits</small><b>${k.price}</b></a>`).join('')}</div>` : ''}
+<p class="note">1 press = 1 credit. If the AI fails, the credit comes back. Switching plan ends the old one. Payments run on Stripe; MetroBar never sees your card.</p>`;
   d.querySelectorAll('a[data-k]').forEach(a => { const u = aiPay(a.dataset.k);
-    if (!w) { a.href = '#'; a.textContent = 'Sign in first'; a.addEventListener('click', e => { e.preventDefault(); d.close(); acctOpen('in'); }); }
-    else if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { setTimeout(() => aiWallet(true), 15000); }); }
-    else { a.removeAttribute('href'); a.classList.add('off'); a.textContent = 'Coming soon'; } });
+    if (!w) { a.href = '#'; if (!a.classList.contains('pack')) a.textContent = 'Sign in first'; a.addEventListener('click', e => { e.preventDefault(); d.close(); acctOpen('in'); }); }
+    else if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { [15000, 40000].forEach(ms => setTimeout(() => aiWallet(true), ms)); }); }
+    else { a.removeAttribute('href'); a.classList.add('off'); if (!a.classList.contains('pack')) a.textContent = 'Coming soon'; } });
   if (!d.open) d.showModal();
 }
 const AI_FAMS = 'shadows/silhouettes/darkness; fire/flames/embers/ashes/phoenix; chains/wings/rise above; concrete jungle/streets is cold; grind/hustle/chasing dreams/to the top; heart of stone/broken inside/demons/the storm; money on my mind/racks/ice on my wrist; haters/fake friends/snakes; top of the game/king of the city/level up; sky is the limit; at the end of the day/it is what it is';
@@ -7956,7 +8066,7 @@ function aiSystem() {
 }
 async function aiAsk(user, temp = 1) {
   const sys = aiSystem(), P = AI.prov, key = AI.keys[P], model = aiModel(); let r, d, txt;
-  const net = async (url, opt) => { try { return await fetch(url, opt); } catch (e) { throw new Error(P === 'ollama' ? `Can't reach Ollama at ${AI.url}. Open the Ollama app (or run "ollama serve").` : `No connection to ${AI_PROV[P].name}. Check your internet.`); } };
+  const net = async (url, opt) => { try { return await fetch(url, AI.stop ? Object.assign({}, opt, { signal: AI.stop.signal }) : opt); } catch (e) { if (e && e.name === 'AbortError') throw e; throw new Error(P === 'ollama' ? `Can't reach Ollama at ${AI.url}. Open the Ollama app (or run "ollama serve").` : `No connection to ${AI_PROV[P].name}. Check your internet.`); } };
   if (P === 'metrobar') {
     const api = typeof rbSyncApi === 'function' ? await rbSyncApi() : null;
     if (!api || !api.ai) throw new Error('Sign in on The Zone to use MetroBar AI (free credits every month).');
@@ -7968,9 +8078,9 @@ async function aiAsk(user, temp = 1) {
     // Google retires and overloads models often (2026-11-12: gemini-flash-latest hung with no answer), so: 25 s per try, then the next model
     const body = JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: temp, responseMimeType: 'application/json' } });
     for (const m of [...new Set([model].concat(GEM_FALLBACK))]) {
-      const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 25000);
+      const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 25000); if (AI.stop) { if (AI.stop.signal.aborted) throw new DOMException('Stopped', 'AbortError'); AI.stop.signal.addEventListener('abort', () => ac.abort(), { once: true }); }
       try { r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(m)}:generateContent`, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key }, body }); }
-      catch (e) { clearTimeout(tm); if (ac.signal.aborted) { r = { ok: false, status: 504 }; d = { error: { message: `${m} took too long` } }; continue; } throw new Error('No connection to Gemini. Check your internet.'); }
+      catch (e) { clearTimeout(tm); if (AI.stop && AI.stop.signal.aborted) throw new DOMException('Stopped', 'AbortError'); if (ac.signal.aborted) { r = { ok: false, status: 504 }; d = { error: { message: `${m} took too long` } }; continue; } throw new Error('No connection to Gemini. Check your internet.'); }
       clearTimeout(tm); d = await r.json().catch(() => ({}));
       if (r.ok || ![404, 500, 503, 504].includes(r.status)) break;
     } if (r.ok) { const c = d.candidates && d.candidates[0]; txt = c && c.content ? c.content.parts.map(x => x.text || '').join('') : ''; }
@@ -8093,26 +8203,37 @@ function aiShow(out, list, actsFor) {
   (pass.length ? pass : list.slice(0, 3)).forEach(j => aiCard(out, j, actsFor(j)));
   out.append(h('p', 'note', `${list.filter(j => j.pass).length} of ${list.length} tries passed MetroBar's checker.`));
 }
+// Rewrite one bar (the bar at the caret in #rbText): same meaning, weight on the beat, graded by aiJudge. Used by Write with AI > Fit this bar
+// and by the Rewrite button on every bar (2026-11-13), which keeps the best one as a new draft of that bar.
+async function aiFitCore() {
+  const w = aiWhere(); if (!w.bars.length) throw new Error('Write a bar first, then put the cursor on it.');
+  const i = w.cur, bars = w.bars.map(x => x.text), bar = bars[i], L = aiAn(bar), rw = aiTarget(w, i), range = AI.tech ? aiRange(AI.tech, [bar]) : [Math.max(3, L.N - 2), L.N + 2];
+  const prompt = [`Section${w.head ? ' ' + w.head : ''}:\n${numbered(bars)}`, `Rewrite bar ${i + 1}: "${bar}"`, 'Keep its meaning and picture. Move the weight so stressed words land on the beat.',
+    AI.tech ? 'Technique: ' + techSpec(AI.tech) : `Keep the rhythm feel; it has ${L.N} syllables now.`, `Length: ${range[0]} to ${range[1]} syllables.`,
+    rw ? `End on a word that rhymes with "${aiLast(rw)}". A multi-syllable rhyme is best.` : `Keep the end rhyme: end on "${aiLast(bar)}" or a rhyme for it.`,
+    'Give 10 different rewrites, not small word swaps.', 'JSON: {"bars":[{"bar":"...","why":"one short line: what moved"}]}'].join('\n');
+  const list = await aiGraded(prompt, { bars, i, tech: AI.tech, range, orig: bar, rw: rw || bar, sameOk: !rw }, 10);
+  return { w, i, bar, list };
+}
+// The next bar after the caret's bar (Write with AI > Next bar, and Rewrite on an empty bar: "New bar", 2026-11-13)
+async function aiNextCore() {
+  const w = aiWhere(), upto = w.bars.slice(0, w.cur + 1).map(x => x.text), i = upto.length, range = aiRange(AI.tech, upto.slice(-4).length ? upto.slice(-4) : ['a bar of about ten syllables']);
+  let rw = null; if (AI.rhyme === 'above') rw = upto[i - 1] || null; else if (AI.rhyme === 'auto' && i > 0) { const up = upto[i - 1], up2 = upto[i - 2]; rw = !up2 || !['perfect', 'multi', 'slant', 'same'].includes(aiRhyme(up, up2)) ? up : null; }
+  const prompt = [upto.length ? `Section so far${w.head ? ' ' + w.head : ''}:\n${numbered(upto)}` : 'Start of a section. No bars yet.', `Write the next bar (bar ${i + 1}). Carry the thought forward, don't repeat it.`,
+    AI.tech ? 'Technique: ' + techSpec(AI.tech) : 'Match the rhythm and length of the bars above.', `Length: ${range[0]} to ${range[1]} syllables.`,
+    rw ? `End on a word that rhymes with "${aiLast(rw)}". Multi-syllable rhymes beat one-syllable ones.` : 'Free end word: start a new rhyme sound.',
+    'Give 16 candidates that differ in angle.', 'JSON: {"bars":[{"bar":"...","why":"one short line"}]}'].join('\n');
+  const list = await aiGraded(prompt, { bars: upto.concat(['']), i, tech: AI.tech, range, rw }, 16);
+  return { w, upto, i, range, rw, list };
+}
 const AI_GO = {
   async fit(out) {
-    const w = aiWhere(); if (!w.bars.length) throw new Error('Write a bar first, then put the cursor on it.');
-    const i = w.cur, bars = w.bars.map(x => x.text), bar = bars[i], L = aiAn(bar), rw = aiTarget(w, i), range = AI.tech ? aiRange(AI.tech, [bar]) : [Math.max(3, L.N - 2), L.N + 2];
-    const prompt = [`Section${w.head ? ' ' + w.head : ''}:\n${numbered(bars)}`, `Rewrite bar ${i + 1}: "${bar}"`, 'Keep its meaning and picture. Move the weight so stressed words land on the beat.',
-      AI.tech ? 'Technique: ' + techSpec(AI.tech) : `Keep the rhythm feel; it has ${L.N} syllables now.`, `Length: ${range[0]} to ${range[1]} syllables.`,
-      rw ? `End on a word that rhymes with "${aiLast(rw)}". A multi-syllable rhyme is best.` : `Keep the end rhyme: end on "${aiLast(bar)}" or a rhyme for it.`,
-      'Give 10 different rewrites, not small word swaps.', 'JSON: {"bars":[{"bar":"...","why":"one short line: what moved"}]}'].join('\n');
-    const list = await aiGraded(prompt, { bars, i, tech: AI.tech, range, orig: bar, rw: rw || bar, sameOk: !rw }, 10);
+    const { w, i, bar, list } = await aiFitCore();
     out.append(h('b', '', `Fit bar ${i + 1}`)); out.append(h('small', 'note', `"${bar}"${AI.tech ? ' · ' + techName(AI.tech) : ''}`));
     aiShow(out, list, j => [['Use', () => aiReplace(w.bars[i], j.text), 'Swap it into the page (⌘Z undoes)'], ...aiCommon(j.text)]);
   },
   async next(out) {
-    const w = aiWhere(), upto = w.bars.slice(0, w.cur + 1).map(x => x.text), i = upto.length, range = aiRange(AI.tech, upto.slice(-4).length ? upto.slice(-4) : ['a bar of about ten syllables']);
-    let rw = null; if (AI.rhyme === 'above') rw = upto[i - 1] || null; else if (AI.rhyme === 'auto' && i > 0) { const up = upto[i - 1], up2 = upto[i - 2]; rw = !up2 || !['perfect', 'multi', 'slant', 'same'].includes(aiRhyme(up, up2)) ? up : null; }
-    const prompt = [upto.length ? `Section so far${w.head ? ' ' + w.head : ''}:\n${numbered(upto)}` : 'Start of a section. No bars yet.', `Write the next bar (bar ${i + 1}). Carry the thought forward, don't repeat it.`,
-      AI.tech ? 'Technique: ' + techSpec(AI.tech) : 'Match the rhythm and length of the bars above.', `Length: ${range[0]} to ${range[1]} syllables.`,
-      rw ? `End on a word that rhymes with "${aiLast(rw)}". Multi-syllable rhymes beat one-syllable ones.` : 'Free end word: start a new rhyme sound.',
-      'Give 16 candidates that differ in angle.', 'JSON: {"bars":[{"bar":"...","why":"one short line"}]}'].join('\n');
-    const list = await aiGraded(prompt, { bars: upto.concat(['']), i, tech: AI.tech, range, rw }, 16);
+    const { w, upto, i, range, rw, list } = await aiNextCore();
     out.append(h('b', '', `Next bar ${i + 1}`)); out.append(h('small', 'note', (rw ? `rhymes with "${aiLast(rw)}"` : 'new rhyme') + ` · ${range[0]}-${range[1]} syllables`));
     const after = w.bars[w.cur]; let added = 0;
     aiShow(out, list, j => [['Add', b => { aiAddAfter(after, j.text, added++); b.textContent = 'Added ✓'; b.disabled = true; }, 'Add it under the bar at your cursor'], ...aiCommon(j.text)]);
@@ -8155,7 +8276,7 @@ function aiReplace(bar, text) {
   if (k < 0) { $('rbMsg').textContent = 'That bar changed, so nothing was swapped.'; return; }
   // the old version is kept as a draft of that bar (Drafts on the bar toolbar), like RhymeFlux's Rewrite; own code
   const p = rbPage(), old = (ls[k] || '').trim();
-  if (p && old && old !== String(text).trim()) { p.drafts = p.drafts || {}; const dl = p.drafts[k] || []; p.drafts[k] = [old, ...dl.filter(x => x !== old)].slice(0, 12); }
+  if (p && old && old !== String(text).trim()) { p.drafts = p.drafts || {}; const dl = p.drafts[k] || []; p.drafts[k] = [old, ...dl.filter(x => x !== old)].slice(0, 49); if (p.dpos) delete p.dpos[k]; }
   ls[k] = ls[k].match(/^\s*/)[0] + text; rbSetText(ls.join('\n'), ls.slice(0, k + 1).join('\n').length);
   if (p && old && typeof toast === 'function') toast('Swapped in. Your old version is under Drafts.');
 }
@@ -8315,9 +8436,9 @@ function ckRoot() {
   const it = [], add = (group, label, run, o = {}) => it.push({ group, label, run, ...o });
   add('Go to', 'MetroBar (practice)', () => goView(false), { kw: 'practice metronome home' });
   add('Go to', 'Write', () => goView(true), { kw: 'lyrics pad songs' });
-  add('Go to', 'Barbook', () => { location.hash = '#book'; }, { kw: 'rhyme book rhymes notebook pages lyrics highlight' });
+  add('Go to', 'The Highlight Zone', () => { location.hash = '#book'; }, { kw: 'rhyme book rhymes notebook pages lyrics highlight' });
   add('Go to', 'The Zone', () => { location.hash = '#zone'; }, { kw: 'community posts feed profile respect props' });
-  if ($('viewBook')) add('Go to', 'Barbook', () => { location.hash = '#book'; }, { kw: 'rhyme book rhymers block book highlight' });
+  if ($('viewBook')) add('Go to', 'The Highlight Zone', () => { location.hash = '#book'; }, { kw: 'rhyme book rhymers block book highlight' });
   add('Actions', running ? 'Stop' : 'Start', () => { goView(false); running ? stop() : start(); }, { key: 'Space', kw: 'play start stop' });
   add('Actions', 'Tap tempo', () => { goView(false); tap(); }, { key: 'T', kw: 'tap bpm' });
   add('Actions', 'Load a beat', () => { goView(false); $('beatBtn').click(); }, { kw: 'mp3 wav audio file upload' });
@@ -8782,7 +8903,7 @@ async function znPost(body) {
   });
   by.append(znAvatar(p.user), who, resp);
   const acts = h('div', 'zn-acts');
-  acts.append(znBtn('Copy to Barbook', 'btn', () => { if (typeof bookAdd === 'function') { bookAdd(p.title + ' (from the Zone)', p.body, 'From the Zone'); location.hash = '#book'; } }));
+  acts.append(znBtn('Copy to Highlight Zone', 'btn', () => { if (typeof bookAdd === 'function') { bookAdd(p.title + ' (from the Zone)', p.body, 'From the Zone'); location.hash = '#book'; } }));
   if (mine) {
     acts.append(znBtn('Edit', 'btn', () => { ZN.draft = { id: p.id, title: p.title, body: p.body }; znGo('compose'); }));
     // binDel returns its own bin button (tap bin, then ✓); it must be put on the page, not called from another button
@@ -9517,12 +9638,12 @@ var BKB = (() => {
   async function search(q) {
     q = String(q || '').trim(); if (!q) { el('bkUrl').focus(); return; }
     if (ytParse(q)) { el('bkRes').replaceChildren(); useYt(q); return; } if (scParse(q)) { el('bkRes').replaceChildren(); useSc(q); return; }
-    if (S.tab === 'sc') { resMsg('SoundCloud has no open search for apps. Paste the link of a SoundCloud track here and it plays in Barbook. Or search on the YouTube tab.'); return; }
+    if (S.tab === 'sc') { resMsg('SoundCloud has no open search for apps. Paste the link of a SoundCloud track here and it plays in The Highlight Zone. Or search on the YouTube tab.'); return; }
     if (S.tab === 'file') { S.tab = 'yt'; ui(); }
     const beat = /\bbeats?\b|instrumental/i.test(q) ? q : q + ' type beat', my = ++seq;
     resMsg('Searching for “' + beat + '”…');
     const list = await ytFind(beat); if (my !== seq) return;
-    if (list) resShow(list); else resMsg(navigator.onLine === false ? 'You are offline. Search needs the internet.' : 'Search is not reachable right now. Paste a YouTube or SoundCloud link here and it plays in Barbook.');
+    if (list) resShow(list); else resMsg(navigator.onLine === false ? 'You are offline. Search needs the internet.' : 'Search is not reachable right now. Paste a YouTube or SoundCloud link here and it plays in The Highlight Zone.');
   }
   el('bkDl').addEventListener('click', () => {
     if (!url || (S.src !== 'file' && S.src !== 'mb')) return;
@@ -9559,7 +9680,7 @@ var BKB = (() => {
   if (window.ResizeObserver) new ResizeObserver(() => paint()).observe(dock);
   new MutationObserver(paint).observe(document.documentElement, { attributeFilter: ['style'] });
   // shortcut list
-  try { const dl = keysDlg.querySelector('dl'); dl.insertAdjacentHTML('beforeend', '<dt class="ksec">Barbook</dt><dd hidden></dd><dt><kbd>Alt</kbd> <kbd>P</kbd></dt><dd>Play / pause the beat (Option+P on a Mac)</dd>'); } catch {}
+  try { const dl = keysDlg.querySelector('dl'); dl.insertAdjacentHTML('beforeend', '<dt class="ksec">The Highlight Zone</dt><dd hidden></dd><dt><kbd>Alt</kbd> <kbd>P</kbd></dt><dd>Play / pause the beat (Option+P on a Mac)</dd>'); } catch {}
   recentList();
   return { S, play, pause, toggle, useFile, useYt, useSc, playing, audio, open, song, pageOpened };
 })();
@@ -9572,7 +9693,7 @@ var BKB = (() => {
    Page data added: page.drafts {line: [versions]}. Takes (Record) live in IndexedDB metrobar-takes. Goal: metrobar.bookGoal / bookGoalN. */
 var BE = (() => {
   const t = $('rbText'), ed = $('rbEd'), view = document.querySelector('#viewBook .rb-view[data-rbv="write"]');
-  const S = { extra: 0, dpos: {}, one: store.get('metrobar.bookOne', false), oneSec: 0, L: [], rows: [], cur: -1, pos: 0, rep: null, pop: '', flow: store.get('metrobar.bookFlow', false), find: '', hits: [], hit: -1, rec: null, menu: null, urls: [], C: null, at: -1 };
+  const S = { extra: 0, one: store.get('metrobar.bookOne', false), oneSec: 0, L: [], rows: [], cur: -1, pos: 0, rep: null, pop: '', flow: store.get('metrobar.bookFlow', false), find: '', hits: [], hit: -1, rec: null, menu: null, urls: [], C: null, at: -1 };
   const isHead = l => /^\s*\[[^\]]*\]\s*$/.test(l);
   const isNote = l => /^\s*#/.test(l);
   // a part name typed as a bar ("Verse 2", "Hook:", "[chorus]" is already a heading) -> "[Verse 2]"
@@ -9587,6 +9708,7 @@ var BE = (() => {
     ad: sv('<path d="M5 6h14v9H9l-4 3.5z"/><path d="M9 10.5h6"/>', 16),
     drafts: sv('<path d="M12 4l8 4-8 4-8-4z"/><path d="M4 12l8 4 8-4M4 16l8 4 8-4"/>', 16),
     plus: sv('<path d="M12 5v14M5 12h14"/>', 16),
+    spark: sv('<path d="M10 3.5l1.7 4.6 4.6 1.7-4.6 1.7L10 16.1l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 13.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8zM17.5 3.5l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/>', 16),
     dots: sv('<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>', 18),
     down: sv('<path d="M7 10l5 5 5-5"/>', 14), find: sv('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>', 17),
     flow: sv('<path d="M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6"/>', 17), menu: sv('<path d="M4 7h16M4 12h16M4 17h16"/>', 18),
@@ -9638,7 +9760,7 @@ var BE = (() => {
   // songs column: goal + streak, shortcuts, saved bars, recent songs, sync line
   const lib = $('rbLib'), shade = h('div', 'be-shade'); document.body.append(shade);
   const dr = h('div', 'be-dr'), goal = h('div', 'be-goal'), links = h('nav', 'be-links'), saved = h('div', 'be-saved'); saved.hidden = true;
-  links.setAttribute('aria-label', 'Barbook shortcuts');
+  links.setAttribute('aria-label', 'The Highlight Zone shortcuts');
   const lBeat = btn('', IC.beat + '<span>Beat</span>'), lSaved = btn('', IC.save + '<span>Saved bars</span><small></small>'), lCheck = btn('', IC.check + '<span>Check your bars</span>');
   lSaved.setAttribute('aria-expanded', 'false'); links.append(lBeat, lSaved, saved, lCheck);
   const recH = h('h3', 'be-drh', 'Recent'), recList = h('ul'); recList.id = 'beRecent';
@@ -9680,8 +9802,10 @@ var BE = (() => {
   function shiftDrafts(from, d) {
     const p = page(); if (!p || !p.drafts) return; const o = {};
     Object.keys(p.drafts).forEach(k => { const n = +k; if (d < 0 && n >= from && n < from - d) return; o[n >= from ? n + d : n] = p.drafts[k]; }); p.drafts = o;
+    if (p.dpos) { const q = {}; Object.keys(p.dpos).forEach(k => { const n = +k; if (d < 0 && n >= from && n < from - d) return; q[n >= from ? n + d : n] = p.dpos[k]; }); p.dpos = q; }
   }
-  function swapDrafts(a, b) { const p = page(); if (!p || !p.drafts) return; const x = p.drafts[a], y = p.drafts[b]; delete p.drafts[a]; delete p.drafts[b]; if (y) p.drafts[a] = y; if (x) p.drafts[b] = x; }
+  function swapDrafts(a, b) { const p = page(); if (!p || !p.drafts) return; const x = p.drafts[a], y = p.drafts[b]; delete p.drafts[a]; delete p.drafts[b]; if (y) p.drafts[a] = y; if (x) p.drafts[b] = x;
+    if (p.dpos) { const u = p.dpos[a], v = p.dpos[b]; delete p.dpos[a]; delete p.dpos[b]; if (v) p.dpos[a] = v; if (u) p.dpos[b] = u; } }
   // undo / redo for the whole page (2026-11-12): every change to the page text is recorded, typing bursts (<0.8 s apart) count as one step
   S.und = []; S.red = []; S.lastV = t.value; S.lastT = 0; S.hist = false;
   t.addEventListener('input', () => {
@@ -9743,27 +9867,48 @@ var BE = (() => {
     const hd = h('div', 'be-hd'), hin = h('input', 'be-hin'), hn = h('span', 'be-hn'); hin.setAttribute('aria-label', 'Section name'); hin.autocomplete = 'off'; hd.append(hin, h('i', 'be-hl'), hn);
     // every bar carries its own number and tool row (2026-11-12): drafts pager, takes, rewrite, rhymes, ad-lib, add a bar
     const num = h('span', 'be-num'), rt = h('div', 'be-rt'), dp = h('span', 'be-dp'); num.setAttribute('aria-hidden', 'true'); rt.setAttribute('role', 'toolbar'); rt.setAttribute('aria-label', 'Bar tools');
-    const dpL = btn('', sv('<path d="M14 7l-5 5 5 5"/>', 13), 'Previous version of this bar', 'Previous version'), dpN = btn('be-dpn', '', 'All versions of this bar'), dpR = btn('', sv('<path d="M10 7l5 5-5 5"/>', 13), 'Next version of this bar', 'Next version');
-    dp.append(dpL, dpN, dpR); dp.hidden = true; rt.append(dp);
+    // bar tools v3 (Bennie 2026-11-13, layout from his RhymeFlux screenshots, own code): a boxed tool row on EVERY bar; on the bar you're on
+    // it opens up: Drafts pager "‹ n/N ⌄ ›" + labels under the icons; big ‹ › on the bar's edges step through its versions too
+    let rw = null, ad = null; const dpL = btn('', sv('<path d="M14 7l-5 5 5 5"/>', 13), 'Previous version of this bar', 'Previous version'), dpN = btn('be-dpn', '', 'All versions of this bar (drafts)'), dpR = btn('', sv('<path d="M10 7l5 5-5 5"/>', 13), 'Next version of this bar', 'Next version');
+    const dpC = h('span', 'be-dpc'), dpT = h('span', 'be-dpt'), dpLab = h('small', 'be-rl', 'Drafts'); dpN.append(dpT, h('i', 'be-dpv')); dpN.querySelector('.be-dpv').innerHTML = sv('<path d="M7 10l5 5 5-5"/>', 11); dpC.append(dpN, dpLab);
+    dp.append(dpL, dpC, dpR); rt.append(dp);
     [dpL, dpN, dpR].forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
     dpL.addEventListener('click', () => draftStep(+r.dataset.i, -1)); dpR.addEventListener('click', () => draftStep(+r.dataset.i, 1)); dpN.addEventListener('click', () => rowTool(r, 'drafts'));
-    [['rec', IC.mic, 'Takes for this bar: record yourself rapping it'], ['rewrite', IC.wand, 'Rewrite this bar'], ['rhymes', IC.bulb, 'Rhymes for this bar'], ['adlib', IC.ad, 'Add an ad-lib'], ['add', IC.plus, 'Add a bar under this one']].forEach(([k, ic, ti]) => {
-      const b = btn('be-rb', ic, ti, ti); b.dataset.k = k; b.tabIndex = -1; b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => rowTool(r, k)); rt.append(b);
+    [['rec', IC.mic, 'Record', 'Takes for this bar: record yourself rapping it'], ['rewrite', IC.spark, 'Rewrite', 'Rewrite this bar with AI: the best version becomes a new draft'], ['rhymes', IC.bulb, 'Rhymes', 'Rhymes for the word at the cursor'], ['adlib', IC.ad, 'Ad-lib', 'Add an ad-lib'], ['add', IC.plus, 'Add bar', 'Add a bar under this one']].forEach(([k, ic, lab, ti]) => {
+      const b = btn('be-rb', ic + `<small class="be-rl">${lab}</small>`, ti, lab); b.dataset.k = k; b.tabIndex = -1; b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => rowTool(r, k)); rt.append(b);
+      if (k === 'rewrite') rw = b; if (k === 'adlib') ad = b;
     });
+    // touch: swipe the bar sideways (50px+) for the previous / next draft
+    let sx = null, sy = 0; cell.addEventListener('touchstart', e => { const t0 = e.touches[0]; sx = t0.clientX; sy = t0.clientY; }, { passive: true });
+    cell.addEventListener('touchend', e => { if (sx == null) return; const t1 = e.changedTouches[0], dx = t1.clientX - sx, dy = t1.clientY - sy; sx = null; if (Math.abs(dx) >= 50 && Math.abs(dx) > Math.abs(dy) * 1.5 && r.classList.contains('vers')) draftStep(+r.dataset.i, dx < 0 ? 1 : -1); }, { passive: true });
+    const navL = btn('be-nav l', sv('<path d="M15 6l-6 6 6 6"/>', 22), 'Previous version of this bar', 'Previous version'), navR = btn('be-nav r', sv('<path d="M9 6l6 6-6 6"/>', 22), 'Next version of this bar', 'Next version');
+    [navL, navR].forEach(b => { b.tabIndex = -1; b.addEventListener('mousedown', e => e.preventDefault()); }); navL.addEventListener('click', () => draftStep(+r.dataset.i, -1)); navR.addEventListener('click', () => draftStep(+r.dataset.i, 1));
     const lead = h('div', 'be-lead'); lead.append(num, rt);
-    r.append(hd, lead, cell, side, meter); r._ = { cell, mir, inp, cnt, dots, meter, hin, hn, num, rt, dp, dpN }; wire(r); return r;
+    cell.append(navL, navR); r.append(hd, lead, cell, side, meter);
+    const inWord = () => { const v = inp.value, a = inp.selectionStart, b = inp.selectionEnd, W = /[A-Za-z0-9’'`]/; r.classList.toggle('inword', document.activeElement === inp && (a !== b || W.test(v[a] || '') || W.test(v[a - 1] || ''))); };
+    ['keyup', 'click', 'select', 'focus', 'input'].forEach(ev => inp.addEventListener(ev, inWord)); inp.addEventListener('blur', () => r.classList.remove('inword'));
+    cnt.addEventListener('click', () => { if (cnt.title) say(cnt.title); }); cnt.setAttribute('role', 'button'); cnt.tabIndex = -1; r._ = { cell, mir, inp, cnt, dots, meter, hin, hn, num, rt, dp, dpN, dpT, dpL, dpR, navL, navR, rw, ad }; wire(r); return r;
   }
   function rowTool(r, k) {
     const i = +r.dataset.i; if (S.cur !== i || document.activeElement !== r._.inp) focusRow(i, S.cur === i ? S.pos : undefined);
-    if (k === 'add') { if (!locked()) addBar(i); } else if (k === 'rec') { if (S.rec) recToggle(); else popOpen('takes'); } else popOpen(k);
+    if (k === 'add') { if (!locked()) addBar(i); } else if (k === 'rec') { if (S.rec) recToggle(); else popOpen('takes'); } else if (k === 'rewrite') rewriteRow(i); else popOpen(k);
   }
-  // step through the versions of a bar: the one on the page swaps places with the next (or previous) draft
+  // versions of bar i in a fixed order (1..n): the text on the page is number `at`; p.drafts[i] holds the others, next one first
+  function vers(i) {
+    const p = page(), nl = (p && p.drafts && p.drafts[i]) || [], cur = S.L[i] || '', circ = [cur, ...nl], n = circ.length, key = p ? p.id + ':' + i : '';
+    const at = Math.min(n, Math.max(1, (p && p.dpos && p.dpos[i]) || 1)); return { p, n, at, key, list: circ.map((_, k) => circ[((k - (at - 1)) % n + n) % n]) };
+  }
+  function verSet(i, list, at, pos) {   // put version `at` of `list` on the page, the rest become its drafts
+    const p = page(); if (!p || locked()) return; list = list.slice(-50); at = Math.min(at, list.length); const n = list.length, nl = [];
+    for (let j = 1; j < n; j++) nl.push(list[(at - 1 + j) % n]);
+    p.drafts = p.drafts || {}; if (nl.length) p.drafts[i] = nl; else delete p.drafts[i]; p.dpos = p.dpos || {}; if (nl.length && at > 1) p.dpos[i] = at; else delete p.dpos[i]; p.updated = Date.now();   // dpos: which draft number is on the page, kept with the song
+    const L = S.L.slice(); L[i] = list[at - 1]; if (L[i] === S.L[i]) { rbSave(); render(); focusRow(i, S.pos); } else rowsChanged(L, i, pos == null ? L[i].length : Math.min(pos, L[i].length));
+  }
+  // step to the previous / next version of a bar (no wrap-around, like a pager); the caret keeps its place
   function draftStep(i, d) {
-    const p = page(), list = p && p.drafts && p.drafts[i]; if (!list || !list.length || locked()) return;
-    const L = S.L.slice(), cur0 = L[i], nl = list.slice(); let nx;
-    if (d > 0) { nx = nl.shift(); if (cur0.trim()) nl.push(cur0); } else { nx = nl.pop(); if (cur0.trim()) nl.unshift(cur0); }
-    p.drafts[i] = nl; const key = p.id + ':' + i, n = nl.length + 1; S.dpos[key] = (((S.dpos[key] || 1) - 1 + d + n * 4) % n) + 1;
-    rowsChanged(L.map((x, k) => (k === i ? nx : x)), i, nx.length);
+    const v = vers(i), to = v.at + d; if (v.n < 2 || to < 1 || to > v.n || locked()) return;
+    const pos = S.cur === i ? S.pos : undefined; verSet(i, v.list, to, pos);
+    try { if (navigator.vibrate) navigator.vibrate(8); } catch (e) {}
   }
   const hinW = v => `calc(${Math.max(3, (v || '').length) * 1.3 + 1}ch)`;
   function upd(r, i, L, C) {
@@ -9777,7 +9922,9 @@ var BE = (() => {
     o.inp.readOnly = ro; o.inp.spellcheck = !!RB.look.auto; o.inp.setAttribute('autocorrect', RB.look.auto ? 'on' : 'off');
     o.inp.placeholder = isNote(l) ? '' : `Type bar ${C.num[i] || i + 1}…`; o.inp.setAttribute('aria-label', `Bar ${C.num[i] || i + 1}`);
     o.num.textContent = isNote(l) ? '' : String(C.num[i] || ''); r.classList.toggle('has', !!l.trim());
-    { const p = page(), dl = p && p.drafts && p.drafts[i], n = dl ? dl.length : 0; o.dp.hidden = !n; if (n) o.dpN.textContent = `${Math.min(n + 1, S.dpos[p.id + ':' + i] || 1)}/${n + 1}`; }
+    { const v = vers(i); o.dpT.textContent = `${v.at}/${v.n}`; o.dpL.disabled = o.navL.disabled = v.at <= 1 || ro; o.dpR.disabled = o.navR.disabled = v.at >= v.n || ro; r.classList.toggle('vers', v.n > 1);
+      o.rw.querySelector('.be-rl').textContent = l.trim() ? 'Rewrite' : 'New bar'; o.rw.title = l.trim() ? 'Rewrite this bar with AI: the best version becomes a new draft' : 'Write this bar with AI: pick one of three';
+      o.ad.disabled = !l.trim() || ro; }
     paintMir(o.mir, i, l); meterOf(o, C.syl[i], C.med[C.secOf[i]]);
     // rhyme bloom: the bar you're writing just landed a rhyme -> its newest rhyme word blooms once
     const ws = o.mir.querySelectorAll('.rb-w'), nc = ws.length;
@@ -9996,12 +10143,14 @@ var BE = (() => {
     if (!r || isHead(S.L[S.cur] || '') || (typeof RB2 !== 'undefined' && RB2.view !== 'write')) { tools.remove(); pop.remove(); return; }
     if (tools.parentNode !== r) r.append(tools, pop);
   }
-  function popClose(quiet) { S.pop = ''; pop.hidden = true; pop.replaceChildren(); S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; Object.values(tb).forEach(b => b.hasAttribute('aria-pressed') && b.setAttribute('aria-pressed', 'false')); if (!quiet) refocus(); }
+  // the open tool lights on the bar's own tool row (Rhymes glows while its list is open; the Drafts ⌄ turns over)
+  function rowLit() { S.rows.forEach((r, k) => { const on = k === S.cur && S.pop; r.classList.toggle('dd', !!on && S.pop === 'drafts'); r._.rt.querySelectorAll('.be-rb').forEach(b => b.classList.toggle('on', !!on && (b.dataset.k === S.pop || (b.dataset.k === 'rec' && S.pop === 'takes')))); }); }
+  function popClose(quiet) { S.pop = ''; rowLit(); pop.hidden = true; pop.replaceChildren(); S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; Object.values(tb).forEach(b => b.hasAttribute('aria-pressed') && b.setAttribute('aria-pressed', 'false')); if (!quiet) refocus(); }
   function refocus() { const r = rowAt(S.cur); if (r && !isHead(S.L[S.cur] || '')) { r._.inp.focus({ preventScroll: true }); try { r._.inp.setSelectionRange(S.pos, S.pos); } catch (e) {} } }
   function popOpen(k, keep) {
     if (S.cur < 0) return; if (S.pop === k && !keep) { popClose(); return; }
     if (k !== 'rhymes') S.rep = null;
-    S.pop = k; Object.entries(tb).forEach(([n, b]) => b.hasAttribute('aria-pressed') && b.setAttribute('aria-pressed', String(n === k)));
+    S.pop = k; Object.entries(tb).forEach(([n, b]) => b.hasAttribute('aria-pressed') && b.setAttribute('aria-pressed', String(n === k))); rowLit();
     pop.hidden = false; place(); popBuild(); requestAnimationFrame(() => reveal(pop));
   }
   function popHead(label, word) {
@@ -10026,7 +10175,7 @@ var BE = (() => {
     L[i] = pre + ins + post; rowsChanged(L, i, p + ins.length);
   }
   function popBuild() {
-    S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; pop.replaceChildren();
+    S.urls.forEach(u => URL.revokeObjectURL(u)); S.urls = []; pop.replaceChildren(); pop.classList.remove('be-dd');
     const k = S.pop, i = S.cur, l = S.L[i] || '', p = page();
     if (k === 'rhymes') {
       const q = rhymeWord(); pop.append(popHead(q.rep ? 'Swap' : q.above ? 'Rhymes for the bar above:' : 'Rhymes for', q.w));
@@ -10046,26 +10195,34 @@ var BE = (() => {
       } catch (e) {}
       if (!any) pop.append(h('p', 'note', `No rhymes found for "${q.w}".`));
       pop.append(h('p', 'note', q.rep ? 'Tap a word to swap it in. Tap another to try the next one.' : 'Tap a word to add it at the cursor.'));
+      if (typeof aiReady === 'function' && aiReady() && l.trim()) pop.append(aiAmmoBox(q.w, l, i));
     } else if (k === 'adlib') {
       pop.append(popHead('Ad-lib'));
-      const box = h('div', 'be-chips'), own = store.get('metrobar.adlibs', []);
-      [...own, 'yeah', 'uh', 'ayy', 'woo', 'what', 'huh', 'skrrt', "let's go", 'brr', 'gang', 'facts', 'sheesh', 'okay', 'yuh'].filter((x, j, a) => a.indexOf(x) === j).slice(0, 18).forEach(x => box.append(chip(x, 0, () => adlib(x))));
+      const box = h('div', 'be-chips'), own = store.get('metrobar.adlibs', []), used = {};
+      S.L.forEach(x => (x.match(/\(([^()]{1,40})\)/g) || []).forEach(m => { const k = m.slice(1, -1).trim().toLowerCase(); if (k) used[k] = (used[k] || 0) + 1; }));
+      const top = Object.entries(used).sort((a, b) => b[1] - a[1]).slice(0, 3).map(x => x[0]);
+      [...top, ...own, 'yeah', 'uh', 'ayy', "let's go", 'skrrt', 'woo', 'what', 'huh', 'brr', 'gang', 'facts', 'sheesh', 'okay', 'yuh'].filter((x, j, a) => a.indexOf(x) === j).slice(0, 18).forEach(x => box.append(chip(x, used[x] || 0, () => adlib(x))));
       const f = h('form', 'be-chips'); f.style.marginTop = '8px'; const inp = h('input', 'num-in'); inp.placeholder = 'Your own ad-lib'; inp.setAttribute('aria-label', 'Your own ad-lib'); const go = btn('btn', 'Add'); go.type = 'submit';
       f.append(inp, go); f.addEventListener('submit', e => { e.preventDefault(); const x = inp.value.trim().replace(/[()]/g, ''); if (!x) return; store.set('metrobar.adlibs', [x, ...own.filter(y => y !== x)].slice(0, 8)); adlib(x); });
       pop.append(box, f, h('p', 'note', 'The ad-lib goes in brackets after the word at the cursor. It doesn’t count as syllables and never takes a rhyme colour.'));
     } else if (k === 'drafts') {
-      pop.append(popHead('Drafts of this bar'));
-      const list = (p && p.drafts && p.drafts[i]) || [], box = h('div', 'be-drafts');
-      if (!list.length) box.append(h('p', 'note', 'Save this version, then rewrite the bar freely. Saved versions stay here so you can swap back.'));
-      list.forEach((x, j) => {
-        const d = h('div', 'be-draft'), sp = h('span', '', x), use = btn('btn', 'Use', 'Put this version in the bar (the current one is kept here)'), del = btn('be-px', '×', 'Remove this draft', 'Remove this draft');
-        use.addEventListener('click', () => { const L = S.L.slice(), now0 = L[i]; L[i] = x; const nl = list.slice(); nl.splice(j, 1); if (now0.trim() && !nl.includes(now0)) nl.unshift(now0); p.drafts[i] = nl; rowsChanged(L, i, x.length); popOpen('drafts', true); });
-        del.addEventListener('click', () => { list.splice(j, 1); if (!list.length) delete p.drafts[i]; rbSave(); popBuild(); });
-        d.append(sp, use, del); box.append(d);
+      pop.append(popHead('Drafts')); pop.classList.add('be-dd');
+      const v = vers(i), box = h('div', 'be-drafts'); box.setAttribute('role', 'listbox'); box.setAttribute('aria-label', 'Versions of this bar');
+      v.list.forEach((x, j) => {
+        const on = j === v.at - 1, d = h('div', 'be-draft' + (on ? ' on' : '')); d.setAttribute('role', 'option'); d.setAttribute('aria-selected', String(on)); d.tabIndex = 0;
+        d.append(h('span', 'be-dtx', x.trim() || '(empty draft)'), h('small', 'be-dno', `Draft #${j + 1}` + (on ? ' · on the page' : '')));
+        const pick = () => { if (!on) verSet(i, v.list, j + 1); popOpen('drafts', true); };
+        d.addEventListener('mousedown', e => e.preventDefault()); d.addEventListener('click', pick); d.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pick(); } });
+        if (v.n > 1 && !on && !locked()) { const del = btn('be-px', '×', 'Delete this draft', 'Delete draft ' + (j + 1)); del.addEventListener('mousedown', e => e.preventDefault());
+          del.addEventListener('click', e => { e.stopPropagation();
+            if (!d.classList.contains('ask')) { d.classList.add('ask'); del.textContent = 'Delete draft?'; setTimeout(() => { if (d.isConnected) { d.classList.remove('ask'); del.textContent = '×'; } }, 3500); return; }
+            const nl = v.list.slice(); nl.splice(j, 1); verSet(i, nl, j < v.at - 1 ? v.at - 1 : v.at); popOpen('drafts', true);
+            if (typeof toast === 'function') toast('Draft deleted.', { undo: () => verSet(i, v.list, v.at) }); }); d.append(del); }
+        box.append(d);
       });
-      const keep = btn('btn', 'Save this version'); keep.disabled = !l.trim() || list.includes(l) || locked();
-      keep.addEventListener('click', () => { if (!p || p.locked) return; p.drafts = p.drafts || {}; p.drafts[i] = [l, ...list.filter(x => x !== l)].slice(0, 12); p.updated = Date.now(); rbSave(); popBuild(); });
-      pop.append(box, keep);
+      const nd = btn('btn', '+ New draft', 'Keep this version and write a new one on this bar'); nd.disabled = !l.trim() || locked() || v.n >= 50;
+      nd.addEventListener('click', () => newDraft(i));
+      pop.append(box, nd);
     } else if (k === 'rewrite') {
       pop.append(popHead('Rewrite this bar'));
       const ready = typeof aiReady === 'function' && aiReady(), ai = btn('btn' + (ready ? ' pri' : ''), ready ? 'Fit this bar with AI' : 'Set up Write with AI');
@@ -10088,6 +10245,12 @@ var BE = (() => {
           }
         }
       }
+    } else if (k === 'pick') {
+      const P = S.pick && S.pick.i === i ? S.pick.top : []; pop.append(popHead('Pick your bar'));
+      const box = h('div', 'be-picks'), names = ['Finish the thought', 'The punch', 'Switch it up'];
+      P.forEach((j, n) => { const b = h('button', 'be-pk'); b.type = 'button'; b.append(h('small', '', names[n] || 'Option ' + (n + 1)), h('span', '', j.text), h('em', '', `${sylN(j.text)} syl` + (j.tier ? ' · ' + j.tier + ' rhyme' : '')));
+        b.addEventListener('mousedown', e => e.preventDefault()); b.addEventListener('click', () => { const L = S.L.slice(); L[i] = j.text; S.pick = null; popClose(true); rowsChanged(L, i, j.text.length); }); box.append(b); });
+      pop.append(box, h('p', 'note', 'Pick one to put it on this bar. Ask again for three new ones.'));
     } else if (k === 'takes') {
       pop.append(popHead(S.rec ? 'Recording…' : 'Takes of this bar'));
       { const rb = btn('btn' + (S.rec ? ' pri' : ''), S.rec ? 'Stop' : 'Record a take'); rb.addEventListener('click', recToggle); pop.append(rb); }
@@ -10095,17 +10258,83 @@ var BE = (() => {
       takesFor(RB.cur).then(list => {
         if (S.pop !== 'takes') return; const mine = list.filter(x => x.li === i || (l.trim() && x.text === l)).sort((a, b) => b.at - a.at);
         if (!mine.length && !S.rec) pop.append(h('p', 'note', 'No takes yet. Press Record to rap this bar.'));
-        mine.forEach(x => {
+        mine.forEach((x, n) => {
           const d = h('div', 'be-take'), au = document.createElement('audio'), u = URL.createObjectURL(x.blob); S.urls.push(u); au.controls = true; au.src = u; au.preload = 'metadata';
           const del = btn('be-px', '×', 'Delete this take', 'Delete this take'); del.addEventListener('click', async () => { await takeDel(x.id); popBuild(); });
-          d.append(au, del, h('small', '', `${new Date(x.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${Math.round(x.dur)} s${x.text && x.text !== l ? ' · “' + x.text.slice(0, 40) + '”' : ''}`));
+          d.append(h('b', 'be-tn', `Take ${mine.length - n}`), au, del, h('small', '', `${new Date(x.at).toLocaleString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })} · ${Math.round(x.dur)} s${x.text && x.text !== l ? ' · “' + x.text.slice(0, 40) + '”' : ''}`));
           pop.append(d);
         });
       });
     }
   }
+  function newDraft(i) {
+    const v = vers(i); if (locked() || !(S.L[i] || '').trim() || v.n >= 50) return; const nl = v.list.concat(['']); popClose(true); verSet(i, nl, nl.length, 0);
+    say(`Draft ${nl.length}: write the new version. The others wait under Drafts.`);
+  }
+  function rewriteRow(i) {
+    const l = S.L[i] || '', ready = typeof aiReady === 'function' && aiReady();
+    if (locked() || S.busy) return;
+    if (!ready) { popOpen('rewrite'); return; }   // no AI set up: the panel (set up AI, or swap the end word without AI)
+    const gen = !l.trim();   // empty bar = "New bar": three options to pick from; a bar with words = a new take, kept as a draft
+    const r = rowAt(i); if (!r) return; popClose(true);
+    const ac = new AbortController(); AI.stop = ac; S.busy = { i, ac };
+    const ov = h('div', 'be-load'), ic = h('span', 'be-lic'), msg = h('span', 'be-lmsg'), stop = btn('be-stop', '<span aria-hidden="true">×</span> Stop', 'Stop the rewrite (your bar stays as it is)');
+    ic.innerHTML = IC.spark; ov.setAttribute('role', 'status'); ov.append(ic, msg, stop); r._.cell.append(ov); r.classList.add('busy');
+    // status texts on a clock (it's one AI call, so no fake progress bar): what it's doing now, then reassurance on slow answers
+    const steps = [[0, gen ? 'Reading the bars above…' : 'Reading your bar…'], [1500, 'Finding rhymes…'], [3000, 'Writing…'], [8000, 'Almost there…'], [16000, 'Still writing, hang on…']];
+    const tms = steps.map(([ms, t]) => setTimeout(() => { msg.textContent = t; }, ms)); msg.textContent = steps[0][1];
+    let over = false; const done = () => { if (over) return; over = true; tms.forEach(clearTimeout); ov.remove(); r.classList.remove('busy'); if (AI.stop === ac) AI.stop = null; S.busy = null; };
+    stop.addEventListener('mousedown', e => e.preventDefault());
+    stop.addEventListener('click', () => { ac.abort(); done(); if (typeof toast === 'function') toast(AI.prov === 'metrobar' ? 'Stopped. Your bar is unchanged (the credit was already used).' : 'Stopped. Your bar is unchanged.'); });
+    caret(i, S.pos);   // the AI reads the bar at the caret
+    if (gen) {
+      aiNextCore().then(({ list }) => {
+        if (ac.signal.aborted) return; done();
+        const top = (list.filter(j => j.pass).length >= 3 ? list.filter(j => j.pass) : list).slice(0, 3);
+        if (!top.length) { if (typeof toast === 'function') toast('No bar this time. Try again.'); return; }
+        S.pick = { i, top }; popOpen('pick');
+      }).catch(e => { if (ac.signal.aborted) return; done(); if (typeof toast === 'function') toast((e && e.message) || 'Writing a bar failed. Try again.'); });
+      return;
+    }
+    aiFitCore().then(({ list }) => {
+      if (ac.signal.aborted) return;
+      const best = list.filter(j => j.pass)[0] || list[0]; done();
+      if (!best) { if (typeof toast === 'function') toast('No new version this time. Try again.'); return; }
+      if ((S.L[i] || '') !== l) { if (typeof toast === 'function') toast('The bar changed while the AI wrote, so nothing was swapped.'); return; }
+      const v = vers(i), nl = v.list.concat([best.text]); verSet(i, nl, nl.length);
+      if (typeof toast === 'function') toast(`Draft ${nl.length} of this bar. Your other versions are under Drafts.`, { undo: () => { const w = vers(i); if (w.n > 1) verSet(i, w.list.slice(0, -1), v.at); }, undoLabel: 'Undo' });
+    }).catch(e => { if (ac.signal.aborted) return; done(); if (typeof toast === 'function') toast((e && e.message) || 'Rewrite failed. Try again.'); });
+  }
+  // AI columns in Rhymes: Word swaps (other words for this spot, same feel and size) and Multi-rhymes (checked by our rhyme engine)
+  function wordAt(l, pos) { const re = /[A-Za-z0-9’'`]+/g; let m, last = null; while ((m = re.exec(l))) { if (pos >= m.index && pos <= m.index + m[0].length) return { a: m.index, b: m.index + m[0].length }; if (m.index < pos) last = { a: m.index, b: m.index + m[0].length }; } return last; }
+  function aiAmmoBox(w, l, i) {
+    const box = h('div', 'be-ai'), out = h('div', 'be-aio'), seen = new Set(), cost = AI.prov === 'metrobar' ? ' · 1 credit' : '';
+    const go = (kind, b) => {
+      const tgt = kind === 'swap' ? (S.rep && S.rep.i === i ? S.rep : wordAt(l, S.pos)) : null; if (kind === 'swap' && !tgt) { say('Tap a word first.'); return; }
+      const word = kind === 'swap' ? l.slice(tgt.a, tgt.b) : w, n = sylN(word), ex = [...seen].slice(-60);
+      const prompt = kind === 'swap'
+        ? [`Bar: "${l}"`, `Give 14 replacements for "${word}" in this bar: a sharper or more specific word or 2-word phrase that fits the sentence, about ${n} syllable${n === 1 ? '' : 's'}.`, ex.length ? 'Not these: ' + ex.join(', ') : '', 'JSON: {"swaps":["..."]}'].filter(Boolean).join('\n')
+        : [`Target: "${word}" (${n} syllables), from the bar "${l}".`, `Give 24 multi-syllable rhymes (2 to 4 words) that rhyme across its last vowel sounds, concrete and current, no stock phrases.`, ex.length ? 'Not these: ' + ex.join(', ') : '', 'JSON: {"multis":["..."]}'].filter(Boolean).join('\n');
+      b.disabled = true; out.replaceChildren(h('p', 'note', 'Asking the AI…'));
+      aiAsk(prompt, 1.05).then(d => {
+        let list = aiList(d, kind === 'swap' ? 'swaps' : 'multis').map(x => x.text.replace(/[.!?,]+$/, '')).filter(x => x && !seen.has(cleanKey(x)));
+        if (kind === 'multi') list = list.filter(x => ['multi', 'perfect'].includes(aiRhyme(x, word)));
+        list.forEach(x => seen.add(cleanKey(x)));
+        out.replaceChildren(h('h5', '', kind === 'swap' ? `Word swaps for “${word}”` : `Multi-rhymes for “${word}”`)); const cb = h('div', 'be-chips');
+        list.slice(0, 20).forEach(x => cb.append(chip(x, sylN(x), () => { if (kind === 'swap') { const cur0 = S.L[i] || '', t2 = cur0.slice(tgt.a, tgt.b) === word ? tgt : wordAt(cur0, S.pos); if (!t2) return; S.rep = { i, a: t2.a, b: t2.b }; put(x); } else put(x); })));
+        out.append(list.length ? cb : h('p', 'note', kind === 'multi' ? 'None of those really rhymed. Ask again.' : 'Nothing new. Ask again.'));
+        const more = btn('btn', 'More', 'New ones, leaving out what you have seen'); more.addEventListener('mousedown', e => e.preventDefault()); more.addEventListener('click', () => go(kind, more)); out.append(more);
+      }).catch(e => out.replaceChildren(h('p', 'note', (e && e.message) || 'The AI did not answer. Try again.'))).finally(() => { b.disabled = false; });
+    };
+    const sw = btn('btn', 'Word swaps' + cost, 'Other words for the word at your cursor (AI)'), mu = btn('btn', 'Multi-rhymes' + cost, 'Multi-syllable rhymes, checked by MetroBar (AI)');
+    [sw, mu].forEach(b => b.addEventListener('mousedown', e => e.preventDefault())); sw.addEventListener('click', () => go('swap', sw)); mu.addEventListener('click', () => go('multi', mu));
+    box.append(h('h5', '', 'With AI'), h('div', 'be-chips', ''), out); box.children[1].append(sw, mu); return box;
+  }
   function adlib(x) {
-    const i = S.cur, L = S.L.slice(), l = L[i] || ''; let e = S.pos; while (e < l.length && /[A-Za-z0-9’'`]/.test(l[e])) e++;
+    const i = S.cur, L = S.L.slice(), l = L[i] || ''; let e = S.pos;
+    if (!l.trim()) { say('Write the bar first, then add an ad-lib.'); return; }
+    if ((l.match(/\([^()]{1,40}\)/g) || []).length >= 8) { say('8 ad-libs on one bar is the limit.'); return; }
+    x = String(x).slice(0, 40); while (e < l.length && /[A-Za-z0-9’'`]/.test(l[e])) e++;
     const ins = (e > 0 && !/\s$/.test(l.slice(0, e)) ? ' ' : '') + '(' + x + ')' + (l.slice(e) && !/^\s/.test(l.slice(e)) ? ' ' : '');
     L[i] = l.slice(0, e) + ins + l.slice(e); rowsChanged(L, i, e + ins.length);
   }
@@ -10118,7 +10347,8 @@ var BE = (() => {
   function recUi() {
     const b = tb.rec; if (S.rec) { const s = Math.floor((Date.now() - S.rec.t0) / 1000); b.classList.add('rec'); b.innerHTML = '<span class="be-dot"></span><span>Stop ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + '</span>'; }
     else { b.classList.remove('rec'); b.innerHTML = IC.mic + '<span>Record</span>'; }
-    rowsBox.querySelectorAll('.be-rb.rec').forEach(x => x.classList.remove('rec')); const rr = S.rec && rowAt(S.rec.i); if (rr) rr.querySelector('.be-rb[data-k="rec"]').classList.add('rec');
+    rowsBox.querySelectorAll('.be-rb.rec').forEach(x => { x.classList.remove('rec'); x.innerHTML = IC.mic + '<small class="be-rl">Record</small>'; });
+    const rr = S.rec && rowAt(S.rec.i); if (rr) { const s = Math.floor((Date.now() - S.rec.t0) / 1000), b = rr.querySelector('.be-rb[data-k="rec"]'); b.classList.add('rec'); b.innerHTML = '<span class="be-dot" aria-hidden="true"></span><small class="be-rl be-rt2">' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0') + '</small>'; if (s >= 600) S.rec.mr.stop(); }
   }
   async function recToggle() {
     if (S.rec) { S.rec.mr.stop(); return; }
@@ -10162,10 +10392,7 @@ var BE = (() => {
     menu(anchor, m => {
       if (l.trim()) mi(m, 'Save to Saved bars', () => { if (typeof stashMerge === 'function') { stashMerge([{ text: l.trim(), at: Date.now() }]); say('Saved. Find it under Saved bars.'); drawer(); } });
       if (!ro) { mi(m, 'Duplicate', () => addBar(i, l)); if (i > 0 && !isHead(S.L[i - 1])) mi(m, 'Move up', () => moveBar(i, -1)); if (i < S.L.length - 1 && !isHead(S.L[i + 1])) mi(m, 'Move down', () => moveBar(i, 1)); }
-      if (!ro && l.trim()) mi(m, 'New draft', () => {
-        const p = page(); if (!p) return; p.drafts = p.drafts || {}; const dl = p.drafts[i] || []; p.drafts[i] = [l, ...dl.filter(x => x !== l)].slice(0, 12);
-        const L = S.L.slice(); L[i] = ''; rowsChanged(L, i, 0); say('This version waits under Drafts. Write the new one.');
-      }, '', 'keep this one, start fresh');
+      if (!ro && l.trim()) mi(m, 'New draft', () => newDraft(i), '', 'keep this one, start fresh');
       if (!ro) mi(m, 'Add ad-lib', () => { focusRow(i, l.length); popOpen('adlib', true); });
       if (l.trim()) mi(m, 'Copy', () => { try { navigator.clipboard.writeText(l); say('Bar copied.'); } catch (e) {} });
       if (!ro && i > 0 && !isHead(S.L[i - 1]) && l.trim()) mi(m, 'Split song here', () => {
@@ -10682,7 +10909,7 @@ var BX = (() => {
     document.body.append(d); build(body, d); d.showModal(); return d;
   }
   const chip = (text, fn, cls) => { const c = h('button', 'be-chip' + (cls ? ' ' + cls : ''), text); c.type = 'button'; c.addEventListener('click', fn); return c; };
-  const fileName = (ext) => (((pg() || {}).title || 'Barbook').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'Barbook') + ext;
+  const fileName = (ext) => (((pg() || {}).title || 'Highlight Zone').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'Highlight Zone') + ext;
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   function lyricsText() {
     const p = pg(), v = t.value.replace(/\s+$/, ''); let out = [], first = true;
@@ -10763,13 +10990,13 @@ var BX = (() => {
       }
       y += lh; if (y > H - pad - 60) break;
     }
-    x.fillStyle = '#8e9893'; x.font = '600 26px "IBM Plex Sans", system-ui, sans-serif'; x.fillText('Written in Barbook · MetroBar', pad, H - pad + 10);
+    x.fillStyle = '#8e9893'; x.font = '600 26px "IBM Plex Sans", system-ui, sans-serif'; x.fillText('Written in The Highlight Zone · MetroBar', pad, H - pad + 10);
     const blob = await new Promise(ok => c.toBlob(ok, 'image/png')); if (!blob) { say('The card could not be drawn here.'); return; }
     const name = fileName('.png'), url = URL.createObjectURL(blob), file = typeof File === 'function' ? new File([blob], name, { type: 'image/png' }) : null;
     sheet('Share card', (b, d) => {
       const im = new Image(); im.src = url; im.alt = 'Share card preview'; b.append(im); const row = h('div', 'be-chips');
       const save = btn('btn pri', 'Save image'); save.addEventListener('click', () => { download(blob, name); say('Saved ' + name + '.'); }); row.append(save);
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { const sh = btn('btn', 'Share…'); sh.addEventListener('click', async () => { try { await navigator.share({ files: [file], title: p.title || 'Barbook' }); } catch (er) {} }); row.append(sh); }
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { const sh = btn('btn', 'Share…'); sh.addEventListener('click', async () => { try { await navigator.share({ files: [file], title: p.title || 'The Highlight Zone' }); } catch (er) {} }); row.append(sh); }
       b.append(row, h('p', 'note', 'Square-ish 1080 × 1350, the size feeds and stories like.')); d.addEventListener('close', () => URL.revokeObjectURL(url));
     }, 'bx-card');
   }
@@ -10883,7 +11110,7 @@ var BX = (() => {
   }
   const list = (b, items) => { const ul = h('ul'); items.forEach(([k, v]) => { const li = h('li'); if (k) li.append(h('b', '', k + ' ')); li.append(v); ul.append(li); }); b.append(ul); };
   r101.addEventListener('click', () => sheet('Rhymes 101', b => {
-    b.append(h('p', 'note', 'How Barbook picks the colours on your page.'));
+    b.append(h('p', 'note', 'How The Highlight Zone picks the colours on your page.'));
     list(b, [['Same colour = same sound.', 'Words that rhyme share a colour. Each sound keeps its colour on the whole page, and a colour never goes to a different sound (16 colours in 3 shades).'],
       ['It listens, it doesn’t read.', 'Every word is split into its sounds with the CMU pronouncing dictionary, so “dirty, thirty, early” match and “cough, though” don’t.'],
       ['What counts as a rhyme.', 'Perfect rhymes, multi-syllable rhymes and close slants (same vowel, same kind of ending). Strict mode under ⋯ › Rhymes keeps only perfect and multi.'],
@@ -10903,7 +11130,7 @@ var BX = (() => {
       ['', 'Songs: Pin to top and a cover photo (⋯ › Song).']]);
     b.append(h('h5', '', 'Earlier'));
     list(b, [['', 'Editor with one row per bar, drafts, takes, ad-libs and a toolbar on the bar you’re on (11 Nov).'], ['', 'Beat panel: your file, YouTube or SoundCloud (11 Nov).'],
-      ['', 'Focus mode and the live rhyme list (10 Nov).'], ['', 'New rhyme highlight and the Rhyme map (10 Nov).'], ['', 'Barbook syncs to your Zone account (9 Nov).']]);
+      ['', 'Focus mode and the live rhyme list (10 Nov).'], ['', 'New rhyme highlight and the Rhyme map (10 Nov).'], ['', 'The Highlight Zone syncs to your Zone account (9 Nov).']]);
   }, 'bx-new'));
 
   startSync();
@@ -10967,7 +11194,7 @@ var BS = (() => {
   BE.drawerTg.title = 'Show the songs'; BE.drawerTg.addEventListener('click', e => { if (innerWidth > 1000) { e.stopImmediatePropagation(); nolib(false); } }, true);
 
   // ---- sidebar
-  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><i></i><i></i><i></i></span>Barbook';
+  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><i></i><i></i><i></i></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
   const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), setB = btn('bs-ib', I.gear, 'Settings', 'Settings'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
   brand.append(bname, homeB, setB, colB);
   homeB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html'; });
@@ -11081,7 +11308,7 @@ var BS = (() => {
   const vibeRow = toolRow(I.gear, 'Rhyme &amp; Vibe', '', settings);
   const r101 = toolRow(IC.bulb, 'Rhymes 101', 'Perfect, slant, multi: the short version', () => { actOpen(false); const b = [...BE.more.querySelectorAll('button')].find(z => z.textContent === 'Rhymes 101'); if (b) b.click(); });
   const firstTool = side.querySelector('.rb-tool'); firstTool.before(vibeRow); side.querySelector('.rb-tool[data-tool="topic"]').after(r101);
-  const work = h('div', 'bs-work'), wBin = btn('', I.bin + '<span>Recently deleted</span>'), wBack = btn('', I.dl + '<span>Backup</span>', 'Download all of Barbook as one backup file'), wLoad = btn('', I.up + '<span>Load</span>', 'Open .txt files, a lyrics export or a Barbook backup');
+  const work = h('div', 'bs-work'), wBin = btn('', I.bin + '<span>Recently deleted</span>'), wBack = btn('', I.dl + '<span>Backup</span>', 'Download everything in The Highlight Zone as one backup file'), wLoad = btn('', I.up + '<span>Load</span>', 'Open .txt files, a lyrics export or a Highlight Zone backup');
   work.append(wBin, wBack, wLoad); $('rbBinBox').before(work);
   wBin.addEventListener('click', () => { const b = $('rbBinBox'); b.open = !b.open; if (b.open && !RB.bin.length) { b.open = false; say('Nothing in Recently deleted.'); } else if (b.open) b.scrollIntoView({ block: 'nearest' }); });
   wBack.addEventListener('click', () => $('rbBackup').click()); wLoad.addEventListener('click', () => $('rbImport').click());
@@ -11267,7 +11494,7 @@ var BS = (() => {
     let name = ''; try { name = (window.ZN && ZN.me && (ZN.me.username || (ZN.me.profile && ZN.me.profile.username) || ZN.me.name)) || ''; } catch (e) {}
     meB.innerHTML = `<span class="av">${sv('<circle cx="12" cy="9" r="3.500"/><path d="M5 20c1-4 4-5.500 7-5.500s6 1.500 7 5.500"/>', 18)}</span><b></b><em>${synced ? 'SYNCED' : 'LOCAL'}</em>`;
     meB.querySelector('b').textContent = name || (synced ? 'Your account' : 'Guest'); me.classList.toggle('on', synced);
-    meB.title = synced ? 'Your Barbook is kept in your Zone account' : 'Sign in on The Zone to keep your songs in your account';
+    meB.title = synced ? 'Your songs are kept in your Zone account' : 'Sign in on The Zone to keep your songs in your account';
   }
   meB.addEventListener('click', () => acctOpen());
   if (window.MutationObserver && $('rbSync')) new MutationObserver(statSync).observe($('rbSync'), { childList: true, characterData: true, subtree: true });
@@ -11352,8 +11579,8 @@ async function acctMine(d, api) {
   const when = w ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
 <div class="acct-me"><span class="av"></span><div><h2></h2><p class="acct-sub mail"></p></div></div>
-${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></div><div><b>${w.plan === 'pro' ? 'Pro' : 'Free'}</b><span>${w.plan === 'pro' ? 'refills ' : 'next ' + w.monthly + ' on '}${when}</span></div></div>
-<button class="acct-go" type="button" data-a="pay">${w.plan === 'pro' ? 'Add credits' : 'Get Pro: ' + ((window.ZONE_CONFIG && ZONE_CONFIG.pay && ZONE_CONFIG.pay.proCredits) || 800) + ' credits a month'}</button>` : ''}
+${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></div><div><b>${planName(w.plan)}</b><span>next ${w.monthly} on ${when}</span></div></div>
+<button class="acct-go" type="button" data-a="pay">${w.plan === 'super' ? 'Add credits' : 'Plans and AI credits'}</button>` : ''}
 <div class="acct-row"><button type="button" class="ghost" data-a="zone">My Zone profile</button><button type="button" class="ghost" data-a="out">Sign out</button></div>`;
   d.querySelector('.av').textContent = (me.username || '?')[0].toUpperCase();
   d.querySelector('h2').textContent = '@' + me.username;
@@ -11416,6 +11643,42 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
       location.replace('landing-beat-meter.html?moved=' + n + (localStorage.getItem('metrobar.book') ? '#book' : '')); };
     addEventListener('message', on); window.opener.postMessage({ mb: 'ready' }, OLD);
   }
+})();
+</script>
+<script>
+/* The Highlight Zone gate (Bennie 2026-11-13): Pro (€15/month) or Super Pro opens The Highlight Zone (the Barbook page, window.BBAPP).
+   Signed out = sign in; Free = the plans. The gate never hides anyone's songs: Download my songs is always there.
+   No accounts configured, offline, or no answer from the server = no gate (never lock people out of their own lyrics by a network error). */
+(function () {
+  if (!window.BBAPP) return;
+  let gate = null;
+  const shut = () => { if (gate) { gate.remove(); gate = null; } const v = document.getElementById('viewBook'); if (v) v.inert = false; };
+  function show(mode) {
+    const v = document.getElementById('viewBook'); if (v) v.inert = true;
+    if (!gate) { gate = document.createElement('div'); gate.className = 'hz-gate'; gate.setAttribute('role', 'dialog'); gate.setAttribute('aria-modal', 'true'); gate.setAttribute('aria-labelledby', 'hzT'); document.body.append(gate); }
+    const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {};
+    gate.innerHTML = `<div class="hz-card"><h2 id="hzT">The Highlight Zone is part of Pro</h2>
+<p>${mode === 'in' ? 'Sign in to open it. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.' : 'Your rhymes lit up, syllables per bar, drafts, beats and focus mode. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.'}</p>
+<button class="hz-go" type="button" data-a="${mode === 'in' ? 'in' : 'pay'}">${mode === 'in' ? 'Sign in' : 'See the plans'}</button>
+<div class="hz-row"><button type="button" data-a="dl">Download my songs</button><a href="landing-beat-meter.html">Back to MetroBar</a></div></div>`;
+    gate.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.a;
+      if (a === 'in') acctOpen('in'); else if (a === 'pay') aiPaywall('zone'); else if (a === 'dl') { const k = document.getElementById('rbBackup'); if (k) k.click(); }
+    }));
+    gate.querySelector('.hz-go').focus();
+  }
+  async function check() {
+    if (!(window.ZONE_CONFIG && ZONE_CONFIG.zoneLock) || typeof znCfg !== 'function' || !znCfg() || !ZONE_CONFIG.ai || typeof rbSyncApi !== 'function') return shut();   // zoneLock in zone-config.js: on once people can really pay (Stripe live)
+    let api, uid;
+    try { api = await rbSyncApi(); if (!api) return shut(); uid = await api.userId(); } catch (e) { return shut(); }
+    if (!uid) return show('in');
+    const w = await aiWallet(true);
+    if (!w) return shut();                     // signed in but no answer (offline / server): stay open
+    planPaid(w) ? shut() : show('pay');
+  }
+  document.addEventListener('aiwallet', () => { const w = AIW.w; if (!w) return; planPaid(w) ? shut() : show('pay'); });   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
+  const go = () => setTimeout(check, 300);
+  document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
 })();
 </script>
 </body>
