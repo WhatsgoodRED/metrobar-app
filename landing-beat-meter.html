@@ -2532,32 +2532,14 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
 .hz-card .hz-go { display: block; width: 100%; padding: 13px 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--bb-on, #fff); font: 600 1rem var(--body); cursor: pointer; }
 .hz-card .hz-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
 .hz-card .hz-row > * { flex: 1 1 auto; padding: 10px 12px; border: 1px solid #ffffff24; border-radius: 12px; background: none; color: inherit; font: 500 .9rem var(--body); text-align: center; text-decoration: none; cursor: pointer; }
-/* Logo face for headers and menu items (Bennie 2026-11-13: "the font of the logo should be the font of header"): Panchang, the
-   METROBAR wordmark's face, on the header tabs, Flow game / Advanced, the rack headers, Write's header bar, The Zone's title and
-   feed tabs, and The Highlight Zone's brand, sidebar and dialog titles. Panchang is wide, so these run a size smaller. */
-:root { --logo: 'Panchang', var(--body); }
-.views a, .views a[aria-current="page"], .views.ff-nav a { font-family: var(--logo); font-weight: 560; font-variation-settings: 'wght' 560; letter-spacing: 0; }
-/* menu = four tiles exactly as wide as the 1 2 3 4 tiles under the wordmark (Bennie 2026-11-13): same width, same 6px gap, same radius */
+/* Menu = four tiles exactly as wide as the 1 2 3 4 tiles under the wordmark (Bennie 2026-11-13): same width, same 6px gap,
+   same radius; the Highlight Zone tab is labelled "Rhyme" (the page keeps its title). Fonts unchanged (logo face tried and dropped). */
 header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: center; }
 @media (min-width: 701px) and (max-width: 1080px) { header > .views { width: min(31rem, 60vw); } }   /* tablets: same width as the logo there */
 .views, .views.ff-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 0; background: none; border-radius: 0; container-type: inline-size; }
-.views a, .views a[aria-current="page"], .views.ff-nav a { display: grid; place-items: center; min-width: 0; padding: 9px 2px; border-radius: 6px; background: var(--cell); text-align: center; white-space: nowrap; font-size: clamp(.5rem, 2.75cqi, .82rem); }
+.views a, .views a[aria-current="page"], .views.ff-nav a { display: grid; place-items: center; min-width: 0; padding: 9px 2px; border-radius: 6px; background: var(--cell); text-align: center; white-space: nowrap; font-size: clamp(.62rem, 3.9cqi, .92rem); }
 .views a[aria-current="page"] { color: var(--fg); }
-.adv-t, .rackbar h2, .zn-h { font-family: var(--logo); font-weight: 650; font-variation-settings: 'wght' 650; letter-spacing: .01em; }
-.adv-t, .rackbar h2 { font-size: 1.02rem; } .zn-h { font-size: 1.15rem; }
-#wrDock .btn, .zn-seg button { font-family: var(--logo); font-weight: 540; font-variation-settings: 'wght' 540; font-size: .74rem; letter-spacing: 0; }
-.bs-brand b, .bs-all b, .bs-rech > span, .bs-dlg h2, .bs-lib h2 { font-family: var(--logo); font-weight: 600; font-variation-settings: 'wght' 600; letter-spacing: 0; }
-.bs-brand b { font-size: .9rem; } .bs-all b, .bs-rech > span { font-size: .8rem; }
-/* section and panel headings too (numbers, START and song titles keep their own faces) */
-.intro .tag, .now .sec, .sech, .wr h2, .info-h h2, .shout h3, .rb-libh h2, .zn-title, .tg-hd h2, .tg-crumb b { font-family: var(--logo); font-weight: 650; font-variation-settings: 'wght' 650; letter-spacing: .01em; }
-.intro .tag { font-size: .95rem; } .now .sec { font-size: 1.15rem; } .sech, .wr h2, .tg-hd h2 { font-size: 1rem; } .info-h h2, .zn-title { font-size: 1.1rem; }
-.shout h3 { font-size: clamp(1.2rem, 3.6vw, 1.7rem); } .rb-libh h2 { font-size: .85rem; } .tg-crumb b { font-size: 1.1rem; }
-html.bb .bs-all b, html.bb .bx-start > b, html.bb .be-hin { font-family: var(--logo); font-weight: 600; font-variation-settings: 'wght' 600; }
-html.bb .bs-all b { font-size: .8rem; } html.bb .bx-start > b { font-size: .9rem; } html.bb .be-hin { letter-spacing: .06em; font-size: .7rem; }
-.bs-nav a { font-family: var(--logo); font-weight: 520; font-variation-settings: 'wght' 520; font-size: .68rem; }
-.hz-gate h2, .ai-pay h2, .acct h2 { font-family: var(--logo); font-weight: 650; font-variation-settings: 'wght' 650; letter-spacing: 0; font-size: 1.15rem; line-height: 1.3; }
-@media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } #wrDock .btn, .zn-seg button { font-size: .68rem; } }
-@media (max-width: 480px) { .zn-seg button { white-space: nowrap; font-size: .6rem; padding-inline: 6px; } }
+@media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
 </style>
 <script src="zone-config.js"></script>
