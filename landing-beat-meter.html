@@ -11,6 +11,9 @@
   document.documentElement.classList.add('bb');
   // day (white page, default) or night (the dark look): metrobar.bookDay, set before the first paint so night never flashes
   try { if (JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false) document.documentElement.classList.add('bb-day'); } catch (e) { document.documentElement.classList.add('bb-day'); }
+  // Red (the default) = the MetroBar look: its palette and font (bb-mb), set here so nothing flashes
+  try { var ac = JSON.parse(localStorage.getItem('metrobar.bookAccent') || '"#af0000"'); if (ac === '#af0000' || ac === '#ff3b4e') document.documentElement.classList.add('bb-mb'); } catch (e) { document.documentElement.classList.add('bb-mb'); }
+  try { document.documentElement.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
   try { history.replaceState(null, '', location.pathname + location.search + '#book'); } catch (e) { location.hash = '#book'; }
   try { history.replaceState(null, '', 'barbook.html#book'); } catch (e) {}
 })();
@@ -2572,159 +2575,198 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 /* Highlight Zone DAY palette (hand-picked; the generated rules below map every other dark colour) */
 html.bb.bb-day[data-theme], html.bb.bb-day #viewBook, html.bb.bb-day #viewBook.rb-dark { --bg: #ffffff; --panel: #f7f8f9; --card2: #f1f2f4; --cell: #f1f2f4; --line: #e3e6e9; --fg: #15171a; --muted: #6b7178; --side: #fafafa; color-scheme: light; }
 html.bb.bb-day { --t-rec: #6b7178; --t-ad: #6b7178; --t-add: #8a9097; --t-rw: #0b97bd; --t-rhy: #c98a00; }
+/* ---- Highlight Zone polish (Bennie 2026-11-13) ---- */
+/* Red (the default) = MetroBar's own look: its palette and IBM Plex Sans, day and night (html.bb-mb, set by setCol / boot) */
+html.bb.bb-mb[data-theme], html.bb.bb-mb #viewBook, html.bb.bb-mb #viewBook.rb-dark { --body: "IBM Plex Sans", system-ui, sans-serif;
+  --bg: #111413; --panel: #1a1e1d; --card2: #222826; --cell: #252b29; --line: #2c3331; --fg: #e9ece8; --muted: #8e9893; --side: #141817; }
+html.bb.bb-mb.bb-day[data-theme], html.bb.bb-mb.bb-day #viewBook, html.bb.bb-mb.bb-day #viewBook.rb-dark {
+  --bg: #eef0ec; --panel: #e2e5df; --card2: #dde1da; --cell: #d3d8d1; --line: #c5cbc4; --fg: #15181a; --muted: #5d6662; --side: #e8ebe5; }
+html.bb.bb-mb.bb-day { --dz-bg0: #eef0ec; --dz-bg1: #e8ebe5; --dz-bg2: #e2e5df; --dz-bg3: #dde1da; --dz-bg4: #d3d8d1;
+  --dz-l1: #d3d8d1; --dz-l2: #c5cbc4; --dz-l3: #b3bab2; --dz-t0: #15181a; --dz-t1: #2c3330; --dz-t2: #4a524e; --dz-t3: #5d6662; --t-rec: #5d6662; --t-ad: #5d6662; }
+html.bb.bb-mb .rb-ed { --rb-bg: var(--bg); --rb-fg: var(--fg); --rb-rule: var(--line); }
+/* Red only: the song you're on in the side menu is solid red with white letters (the lyric rows keep their gradient) */
+html.bb.bb-mb #beRecent button[aria-current="true"], html.bb.bb-mb .bs-lib #rbList button[aria-current="true"] { background: var(--accent) !important; color: var(--on-accent) !important; box-shadow: none !important; }
+html.bb.bb-mb #beRecent button[aria-current="true"] *, html.bb.bb-mb .bs-lib #rbList button[aria-current="true"] * { color: inherit !important; }
+html.bb.bb-mb #beRecent button[aria-current="true"] small, html.bb.bb-mb #beRecent button[aria-current="true"] em { opacity: .82; }
+html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 2px #fff !important; }
+/* High-Light switched on = solid accent with white text (every colour) */
+html.bb #bsFlowB[aria-pressed="true"], html.bb #bsFlowB[aria-pressed="true"] * { color: var(--on-accent) !important; }
+/* All songs icon in the colour you picked */
+html.bb .bs-all .a > span { color: var(--accent); }
+html.bb.bb-mb .bs-all .a > span { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
+/* the streak card's 0/8 reads in day mode */
+html.bb.bb-day .be-goal text { fill: var(--fg); }
+/* Writing area (Settings): plain = the page, card = a soft panel behind the bars, lined = a ruled line under each bar */
+html.bb[data-paper="card"] .be-rows { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 6px 10px; }
+html.bb[data-paper="lined"] .be-row:not(.hd) .be-cell { background: linear-gradient(var(--line), var(--line)) 0 100% / 100% 1px no-repeat; padding-bottom: 7px; }
+/* Settings: the Page / Song / Help block gets the same inner margin as the rest of the dialog */
+.bs-dlg .be-more { padding: 4px 18px 18px; }
+/* font picker: every name shown in its own font */
+.bs-fontb { min-width: 10rem; height: 40px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: var(--fg); font-size: 1.05rem; cursor: pointer; text-align: left; }
+.bs-fontb::after { content: "\25BE"; float: right; margin-left: 10px; color: var(--muted); font-family: system-ui; }
+.bs-fonts { display: grid; gap: 6px; margin: 4px 0 8px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); max-height: 22rem; overflow: auto; }
+.bs-fonts h6 { margin: 6px 0 0; color: var(--muted); font: 600 .72rem var(--body); text-transform: uppercase; letter-spacing: .08em; }
+.bs-fgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: 6px; }
+.bs-fgrid button { height: 40px; padding: 0 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 1.05rem; text-align: left; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; cursor: pointer; }
+.bs-fgrid button[aria-selected="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.bs-fgrid button:hover { border-color: var(--muted); }
+.bs-paper { display: inline-flex; gap: 6px; flex-wrap: wrap; }
+.bs-paper button { height: 36px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: var(--fg); font: 500 .9rem var(--body); cursor: pointer; }
+.bs-paper button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 /* HZ-DAY:BEGIN (generated by tools/hz-day-theme.py, do not edit by hand) */
-html.bb.bb-day .rb-sheet { background:var(--rb-sheet, #f7f8f9); color:#15171a; }
-html.bb.bb-day .rb-sheet .ln.now { color:#15171a; }
+html.bb.bb-day .rb-sheet { background:var(--rb-sheet, var(--dz-bg1, #f7f8f9)); color:var(--dz-t0, #15171a); }
+html.bb.bb-day .rb-sheet .ln.now { color:var(--dz-t0, #15171a); }
 @media (max-width: 1000px) { html.bb.bb-day .rb-side { box-shadow:-10px 0 40px #0000001f; } }
 @media (max-width: 1000px) { html.bb.bb-day .rb-sidetg { box-shadow:0 6px 20px #0000001f; } }
 @media (max-width: 1000px) { html.bb.bb-day .rb-side.open { box-shadow:-10px 0 40px #0000001f; } }
 html.bb.bb-day .bk-tabs button[aria-pressed="true"] { box-shadow:0 1px 3px #0000001f; }
-html.bb.bb-day .bk-vid, html.bb.bb-day .bk-scbox { background:#ffffff; }
+html.bb.bb-day .bk-vid, html.bb.bb-day .bk-scbox { background:var(--dz-bg0, #ffffff); }
 html.bb.bb-day .be-menu { box-shadow:0 14px 40px #0000001f; }
-@media (max-width: 1000px) { html.bb.bb-day .be-shade.on { background:#ffffff; } }
-html.bb.bb-day .btn:hover { border-color:#d9dce0; }
-html.bb.bb-day .bs-brand .bs-nm small { color:var(--muted, #555b62); }
-html.bb.bb-day .be-cov i { background:#dcdfe3; }
-html.bb.bb-day .be-links > button:hover { border-color:#d9dce0; }
+@media (max-width: 1000px) { html.bb.bb-day .be-shade.on { background:var(--dz-bg0, #ffffff); } }
+html.bb.bb-day .btn:hover { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-brand .bs-nm small { color:var(--muted, var(--dz-t2, #555b62)); }
+html.bb.bb-day .be-cov i { background:var(--dz-bg4, #dcdfe3); }
+html.bb.bb-day .be-links > button:hover { border-color:var(--dz-l2, #d9dce0); }
 html.bb.bb-day .be-saved { box-shadow:0 18px 50px #0000001f; }
-html.bb.bb-day .rb-main { scrollbar-color:#e9ebee transparent; }
-html.bb.bb-day .be-head #rbTitle { color:#30353b; }
-html.bb.bb-day .be-pill { border-color:#d9dce0; }
-html.bb.bb-day .be-ib { color:#30353b; }
-html.bb.bb-day #bsAct { border-color:#d9dce0; }
-html.bb.bb-day .be-row.cur { background:#f1f2f4; }
-html.bb.bb-day .be-num { color:#6b7178; }
-html.bb.bb-day .be-rt { border:1px solid #e6e8eb; background:#f7f8f9; }
-html.bb.bb-day .be-rb { color:#555b62; }
+html.bb.bb-day .rb-main { scrollbar-color:var(--dz-bg3, #e9ebee) transparent; }
+html.bb.bb-day .be-head #rbTitle { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .be-pill { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-ib { color:var(--dz-t1, #30353b); }
+html.bb.bb-day #bsAct { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-row.cur { background:var(--dz-bg2, #f1f2f4); }
+html.bb.bb-day .be-num { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .be-rt { border:1px solid var(--dz-l1, #e6e8eb); background:var(--dz-bg1, #f7f8f9); }
+html.bb.bb-day .be-rb { color:var(--dz-t2, #555b62); }
 html.bb.bb-day .be-rb[data-k="rewrite"] { color:#d63384; }
 html.bb.bb-day .be-row.has .be-rb[data-k="rewrite"] { color:#0b8fb3; }
 html.bb.bb-day .be-rb[data-k="rhymes"] { color:#b88400; }
-html.bb.bb-day .be-in::placeholder { color:#6b7178; -webkit-text-fill-color:#6b7178; }
+html.bb.bb-day .be-in::placeholder { color:var(--dz-t3, #6b7178); -webkit-text-fill-color:var(--dz-t3, #6b7178); }
 html.bb.bb-day .be-gt { color:#2b7bb0; }
 html.bb.bb-day .be-gt:hover { color:#2b7bb0; }
-html.bb.bb-day .be-meter i { background:#e9ebee; }
-html.bb.bb-day .be-meter i.on { background:#dcdfe3; }
-html.bb.bb-day .be-meter i.gap { background:color-mix(in srgb, var(--warn) 34%, #e9ebee); }
-html.bb.bb-day .be-cnt { color:#555b62; }
-html.bb.bb-day .be-dots { color:#6b7178; }
-html.bb.bb-day .be-add { color:#30353b; }
-html.bb.bb-day .be-add:hover { border-color:#d9dce0; }
-html.bb.bb-day .be-hin { border:1px solid #d9dce0; }
-html.bb.bb-day .bs-big { border:1px solid #d9dce0; }
-html.bb.bb-day .bs-big:hover { border-color:#c2c7cc; }
-html.bb.bb-day .bs-sm { border:1px dashed #d9dce0; }
-html.bb.bb-day .bs-sm:hover { border-color:#c2c7cc; }
-html.bb.bb-day .bs-chk summary { color:#30353b; }
-html.bb.bb-day .bs-chk li::before { color:#6b7178; }
-html.bb.bb-day .rb-side { border:1px solid #d9dce0; box-shadow:0 24px 70px #0000001f; }
-html.bb.bb-day .rb-views button { color:#30353b; }
-html.bb.bb-day .bs-wide { color:#30353b; }
-html.bb.bb-day .bs-wide:hover { border-color:#d9dce0; }
-html.bb.bb-day .rb-tool.open { border-color:#d9dce0; }
-html.bb.bb-day .bs-work button { color:#30353b; }
-html.bb.bb-day .bs-work button:hover { border-color:#d9dce0; }
-html.bb.bb-day .bs-back { border:1px solid #d9dce0; box-shadow:0 12px 34px #0000001f; }
-html.bb.bb-day .rb-booth .rb-bh { border:1px solid #d9dce0; box-shadow:0 16px 44px #0000001f; }
-html.bb.bb-day .rb-bbeat i { background:#e9ebee; }
-html.bb.bb-day .bs-tap, html.bb.bb-day .bs-full { border:1px solid #d9dce0; }
-html.bb.bb-day .bs-btop button { border:1px solid #d9dce0; }
-html.bb.bb-day .bs-card { color:#555b62; }
-html.bb.bb-day .bs-card::before { background:radial-gradient(circle, #dcdfe3 1.4px, transparent 1.6px) 0 0 / 6px 5px; }
-html.bb.bb-day .bs-plus { border:1.5px dashed #d9dce0; }
-html.bb.bb-day .bs-plus:hover { border-color:#c2c7cc; }
-html.bb.bb-day .bs-srow > span:first-child { color:#6b7178; }
-html.bb.bb-day .bs-srow button { color:#555b62; }
-html.bb.bb-day .bs-srow button.d { color:#d6304a; background:#e9ebee; }
-html.bb.bb-day .bs-srow button.c { color:#2b7bb0; background:#e9ebee; }
-html.bb.bb-day .bs-srow .tx.e { color:#6b7178; }
-html.bb.bb-day dialog.bx-dlg, html.bb.bb-day .bs-dlg { border:1px solid #d9dce0; box-shadow:0 30px 90px #0000001f; }
-html.bb.bb-day .bs-dlg::backdrop, html.bb.bb-day dialog.bx-dlg::backdrop { background:#ffffff; }
-html.bb.bb-day .bs-dlg h4 + p { color:#30353b; }
-html.bb.bb-day .bs-tipline { color:#30353b; }
-html.bb.bb-day .bs-lib #rbList.grid .p { color:#555b62; }
-html.bb.bb-day .be-menu { border-color:#d9dce0; box-shadow:0 20px 60px #0000001f; }
-html.bb.bb-day .bk-fab { border:1px solid #d9dce0; box-shadow:0 10px 30px #0000001f; }
-html.bb.bb-day .bk-beat { border-color:#d9dce0; box-shadow:0 24px 70px #0000001f; }
+html.bb.bb-day .be-meter i { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-meter i.on { background:var(--dz-bg4, #dcdfe3); }
+html.bb.bb-day .be-meter i.gap { background:color-mix(in srgb, var(--warn) 34%, var(--dz-bg3, #e9ebee)); }
+html.bb.bb-day .be-cnt { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-dots { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .be-add { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .be-add:hover { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-hin { border:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-big { border:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-big:hover { border-color:var(--dz-l3, #c2c7cc); }
+html.bb.bb-day .bs-sm { border:1px dashed var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-sm:hover { border-color:var(--dz-l3, #c2c7cc); }
+html.bb.bb-day .bs-chk summary { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-chk li::before { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .rb-side { border:1px solid var(--dz-l2, #d9dce0); box-shadow:0 24px 70px #0000001f; }
+html.bb.bb-day .rb-views button { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-wide { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-wide:hover { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .rb-tool.open { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-work button { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-work button:hover { border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-back { border:1px solid var(--dz-l2, #d9dce0); box-shadow:0 12px 34px #0000001f; }
+html.bb.bb-day .rb-booth .rb-bh { border:1px solid var(--dz-l2, #d9dce0); box-shadow:0 16px 44px #0000001f; }
+html.bb.bb-day .rb-bbeat i { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .bs-tap, html.bb.bb-day .bs-full { border:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-btop button { border:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-card { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .bs-card::before { background:radial-gradient(circle, var(--dz-bg4, #dcdfe3) 1.4px, transparent 1.6px) 0 0 / 6px 5px; }
+html.bb.bb-day .bs-plus { border:1.5px dashed var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-plus:hover { border-color:var(--dz-l3, #c2c7cc); }
+html.bb.bb-day .bs-srow > span:first-child { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .bs-srow button { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .bs-srow button.d { color:#d6304a; background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .bs-srow button.c { color:#2b7bb0; background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .bs-srow .tx.e { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day dialog.bx-dlg, html.bb.bb-day .bs-dlg { border:1px solid var(--dz-l2, #d9dce0); box-shadow:0 30px 90px #0000001f; }
+html.bb.bb-day .bs-dlg::backdrop, html.bb.bb-day dialog.bx-dlg::backdrop { background:var(--dz-bg0, #ffffff); }
+html.bb.bb-day .bs-dlg h4 + p { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-tipline { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-lib #rbList.grid .p { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-menu { border-color:var(--dz-l2, #d9dce0); box-shadow:0 20px 60px #0000001f; }
+html.bb.bb-day .bk-fab { border:1px solid var(--dz-l2, #d9dce0); box-shadow:0 10px 30px #0000001f; }
+html.bb.bb-day .bk-beat { border-color:var(--dz-l2, #d9dce0); box-shadow:0 24px 70px #0000001f; }
 @media (max-width: 1000px) { html.bb.bb-day .rb-lib { box-shadow:10px 0 40px #0000001f; } }
 html.bb.bb-day .bs-mark { box-shadow:0 0 14px #ff2e8840, 0 0 0 1px #00000010; }
-html.bb.bb-day .bs-ib:hover, html.bb.bb-day .be-ib:hover, html.bb.bb-day #rbNew:hover { color:#15171a; }
-html.bb.bb-day #bsAct { border-color:color-mix(in srgb, var(--accent) 45%, #d9dce0); }
-html.bb.bb-day .be-row.cur .be-rt { border-color:color-mix(in srgb, var(--accent) 38%, #d9dce0); box-shadow:0 0 22px -8px var(--glow), 0 1px 0 #00000010 inset; }
-html.bb.bb-day .be-rb[data-k="rec"] { color:#30353b; }
-html.bb.bb-day .be-rb[data-k="add"] { color:#30353b; }
-html.bb.bb-day .be-row.cur { background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, #f1f2f4), #f1f2f4 45%); }
-html.bb.bb-day .be-hin { border-color:color-mix(in srgb, var(--accent) 45%, #d9dce0); }
-html.bb.bb-day .be-dots:hover { color:#15171a; }
-html.bb.bb-day #beRecent button:hover .be-cov { box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 60%, #d9dce0), 0 0 14px -4px var(--glow); }
-html.bb.bb-day .be-links > button:hover { color:#15171a; }
-html.bb.bb-day .rb-views button:hover { color:#15171a; }
+html.bb.bb-day .bs-ib:hover, html.bb.bb-day .be-ib:hover, html.bb.bb-day #rbNew:hover { color:var(--dz-t0, #15171a); }
+html.bb.bb-day #bsAct { border-color:color-mix(in srgb, var(--accent) 45%, var(--dz-l2, #d9dce0)); }
+html.bb.bb-day .be-row.cur .be-rt { border-color:color-mix(in srgb, var(--accent) 38%, var(--dz-l2, #d9dce0)); box-shadow:0 0 22px -8px var(--glow), 0 1px 0 #00000010 inset; }
+html.bb.bb-day .be-rb[data-k="rec"] { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .be-rb[data-k="add"] { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .be-row.cur { background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 7%, var(--dz-bg2, #f1f2f4)), var(--dz-bg2, #f1f2f4) 45%); }
+html.bb.bb-day .be-hin { border-color:color-mix(in srgb, var(--accent) 45%, var(--dz-l2, #d9dce0)); }
+html.bb.bb-day .be-dots:hover { color:var(--dz-t0, #15171a); }
+html.bb.bb-day #beRecent button:hover .be-cov { box-shadow:0 0 0 1px color-mix(in srgb, var(--accent) 60%, var(--dz-l2, #d9dce0)), 0 0 14px -4px var(--glow); }
+html.bb.bb-day .be-links > button:hover { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .rb-views button:hover { color:var(--dz-t0, #15171a); }
 html.bb.bb-day .bk-fab { box-shadow:0 10px 30px #0000001f, 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 0 24px -6px var(--glow); }
-html.bb.bb-day .bs-sw button[aria-checked="true"] { box-shadow:0 0 0 2px #d9dce0 inset, 0 0 20px 0 var(--c); }
-html.bb.bb-day .bs-sw button.nog[aria-checked="true"] { box-shadow:0 0 0 2px #d9dce0 inset; }
-html.bb.bb-day .be-cov { background:linear-gradient(160deg, #e9ebee, #f1f2f4); box-shadow:inset 0 0 0 1px #d9dce0; }
-html.bb.bb-day #beRecent button { color:#30353b; }
-html.bb.bb-day #beRecent button[aria-current="true"] { color:#15171a; }
-html.bb.bb-day #beRecent button:hover { color:#15171a; }
-html.bb.bb-day .be-goal { background:linear-gradient(180deg, #e9ebee, #f1f2f4); }
-html.bb.bb-day .be-goal .gr-bg { stroke:#d9dce0; }
-html.bb.bb-day .be-goal > span b { color:#15171a; }
-html.bb.bb-day .be-links > button { background:linear-gradient(180deg, #e9ebee, #f1f2f4); color:#15171a; }
-html.bb.bb-day .be-links > button.on, html.bb.bb-day .be-links > button[aria-expanded="true"] { background:color-mix(in srgb, var(--accent) 9%, #f1f2f4); }
+html.bb.bb-day .bs-sw button[aria-checked="true"] { box-shadow:0 0 0 2px var(--dz-l2, #d9dce0) inset, 0 0 20px 0 var(--c); }
+html.bb.bb-day .bs-sw button.nog[aria-checked="true"] { box-shadow:0 0 0 2px var(--dz-l2, #d9dce0) inset; }
+html.bb.bb-day .be-cov { background:linear-gradient(160deg, var(--dz-bg3, #e9ebee), var(--dz-bg2, #f1f2f4)); box-shadow:inset 0 0 0 1px var(--dz-l2, #d9dce0); }
+html.bb.bb-day #beRecent button { color:var(--dz-t1, #30353b); }
+html.bb.bb-day #beRecent button[aria-current="true"] { color:var(--dz-t0, #15171a); }
+html.bb.bb-day #beRecent button:hover { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-goal { background:linear-gradient(180deg, var(--dz-bg3, #e9ebee), var(--dz-bg2, #f1f2f4)); }
+html.bb.bb-day .be-goal .gr-bg { stroke:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-goal text { fill:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-goal > span b { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-links > button { background:linear-gradient(180deg, var(--dz-bg3, #e9ebee), var(--dz-bg2, #f1f2f4)); color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-links > button.on, html.bb.bb-day .be-links > button[aria-expanded="true"] { background:color-mix(in srgb, var(--accent) 9%, var(--dz-bg2, #f1f2f4)); }
 html.bb.bb-day .bs-stat .on { color:#1f9d55; }
-html.bb.bb-day .bs-stat button.on { color:#30353b; }
-html.bb.bb-day .bs-me { background:linear-gradient(180deg, #e9ebee, #f1f2f4); }
-html.bb.bb-day .bs-me.on .av::after { border:2px solid #e6e8eb; }
-html.bb.bb-day .be-rt { border-color:#d9dce0; background:linear-gradient(180deg, #f1f2f4, #f7f8f9); box-shadow:0 1px 0 #00000010 inset; }
-html.bb.bb-day .be-rb { color:#555b62; }
+html.bb.bb-day .bs-stat button.on { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .bs-me { background:linear-gradient(180deg, var(--dz-bg3, #e9ebee), var(--dz-bg2, #f1f2f4)); }
+html.bb.bb-day .bs-me.on .av::after { border:2px solid var(--dz-l1, #e6e8eb); }
+html.bb.bb-day .be-rt { border-color:var(--dz-l2, #d9dce0); background:linear-gradient(180deg, var(--dz-bg2, #f1f2f4), var(--dz-bg1, #f7f8f9)); box-shadow:0 1px 0 #00000010 inset; }
+html.bb.bb-day .be-rb { color:var(--dz-t2, #555b62); }
 html.bb.bb-day .be-rb[data-k="rewrite"] { color:#d63384; }
 html.bb.bb-day .be-row.has .be-rb[data-k="rewrite"] { color:#0b8fb3; }
 html.bb.bb-day .be-rb[data-k="rhymes"] { color:#b88400; }
 html.bb.bb-day .be-row.has .be-rb[data-k="adlib"] { color:#7c4dcc; }
-html.bb.bb-day .be-in::placeholder { color:#6b7178; -webkit-text-fill-color:#6b7178; }
-html.bb.bb-day .be-hin { background:linear-gradient(180deg, #e9ebee, #f1f2f4); }
-html.bb.bb-day .be-num { color:#6b7178; }
-html.bb.bb-day .bs-note { color:#30353b; }
+html.bb.bb-day .be-in::placeholder { color:var(--dz-t3, #6b7178); -webkit-text-fill-color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .be-hin { background:linear-gradient(180deg, var(--dz-bg3, #e9ebee), var(--dz-bg2, #f1f2f4)); }
+html.bb.bb-day .be-num { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .bs-note { color:var(--dz-t1, #30353b); }
 html.bb.bb-day .bs-tipline svg { color:#b88400; }
-html.bb.bb-day .bs-lib #rbList.sel button { outline:1px dashed #d9dce0; }
-html.bb.bb-day .bs-lib #rbList button[aria-current="true"]::before { background:#e9ebee; }
-html.bb.bb-day .bs-step button { border:1px solid #d9dce0; }
-html.bb.bb-day .be-row.cur .be-rt { background:#f1f2f4; }
-html.bb.bb-day .be-rb, html.bb.bb-day .be-rb[data-k], html.bb.bb-day .be-row.has .be-rb[data-k] { color:#555b62; }
-html.bb.bb-day .be-rb:hover, html.bb.bb-day .be-rb[data-k]:hover { color:#15171a; background:#e9ebee; }
-html.bb.bb-day .be-rb[aria-expanded="true"], html.bb.bb-day .be-rb.on { color:#15171a; background:#e9ebee; }
-html.bb.bb-day .be-num { color:#6b7178; }
-html.bb.bb-day .be-row.cur .be-num { color:#30353b; }
-html.bb.bb-day .be-row.cur, html.bb.bb-day .be-row.cur:hover { background:#f1f2f4; }
-html.bb.bb-day .be-rt { border:1px solid #d9dce0; background:#f7f8f9; }
-html.bb.bb-day .be-rb[data-k="rec"]::after { background:#e9ebee; }
-html.bb.bb-day .be-row.cur .be-rb[data-k="rec"] .be-rl, html.bb.bb-day .be-row.cur .be-rb[data-k="add"] .be-rl, html.bb.bb-day .be-row.cur .be-rb[data-k="adlib"] .be-rl { color:#555b62; }
-html.bb.bb-day .be-row.cur.vers .be-dp { border:1px solid #d9dce0; background:#f1f2f4; }
-html.bb.bb-day .be-row.cur .be-dp::after { background:#e9ebee; }
-html.bb.bb-day .be-dp > button { color:#555b62; }
-html.bb.bb-day .be-dpn { color:#15171a; }
-html.bb.bb-day .be-row.cur .be-dpc .be-rl { color:#555b62; }
-html.bb.bb-day .be-row.vers.cur .be-dpn, html.bb.bb-day .be-row.vers.cur .be-dpc .be-rl { color:color-mix(in srgb, var(--accent) 70%, #15171a); }
-html.bb.bb-day .be-row.cur, html.bb.bb-day .be-row.cur:hover { background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, #f7f8f9), #f7f8f9 38%); }
-html.bb.bb-day .be-row.cur .be-cell { background:#f7f8f9; }
-html.bb.bb-day .be-nav { color:#555b62; }
-html.bb.bb-day .be-nav:hover { color:#15171a; background:#0000000a; }
-html.bb.bb-day .be-pop.be-dd { background:#f1f2f4; border-color:#d9dce0; }
-html.bb.bb-day .be-dd .be-ph { border-bottom:1px solid #d9dce0; }
-html.bb.bb-day .be-dd .be-ph b { color:#555b62; }
-html.bb.bb-day .be-draft { border-bottom:1px solid #d9dce0; }
-html.bb.bb-day .be-draft:hover, html.bb.bb-day .be-draft:focus-visible { background:#e9ebee; }
-html.bb.bb-day .be-draft.on { background:color-mix(in srgb, var(--accent) 10%, #f1f2f4); }
-html.bb.bb-day .be-dtx { color:#15171a; }
-html.bb.bb-day .be-dno { color:#6b7178; }
-html.bb.bb-day .be-load { background:linear-gradient(90deg, #f1f2f4, #f1f2f4); }
-html.bb.bb-day .be-lmsg { color:#15171a; }
-html.bb.bb-day .be-stop { border:1px solid #d9dce0; background:#e9ebee; color:#15171a; }
-html.bb.bb-day .be-stop:hover { background:#e9ebee; }
+html.bb.bb-day .bs-lib #rbList.sel button { outline:1px dashed var(--dz-l2, #d9dce0); }
+html.bb.bb-day .bs-lib #rbList button[aria-current="true"]::before { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .bs-step button { border:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-row.cur .be-rt { background:var(--dz-bg2, #f1f2f4); }
+html.bb.bb-day .be-rb, html.bb.bb-day .be-rb[data-k], html.bb.bb-day .be-row.has .be-rb[data-k] { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-rb:hover, html.bb.bb-day .be-rb[data-k]:hover { color:var(--dz-t0, #15171a); background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-rb[aria-expanded="true"], html.bb.bb-day .be-rb.on { color:var(--dz-t0, #15171a); background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-num { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .be-row.cur .be-num { color:var(--dz-t1, #30353b); }
+html.bb.bb-day .be-row.cur, html.bb.bb-day .be-row.cur:hover { background:var(--dz-bg2, #f1f2f4); }
+html.bb.bb-day .be-rt { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg1, #f7f8f9); }
+html.bb.bb-day .be-rb[data-k="rec"]::after { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-row.cur .be-rb[data-k="rec"] .be-rl, html.bb.bb-day .be-row.cur .be-rb[data-k="add"] .be-rl, html.bb.bb-day .be-row.cur .be-rb[data-k="adlib"] .be-rl { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-row.cur.vers .be-dp { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg2, #f1f2f4); }
+html.bb.bb-day .be-row.cur .be-dp::after { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-dp > button { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-dpn { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-row.cur .be-dpc .be-rl { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-row.vers.cur .be-dpn, html.bb.bb-day .be-row.vers.cur .be-dpc .be-rl { color:color-mix(in srgb, var(--accent) 70%, var(--dz-t0, #15171a)); }
+html.bb.bb-day .be-row.cur, html.bb.bb-day .be-row.cur:hover { background:linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, var(--dz-bg1, #f7f8f9)), var(--dz-bg1, #f7f8f9) 38%); }
+html.bb.bb-day .be-row.cur .be-cell { background:var(--dz-bg1, #f7f8f9); }
+html.bb.bb-day .be-nav { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-nav:hover { color:var(--dz-t0, #15171a); background:#0000000a; }
+html.bb.bb-day .be-pop.be-dd { background:var(--dz-bg2, #f1f2f4); border-color:var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-dd .be-ph { border-bottom:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-dd .be-ph b { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-draft { border-bottom:1px solid var(--dz-l2, #d9dce0); }
+html.bb.bb-day .be-draft:hover, html.bb.bb-day .be-draft:focus-visible { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-draft.on { background:color-mix(in srgb, var(--accent) 10%, var(--dz-bg2, #f1f2f4)); }
+html.bb.bb-day .be-dtx { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-dno { color:var(--dz-t3, #6b7178); }
+html.bb.bb-day .be-load { background:linear-gradient(90deg, var(--dz-bg2, #f1f2f4), var(--dz-bg2, #f1f2f4)); }
+html.bb.bb-day .be-lmsg { color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-stop { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg3, #e9ebee); color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-stop:hover { background:var(--dz-bg3, #e9ebee); }
 html.bb.bb-day .be-row.inword .be-rb[data-k="rhymes"] { color:#c026d3; }
-html.bb.bb-day .be-pk { border:1px solid #d9dce0; background:#f1f2f4; color:#15171a; }
-html.bb.bb-day .be-pk:hover, html.bb.bb-day .be-pk:focus-visible { background:#e9ebee; }
-html.bb.bb-day .be-pk em { color:#555b62; }
-html.bb.bb-day .be-ai { border-top:1px solid #d9dce0; }
+html.bb.bb-day .be-pk { border:1px solid var(--dz-l2, #d9dce0); background:var(--dz-bg2, #f1f2f4); color:var(--dz-t0, #15171a); }
+html.bb.bb-day .be-pk:hover, html.bb.bb-day .be-pk:focus-visible { background:var(--dz-bg3, #e9ebee); }
+html.bb.bb-day .be-pk em { color:var(--dz-t2, #555b62); }
+html.bb.bb-day .be-ai { border-top:1px solid var(--dz-l2, #d9dce0); }
 /* HZ-DAY:END */
 </style>
 <script src="zone-config.js"></script>
@@ -9376,6 +9418,8 @@ void main(){
       const head = s.lead === 0 ? s.a : s.b, tail = s.lead === 0 ? s.b : s.a, blobs = new Float32Array(24), sy = new Float32Array(6).fill(1);
       blobs.set([head.x, s.cy.x, s.q * (1 - .25 * thin), T.r * (1 - .12 * thin), tail.x, s.cy.x, s.q * (1 - .8 * thin), T.r * (1 - .5 * thin)], 0);
       sy[0] = sy[1] = s.sy.s;
+      // the menu drop (s.fill) moves as one full-height tile: it stretches from tail to head and pulls back together, no thin neck
+      if (s.fill) { const L = Math.min(s.a.x, s.b.x), R = Math.max(s.a.x, s.b.x); blobs.set([(L + R) / 2, s.cy.x, s.q + (R - L) / 2, T.r, 0, 0, 0, 0], 0); }
       s.sats.slice(0, 4).forEach((d, i) => blobs.set([d.x, d.y, 0, d.r], 8 + i * 4));
       paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint, fill: s.fill, corner: s.fill ? 6 : 0 });
     }
@@ -11399,7 +11443,7 @@ var BS = (() => {
     moon: sv('<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>', 18),
     gear: sv('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>', 18),
     col: sv('<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9.5 5v14"/>', 18),
-    lib: sv('<path d="M5 5v14M9.5 5v14M14 6l4.5 12.5"/>', 18),
+    lib: sv('<path d="M2.5 8.2h19M2.5 12h19M2.5 15.8h19" stroke-width=".9" opacity=".38"/><path d="M7.4 22.2c-1 .2-1.8-.4-1.7-1.2.1-.7.9-1 1.4-.5M7.1 21l-.8-17.3c-.1-1.2 1.3-1.5 1.7-.4.5 1.4-.4 3.1-1.8 4.5-1.7 1.7-2.4 3-2 4.6.4 1.6 2.3 2.1 3.5 1.3 1.2-.8 1.1-2.5-.2-3.1-1.2-.5-2.6.2-2.6 1.4"/><ellipse cx="13.4" cy="17.7" rx="1.75" ry="1.3" transform="rotate(-22 13.4 17.7)" fill="currentColor" stroke="none"/><ellipse cx="19.2" cy="16.1" rx="1.75" ry="1.3" transform="rotate(-22 19.2 16.1)" fill="currentColor" stroke="none"/><path d="M15 17V6.9M20.8 15.4V5.3"/><path d="M15 6.9l5.8-1.6" stroke-width="2.1"/>', 22),   // All songs: clef, staff and notes (Bennie's example)
     grid: sv('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>', 17),
     bin: sv('<path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12"/>', 18),
     dl: sv('<path d="M12 4v11M8 11l4 4 4-4"/><path d="M5 19h14"/>', 18),
@@ -11540,7 +11584,7 @@ var BS = (() => {
   // any colour too (Bennie 2026-11-13): the rainbow swatch opens the colour picker; live while dragging, saved when it closes;
   // the text on the accent turns white or near-black by how light the colour is
   const onFor = hex => { const n = parseInt(hex.slice(1), 16); return .2126 * (n >> 16) + .7152 * (n >> 8 & 255) + .0722 * (n & 255) > 150 ? '#111' : '#fff'; };
-  const paintCol = (a, on) => { root.style.setProperty('--bb-a', a); root.style.setProperty('--bb-on', on); root.style.setProperty('--bb-glow', a === COL[0][0] ? 'transparent' : `color-mix(in srgb, ${a} 55%, transparent)`); };
+  const paintCol = (a, on) => { root.classList.toggle('bb-mb', a === COL[0][0]); root.style.setProperty('--bb-a', a); root.style.setProperty('--bb-on', on); root.style.setProperty('--bb-glow', a === COL[0][0] ? 'transparent' : `color-mix(in srgb, ${a} 55%, transparent)`); };
   function setCol(c) {
     const hex = /^#[0-9a-f]{6}$/i.test(c || '') ? c.toLowerCase() : COL[0][0];
     const d = COL.find(x => x[0] === hex) || [hex, 'Your colour', onFor(hex)], custom = !COL.some(x => x[0] === d[0]);
@@ -11556,9 +11600,37 @@ var BS = (() => {
   const oR = opts(RHY, rhyNow, setRhy, 'Rhyme detection', 'rap'), oV = opts(VIBE, () => store.get('metrobar.aiVibe', 'lyrical'), v => { store.set('metrobar.aiVibe', v); actSync(); }, 'AI writing vibe', '');
   BE.more.hidden = false;
   { const hs = BE.more.querySelectorAll('h6'); hs.forEach(x => { const n = h('h4', '', x.textContent); x.replaceWith(n); }); }
-  ST.body.append(h('h4', '', 'Colour'), sw, h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme.'), (() => { const n = h('p', 'bs-note'); n.innerHTML = IC.info + '<span>Rhyme colours are built for English.</span>'; return n; })(), oR.box,
+  // Writing area (Bennie 2026-11-13): the background behind the bars, always in the theme's own colours
+  const PAPER = [['plain', 'Plain'], ['card', 'Card'], ['lined', 'Lined']], paper = h('div', 'bs-paper'); paper.setAttribute('role', 'group'); paper.setAttribute('aria-label', 'Writing area');
+  const setPaper = v => { root.dataset.paper = v; store.set('metrobar.bookPaper', v); paper.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); };
+  PAPER.forEach(([v, n]) => { const b = h('button', '', n); b.type = 'button'; b.dataset.v = v; b.addEventListener('click', () => setPaper(v)); paper.append(b); });
+  setPaper(store.get('metrobar.bookPaper', 'plain'));
+  ST.body.append(h('h4', '', 'Colour'), sw, h('h4', '', 'Writing area'), paper, h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme.'), (() => { const n = h('p', 'bs-note'); n.innerHTML = IC.info + '<span>Rhyme colours are built for English.</span>'; return n; })(), oR.box,
     h('h4', '', 'AI writing vibe'), h('p', '', 'The style Write with AI and Rewrite aim for. Uses your own key, set under Actions > Write with AI.'), oV.box, BE.more);
   function settings() { oR.draw(); oV.draw(); BE.drawerOpen(false); actOpen(false); if (!ST.d.open) ST.d.showModal(); }
+  // Font picker (Bennie 2026-11-13): every font name drawn in its own font. The Google ones load only the letters of their names,
+  // under a preview name ("pv …") so they never clash with the full font the page loads once you pick one.
+  { const sel = $('rbFont'), lab = sel && sel.closest('label');
+    if (sel && lab) {
+      const BUILT = { sans: 'system-ui, -apple-system, "Segoe UI", sans-serif', rounded: 'ui-rounded, "SF Pro Rounded", "Nunito", "Arial Rounded MT Bold", system-ui, sans-serif',
+        serif: '"Iowan Old Style", Georgia, "Times New Roman", serif', type: '"American Typewriter", "Courier New", Courier, monospace', mono: 'var(--mono)',
+        hand: '"Marker Felt", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive' };
+      const fam = v => v.startsWith('g:') ? `"pv ${v.slice(2)}", "${v.slice(2)}", system-ui, sans-serif` : BUILT[v] || 'inherit';
+      const nameOf = v => v.startsWith('g:') ? v.slice(2) : (RB_FONTS[v] || v);
+      let pvOn = false;
+      const pv = () => { if (pvOn) return; pvOn = true; const all = Object.values(RB_GFONTS).flat(), chars = [...new Set(all.join(''))].join('');
+        const url = 'https://fonts.googleapis.com/css2?' + all.map(n => 'family=' + encodeURIComponent(n).replace(/%20/g, '+')).join('&') + '&text=' + encodeURIComponent(chars) + '&display=swap';
+        fetch(url).then(r => r.ok ? r.text() : '').then(css => { if (!css) return; const st = document.createElement('style'); st.textContent = css.replace(/font-family:\s*'([^']+)'/g, "font-family: 'pv $1'"); document.head.append(st); }).catch(() => {}); };
+      const fb = h('button', 'bs-fontb'); fb.type = 'button'; fb.setAttribute('aria-haspopup', 'listbox'); fb.setAttribute('aria-expanded', 'false');
+      const list = h('div', 'bs-fonts'); list.hidden = true; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', 'Font');
+      const show = () => { const v = sel.value; fb.textContent = nameOf(v); fb.style.fontFamily = fam(v); list.querySelectorAll('[role=option]').forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === v))); };
+      const open = on => { list.hidden = !on; fb.setAttribute('aria-expanded', String(on)); if (on) { pv(); if (!list.childElementCount) build(); show(); } };
+      const build = () => [...sel.children].forEach(g => { list.append(h('h6', '', g.label)); const row = h('div', 'bs-fgrid');
+        [...g.children].forEach(o => { const b = h('button', '', o.textContent); b.type = 'button'; b.setAttribute('role', 'option'); b.dataset.v = o.value; b.style.fontFamily = fam(o.value);
+          b.addEventListener('click', e => { e.preventDefault(); sel.value = o.value; sel.dispatchEvent(new Event('change', { bubbles: true })); show(); open(false); }); row.append(b); }); list.append(row); });
+      fb.addEventListener('click', e => { e.preventDefault(); open(list.hidden); });
+      sel.hidden = true; sel.after(fb); lab.after(list); sel.addEventListener('change', show); show();
+    } }
   setB.addEventListener('click', settings);
   { const del = $('rbDel'); if (del) del.addEventListener('click', () => ST.d.close()); }
 
