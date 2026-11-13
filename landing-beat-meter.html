@@ -9078,8 +9078,11 @@ var FF = (() => {
   const cssRgb = (el, name, fb) => hexRgb(getComputedStyle(el).getPropertyValue(name)) || fb;
   const FRAG = `precision highp float;
 uniform vec2 uRes;uniform float uDpr;uniform float uTime;uniform vec4 uBlob[6];uniform float uSy[6];
-uniform vec4 uSpk;uniform vec3 uMag;uniform vec3 uTint;uniform float uFill;
-float sdCap(vec2 p,vec4 B,float sy){p-=B.xy;p.y/=sy;p.x=max(abs(p.x)-B.z,0.);return(length(p)-B.w)*min(1.,sy);}
+uniform vec4 uSpk;uniform vec3 uMag;uniform vec3 uTint;uniform float uFill;uniform float uCorner;
+// uCorner > 0: rounded rectangle with that corner radius (the menu tiles) instead of a pill; beads (B.z = 0) stay round
+float sdCap(vec2 p,vec4 B,float sy){p-=B.xy;p.y/=sy;
+ if(uCorner>0.){float c=min(uCorner,B.w);vec2 q=abs(p)-vec2(B.z+B.w-c,B.w-c);return(length(max(q,0.))+min(max(q.x,q.y),0.)-c)*min(1.,sy);}
+ p.x=max(abs(p.x)-B.z,0.);return(length(p)-B.w)*min(1.,sy);}
 float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
 float base(vec2 p){float d=1e4;for(int i=0;i<6;i++){if(uBlob[i].w>.5)d=smin(d,sdCap(p,uBlob[i],uSy[i]),uSpk.w);}return d;}
 // the mouse presses a soft dimple of light into the glass
@@ -9100,7 +9103,7 @@ void main(){
  float ga=.34+.4*rim+.25*fr;
  // filled drop (the menu): a solid accent body with a lighter rim; same shape, motion and highlights
  vec3 gf=mix(uTint,mix(uTint,vec3(1.),.28),clamp(rim*dn*.7+fr*.2,0.,1.));
- g=mix(g,gf,uFill);ga=mix(ga,1.,uFill);
+ g=mix(g,gf,uFill);ga=mix(ga,1.,uFill);s1*=1.-.55*uFill;s2*=1.-.3*uFill;
  g=mix(g,vec3(1.),clamp(s1*1.6+s2*1.2,0.,1.));ga=max(ga,clamp(s1*1.6+s2,0.,1.));
  float al=ga*a;
  gl_FragColor=vec4(g*al,al+sh*(1.-al));
@@ -9119,7 +9122,7 @@ void main(){
       g.useProgram(pr); g.bindBuffer(g.ARRAY_BUFFER, g.createBuffer());
       g.bufferData(g.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), g.STATIC_DRAW);
       const loc = g.getAttribLocation(pr, 'a'); g.enableVertexAttribArray(loc); g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
-      const u = {}; ['uRes', 'uDpr', 'uTime', 'uBlob', 'uSy', 'uSpk', 'uMag', 'uTint', 'uFill'].forEach(n => { u[n] = g.getUniformLocation(pr, n); });
+      const u = {}; ['uRes', 'uDpr', 'uTime', 'uBlob', 'uSy', 'uSpk', 'uMag', 'uTint', 'uFill', 'uCorner'].forEach(n => { u[n] = g.getUniformLocation(pr, n); });
       g.enable(g.SCISSOR_TEST);
       cv.addEventListener('webglcontextlost', e => { e.preventDefault(); GL = null; });
       GL = { g, u, cv };
@@ -9134,7 +9137,7 @@ void main(){
     g.viewport(0, 0, W, H); g.scissor(0, 0, W, H);
     g.uniform2f(u.uRes, W / dpr, H / dpr); g.uniform1f(u.uDpr, dpr); g.uniform1f(u.uTime, o.time);
     g.uniform4fv(u.uBlob, o.blobs); g.uniform1fv(u.uSy, o.sy); g.uniform4f(u.uSpk, 0, 0, 0, o.k);
-    g.uniform3f(u.uMag, o.mag[0], o.mag[1], o.mag[2]); g.uniform3f(u.uTint, ...o.tint); g.uniform1f(u.uFill, o.fill || 0);
+    g.uniform3f(u.uMag, o.mag[0], o.mag[1], o.mag[2]); g.uniform3f(u.uTint, ...o.tint); g.uniform1f(u.uFill, o.fill || 0); g.uniform1f(u.uCorner, o.corner || 0);
     g.clearColor(0, 0, 0, 0); g.clear(g.COLOR_BUFFER_BIT); g.drawArrays(g.TRIANGLES, 0, 3);
     ctx.clearRect(0, 0, W, H); ctx.drawImage(cv, 0, cv.height - H, W, H, 0, 0, W, H);
   }
@@ -9162,7 +9165,7 @@ void main(){
       blobs.set([head.x, s.cy.x, s.q * (1 - .25 * thin), T.r * (1 - .12 * thin), tail.x, s.cy.x, s.q * (1 - .8 * thin), T.r * (1 - .5 * thin)], 0);
       sy[0] = sy[1] = s.sy.s;
       s.sats.slice(0, 4).forEach((d, i) => blobs.set([d.x, d.y, 0, d.r], 8 + i * 4));
-      paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint, fill: s.fill });
+      paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint, fill: s.fill, corner: s.fill ? 6 : 0 });
     }
     function step(dt, now) {
       const T = s.T, bodies = [s.a, s.b]; let still = true;
@@ -9208,7 +9211,7 @@ void main(){
       if (!b) { if (s.show) { s.show = false; draw(); } s.ready = false; return; }
       if (!el.offsetWidth || !b.offsetWidth) return;
       s.w = el.offsetWidth; s.h = el.offsetHeight; s.tint = tintOf(el);
-      const T = s.T, inset = Math.min(2, b.offsetHeight * .08);
+      const T = s.T, inset = s.fill ? 1 : Math.min(2, b.offsetHeight * .08);   // the menu drop lands exactly on its tile (its soft edge makes up the 1px)
       T.r = b.offsetHeight / 2 - inset; T.q = Math.max(0, b.offsetWidth / 2 - b.offsetHeight / 2); T.cy = PAD + b.offsetTop + b.offsetHeight / 2;
       const nx = PAD + b.offsetLeft + b.offsetWidth / 2;
       if (!s.ready) { s.a.x = s.b.x = nx; s.cy.x = T.cy; s.q = T.q; s.ready = true; }
