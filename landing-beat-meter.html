@@ -1942,8 +1942,8 @@ html.bb .rb-libh, html.bb .rb-lib > .rb-search, html.bb .rb-lib > .rb-fsel, html
 .bs-brand b { margin-right: auto; display: flex; align-items: center; gap: 10px; font: 700 1.05rem var(--body); letter-spacing: -.01em; }
 .bs-brand .bs-nm { display: grid; line-height: 1.05; white-space: nowrap; }   /* "The" small on top, "Highlight Zone" under it: fits the sidebar on one line */
 .bs-brand .bs-nm small { font-size: .62rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #8b8f93); }
-.bs-mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: grid; grid-template-rows: repeat(3, 3px); gap: 3px; align-content: center; padding: 0 6px; }
-.bs-mark i { height: 3px; border-radius: 2px; background: var(--on-accent); } .bs-mark i:nth-child(2) { width: 70%; } .bs-mark i:nth-child(3) { width: 45%; }
+/* The Highlight Zone mark (2026-11-13, placeholder until Bennie picks one): lines of text with words lit in Jet Set-style colours */
+.bs-mark { width: 26px; height: 26px; flex: none; border-radius: 7px; display: block; } .bs-mark svg { display: block; }
 .bs-ib { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
 .bs-ib:hover { color: var(--fg); background: var(--card2); }
 .bs-all { display: grid; grid-template-columns: minmax(0, 1fr) 44px; margin: 14px 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); flex: none; }
@@ -2248,7 +2248,7 @@ html.bb .bk-play { background: var(--accent); color: var(--on-accent); }
 @media (prefers-reduced-motion: reduce) { html.bb .rb-lib { transition: none; } }
 /* glow pass (Bennie 2026-11-12: "why is it green and the icons dont highlight and have that premium glow"): accent = --bb-a (Settings > Colour,
    default red), everything that can be pressed lights up on hover and stays lit while it is the active thing */
-html.bb .bs-mark { box-shadow: 0 0 18px var(--glow), 0 0 0 1px #ffffff22 inset; }
+html.bb .bs-mark { box-shadow: 0 0 14px #ff2e8840, 0 0 0 1px #ffffff1f; }
 html.bb .bs-ib, html.bb .be-ib, html.bb .be-rb, html.bb .be-links > button, html.bb .rb-tbtn .ti, html.bb .bs-all button, html.bb .be-pill, html.bb .bk-fab, html.bb .be-dots, html.bb #rbNew { transition: color .15s ease-out, background-color .15s ease-out, border-color .15s ease-out, box-shadow .15s ease-out, filter .15s ease-out, transform .1s ease-out; }
 html.bb .bs-ib:hover, html.bb .be-ib:hover, html.bb #rbNew:hover { color: #fff; background: color-mix(in srgb, var(--accent) 14%, var(--card2)); box-shadow: 0 0 14px -2px var(--glow); }
 html.bb .bs-ib:hover svg, html.bb .be-ib:hover svg { filter: drop-shadow(0 0 5px var(--glow)); }
@@ -2551,6 +2551,9 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 .views > a[aria-current="page"], .views.ff-nav > a[aria-current="page"] { color: var(--on-accent, #fff) !important; }
 @media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
+/* Flow game and Advanced sit in the page column like every other box (Bennie 2026-11-13: same size as the 1 2 3 4 box,
+   not the whole window); this undoes the old full-window break-out of #viewPractice > .adv / .tg-entry */
+#viewPractice > .adv, #viewPractice > .tg-entry { margin-inline: 0; }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -11226,7 +11229,7 @@ var BS = (() => {
   BE.drawerTg.title = 'Show the songs'; BE.drawerTg.addEventListener('click', e => { if (innerWidth > 1000) { e.stopImmediatePropagation(); nolib(false); } }, true);
 
   // ---- sidebar
-  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><i></i><i></i><i></i></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
+  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect width="26" height="26" rx="7" fill="#14161a"/><g stroke-width="3" stroke-linecap="round"><path d="M6.5 8h4.5" stroke="#ff2e88"/><path d="M14 8h5.5" stroke="#ffd60a"/><path d="M6.5 13h8" stroke="#23d5ff"/><path d="M17.5 13h2" stroke="#ff7a1a"/><path d="M6.5 18h2.5" stroke="#8cff2e"/><path d="M12 18h5" stroke="#ff2e88"/></g></svg></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
   const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), setB = btn('bs-ib', I.gear, 'Settings', 'Settings'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
   brand.append(bname, homeB, setB, colB);
   homeB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html'; });
