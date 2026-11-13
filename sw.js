@@ -1,5 +1,5 @@
 // Minimal offline cache for MetroBar: the one HTML file, manifest, icons; fonts are cached when first fetched.
-const CACHE = 'metrobar-v85';
+const CACHE = 'metrobar-v86';
 const FILES = ['./', './landing-beat-meter.html', './barbook.html', './manifest.json', './icon-192.png', './icon-512.png', './cmudict.txt', './fonts/Panchang-Variable.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => {
