@@ -1,0 +1,356 @@
+<!doctype html>
+<!--
+  MetroBar legal page: Terms of Service, Privacy Policy, Refund Policy.
+
+  STRIPE SETUP NOTE:
+    In every Stripe Payment Link, turn on "Require customers to accept your terms of service"
+    and set the terms URL (Stripe > Settings > Public details) to https://metrobarz.com/legal.html.
+    The checkout must also get the buyer's express consent to immediate delivery and the
+    acknowledgement that the right of withdrawal is lost (see #refunds). Without that consent
+    on record, the 14-day right of withdrawal stays in full.
+
+  This text is a careful draft, not legal advice. Have it checked before taking real payments.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MetroBar – Terms, Privacy &amp; Refunds</title>
+<meta name="description" content="Terms of Service, Privacy Policy and Refund Policy for MetroBar.">
+<style>
+  :root {
+    --bg: #ffffff; --fg: #1b1b1f; --muted: #5d5d68; --line: #e1e1e6;
+    --link: #0b57d0; --panel: #f5f5f7; --mark: #fff1b8; --mark-fg: #5c4400;
+    color-scheme: light dark;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #121214; --fg: #ececf1; --muted: #a3a3b0; --line: #2c2c33;
+      --link: #8ab4f8; --panel: #1c1c21; --mark: #4a3b00; --mark-fg: #ffe28a;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap { max-width: 46rem; margin: 0 auto; padding: 0 16px 64px; }
+  header.top {
+    position: sticky; top: 0; background: var(--bg); border-bottom: 1px solid var(--line);
+    padding: 10px 0; z-index: 1;
+  }
+  nav { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; font-size: 0.95rem; }
+  nav .back { margin-right: auto; font-weight: 600; }
+  a { color: var(--link); text-underline-offset: 2px; }
+  h1 { font-size: 1.9rem; line-height: 1.2; margin: 32px 0 4px; text-wrap: balance; }
+  h2 { font-size: 1.45rem; line-height: 1.25; margin: 56px 0 8px; padding-top: 16px; border-top: 1px solid var(--line); scroll-margin-top: 64px; }
+  h3 { font-size: 1.05rem; margin: 28px 0 4px; }
+  p, ul, ol { margin: 8px 0; }
+  ul, ol { padding-left: 1.3rem; }
+  li { margin: 4px 0; }
+  .muted { color: var(--muted); }
+  .box { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; margin: 16px 0; }
+  .ph { background: var(--mark); color: var(--mark-fg); padding: 0 4px; border-radius: 3px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.9em; overflow-wrap: anywhere; }
+  .tablewrap { overflow-x: auto; margin: 12px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+  th, td { text-align: left; vertical-align: top; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+  th { font-weight: 600; white-space: nowrap; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  footer { margin-top: 56px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 0.9rem; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <nav aria-label="Sections">
+    <a class="back" href="landing-beat-meter.html">&larr; Back to MetroBar</a>
+    <a href="#terms">Terms</a>
+    <a href="#privacy">Privacy</a>
+    <a href="#refunds">Refunds</a>
+  </nav>
+</header>
+
+<h1>MetroBar – Terms, Privacy &amp; Refunds</h1>
+<p class="muted">Last updated 2026-11-13</p>
+
+<div class="box">
+  <p><strong>Who we are.</strong> MetroBar (https://metrobarz.com) is run by Pink Elephant Salon, Ganzenheuvel 33, 6511 WD Nijmegen, the Netherlands.<br>
+  Chamber of Commerce (KvK): 83005544. VAT number: NL003764039B02.<br>
+  Contact: <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a>.</p>
+  <p>In this page "we" and "us" mean that seller. "You" means the person using MetroBar.</p>
+</div>
+
+<!-- ============================== TERMS ============================== -->
+<h2 id="terms">Terms of Service</h2>
+
+<h3>1. What MetroBar is</h3>
+<p>MetroBar is a web app for writing and practising rap. It has a metronome and beat tools (MetroBar), a writing pad (Write), a lyric editor (The Highlight Zone), a community (The Zone) and optional AI writing tools.</p>
+<p>By using MetroBar you agree to these terms. If you do not agree, please do not use the app.</p>
+
+<h3>2. Your account</h3>
+<ul>
+  <li>Most of MetroBar works without an account. You need an account for The Zone, for syncing Highlight Zone pages and for MetroBar AI credits.</li>
+  <li>You sign up with an email address and a password. Keep your password to yourself. You are responsible for what happens in your account.</li>
+  <li>You must be 16 or older to make an account. If you are under 18, you need a parent's or guardian's permission to buy anything.</li>
+  <li>You can ask us to delete your account at any time by emailing <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a>.</li>
+</ul>
+
+<h3>3. Plans and prices</h3>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Plan</th><th>Price</th><th>What you get</th></tr></thead>
+  <tbody>
+    <tr><td>Free</td><td class="num">€0</td><td>MetroBar, Write, The Zone community and 15 AI credits per 30 days.</td></tr>
+    <tr><td>Pro</td><td class="num">€15 / month</td><td>Everything in Free, plus The Highlight Zone lyric editor. 15 AI credits per month.</td></tr>
+    <tr><td>Super Pro</td><td class="num">€20 / month</td><td>Everything in Pro, plus 800 AI credits per month. You can use up to 200 credits per day.</td></tr>
+  </tbody>
+</table>
+</div>
+<p>One-off credit packs:</p>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Pack</th><th>AI credits</th></tr></thead>
+  <tbody>
+    <tr><td class="num">€5</td><td class="num">250</td></tr>
+    <tr><td class="num">€10</td><td class="num">500</td></tr>
+    <tr><td class="num">€15</td><td class="num">800</td></tr>
+    <tr><td class="num">€20</td><td class="num">1200</td></tr>
+  </tbody>
+</table>
+</div>
+<ul>
+  <li>Prices are in euros. Prices include VAT where VAT applies.</li>
+  <li>Pack credits do not expire. Monthly plan credits do not roll over to the next month.</li>
+  <li>One press of an AI button uses one credit. If the AI call fails, the credit is given back automatically.</li>
+  <li>Credits have no cash value. You cannot transfer or resell them.</li>
+  <li>The price that counts is the one shown at checkout when you buy.</li>
+</ul>
+
+<h3>4. Payment, renewal and cancelling</h3>
+<ul>
+  <li>Payments are handled by Stripe. We never see or store your full card details.</li>
+  <li>Pro and Super Pro are subscriptions. They renew every month, and you are charged every month, until you cancel.</li>
+  <li>You can cancel at any time. There is no minimum term and no cancellation fee.</li>
+  <li><strong>How to cancel:</strong> in MetroBar open your account (the AI credits / plan sheet) and press <strong>Cancel subscription</strong>. That opens the secure Stripe page where you cancel in two clicks; Stripe confirms by email. You can also email <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a> from the email address of your account.</li>
+  <li>After you cancel, you keep your plan until the end of the period you already paid for. Access can stay on for up to 3 more days after that.</li>
+  <li>If a renewal payment fails, Stripe tries again. Your plan stays on for up to 3 days after the paid period. After that it goes back to Free.</li>
+  <li>Switching plan ends the old plan.</li>
+  <li>When a plan ends, your account, your Zone posts and your lyrics stay. Highlight Zone pages you already wrote are not deleted.</li>
+  <li>If we change a subscription price, we tell you by email at least 30 days before. You can cancel before the new price starts.</li>
+</ul>
+<p>Refunds and your 14-day right of withdrawal are explained in the <a href="#refunds">Refund Policy</a>.</p>
+
+<h3>5. Your lyrics and content</h3>
+<ul>
+  <li>You keep the copyright in everything you write in MetroBar. We do not claim ownership of your lyrics.</li>
+  <li>Private pages stay private. We do not publish them and we do not use them to train AI.</li>
+  <li>When you publish a post, comment, profile or score in The Zone, you give us a licence to store it and show it to other MetroBar users inside the app. This licence is free, worldwide and non-exclusive. It exists only to run The Zone. It ends when you delete the content or your account.</li>
+  <li>Most of your writing is stored only in your own browser. Clearing your browser data, or losing your device, can delete it. Please keep your own copies of work that matters to you.</li>
+</ul>
+
+<h3>6. Rules for The Zone</h3>
+<p>The Zone is a place to share bars and give feedback. To keep it good for everyone:</p>
+<ul>
+  <li>Post only lyrics you wrote yourself, or that you have the right to share.</li>
+  <li>No harassment, threats, hate against people or groups, or bullying. Hard bars are fine. Attacking real people is not.</li>
+  <li>No sexual content involving minors. No private information about other people. Nothing illegal.</li>
+  <li>No spam, no ads, no fake accounts, no cheating on game scores.</li>
+</ul>
+<p>You can report a post, a comment or a score. You can block another user. Admins can hide posts, comments and scores that break these rules. If someone breaks the rules badly or repeatedly, we can suspend or close the account. If we do that, we tell you why by email, and you can reply to object. If you think content in The Zone is illegal or copies your work, email <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a>.</p>
+
+<h3>7. AI tools</h3>
+<ul>
+  <li>AI output is a suggestion. It can be wrong, weak or similar to existing lyrics. You decide what you use and you are responsible for what you publish.</li>
+  <li>MetroBar AI sends only the text you choose to send with an AI button. See the <a href="#privacy">Privacy Policy</a>.</li>
+  <li>You can also add your own AI key (Gemini, OpenAI, Claude, OpenRouter or Ollama). Then your own agreement with that provider applies, and that provider may charge you.</li>
+  <li>Do not use the AI tools to make illegal content or to try to get around usage limits.</li>
+</ul>
+
+<h3>8. Beats, YouTube and SoundCloud</h3>
+<p>MetroBar can play YouTube and SoundCloud links in their official players. That music belongs to its owners. MetroBar gives you no rights to it. Check the licence of a beat before you release a song on it.</p>
+
+<h3>9. Availability and changes</h3>
+<ul>
+  <li>We work to keep MetroBar running and safe, but we cannot promise it is always online or free of errors. Some features depend on other services (see Privacy) that can change or stop.</li>
+  <li>We may change or remove features. If a change makes a paid plan clearly worse for you, you can cancel and get back the money for the part of the period you have not used.</li>
+  <li>We may update these terms. For changes that matter, we tell account holders by email or in the app at least 30 days before. If you do not agree, you can cancel before the change starts.</li>
+</ul>
+
+<h3>10. Your legal guarantee and our liability</h3>
+<ul>
+  <li>If you are a consumer, the law gives you a guarantee that paid digital services work as agreed. If something you paid for does not work, tell us. We fix it, or we give you a fair price reduction or refund.</li>
+  <li>We are liable for damage that is a direct and foreseeable result of us breaking these terms or the law.</li>
+  <li>We are not liable for damage we could not reasonably foresee, for damage caused by services we do not control (for example your own AI provider, YouTube or SoundCloud), or for lyrics lost from your own browser storage where we were not at fault.</li>
+  <li>MetroBar is made for personal, creative use. We are not liable for lost profit or other business losses.</li>
+  <li>Nothing in these terms limits our liability for intent or gross negligence, for death or personal injury, or takes away rights that consumer law gives you.</li>
+</ul>
+
+<h3>11. Law and complaints</h3>
+<ul>
+  <li>Dutch law applies to these terms. If you are a consumer living in another EU country, you keep the protection of the mandatory consumer law of your own country.</li>
+  <li>Got a complaint? Email <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a> first. We answer within 14 days.</li>
+  <li>If we cannot solve it together, the Dutch courts can decide. Consumers can also go to the court of the place where they live.</li>
+</ul>
+
+<!-- ============================== PRIVACY ============================== -->
+<h2 id="privacy">Privacy Policy</h2>
+
+<p>The controller of your personal data is Pink Elephant Salon, Ganzenheuvel 33, 6511 WD Nijmegen, the Netherlands, <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a>. We follow the EU General Data Protection Regulation (GDPR).</p>
+
+<div class="box">
+  <p><strong>The short version.</strong> No ads. No tracking or analytics scripts. We never sell your data. Most of what you write stays in your own browser. We only store what is needed to run accounts, The Zone, sync and payments.</p>
+</div>
+
+<h3>1. What stays on your device</h3>
+<ul>
+  <li><strong>Lyrics, songs and settings.</strong> Saved in your browser's local storage. They are not sent to us unless you sign in and sync, or publish them.</li>
+  <li><strong>Your own AI keys.</strong> If you add your own key, it is saved only in your browser's local storage. It is never sent to us.</li>
+  <li><strong>Recordings and imported beats.</strong> Takes you record and audio files you add are saved only in your browser (IndexedDB). They are not uploaded.</li>
+  <li><strong>Microphone.</strong> The tap/BPM tools and the flow game listen to the microphone inside your browser, and only after you allow it. That sound is not recorded and not uploaded.</li>
+</ul>
+
+<h3>2. What we store when you have an account</h3>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Data</th><th>Why</th><th>Legal basis</th></tr></thead>
+  <tbody>
+    <tr><td>Email address, password (stored as a hash), account ID</td><td>To sign you in and reset your password</td><td>Contract</td></tr>
+    <tr><td>Profile: username, bio, avatar picture</td><td>To show your profile in The Zone</td><td>Contract</td></tr>
+    <tr><td>Zone posts, comments, respects, follows, game scores</td><td>To run the community</td><td>Contract</td></tr>
+    <tr><td>Blocks and reports</td><td>To keep The Zone safe and moderate it</td><td>Legitimate interest (a safe community)</td></tr>
+    <tr><td>Highlight Zone pages you sync</td><td>To keep your pages on all your devices. Only you can read them.</td><td>Contract</td></tr>
+    <tr><td>AI wallet: plan, credits, usage count, which AI model answered</td><td>To count credits and enforce limits</td><td>Contract</td></tr>
+    <tr><td>Payment records: plan or pack, amount, date, Stripe customer and payment IDs, refunds and disputes</td><td>To give you what you paid for and keep our books</td><td>Contract and legal obligation (tax law)</td></tr>
+    <tr><td>Emails you send us</td><td>To answer you</td><td>Legitimate interest (support)</td></tr>
+  </tbody>
+</table>
+</div>
+<p>We do not make automated decisions about you that have legal or similar effects. We do not build advertising profiles.</p>
+
+<h3>3. Who else handles data</h3>
+<p>We use a small number of other companies. Some work for us as processors. Others are services your browser contacts directly when you use a feature. Every one of them can see your IP address when your browser connects, because that is how the internet works.</p>
+<div class="tablewrap">
+<table>
+  <thead><tr><th>Who</th><th>When</th><th>What they get</th></tr></thead>
+  <tbody>
+    <tr><td>Hostinger (hosting)</td><td>Always</td><td>Your IP address and standard server logs when the site loads.</td></tr>
+    <tr><td>Google Fonts</td><td>Always, when the app loads</td><td>Your IP address and browser details, to deliver the fonts.</td></tr>
+    <tr><td>Supabase (database, sign-in, file storage, server functions)</td><td>When you use an account, The Zone, sync or MetroBar AI</td><td>The account data listed in section 2. Stored in the United Kingdom (London; covered by an EU adequacy decision).</td></tr>
+    <tr><td>jsDelivr (CDN)</td><td>When account features load</td><td>Your IP address, to deliver the Supabase code library.</td></tr>
+    <tr><td>Stripe (payments)</td><td>When you buy</td><td>Your payment details, email, country and what you bought. Stripe is also a controller of its own for fraud checks and legal duties.</td></tr>
+    <tr><td>Google (Gemini API)</td><td>When you press a MetroBar AI button</td><td>Only the text sent with that button, through our server. We do not send your name, email or account ID with it.</td></tr>
+    <tr><td>Your own AI provider: Google Gemini, OpenAI, Anthropic (Claude), OpenRouter, or Ollama on your own computer</td><td>Only if you add your own key</td><td>The text you send and your key go straight from your browser to that provider. We are not involved, and their privacy policy applies.</td></tr>
+    <tr><td>YouTube (Google)</td><td>Only when you play a YouTube link, or see beat search results</td><td>The player loads from youtube-nocookie.com, with player code and thumbnail images from YouTube servers. YouTube sees your IP address and what you play.</td></tr>
+    <tr><td>SoundCloud</td><td>Only when you play a SoundCloud link</td><td>The SoundCloud player loads. SoundCloud sees your IP address and what you play, and may set its own cookies.</td></tr>
+    <tr><td>Piped (public, volunteer-run search servers)</td><td>Only when you search for beats</td><td>Your search words and IP address.</td></tr>
+    <tr><td>Datamuse</td><td>Only when you look up rhymes online</td><td>The single word you look up and your IP address.</td></tr>
+    <tr><td>Your browser's maker (for example Google or Apple)</td><td>Only when you use dictation</td><td>Dictation uses your browser's built-in speech recognition. Your browser may send the audio to its maker to turn it into text. MetroBar itself does not receive or store the audio.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>4. Transfers outside the EU</h3>
+<p>Supabase, Stripe, Google, jsDelivr, SoundCloud, Datamuse and the optional AI providers are based in, or use servers in, the United States and other countries outside the European Economic Area. Where we choose the provider, the transfer is covered by the EU–US Data Privacy Framework or by the EU's standard contractual clauses. Piped servers are run by volunteers in different countries. Ask us if you want more detail.</p>
+
+<h3>5. Cookies and local storage</h3>
+<ul>
+  <li>MetroBar itself sets no advertising or analytics cookies.</li>
+  <li>We use your browser's local storage and IndexedDB only for things the app needs: your lyrics and settings, your sign-in session, your recordings, and offline use. These are functional, so no cookie banner is needed.</li>
+  <li>Stripe sets its own cookies on its checkout pages. YouTube and SoundCloud players may store data in your browser when you play a link.</li>
+</ul>
+
+<h3>6. How long we keep data</h3>
+<ul>
+  <li><strong>Account, profile, Zone content, synced pages, AI wallet:</strong> until you delete them or ask us to delete your account. We then remove them within 30 days.</li>
+  <li><strong>Reports:</strong> up to 12 months after they are handled.</li>
+  <li><strong>Payment and invoice records:</strong> 7 years, because Dutch tax law requires it.</li>
+  <li><strong>Support emails:</strong> up to 2 years.</li>
+  <li><strong>Data in your browser:</strong> until you clear it. You control it.</li>
+</ul>
+
+<h3>7. Your rights</h3>
+<p>Under the GDPR you have the right to:</p>
+<ul>
+  <li><strong>Access</strong> — get a copy of the data we hold about you.</li>
+  <li><strong>Rectification</strong> — have wrong data corrected.</li>
+  <li><strong>Erasure</strong> — have your data deleted.</li>
+  <li><strong>Restriction</strong> — have us pause the use of your data.</li>
+  <li><strong>Portability</strong> — get your data in a common, machine-readable format.</li>
+  <li><strong>Objection</strong> — object to use that is based on legitimate interest.</li>
+</ul>
+<p>Email <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a> to use a right. It is free. We answer within one month. We may ask you to prove the account is yours.</p>
+<p>You can also complain to the Dutch data protection authority, the Autoriteit Persoonsgegevens (autoriteitpersoonsgegevens.nl), or to the authority in your own EU country.</p>
+
+<h3>8. Security and children</h3>
+<ul>
+  <li>Connections are encrypted (HTTPS). Database rules make sure private pages can only be read by their owner. Payment card data is handled only by Stripe.</li>
+  <li>No system is perfectly safe. If a data breach puts you at risk, we tell you and the authority as the law requires.</li>
+  <li>Accounts are for people of 16 and older. We do not knowingly keep account data of younger children. Tell us if you think we do, and we delete it.</li>
+</ul>
+
+<h3>9. Changes to this policy</h3>
+<p>If we change how we use personal data, we update this page and the date at the top. For big changes we also tell account holders by email or in the app.</p>
+
+<!-- ============================== REFUNDS ============================== -->
+<h2 id="refunds">Refund Policy</h2>
+
+<h3>1. Your 14-day right of withdrawal</h3>
+<p>If you are a consumer in the EU, you can normally cancel an online purchase within 14 days without giving a reason. The 14 days start on the day you buy. This comes from EU Directive 2011/83/EU and Dutch law.</p>
+<p>MetroBar delivers at once: credits are in your wallet right away, and a plan starts right away. That only happens if you ask for it. So at checkout we ask you to agree to immediate delivery. What that means differs per product:</p>
+
+<h3>2. Credit packs</h3>
+<ul>
+  <li>A credit pack is digital content that is delivered immediately.</li>
+  <li>At checkout you expressly ask us to deliver the credits at once, and you acknowledge that you <strong>lose your right of withdrawal</strong> as soon as the credits are added to your wallet. We confirm this to you by email.</li>
+  <li>If you did not give that consent and acknowledgement, or we did not confirm it, you keep the full 14-day right of withdrawal.</li>
+</ul>
+
+<h3>3. Subscriptions (Pro and Super Pro)</h3>
+<ul>
+  <li>A subscription is a digital service. At checkout you expressly ask us to start it at once, during the 14-day period.</li>
+  <li>You can still withdraw within 14 days of your first payment. If you do, you pay only for the days from the start until you told us, in proportion to the monthly price. We refund the rest.</li>
+  <li>The right of withdrawal applies to the first purchase of a plan, not to each monthly renewal.</li>
+  <li>After the 14 days you can still cancel at any time. The plan then runs to the end of the paid period. Payments for a period that has already started are not refunded, unless the law says otherwise.</li>
+</ul>
+
+<h3>4. How to withdraw or ask for a refund</h3>
+<p>The quickest way: in MetroBar open your account (the AI credits / plan sheet) and press <strong>Withdraw from contract</strong>. Fill in what you withdraw from and press <strong>Confirm withdrawal</strong>. You see a receipt straight away and we confirm by email.</p>
+<p>You can also email <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a> from the email address of your account and say clearly that you withdraw. You can use this text:</p>
+<div class="box">
+  <p>To Pink Elephant Salon, Ganzenheuvel 33, 6511 WD Nijmegen, the Netherlands, <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a>:<br>
+  I hereby give notice that I withdraw from my contract for the following service: [Pro / Super Pro / credit pack]<br>
+  Ordered on: [date]<br>
+  Name: [your name]<br>
+  Email address of the MetroBar account: [email]<br>
+  Date: [date]</p>
+</div>
+<ul>
+  <li>We confirm that we received your message.</li>
+  <li>We pay refunds within 14 days of your message, to the payment method you used. A refund costs you nothing.</li>
+</ul>
+
+<h3>5. When something does not work</h3>
+<ul>
+  <li>A failed AI call gives the credit back automatically. You do not need to ask.</li>
+  <li>If you paid and did not get your plan or credits, or a paid feature does not work, email us. We fix it. If we cannot fix it in a reasonable time, you get a fair price reduction or a full refund. This legal guarantee is separate from the right of withdrawal and you never lose it by agreeing to immediate delivery.</li>
+  <li>Charged twice or by mistake? Email us and we refund the wrong charge.</li>
+</ul>
+
+<h3>6. What a refund or chargeback does</h3>
+<ul>
+  <li>A full refund of a credit pack removes that pack's credits from your wallet.</li>
+  <li>A full refund of a subscription payment ends the plan. Your account goes back to Free.</li>
+  <li>A chargeback (payment dispute at your bank) has the same effect. Please email us first. That is usually faster for you.</li>
+  <li>A partial refund does not remove credits or end a plan.</li>
+</ul>
+
+<footer>
+  <p>MetroBar · Pink Elephant Salon · KvK 83005544 · VAT NL003764039B02 · <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a></p>
+  <p><a href="landing-beat-meter.html">&larr; Back to MetroBar</a> · <a href="#terms">Terms</a> · <a href="#privacy">Privacy</a> · <a href="#refunds">Refunds</a></p>
+</footer>
+
+</div>
+</body>
+</html>

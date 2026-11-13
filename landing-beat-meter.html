@@ -2499,6 +2499,10 @@ dialog.acct::backdrop { background: #000b; backdrop-filter: blur(6px); }
 .acct-w > div { padding: 14px; border-radius: 14px; background: #1a1d20; display: grid; gap: 2px; } .acct-w b { font-size: 1.5rem; font-variant-numeric: tabular-nums; } .acct-w span { color: #a3a7ab; font-size: .82rem; }
 .acct-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
 .acct .ghost { height: 42px; border: 1px solid #2c3136; border-radius: 12px; background: none; color: #e6e8ea; font: 600 .9rem/1 inherit; cursor: pointer; } .acct .ghost:hover { background: #1a1d20; }
+.acct-end { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); } .acct-end .ghost { color: #a3a7ab; font-weight: 500; }
+.acct .acct-legal { margin-top: 14px; } .acct .acct-legal a, .acct .acct-sub a, .ai-pay .note a { color: inherit; text-underline-offset: 3px; }
+.acct-f select { height: 46px; padding: 0 12px; border: 1px solid #2c3136; border-radius: 12px; background: #0b0c0d; color: #fff; font: 400 1rem/1 inherit; width: 100%; }
+.wd-rc { margin: 0 0 14px; padding: 14px; border-radius: 14px; background: #1a1d20; display: grid; gap: 4px; } .wd-rc p { margin: 0; font-size: .9rem; } .wd-rc .t { font-variant-numeric: tabular-nums; }
 /* MetroBar AI credits (2026-11-12): wallet line in the AI panel + the Get more sheet */
 .ai-wal { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 10px 0 4px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; font-size: .86rem; }
 .ai-wal .btn { flex: none; }
@@ -8042,7 +8046,7 @@ function aiPaywall(why) {
  <div class="plan pro"><b>Super Pro</b><strong>${P.superPrice || '€20'}</strong><small>per month</small><ul><li>Everything in Pro</li><li>${supN} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('super', 'super', 'Get Super Pro')}</div>
 </div>
 ${packs.length ? `<h3 class="pay-h">Credit packs <small>one payment, never expire, on top of any plan</small></h3><div class="packs">${packs.map(k => `<a class="pack" data-k="${k.k}"><strong>${k.credits}</strong><small>AI credits</small><b>${k.price}</b></a>`).join('')}</div>` : ''}
-<p class="note">1 press = 1 credit. If the AI fails, the credit comes back. Switching plan ends the old one. Payments run on Stripe; MetroBar never sees your card.</p>`;
+<p class="note">1 press = 1 credit. If the AI fails, the credit comes back. Switching plan ends the old one. Payments run on Stripe; MetroBar never sees your card. Prices include VAT. <a href="legal.html#terms" target="_blank" rel="noopener">Terms</a> · <a href="legal.html#refunds" target="_blank" rel="noopener">Refunds and cancelling</a></p>`;
   d.querySelectorAll('a[data-k]').forEach(a => { const u = aiPay(a.dataset.k);
     if (!w) { a.href = '#'; if (!a.classList.contains('pack')) a.textContent = 'Sign in first'; a.addEventListener('click', e => { e.preventDefault(); d.close(); acctOpen('in'); }); }
     else if (u) { a.href = u; a.target = '_blank'; a.rel = 'noopener'; a.addEventListener('click', () => { [15000, 40000].forEach(ms => setTimeout(() => aiWallet(true), ms)); }); }
@@ -8637,6 +8641,8 @@ function znSupabase(cfg) {
     async signIn(email, pw) { chk(await sb.auth.signInWithPassword({ email, password: pw })); },
     async resetPw(email) { chk(await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] + '#zone' })); },
     async signOut() { await sb.auth.signOut(); },
+    // EU withdrawal function (2026-11-13): the request is stored (table withdrawals, own rows only); returns the stored row as the receipt
+    async withdraw(row) { const id = await meId(); if (!id) throw new Error('Sign in first.'); const r = await sb.from('withdrawals').insert(Object.assign({ user_id: id }, row)).select('id, created_at').single(); return chk(r); },
     // Barbook sync: the signed-in user's own pages (table book_pages, row level security = only you)
     async userId() { return meId(); },
     // MetroBar AI: edge function "ai" (key on the server, credits in ai_wallets)
@@ -8729,6 +8735,7 @@ function znDemo() {
     async signIn() { signed = true; },
     async resetPw() {},
     async signOut() { signed = false; },
+    async withdraw() { return { id: 0, created_at: new Date().toISOString() }; },
     async isAdmin() { return signed; },
     async feed(kind, q) {
       let l = posts.slice(); q = String(q || '').trim().toLowerCase();
@@ -11568,6 +11575,46 @@ function acctNote(d, title, text) {
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form><h2>${title}</h2><p class="acct-sub"></p><button class="acct-go" type="button">Back to sign in</button>`;
   d.querySelector('.acct-sub').textContent = text; d.querySelector('.acct-go').addEventListener('click', () => acctOpen('in'));
 }
+// Stripe customer portal (2026-11-13): cancel the subscription, change the card, see invoices. Email prefilled when known.
+function acctPortal(w) {
+  const u = window.ZONE_CONFIG && ZONE_CONFIG.pay && ZONE_CONFIG.pay.portal; if (!u) return '';
+  return w && w.email ? u + (u.includes('?') ? '&' : '?') + 'prefilled_email=' + encodeURIComponent(w.email) : u;
+}
+// EU withdrawal function (Directive 2023/2673, from 19 June 2026): "Withdraw from contract" > fill in > "Confirm withdrawal" > receipt on screen.
+function acctWithdraw(d, api, w) {
+  const mail = (w && w.email) || '', plan = w && planPaid(w) ? planName(w.plan) : '';
+  d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
+<h2>Withdraw from contract</h2>
+<p class="acct-sub">Within 14 days of buying you can withdraw without giving a reason. Fill this in and press Confirm withdrawal. <a href="legal.html#refunds" target="_blank" rel="noopener">How it works</a></p>
+<form class="acct-f wd-f">
+  <label>What do you withdraw from?<select name="what" required><option value="">Choose…</option>
+    <option${plan === 'Pro' ? ' selected' : ''}>Pro subscription</option><option${plan === 'Super Pro' ? ' selected' : ''}>Super Pro subscription</option>
+    <option>Credit pack (250)</option><option>Credit pack (500)</option><option>Credit pack (800)</option><option>Credit pack (1200)</option></select></label>
+  <label>Your name<input name="name" required maxlength="200" autocomplete="name"></label>
+  <label>Email you paid with<input name="email" type="email" required maxlength="200" autocomplete="email"></label>
+  <label>Bought on (if you know)<input name="ordered_on" type="date"></label>
+  <label>Anything else? (optional)<input name="note" maxlength="1000"></label>
+  <p class="err" aria-live="polite"></p>
+  <button class="acct-go" type="submit">Confirm withdrawal</button>
+</form>`;
+  const f = d.querySelector('.wd-f'), err = f.querySelector('.err'), go = f.querySelector('.acct-go');
+  f.email.value = mail;
+  f.addEventListener('submit', async e => {
+    e.preventDefault(); err.textContent = ''; go.disabled = true; go.textContent = 'Sending…';
+    const row = { what: f.what.value, name: f.name.value.trim(), email: f.email.value.trim(), ordered_on: f.ordered_on.value || null, note: f.note.value.trim() || null };
+    try {
+      const r = await api.withdraw(row), at = new Date(r.created_at || Date.now());
+      d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
+<h2>Withdrawal received</h2>
+<div class="wd-rc"><p><b>Receipt</b> · ${r.id ? 'no. ' + r.id + ' · ' : ''}<span class="t"></span></p><p class="w"></p><p class="n"></p></div>
+<p class="acct-sub">Keep this receipt. Pink Elephant Salon (MetroBar) confirms by email to <b class="m"></b> and refunds within 14 days to the way you paid. Questions: <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a></p>
+<button class="acct-go" type="button">Done</button>`;
+      d.querySelector('.t').textContent = at.toLocaleString(); d.querySelector('.w').textContent = 'Withdrawal from: ' + row.what;
+      d.querySelector('.n').textContent = row.name + ' · ' + row.email; d.querySelector('.m').textContent = row.email;
+      d.querySelector('.acct-go').addEventListener('click', () => d.close());
+    } catch (x) { err.textContent = (x && x.message) || 'That did not go through. Try again, or email ben@pinkelephantsalon.nl.'; go.disabled = false; go.textContent = 'Confirm withdrawal'; }
+  });
+}
 function acctDone(d) {
   if (typeof aiWallet === 'function') aiWallet(true);
   if (typeof rbSyncSoon === 'function') rbSyncSoon(300);
@@ -11581,13 +11628,17 @@ async function acctMine(d, api) {
 <div class="acct-me"><span class="av"></span><div><h2></h2><p class="acct-sub mail"></p></div></div>
 ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></div><div><b>${planName(w.plan)}</b><span>next ${w.monthly} on ${when}</span></div></div>
 <button class="acct-go" type="button" data-a="pay">${w.plan === 'super' ? 'Add credits' : 'Plans and AI credits'}</button>` : ''}
-<div class="acct-row"><button type="button" class="ghost" data-a="zone">My Zone profile</button><button type="button" class="ghost" data-a="out">Sign out</button></div>`;
+<div class="acct-row"><button type="button" class="ghost" data-a="zone">My Zone profile</button><button type="button" class="ghost" data-a="out">Sign out</button></div>
+<div class="acct-row acct-end">${w && planPaid(w) && acctPortal(w) ? '<button type="button" class="ghost" data-a="cancel">Cancel subscription</button>' : ''}<button type="button" class="ghost" data-a="withdraw">Withdraw from contract</button></div>
+<p class="fine acct-legal"><a href="legal.html#terms" target="_blank" rel="noopener">Terms</a> · <a href="legal.html#privacy" target="_blank" rel="noopener">Privacy</a> · <a href="legal.html#refunds" target="_blank" rel="noopener">Refunds</a></p>`;
   d.querySelector('.av').textContent = (me.username || '?')[0].toUpperCase();
   d.querySelector('h2').textContent = '@' + me.username;
   d.querySelector('.mail').textContent = (w && w.email) || 'Signed in';
   d.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', async () => {
     const a = b.dataset.a;
     if (a === 'pay') { d.close(); aiPaywall(); }
+    else if (a === 'cancel') { const u = acctPortal(w); if (u) window.open(u, '_blank', 'noopener'); acctNote(d, 'Cancel on the Stripe page', 'A secure Stripe page opened in a new tab. Enter the email you paid with, then press Cancel subscription. Your plan keeps running until the end of the month you paid for. Stripe confirms by email.'); const g = d.querySelector('.acct-go'); g.textContent = 'Done'; g.replaceWith(g.cloneNode(true)); d.querySelector('.acct-go').addEventListener('click', () => d.close()); }
+    else if (a === 'withdraw') acctWithdraw(d, api, w);
     else if (a === 'zone') { if (typeof rbFlush === 'function') rbFlush(); location.href = 'landing-beat-meter.html#zone'; }
     else if (a === 'out') { b.disabled = true; try { await api.signOut(); } catch (e) {} ZN.me = null; if (typeof AIW !== 'undefined') AIW.w = null; try { await znAuthChanged(); } catch (e) {} if (typeof aiWalletShow === 'function') aiWalletShow(); d.close(); if (typeof toast === 'function') toast('Signed out. Your songs stay in this browser.'); }
   }));

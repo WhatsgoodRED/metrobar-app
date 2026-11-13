@@ -8,4 +8,6 @@ window.ZONE_CONFIG = { url: 'https://uwxictlpfsgsgghnhdov.supabase.co', key: 'sb
   // Plans v2 (2026-11-13): Pro = The Highlight Zone, Super Pro = Pro + 800 AI credits; packs = one-off credits. Empty link = "Coming soon". LIVE links (2026-11-13); the sandbox test_ links stay in Stripe for testing.
   pay: { pro: 'https://buy.stripe.com/bJefZjdtk3uHgqccNJ1VK05', proPrice: '€15', super: 'https://buy.stripe.com/dRm3cx8909T52zm2951VK04', superPrice: '€20', superCredits: 800, freeCredits: 15,
     packs: [{ k: 'pack5', price: '€5', credits: 250 }, { k: 'pack10', price: '€10', credits: 500 }, { k: 'pack15', price: '€15', credits: 800 }, { k: 'pack20', price: '€20', credits: 1200 }],
-    pack5: 'https://buy.stripe.com/dRm28t3SK4yLc9W2951VK03', pack10: 'https://buy.stripe.com/4gMfZjexoe9l5LydRN1VK02', pack15: 'https://buy.stripe.com/4gMcN74WOc1db5SdRN1VK01', pack20: 'https://buy.stripe.com/14A9AV60S0iv3DqeVR1VK00' } };
+    pack5: 'https://buy.stripe.com/dRm28t3SK4yLc9W2951VK03', pack10: 'https://buy.stripe.com/4gMfZjexoe9l5LydRN1VK02', pack15: 'https://buy.stripe.com/4gMcN74WOc1db5SdRN1VK01', pack20: 'https://buy.stripe.com/14A9AV60S0iv3DqeVR1VK00',
+    // portal = Stripe customer portal: cancel, card, invoices
+    portal: 'https://billing.stripe.com/p/login/14A9AV60S0iv3DqeVR1VK00' } };
