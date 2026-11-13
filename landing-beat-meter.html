@@ -1025,6 +1025,7 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 .rb-sheet .ln { opacity: .45; transition: opacity .15s; }
 .rb-sheet.idle .ln, .rb-sheet .ln.now { opacity: 1; }
 .rb-sheet .ln.now { color: #fff; text-shadow: 0 0 18px color-mix(in srgb, var(--accent) 70%, transparent); }
+html.bb .rb-sheet .ln.now { text-shadow: 0 0 18px var(--glow); }
 #viewBook:not(.rb-dark) .rb-sheet .ln.now { color: var(--accent); text-shadow: none; }
 .rb-sheet .note { font: .9rem var(--body); }
 /* Compare */
@@ -1918,7 +1919,7 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .62); }
    (sidebar, top bar, a tool row on every bar, syllable bars, Actions panel) from the RhymeFlux screenshots Bennie sent; own code, own
    colours, no logo, palette or artwork of theirs. Script: BS (last script). Everything here is scoped to html.bb. */
 html.bb[data-theme] { --bg: #0b0c0d; --panel: #131517; --card2: #1a1d20; --cell: #1a1d20; --line: #24282c; --fg: #eceeef; --muted: #8b9197; --side: #0e0f11;
-  --accent: #ff3b4e; --on-accent: #fff; --accent-text: #ff3b4e; --warn: #f0b44c; --bad: #ff6b5e;
+  --accent: #af0000; --on-accent: #fff; --accent-text: #af0000; --warn: #f0b44c; --bad: #ff6b5e;
   --body: "Instrument Sans", "IBM Plex Sans", system-ui, sans-serif; --display: var(--body); color-scheme: dark; }
 html.bb body { background: var(--bg); color: var(--fg); overflow: hidden; font-family: var(--body); }
 html.bb .wrap { max-width: none; margin: 0; padding: 0; }
@@ -2298,6 +2299,8 @@ html.bb .bs-opt:hover { border-color: color-mix(in srgb, var(--accent) 45%, var(
 .bs-pick input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; border: 0; padding: 0; }
 .bs-pick[aria-checked="true"] { box-shadow: 0 0 0 2px var(--fg), 0 0 20px 0 var(--c); }
 .bs-pick:focus-within { outline: 2px solid var(--fg); outline-offset: 2px; }
+.bs-sw button.nog, .bs-sw button.nog[aria-checked="true"] { --c-glow: none; } .bs-sw button.nog { box-shadow: none; } .bs-sw button.nog[aria-checked="true"] { box-shadow: 0 0 0 2px #131517 inset; }
+html.bb.bb-day .bs-sw button.nog { box-shadow: 0 0 0 1px #d9dce0; } html.bb.bb-day .bs-sw button.nog[aria-checked="true"] { box-shadow: 0 0 0 2px #fff inset; }
 html.bb.bb-day .bs-sw button { box-shadow: 0 0 0 1px #d9dce0, 0 0 14px -2px var(--c); }
 html.bb.bb-day .bs-sw button[aria-checked="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px #fff inset, 0 0 20px 0 var(--c); }
 @media (prefers-reduced-motion: reduce) { html.bb .be-rb:hover, html.bb .be-links > button:hover { transform: none; } }
@@ -2306,7 +2309,8 @@ html.bb .be-row > .bs-chk { grid-column: 1 / -1; width: min(46rem, 100%); justif
 @media (min-width: 1001px) { html.bb:not(.bb-nolib) #beDrawerTg { display: none; } html.bb.bb-nolib #beDrawerTg { display: inline-flex; } }
 html.bb .be-row:not(.has) .be-meter { visibility: hidden; }
 /* polish pass (Bennie 2026-11-12: "do you see the difference in quality?"): Barbook keeps its own accent whatever MetroBar's accent picker says */
-html.bb, html.bb[data-theme] { --accent: var(--bb-a, #ff3b4e) !important; --on-accent: var(--bb-on, #fff) !important; --accent-text: var(--bb-a, #ff3b4e) !important; --glow: color-mix(in srgb, var(--bb-a, #ff3b4e) 55%, transparent); }
+/* Red = MetroBar's own red (#af0000) and the only colour without a glow (Bennie 2026-11-13); setCol sets --glow per colour */
+html.bb, html.bb[data-theme] { --accent: var(--bb-a, #af0000) !important; --on-accent: var(--bb-on, #fff) !important; --accent-text: var(--bb-a, #af0000) !important; --glow: var(--bb-glow, transparent); }
 .be-cov { display: block; padding: 0; background: linear-gradient(160deg, #23272b, #15181a); box-shadow: inset 0 0 0 1px #2c3136; }
 .be-cov svg { display: block; width: 100%; height: 100%; } .be-cov img { margin: 0; width: 100%; height: 100%; }
 html.bb #beRecent button { grid-template-columns: 44px minmax(0, 1fr); padding: 9px 10px; color: #b9bec3; }
@@ -2318,7 +2322,7 @@ html.bb #beRecent button:hover { background: var(--card2); color: #fff; }
 .bs-lib #rbList.grid .be-cov { display: block; width: 100%; height: 86px; border-radius: 10px; grid-row: auto; margin-bottom: 6px; }
 html.bb .be-goal { padding: 9px 10px 9px 9px; gap: 9px; background: linear-gradient(180deg, #171a1c, #121416); }
 html.bb .be-goal > svg { width: 44px; height: 44px; }
-html.bb .be-goal .gr-bg { stroke: #262a2e; stroke-width: 5; } html.bb .be-goal .gr-fg { stroke-width: 5; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--accent) 60%, transparent)); }
+html.bb .be-goal .gr-bg { stroke: #262a2e; stroke-width: 5; } html.bb .be-goal .gr-fg { stroke-width: 5; filter: drop-shadow(0 0 3px var(--glow)); }
 html.bb .be-goal text { fill: #fff; font: 700 9.5px var(--body); font-variant-numeric: tabular-nums; }
 html.bb .be-goal > button b { display: none; } html.bb .be-goal > button { position: absolute; width: 44px; height: 44px; border-radius: 50%; } html.bb .be-goal { position: relative; }
 html.bb .be-goal > span { gap: 6px !important; padding: 6px 4px 6px 8px; border-radius: 8px; color: var(--accent) !important; font-weight: 600 !important; }
@@ -2434,7 +2438,7 @@ html.bb .be-row.vers.cur .be-dpn, html.bb .be-row.vers.cur .be-dpc .be-rl { colo
 html.bb .be-row.dd .be-dpv svg { transform: rotate(180deg); }
 /* the bar you're on */
 html.bb .be-row.cur, html.bb .be-row.cur:hover { border-radius: 0 12px 12px 0; background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 9%, #0f1113), #0f1113 38%); box-shadow: inset 3px 0 0 var(--accent); }
-html.bb .be-row.cur .be-cell { border-radius: 4px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 24px -10px var(--accent); background: #0b0c0e; }
+html.bb .be-row.cur .be-cell { border-radius: 4px; box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 75%, transparent), 0 0 24px -10px var(--glow); background: #0b0c0e; }
 html.bb .be-row.cur .be-mir, html.bb .be-row.cur .be-in { padding: 6px 10px; }
 html.bb .be-nav { display: none; position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 22px; height: 40px; padding: 0; place-items: center; border: 0; border-radius: 8px; background: none; color: #8a9197; cursor: pointer; }
 html.bb .be-nav.l { left: -24px; } html.bb .be-nav.r { right: -24px; }
@@ -2656,7 +2660,7 @@ html.bb.bb-day .be-links > button:hover { color:#15171a; }
 html.bb.bb-day .rb-views button:hover { color:#15171a; }
 html.bb.bb-day .bk-fab { box-shadow:0 10px 30px #0000001f, 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 0 24px -6px var(--glow); }
 html.bb.bb-day .bs-sw button[aria-checked="true"] { box-shadow:0 0 0 2px #d9dce0 inset, 0 0 20px 0 var(--c); }
-html.bb.bb-day .bs-pick { background:radial-gradient(circle, var(--c, transparent) 0 11px, #ffffff 12px), conic-gradient(#ff3b4e, #ff9f1a, #ffd60a, #19d3a2, #3d8bff, #9b6bff, #ff2e88, #ff3b4e); }
+html.bb.bb-day .bs-sw button.nog[aria-checked="true"] { box-shadow:0 0 0 2px #d9dce0 inset; }
 html.bb.bb-day .be-cov { background:linear-gradient(160deg, #e9ebee, #f1f2f4); box-shadow:inset 0 0 0 1px #d9dce0; }
 html.bb.bb-day #beRecent button { color:#30353b; }
 html.bb.bb-day #beRecent button[aria-current="true"] { color:#15171a; }
@@ -2726,6 +2730,43 @@ html.bb.bb-day .be-ai { border-top:1px solid #d9dce0; }
 <script src="zone-config.js"></script>
 </head>
 <body>
+<script>
+/* Maintenance (Bennie 2026-11-13: "under maintenance except for me" until launch). zone-config.js maintenance: true covers the whole
+   page from the first paint; a signed-in admin account (public.admins = the owner) gets through. Static site, so this is a curtain,
+   not a lock: it keeps the public out of an unfinished product. Turn off with maintenance: false in zone-config.js. */
+(function () {
+  var C = window.ZONE_CONFIG || {}; if (!C.maintenance) return;
+  var de = document.documentElement; de.classList.add('mx');
+  var st = document.createElement('style');
+  st.textContent = 'html.mx:not(.mx-ok), html.mx:not(.mx-ok) body { overflow: hidden !important; }' +
+    '#mxGate { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 24px; background: #eef0ec; color: #15171a; font: 400 16px/1.5 "IBM Plex Sans", system-ui, sans-serif; text-align: center; }' +
+    '#mxGate .in { display: grid; gap: 14px; justify-items: center; max-width: 26rem; }' +
+    '#mxGate .wm { font-family: Panchang, system-ui, sans-serif; font-weight: 605; font-variation-settings: "wght" 605; font-size: clamp(1.6rem, 8vw, 2.6rem); letter-spacing: 0; text-transform: uppercase; }' +
+    '#mxGate .t { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 18rem; } #mxGate .t i { height: 8px; border-radius: 4px; background: #d3d6d1; } #mxGate .t i:last-child { background: #af0000; }' +
+    '#mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
+    '#mxGate button { margin-top: 10px; border: 0; background: none; color: #5d636a; font: inherit; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }' +
+    'html.mx-ok #mxGate { display: none; }';
+  document.head.appendChild(st);
+  var g = document.createElement('div'); g.id = 'mxGate'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'MetroBar is under maintenance');
+  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><button type="button">Owner sign in</button></div>';
+  document.body.appendChild(g);
+  var uid = function () { try { var j = JSON.parse(localStorage.getItem('metrobar.zoneAuth') || 'null'); return j && (j.user ? j.user.id : j.currentSession && j.currentSession.user && j.currentSession.user.id) || ''; } catch (e) { return ''; } };
+  var open = function () { de.classList.add('mx-ok'); };
+  var check = function () {
+    var id = uid(); if (!id || !C.url || !C.key) return;
+    try { if (sessionStorage.getItem('metrobar.mxOk') === id) open(); } catch (e) {}
+    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) { if (rows && rows.length) { open(); try { sessionStorage.setItem('metrobar.mxOk', id); } catch (e) {} } else { de.classList.remove('mx-ok'); try { sessionStorage.removeItem('metrobar.mxOk'); } catch (e) {} } })
+      .catch(function () {});
+  };
+  check();
+  g.querySelector('button').addEventListener('click', function () {
+    if (typeof acctOpen === 'function') acctOpen('in');
+    var was = uid(), n = 0, t = setInterval(function () { var id = uid(); if (id && id !== was || ++n > 200) { clearInterval(t); check(); } }, 1500);
+  });
+})();
+</script>
 <div class="strip" id="beatStrip" aria-hidden="true" hidden><span id="stripInfo"></span></div>
 <div class="wrap">
   <header>
@@ -11494,12 +11535,12 @@ var BS = (() => {
   }
   function rhyApply() { const v = store.get('metrobar.bookStrict', 'rap'); BK_STRICT = v === 'strict'; BK_LOOSE = v === 'loose'; }
   // Barbook's own colour (Bennie 2026-11-12: not green). Red by default; the picker sets --bb-a, which the stylesheet pins as the accent.
-  const COL = [['#ff3b4e', 'Red', '#fff'], ['#9b6bff', 'Violet', '#fff'], ['#3d8bff', 'Blue', '#fff'], ['#ff9f1a', 'Amber', '#1a1205'], ['#19d3a2', 'Mint', '#04130e'], ['#f2f2f2', 'White', '#111']];
+  const COL = [['#af0000', 'Red', '#fff'], ['#9b6bff', 'Violet', '#fff'], ['#3d8bff', 'Blue', '#fff'], ['#ff9f1a', 'Amber', '#1a1205'], ['#19d3a2', 'Mint', '#04130e'], ['#f2f2f2', 'White', '#111']];
   const sw = h('div', 'bs-sw'); sw.setAttribute('role', 'radiogroup'); sw.setAttribute('aria-label', 'Colour');
   // any colour too (Bennie 2026-11-13): the rainbow swatch opens the colour picker; live while dragging, saved when it closes;
   // the text on the accent turns white or near-black by how light the colour is
   const onFor = hex => { const n = parseInt(hex.slice(1), 16); return .2126 * (n >> 16) + .7152 * (n >> 8 & 255) + .0722 * (n & 255) > 150 ? '#111' : '#fff'; };
-  const paintCol = (a, on) => { root.style.setProperty('--bb-a', a); root.style.setProperty('--bb-on', on); };
+  const paintCol = (a, on) => { root.style.setProperty('--bb-a', a); root.style.setProperty('--bb-on', on); root.style.setProperty('--bb-glow', a === COL[0][0] ? 'transparent' : `color-mix(in srgb, ${a} 55%, transparent)`); };
   function setCol(c) {
     const hex = /^#[0-9a-f]{6}$/i.test(c || '') ? c.toLowerCase() : COL[0][0];
     const d = COL.find(x => x[0] === hex) || [hex, 'Your colour', onFor(hex)], custom = !COL.some(x => x[0] === d[0]);
@@ -11510,8 +11551,8 @@ var BS = (() => {
     inp.addEventListener('input', () => { paintCol(inp.value, onFor(inp.value)); pick.style.setProperty('--c', inp.value); });
     inp.addEventListener('change', () => setCol(inp.value));
     pick.append(inp);
-    sw.replaceChildren(...COL.map(x => { const b = btn('', '', x[1], x[1]); b.style.setProperty('--c', x[0]); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(x[0] === d[0])); b.addEventListener('click', () => setCol(x[0])); return b; }), pick); }
-  setCol(store.get('metrobar.bookAccent', COL[0][0]));
+    sw.replaceChildren(...COL.map(x => { const b = btn('', '', x[1], x[1]); b.style.setProperty('--c', x[0]); if (x[0] === COL[0][0]) b.classList.add('nog'); b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(x[0] === d[0])); b.addEventListener('click', () => setCol(x[0])); return b; }), pick); }
+  { const a = store.get('metrobar.bookAccent', COL[0][0]); setCol(a === '#ff3b4e' ? COL[0][0] : a); }   // the old bright red becomes MetroBar's red
   const oR = opts(RHY, rhyNow, setRhy, 'Rhyme detection', 'rap'), oV = opts(VIBE, () => store.get('metrobar.aiVibe', 'lyrical'), v => { store.set('metrobar.aiVibe', v); actSync(); }, 'AI writing vibe', '');
   BE.more.hidden = false;
   { const hs = BE.more.querySelectorAll('h6'); hs.forEach(x => { const n = h('h4', '', x.textContent); x.replaceWith(n); }); }
