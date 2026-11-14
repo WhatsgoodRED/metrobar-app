@@ -3,26 +3,19 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* Barbook is its own page (Bennie 2026-11-12): barbook.html opens this file with ?barbook. window.BBAPP = that page: own dark shell,
-   no MetroBar header, the address bar shows barbook.html. In MetroBar itself #book sends you there. */
+/* The Highlight Zone (Barbook, menu "Rhyme") is a view of this page (Bennie 2026-11-14: "no separate HTML page loading in"; it was its
+   own page since 11-12). window.BBAPP = the Highlight Zone is showing; html.bb gives it its own shell (every bb style hangs on that
+   class). bbLook() sets day/night, colour and paper from storage before paint. barbook.html and ?barbook still open it directly. */
+window.bbLook = function () {
+  var r = document.documentElement;
+  try { r.classList.toggle('bb-day', JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false); } catch (e) { r.classList.add('bb-day'); }
+  try { var ac = JSON.parse(localStorage.getItem('metrobar.bookAccent') || '"#af0000"'); r.classList.toggle('bb-mb', ac === '#af0000' || ac === '#ff3b4e'); } catch (e) { r.classList.add('bb-mb'); }
+  try { r.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
+};
 (function () {
-  var bb = /[?&]barbook\b/.test(location.search); window.BBAPP = bb;
-  if (!bb) {
-    if (location.hash === '#book') { location.replace('barbook.html'); return; }
-    // back from the Highlight Zone (stamp, 4s): hide the column until the boxes slide back in (mw-back, see mwGroups)
-    try { var mb = +sessionStorage.getItem('metrobar.makeWayBack') || 0; sessionStorage.removeItem('metrobar.makeWayBack'); if (Date.now() - mb < 4000 && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('mw-back'); } catch (e) {}
-    return;
-  }
-  document.documentElement.classList.add('bb');
-  // arriving from MetroBar's Rhyme "make way" transition (sessionStorage stamp, 4s): the page rises in front (CSS html.mw-in)
-  try { var mw = +sessionStorage.getItem('metrobar.makeWay') || 0; sessionStorage.removeItem('metrobar.makeWay'); if (Date.now() - mw < 4000 && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('mw-in'); } catch (e) {}
-  // day (white page, default) or night (the dark look): metrobar.bookDay, set before the first paint so night never flashes
-  try { if (JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false) document.documentElement.classList.add('bb-day'); } catch (e) { document.documentElement.classList.add('bb-day'); }
-  // Red (the default) = the MetroBar look: its palette and font (bb-mb), set here so nothing flashes
-  try { var ac = JSON.parse(localStorage.getItem('metrobar.bookAccent') || '"#af0000"'); if (ac === '#af0000' || ac === '#ff3b4e') document.documentElement.classList.add('bb-mb'); } catch (e) { document.documentElement.classList.add('bb-mb'); }
-  try { document.documentElement.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
-  try { history.replaceState(null, '', location.pathname + location.search + '#book'); } catch (e) { location.hash = '#book'; }
-  try { history.replaceState(null, '', 'barbook.html#book'); } catch (e) {}
+  var q = /[?&]barbook\b/.test(location.search), bb = location.hash === '#book' || (q && !location.hash); window.BBAPP = bb;
+  if (q) { try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])barbook\b(=[^&]*)?&?/, '$1').replace(/[?&]$/, '') + (bb ? '#book' : location.hash)); } catch (e) {} }
+  if (bb) { document.documentElement.classList.add('bb'); window.bbLook(); }
 })();
 </script>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -41,11 +34,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
 <style>
-/* Highlight Zone arriving from MetroBar's Rhyme "make way" transition: it rises to the front (class set in the head script) */
-@keyframes mwIn { from { opacity: 0; transform: translateY(14px) scale(.965); } to { opacity: 1; transform: none; } }
-html.mw-back .wrap > * { opacity: 0; }
-html.mw-run .views > .ff-cv { opacity: 0; } .views > .ff-cv { transition: opacity .3s; }
-html.mw-in body { animation: mwIn .5s cubic-bezier(.2,.8,.2,1) backwards; transform-origin: 50% 30vh; }
+/* make-way transition (mwGo): the tab pill waits while the boxes slide back, then fades in */
+html.mw-run .views > .ff-cv { opacity: 0; transition: none; } .views > .ff-cv { transition: opacity .3s; }
 /* The page is always light (data-theme="light" on <html>); the dark set below is used by the analysis cards. Accent (--accent) is the one tweak colour: landing tiles, Start button, logo "4". Change it with the picker. */
 :root {
   --accent: #af0000; --on-accent: #fff;
@@ -1304,9 +1294,10 @@ body.write { padding-bottom: var(--sheet-pad, 0px); }
 .ff-nav { position: relative; isolation: isolate; }
 .ff-nav > .ff-cv { position: absolute; z-index: -1; pointer-events: none; }
 .ff-nav > :not(.ff-cv) { position: relative; }
-.ff-nav > [aria-pressed="true"], .ff-nav > [aria-current="page"], .ff-nav > [aria-selected="true"] { background: transparent !important; box-shadow: none !important; color: var(--fg) !important; }
+.ff-nav > [aria-pressed="true"], .ff-nav > [aria-current="page"], .ff-nav > [aria-selected="true"] { background: transparent !important; box-shadow: none !important; color: var(--on-accent, #fff) !important; border-color: transparent !important; }
+.ff-nav > [aria-pressed="true"] *, .ff-nav > [aria-current="page"] *, .ff-nav > [aria-selected="true"] * { color: inherit !important; }
 .ff-nav > [aria-pressed="true"]:hover, .ff-nav > [aria-current="page"]:hover, .ff-nav > [aria-selected="true"]:hover { background: transparent !important; }
-.views.ff-nav a, .zn-seg.ff-nav button, .seg.ff-nav button { transition: color .22s; }
+.ff-nav > :not(.ff-cv) { transition: color .22s; }
 .views.ff-nav { align-items: center; }
 @media (max-width: 700px) { .views.ff-nav a { white-space: nowrap; padding-inline: 9px; } }
 .sw .track.ff-track { width: 44px; height: 24px; border-radius: 999px; isolation: isolate; overflow: visible; }
@@ -2948,7 +2939,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="barbook.html" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="#zone"><span>The Zone</span></a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="#zone"><span>The Zone</span></a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
@@ -6833,6 +6824,7 @@ $('saveSong').addEventListener('click', () => {
 // ---- views
 function setView() {
   const w = location.hash === '#write', b = location.hash === '#book', z = location.hash === '#zone', here = w ? '#write' : b ? '#book' : z ? '#zone' : '#practice';
+  bbMode(b);
   document.body.classList.toggle('write', w); document.body.classList.toggle('book', b); document.body.classList.toggle('zone', z);
   $('viewWrite').hidden = !w; $('viewBook').hidden = !b; $('viewZone').hidden = !z; $('viewPractice').hidden = w || b || z;
   { const nm = w ? 'Write' : b ? 'The Highlight Zone' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
@@ -6848,16 +6840,11 @@ function setView() {
   }
 }
 window.addEventListener('hashchange', setView);
-// Barbook lives on its own page: from MetroBar, #book goes there; from Barbook, any other tab goes back to MetroBar's page
-window.addEventListener('hashchange', () => {
-  if (window.BBAPP) { if (location.hash !== '#book') { try { if (typeof rbFlush === 'function') rbFlush(); } catch (e) {} const u = 'landing-beat-meter.html' + (location.hash || ''); window.mwLeave ? mwLeave(u) : (location.href = u); } }
-  else if (location.hash === '#book') { try { if (typeof rbSaveNow === 'function') rbSaveNow(); } catch (e) {} location.href = 'barbook.html'; }
-});
 // ---- Rhyme "makes way" (Bennie 2026-11-14): clicking Rhyme is a transition, not a page load. The screen splits: wordmark,
 // tiles 1 2, MetroBar + Write and the left boxes go left; tiles 3 4, Rhyme + The Zone, the readout and the right boxes go right
 // (per view, see mwGroups). All at once, all the way to the screen edge (a sliver stays), no fade while moving; then they fade, and the Highlight Zone rises in
-// front (`mw-in`, head script). The way back (mwLeave on the Highlight Zone page): that page sinks back and fades, and here the
-// boxes slide back into place from the sides (`mw-back`). Reduced motion: plain navigation both ways.
+// front. The way back: the Highlight Zone sinks back and fades, and the boxes slide back into place from the edges. All in this
+// page (mwGo, bbMode), no page load. Reduced motion: plain switch both ways.
 const MW_EASE = 'cubic-bezier(.65,0,.35,1)';
 const mwCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !Element.prototype.animate;
 function mwGroups() {
@@ -6895,56 +6882,58 @@ const mwFrames = (el, dir, ref) => {
     { transform: `translateX(${dx}px)`, opacity: 1, offset: .62 },
     { transform: `translateX(${dx}px)`, opacity: .16, offset: 1 }];
 };
-(function () {
-  if (window.BBAPP) {
-    // Highlight Zone page: every way back to MetroBar sinks this page back first
-    let gone = false;
-    window.mwLeave = url => {
-      if (gone) return; gone = true;
-      try { sessionStorage.setItem('metrobar.makeWayBack', String(Date.now())); } catch (e) {}
-      if (mwCalm()) { location.href = url; return; }
-      const a = document.body.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'scale(.93)', filter: 'blur(4px)' }],
-        { duration: 380, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
-      document.body.style.transformOrigin = `50% ${scrollY + innerHeight * .4}px`;
-      let done = false; const fin = () => { if (!done) { done = true; location.href = url; } };
-      a.finished.then(fin, fin); setTimeout(fin, 700);
-      addEventListener('pageshow', ev => { if (ev.persisted) { a.cancel(); gone = false; } }, { once: true });
-    };
-    document.addEventListener('click', e => {
-      const a = e.target.closest && e.target.closest('a[href^="landing-beat-meter.html"]');
-      if (!a || a.target === '_blank' || /[?&]barbook|#move/.test(a.getAttribute('href')) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
-      e.preventDefault(); window.mwLeave(a.getAttribute('href'));
-    }, true);
-    return;
+// The Highlight Zone shell on/off, live (no page load). First visit boots its sidebar/top bar (BS) and templates (TPL); the Pro
+// gate checks on every visit and goes away when you leave. MetroBar's scroll position comes back when you return.
+let BB_SCROLL = 0;
+function bbMode(on) {
+  const r = document.documentElement;
+  if (!!window.BBAPP === on) return;
+  if (on) {
+    BB_SCROLL = scrollY; window.BBAPP = true; bbLook(); r.classList.add('bb');
+    try { bsBoot(); } catch (e) { console.error(e); } try { tplBoot(); } catch (e) { console.error(e); }
+    scrollTo(0, 0); try { HZG.go(); } catch (e) {}
+  } else {
+    try { if (typeof rbFlush === 'function') rbFlush(); } catch (e) {}
+    window.BBAPP = false; r.classList.remove('bb'); try { HZG.shut(); } catch (e) {}
+    scrollTo(0, BB_SCROLL);
   }
-  // MetroBar arriving back from the Highlight Zone: the boxes slide back in from the sides
-  if (document.documentElement.classList.contains('mw-back')) {
-    const back = () => {
-      const root = document.documentElement; let all = [];
-      try { all = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef).reverse().map((k, i, arr) => ({ ...k, offset: 1 - arr[i].offset })), { duration: 900, easing: MW_EASE, fill: 'backwards' })); } catch (e) {}
-      root.style.overflowX = 'hidden'; root.classList.add('mw-run'); root.classList.remove('mw-back');   // mw-run: the tab pill waits, then fades in
-      const end = () => { root.style.overflowX = ''; root.classList.remove('mw-run'); };
-      Promise.all(all.map(a => a.finished)).then(end, end); setTimeout(end, 1500);
-    };
-    requestAnimationFrame(() => requestAnimationFrame(back));
-    setTimeout(() => document.documentElement.classList.remove('mw-back'), 1500);   // never leave the page hidden
+}
+// mwGo(hash): switch view with the make-way motion when it crosses into or out of the Highlight Zone; other switches stay instant.
+// Into it: the boxes slide to the screen edges and fade (mwFrames), then the Highlight Zone rises in front. Out of it: it sinks back
+// and fades, then the boxes slide back from the edges (the tab pill waits under mw-run, then fades in).
+const MW_VIEWS = ['#practice', '#write', '#zone', '#book'];
+let mwBusy = false;
+function mwGo(hash) {
+  const toBook = hash === '#book', r = document.documentElement;
+  if (toBook === !!window.BBAPP || mwBusy || mwCalm()) { location.hash = hash; return; }
+  mwBusy = true;
+  // each stage moves on when its animation ends OR after a set time (a busy or background tab must never stay half way)
+  const after = (anims, ms) => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; Promise.all(anims.map(a => a.finished)).then(go, go); setTimeout(go, ms); });
+  const arrive = () => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; addEventListener('hashchange', go, { once: true }); location.hash = hash; setTimeout(go, 200); });
+  if (toBook) {
+    const out = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef), { duration: 950, easing: MW_EASE, fill: 'forwards' }));
+    r.style.overflowX = 'hidden';
+    after(out, 1300).then(arrive).then(() => {
+      out.forEach(a => a.cancel()); r.style.overflowX = '';
+      $('viewBook').animate([{ opacity: 0, transform: 'translateY(14px) scale(.965)' }, { opacity: 1, transform: 'none' }], { duration: 500, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      mwBusy = false;
+    });
+  } else {
+    const sink = $('viewBook').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.93)' }], { duration: 380, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+    after([sink], 700).then(arrive).then(() => {
+      sink.cancel(); r.classList.add('mw-run'); r.style.overflowX = 'hidden';
+      const back = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef).reverse().map((k, i, arr) => ({ ...k, offset: 1 - arr[i].offset })), { duration: 900, easing: MW_EASE, fill: 'backwards' }));
+      after(back, 1400).then(() => { back.forEach(a => a.cancel()); r.style.overflowX = ''; r.classList.remove('mw-run'); mwBusy = false; });
+    });
   }
-  const link = document.querySelector('.views a[href="barbook.html"]'); if (!link) return;
-  let busy = false;
-  const go = () => { try { if (typeof rbSaveNow === 'function') rbSaveNow(); } catch (e) {} try { sessionStorage.setItem('metrobar.makeWay', String(Date.now())); } catch (e) {} location.href = 'landing-beat-meter.html?barbook#book'; };
-  link.addEventListener('click', e => {
-    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;   // new tab / window: leave it to the browser
-    e.preventDefault(); if (busy) return; busy = true;
-    if (mwCalm()) return go();
-    // all at the same moment (no stagger), so the tab pill stays under its tab
-    const all = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef), { duration: 950, easing: MW_EASE, fill: 'forwards' }));
-    document.documentElement.style.overflowX = 'hidden';
-    let done = false; const fin = () => { if (!done) { done = true; go(); } };
-    Promise.all(all.map(a => a.finished)).then(fin, fin); setTimeout(fin, 1500);
-    // back with the browser's Back button (bfcache): everything returns to its place
-    addEventListener('pageshow', ev => { if (ev.persisted) { all.forEach(a => a.cancel()); document.documentElement.style.overflowX = ''; busy = false; done = false; } }, { once: true });
-  });
-})();
+}
+// every link to one of the four views goes through mwGo (MetroBar's tabs, the Highlight Zone's own nav, Back to MetroBar)
+document.addEventListener('click', e => {
+  const a = e.target.closest && e.target.closest('a[href^="#"]');
+  if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+  const h = a.getAttribute('href'); if (!MW_VIEWS.includes(h) || (h === '#book') === !!window.BBAPP) return;
+  e.preventDefault(); mwGo(h);
+}, true);
 // ---- wiring
 Object.entries(TEMPLATES).forEach(([id, t]) => { const o = h('option', '', t.name); o.value = id; $('wrTpl').append(o); });
 $('wrText').addEventListener('input', wrInput);
@@ -8145,7 +8134,7 @@ $('rbBackup').addEventListener('click', () => {
   a.download = 'metrobar-rhyme-book-' + new Date().toLocaleDateString('en-CA') + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 });
 // Copy to Rhyme Book from Write and from MetroBar's lyrics
-function rbCopyIn(title, text) { if (!String(text || '').trim()) return false; rbFlush(); bookAdd(title, text, 'From MetroBar'); location.hash = '#book'; return true; }
+function rbCopyIn(title, text) { if (!String(text || '').trim()) return false; rbFlush(); bookAdd(title, text, 'From MetroBar'); mwGo('#book'); return true; }
 $('wrToBook').addEventListener('click', () => { const s = wrSong(); wrFlush(); if (!rbCopyIn(s && s.title, $('wrText').value)) $('wrMsg').textContent = 'Write something first.'; });
 $('bookCopy').addEventListener('click', () => { const s = WR.songs.find(x => x.id === linkedSong); if (!rbCopyIn(s ? s.title : '', $('lyrics').value)) $('tplMsg').textContent = 'No lyrics to copy yet.'; });
 window.addEventListener('hashchange', () => { if (location.hash !== '#book') rbFlush(); else rbSyncSoon(300); });
@@ -8954,9 +8943,9 @@ function ckRoot() {
   const it = [], add = (group, label, run, o = {}) => it.push({ group, label, run, ...o });
   add('Go to', 'MetroBar (practice)', () => goView(false), { kw: 'practice metronome home' });
   add('Go to', 'Write', () => goView(true), { kw: 'lyrics pad songs' });
-  add('Go to', 'The Highlight Zone', () => { location.hash = '#book'; }, { kw: 'rhyme book rhymes notebook pages lyrics highlight' });
+  add('Go to', 'The Highlight Zone', () => { mwGo('#book'); }, { kw: 'rhyme book rhymes notebook pages lyrics highlight' });
   add('Go to', 'The Zone', () => { location.hash = '#zone'; }, { kw: 'community posts feed profile respect props' });
-  if ($('viewBook')) add('Go to', 'The Highlight Zone', () => { location.hash = '#book'; }, { kw: 'rhyme book rhymers block book highlight' });
+  if ($('viewBook')) add('Go to', 'The Highlight Zone', () => { mwGo('#book'); }, { kw: 'rhyme book rhymers block book highlight' });
   add('Actions', running ? 'Stop' : 'Start', () => { goView(false); running ? stop() : start(); }, { key: 'Space', kw: 'play start stop' });
   add('Actions', 'Tap tempo', () => { goView(false); tap(); }, { key: 'T', kw: 'tap bpm' });
   add('Actions', 'Load a beat', () => { goView(false); $('beatBtn').click(); }, { kw: 'mp3 wav audio file upload' });
@@ -9424,7 +9413,7 @@ async function znPost(body) {
   });
   by.append(znAvatar(p.user), who, resp);
   const acts = h('div', 'zn-acts');
-  acts.append(znBtn('Copy to Highlight Zone', 'btn', () => { if (typeof bookAdd === 'function') { bookAdd(p.title + ' (from the Zone)', p.body, 'From the Zone'); location.hash = '#book'; } }));
+  acts.append(znBtn('Copy to Highlight Zone', 'btn', () => { if (typeof bookAdd === 'function') { bookAdd(p.title + ' (from the Zone)', p.body, 'From the Zone'); mwGo('#book'); } }));
   if (mine) {
     acts.append(znBtn('Edit', 'btn', () => { ZN.draft = { id: p.id, title: p.title, body: p.body }; znGo('compose'); }));
     // binDel returns its own bin button (tap bin, then ✓); it must be put on the page, not called from another button
@@ -9651,7 +9640,9 @@ void main(){
     const ctx = cv.getContext('2d');
     const s = { a: { x: 0, v: 0 }, b: { x: 0, v: 0 }, cy: { x: 0, v: 0 }, sy: { s: 1, v: 0 }, lead: 0, lagFrom: 0, sats: [],
       T: { x: 0, cy: 0, q: 0, r: 10 }, q: 0, mouse: { x: 0, y: 0, s: 0, on: false }, moving: false, split: false, ready: false, show: false,
-      w: 0, h: 0, visible: true, raf: 0, last: 0, time: 0, tint: [.686, 0, 0], dpr: 1, fill: el.classList.contains('views') ? 1 : 0 };
+      w: 0, h: 0, visible: true, raf: 0, last: 0, time: 0, tint: [.686, 0, 0], dpr: 1, fill: 1,
+      // every row uses MetroBar's own bubble (Bennie 2026-11-14): the solid accent tile of the main tabs, in the shape of its buttons
+      corner: Math.max(3, parseFloat(getComputedStyle(items()[0] || el).borderTopLeftRadius) || 6) };
     function draw() {
       const W = cv.width, Hh = cv.height;
       if (!s.show) { ctx.clearRect(0, 0, W, Hh); return; }
@@ -9662,7 +9653,7 @@ void main(){
       // the menu drop (s.fill) moves as one full-height tile: it stretches from tail to head and pulls back together, no thin neck
       if (s.fill) { const L = Math.min(s.a.x, s.b.x), R = Math.max(s.a.x, s.b.x); blobs.set([(L + R) / 2, s.cy.x, s.q + (R - L) / 2, T.r, 0, 0, 0, 0], 0); }
       s.sats.slice(0, 4).forEach((d, i) => blobs.set([d.x, d.y, 0, d.r], 8 + i * 4));
-      paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint, fill: s.fill, corner: s.fill ? 6 : 0 });
+      paint(ctx, W, Hh, s.dpr, { time: s.time, blobs, sy, k: 9, mag: [s.mouse.x, s.mouse.y, s.mouse.s], tint: s.tint, fill: s.fill, corner: s.fill ? s.corner : 0 });
     }
     function step(dt, now) {
       const T = s.T, bodies = [s.a, s.b]; let still = true;
@@ -9853,7 +9844,11 @@ void main(){
     return { el, pop: go };
   }
 
-  const NAVS = [['.views', 'aria-current', 'a'], ['.seg', 'aria-pressed', 'button'], ['.zn-seg', 'aria-selected', 'button']];
+  // every row of options in the app gets the bubble: main tabs, rack/technique segments, The Zone feeds, Flow game "Play by", the beat
+  // source tabs, sign in / join, and the Highlight Zone's view tabs, rhyme mode, compare mode, paper and cards/list
+  const NAVS = [['.views', 'aria-current', 'a'], ['.seg', 'aria-pressed', 'button'], ['.zn-seg', 'aria-selected', 'button'], ['.tg-seg', 'aria-pressed', 'button'],
+    ['.bk-tabs', 'aria-pressed', 'button'], ['.acct-tabs', 'aria-selected', 'button'], ['.rb-views', 'aria-selected', 'button'], ['.rb-seg', 'aria-pressed', 'button'],
+    ['.bs-seg', 'aria-pressed', 'button'], ['.bs-paper', 'aria-pressed', 'button'], ['.bs-pair', 'aria-pressed', 'button']];
   const POPS = '#go, #tapBtn, #beatBtn, #micBtn, .cbtn.pri, .btn.pri';
   const ALL = NAVS.map(n => n[0]).concat(['label.sw', POPS]).join(',');
   function scan(root) {
@@ -11883,7 +11878,8 @@ var BX = (() => {
    BS turns the Barbook view into the whole page: sidebar (brand, library button, recent songs, goal, Beat / Saved bars / Check), top bar
    (song title, section pill, undo/redo, Flow, search, share, Actions), the Actions panel (was the tools column), Library and Settings
    dialogs, the Check card, the end-of-song buttons, and the Booth / Compare / Structure views. The editor itself is still BE. */
-var BS = (() => {
+var BS = {};
+function bsBoot() { if (BS.settings) return; BS = (() => {
   if (!window.BBAPP || typeof BE === 'undefined' || !BE.head) return {};
   const { btn, sv, IC } = BE, root = document.documentElement, vb = $('viewBook'), side = $('rbSide'), main = vb.querySelector('.rb-main'), lib = BE.lib;
   const say = (m, o) => { if (typeof toast === 'function') toast(m, o); };
@@ -11944,13 +11940,13 @@ var BS = (() => {
   dayB.addEventListener('click', () => { store.set('metrobar.bookDay', !isDay()); rbApplyLook(); if (typeof rbPaint === 'function') try { rbPaint(); } catch (e) {} dayShow(); });
   dayShow();
   brand.append(bname, homeB, colB); dayB.classList.add('smt-lg'); { const fab = document.getElementById('bkFab'); if (fab) fab.before(dayB); else document.body.append(dayB); }
-  homeB.addEventListener('click', () => { rbFlush(); window.mwLeave ? mwLeave('landing-beat-meter.html') : (location.href = 'landing-beat-meter.html'); });
+  homeB.addEventListener('click', () => mwGo('#practice'));
   colB.addEventListener('click', () => nolib(true));
   const all = h('div', 'bs-all'), allA = btn('a', `<span>${I.lib}</span><b>All songs</b><small></small>`, 'Your full library'), allS = btn('s', IC.find, 'Search your songs', 'Search your songs'); all.append(allA, allS);
   const rech = h('div', 'bs-rech'); rech.append(h('span', '', 'Recent'));
   const newB = $('rbNew'); newB.innerHTML = IC.plus; newB.title = 'New song'; newB.setAttribute('aria-label', 'New song'); rech.append(newB);
   const foot = h('div', 'bs-foot'), nav = h('nav', 'bs-nav'); nav.setAttribute('aria-label', 'MetroBar');
-  nav.innerHTML = '<a href="landing-beat-meter.html">MetroBar</a><a href="landing-beat-meter.html#write">Write</a><a href="landing-beat-meter.html#zone">The Zone</a>';
+  nav.innerHTML = '<a href="#practice">MetroBar</a><a href="#write">Write</a><a href="#zone">The Zone</a>';
   foot.append(BE.goal, BE.links, BE.syncLine, nav);
   lib.prepend(brand, all, rech, BE.recList, foot);
   nav.addEventListener('click', () => rbFlush());
@@ -12297,14 +12293,16 @@ var BS = (() => {
   if (window.MutationObserver) new MutationObserver(count).observe(BE.recList, { childList: true });
   rhyApply(); ready = true; rbPaint(); sync();
   return { settings, library, check, place, actOpen, cmp, struct };
-})();
+})(); }
+if (window.BBAPP) bsBoot();   // opened straight into the Highlight Zone; otherwise bbMode boots it on the first visit
 </script>
 <script>
 /* Templates (Bennie 2026-11-13): song STRUCTURE templates in The Highlight Zone, button next to the section pill. A template is only parts and
    bar counts (no lyrics). Built-in ones follow how well-known rappers usually lay out a song (hook first or not, how many verses, a bridge,
    a beat switch); people make their own (from scratch or from the song they are in). One template can be the favourite (★): every new song
    starts with its structure. Stored on this device: metrobar.bookTpls (own), metrobar.bookTplFav (id of the favourite). */
-var TPL = (() => {
+var TPL = {};
+function tplBoot() { if (TPL.use) return; TPL = (() => {
   if (!window.BBAPP || typeof BE === 'undefined' || !BE.head) return {};
   const { btn, sv, IC } = BE, say = (m, o) => { if (typeof toast === 'function') toast(m, o); };
   const BUILT = [
@@ -12422,7 +12420,8 @@ var TPL = (() => {
     draw(); nm.focus();
   }
   return { BUILT, linesOf, use, list, open: () => tb.click() };
-})();
+})(); }
+if (window.BBAPP) tplBoot();
 </script>
 <script>
 /* Account sheet (Bennie 2026-11-13: "the sign in is horrible"): sign in, join, reset and your account in one dark sheet over
@@ -12544,7 +12543,7 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
     if (a === 'pay') { d.close(); aiPaywall(); }
     else if (a === 'cancel') { const u = acctPortal(w); if (u) window.open(u, '_blank', 'noopener'); acctNote(d, 'Cancel on the Stripe page', 'A secure Stripe page opened in a new tab. Enter the email you paid with, then press Cancel subscription. Your plan keeps running until the end of the month you paid for. Stripe confirms by email.'); const g = d.querySelector('.acct-go'); g.textContent = 'Done'; g.replaceWith(g.cloneNode(true)); d.querySelector('.acct-go').addEventListener('click', () => d.close()); }
     else if (a === 'withdraw') acctWithdraw(d, api, w);
-    else if (a === 'zone') { if (typeof rbFlush === 'function') rbFlush(); window.mwLeave ? mwLeave('landing-beat-meter.html#zone') : (location.href = 'landing-beat-meter.html#zone'); }
+    else if (a === 'zone') { mwGo('#zone'); }
     else if (a === 'out') { b.disabled = true; try { await api.signOut(); } catch (e) {} ZN.me = null; if (typeof AIW !== 'undefined') AIW.w = null; try { await znAuthChanged(); } catch (e) {} if (typeof aiWalletShow === 'function') aiWalletShow(); d.close(); if (typeof toast === 'function') toast('Signed out. Your songs stay in this browser.'); }
   }));
 }
@@ -12605,8 +12604,7 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
 /* The Highlight Zone gate (Bennie 2026-11-13): Pro (€15/month) or Super Pro opens The Highlight Zone (the Barbook page, window.BBAPP).
    Signed out = sign in; Free = the plans. The gate never hides anyone's songs: Download my songs is always there.
    No accounts configured, offline, or no answer from the server = no gate (never lock people out of their own lyrics by a network error). */
-(function () {
-  if (!window.BBAPP) return;
+var HZG = (function () {
   let gate = null;
   const shut = () => { if (gate) { gate.remove(); gate = null; } const v = document.getElementById('viewBook'); if (v) v.inert = false; };
   function show(mode) {
@@ -12616,7 +12614,7 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
     gate.innerHTML = `<div class="hz-card"><h2 id="hzT">The Highlight Zone is part of Pro</h2>
 <p>${mode === 'in' ? 'Sign in to open it. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.' : 'Your rhymes lit up, syllables per bar, drafts, beats and focus mode. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.'}</p>
 <button class="hz-go" type="button" data-a="${mode === 'in' ? 'in' : 'pay'}">${mode === 'in' ? 'Sign in' : 'See the plans'}</button>
-<div class="hz-row"><button type="button" data-a="dl">Download my songs</button><a href="landing-beat-meter.html">Back to MetroBar</a></div></div>`;
+<div class="hz-row"><button type="button" data-a="dl">Download my songs</button><a href="#practice">Back to MetroBar</a></div></div>`;
     gate.querySelectorAll('[data-a]').forEach(b => b.addEventListener('click', () => {
       const a = b.dataset.a;
       if (a === 'in') acctOpen('in'); else if (a === 'pay') aiPaywall('zone'); else if (a === 'dl') { const k = document.getElementById('rbBackup'); if (k) k.click(); }
@@ -12632,9 +12630,10 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
     if (!w) return shut();                     // signed in but no answer (offline / server): stay open
     planPaid(w) ? shut() : show('pay');
   }
-  document.addEventListener('aiwallet', () => { const w = AIW.w; if (!w) return; planPaid(w) ? shut() : show('pay'); });   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
-  const go = () => setTimeout(check, 300);
-  document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
+  document.addEventListener('aiwallet', () => { const w = AIW.w; if (!w || !window.BBAPP) return; planPaid(w) ? shut() : show('pay'); });   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
+  const go = () => setTimeout(() => { if (window.BBAPP) check(); }, 300);
+  if (window.BBAPP) document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
+  return { go, shut };
 })();
 </script>
 </body>
