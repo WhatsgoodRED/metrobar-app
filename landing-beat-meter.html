@@ -3234,6 +3234,13 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
 .fp-rec.on { border-color: var(--accent); }
 .fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
+.fp-grp { display: inline-flex; gap: 8px; align-items: center; margin-left: auto; }
+.fp-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.fp-tab { font: 600 .85rem/1 var(--body); padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; }
+.fp-tab.cur { color: var(--fg); border-color: var(--fg); }
+.fp-add { border-style: dashed; color: var(--fg); }
+.fp-tabx { font: 600 1rem/1 var(--body); width: 28px; height: 28px; margin-left: -4px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.fp-tabx:hover { color: var(--fg); }
 .fp-rec.on::before { animation: fpRec 1s ease-in-out infinite; }
 @keyframes fpRec { 50% { opacity: .25; } }
 .fp-play { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 6rem; }
@@ -3670,6 +3677,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 
   <section class="fp" id="fp" aria-labelledby="fpTitle">
     <div class="fp-hd"><h2 id="fpTitle">Pocket Practice</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
+    <div class="fp-tabs" id="fpTabs" role="group" aria-label="Your bars (up to 4)"></div>
     <input id="fpText" class="fp-in" type="text" spellcheck="false" autocomplete="off" placeholder="Type one bar, e.g. Mic in my hand and I ride in the pocket" aria-label="One bar of lyrics">
     <div class="fp-syl" id="fpSyl" aria-live="polite"></div>
     <div class="fp-wrap"><div class="fp-grid" id="fpGrid" role="group" aria-label="The bar: one button per slot"></div></div>
@@ -3679,10 +3687,10 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
       <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
       <button class="fp-b fp-beat" id="fpBeat" type="button" aria-pressed="false" title="Practise over your beat (the one loaded on MetroBar): up to 4 bars, then the beat rings on a bar so you never get cut off">Beat</button>
-      <span class="fp-bpm" id="fpBarsW" hidden><button class="fp-b fp-sq" id="fpBarsM" type="button" aria-label="Fewer bars">−</button><b id="fpBars">4</b> bars<button class="fp-b fp-sq" id="fpBarsP" type="button" aria-label="More bars">+</button></span>
       <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
       <span class="fp-bpm"><button class="fp-b fp-sq" id="fpSlow" type="button" aria-label="Slower">−</button><b id="fpBpm">90</b> BPM<button class="fp-b fp-sq" id="fpFast" type="button" aria-label="Faster">+</button></span>
       <span class="fp-sp"></span>
+      <span class="fp-grp">
       <button class="fp-b fp-sq" id="fpEarly" type="button" aria-label="Shift every syllable a slot earlier" title="Shift everything a slot earlier">←</button>
       <button class="fp-b fp-sq" id="fpLate" type="button" aria-label="Shift every syllable a slot later" title="Shift everything a slot later">→</button>
       <details class="fp-more"><summary class="fp-b">More</summary><div class="fp-pop">
@@ -3692,7 +3700,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <button class="fp-b" id="fpClear" type="button">Clear the grid</button>
         <button class="fp-b" id="fpRecDel" type="button" hidden>Robot voice again</button>
         <button class="fp-b" id="fpToLyr" type="button" title="Add this bar to the lyrics box in Advanced > Fit">Add to my lyrics</button>
-      </div></details>
+      </div></details></span>
     </div>
   </section>
   <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-ebt">Flow game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
@@ -13359,20 +13367,51 @@ var VOX = (function () {
 var FP = (function () {
   const $f = id => document.getElementById(id);
   if (!$f('fp')) return null;
-  const S = Object.assign({ text: '', hits: [], bpm: 90, sub: 4, voice: true, click: true, beat: false, bars: 4 }, store.get('metrobar.fpad', {}));
-  let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null;
+  const S = Object.assign({ text: '', hits: [], bpm: 90, sub: 4, voice: true, click: true, beat: false, list: null, cur: 0 }, store.get('metrobar.fpad', {}));
+  // up to 4 bars (2026-11-15, Bennie: "+ a bar to add"): S.list holds every bar { text, hits, sub }; S.text/S.hits/S.sub are the bar on screen
+  const MAXB = 4;
+  if (!Array.isArray(S.list) || !S.list.length) S.list = [{ text: S.text, hits: S.hits, sub: S.sub }];
+  S.cur = Math.max(0, Math.min(S.cur || 0, S.list.length - 1)); Object.assign(S, S.list[S.cur]); delete S.bars;
+  let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null, seq = 0, sel = null;
   const G = () => 4 * S.sub, PK = 2, tempo = () => (S.beat && typeof beatBuf !== 'undefined' && beatBuf ? beatTempo() : S.bpm), unit = () => 60 / tempo() / S.sub, barLen = () => 240 / tempo();
   const beatTempo = () => (typeof detected !== 'undefined' && detected && detected.bpm) || bpm();   // the beat plays at its own speed, so the grid follows it
-  const save = () => store.set('metrobar.fpad', { text: S.text, hits: S.hits, bpm: S.bpm, sub: S.sub, voice: S.voice, click: S.click, beat: S.beat, bars: S.bars });
+  const save = () => { S.list[S.cur] = { text: S.text, hits: S.hits, sub: S.sub }; store.set('metrobar.fpad', { list: S.list, cur: S.cur, bpm: S.bpm, voice: S.voice, click: S.click, beat: S.beat }); };
   const fixes = () => (typeof fix !== 'undefined' && fix) || {};
-  function parse() {
-    syl = []; let wi = 0;
-    for (const raw of S.text.replace(/[’‘]/g, "'").split(/[\s—–\/-]+/).filter(Boolean)) {
+  const SYC = new Map();
+  function sylOf(text) {
+    const k = text + '\u0001' + JSON.stringify(fixes()); if (SYC.has(k)) return SYC.get(k);
+    const syl = []; let wi = 0;
+    for (const raw of text.replace(/[’‘]/g, "'").split(/[\s—–\/-]+/).filter(Boolean)) {
       const key = cleanKey(raw); if (!/[a-z0-9]/.test(key)) continue;
       const n = sylCount(key, fixes()), st = wordStress(key, n), parts = splitSyl(key, n), ph = sylPhones(key, n);
       for (let i = 0; i < n; i++) syl.push({ t: parts[i] || key, st: !!st[i], w: wi, ph: ph[i] || ['AH'], end: i === n - 1 });
       wi++;
     }
+    if (SYC.size > 40) SYC.clear(); SYC.set(k, syl); return syl;
+  }
+  function parse() { syl = sylOf(S.text); }
+  // any bar's data for playback: the one on screen is live, the others come from the list
+  const barData = i => i === S.cur ? { text: S.text, hits: S.hits, sub: S.sub, syl } : Object.assign({}, S.list[i], { syl: sylOf(S.list[i].text) });
+  function tabs() {
+    const w = $f('fpTabs'); w.replaceChildren();
+    S.list.forEach((b, i) => {
+      const t = h('button', 'fp-tab' + (i === S.cur ? ' cur' : ''), 'Bar ' + (i + 1)); t.type = 'button'; t.title = b.text || 'empty bar';
+      if (i === S.cur) t.setAttribute('aria-current', 'true');
+      t.addEventListener('click', () => show(i)); w.append(t);
+      if (i === S.cur && S.list.length > 1) { const x = h('button', 'fp-tabx', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Delete bar ' + (i + 1)); x.addEventListener('click', () => delBar(i)); w.append(x); }
+    });
+    if (S.list.length < MAXB) { const a = h('button', 'fp-tab fp-add', '+ Add bar'); a.type = 'button'; a.addEventListener('click', addBar); w.append(a); }
+  }
+  function show(i, keepMsg) {
+    if (i === S.cur || i < 0 || i >= S.list.length) return;   // S.cur = -1: the bar on screen is gone, don't save it
+    if (S.cur >= 0 && S.cur < S.list.length) save(); S.cur = i; Object.assign(S, S.list[i]); sel = null; $f('fpText').value = S.text; parse(); save();
+    const m = $f('fpMsg').textContent; render(); recUi(); if (keepMsg) $f('fpMsg').textContent = m;
+  }
+  function addBar() { if (S.list.length >= MAXB) return; save(); S.list.push({ text: '', hits: [], sub: S.sub }); show(S.list.length - 1); $f('fpText').focus(); }
+  function delBar(i) {
+    if (S.list.length < 2) return; if (playing) halt();
+    const gone = S.list[i]; S.list.splice(i, 1); S.cur = -1; show(Math.max(0, i - 1));
+    if (typeof toast === 'function') toast('Bar ' + (i + 1) + ' deleted', { undo: () => { save(); S.list.splice(i, 0, gone); S.cur = -1; show(i); } });
   }
   const label = s => { if (s < 0) return s === -2 ? '&' : 'a'; const j = s % S.sub; return j === 0 ? String(s / S.sub + 1) : S.sub === 4 ? ['', 'e', '&', 'a'][j] : ['', 'trip', 'let'][j]; };
   function render() {
@@ -13393,13 +13432,12 @@ var FP = (function () {
       : p < n ? `${p} of ${n} syllables placed. Tap the slot where “${syl[p].t}” goes.`
       : S.hits.length > n ? `${S.hits.length - n} dot${S.hits.length - n > 1 ? 's' : ''} too many: tap one to take it off.`
       : `All ${n} syllables are on the grid. Press Play and listen. To move a syllable, tap it and then its new slot (or drag it).`;
-    $f('fpBpm').textContent = S.bpm; beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
+    tabs(); $f('fpBpm').textContent = S.bpm; beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
     $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click;
   }
   function setHits(a) { S.hits = [...new Set(a)].filter(s => s >= -PK && s < G()).sort((x, y) => x - y); save(); render(); }
   // tap an empty slot = the next syllable goes there; tap a placed one = pick it up, then tap where it should go (tap it again = take it off).
   // Dragging a placed syllable to another slot does the same in one move. Order stays: a syllable moves between its neighbours.
-  let sel = null;
   function move(from, to) {
     const k = S.hits.indexOf(from), lo = k > 0 ? S.hits[k - 1] : -PK - 1, hi = k + 1 < S.hits.length ? S.hits[k + 1] : G();
     if (to <= lo || to >= hi) { $f('fpMsg').textContent = 'A syllable moves between its neighbours. To change the order, change the words.'; return false; }
@@ -13418,30 +13456,34 @@ var FP = (function () {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(hi ? 0.35 : 0.22, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.04);
     o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.05);
   }
-  function scheduleBar(t, count) {
-    const u = unit();
+  function scheduleBar(t, count, bi) {
     if (S.click || count) for (let b = 0; b < 4; b++) click(t + b * barLen() / 4, b === 0);
     if (count || tap || !S.voice) return;
-    const hs = S.hits.slice(0, syl.length);
-    if (mine()) { hs.forEach((s, k) => { const nx = k + 1 < hs.length ? hs[k + 1] : G() + PK; sayMine(k, t + s * u, (nx - s) * u); }); return; }
+    const B = barData(bi), sy = B.syl, u = barLen() / (4 * B.sub), g = 4 * B.sub, hs = B.hits.slice(0, sy.length), tk = mine(B);
+    if (tk) { hs.forEach((s, k) => { const nx = k + 1 < hs.length ? hs[k + 1] : g + PK; sayMine(tk, k, t + s * u, (nx - s) * u); }); return; }
     hs.forEach((s, k) => {
-      const nx = k + 1 < hs.length ? hs[k + 1] : Math.min(s + 4, G());
-      VOX.say(ctx, out, syl[k].ph, t + s * u, Math.min(0.5, (nx - s) * u), { st: syl[k].st, last: k === hs.length - 1 });
+      const nx = k + 1 < hs.length ? hs[k + 1] : Math.min(s + 4, g);
+      VOX.say(ctx, out, sy[k].ph, t + s * u, Math.min(0.5, (nx - s) * u), { st: sy[k].st, last: k === hs.length - 1 });
     });
   }
   function pump() {
     if (!playing) return;
     if (typeof running !== 'undefined' && running) { halt(); return; }   // the main metronome took over
     if (tap && ctx.currentTime - lat() >= tap.end) endTap();
-    if (run && ctx.currentTime >= run.stop) { halt(); $f('fpMsg').textContent = `That was ${S.bars} bar${S.bars > 1 ? 's' : ''} over the beat. Play again, or move the dots.`; return; }
-    if (run) { const k = Math.floor((ctx.currentTime - lat() - run.first) / barLen()); if (k >= 0 && k < S.bars && k !== run.shown) { run.shown = k; $f('fpMsg').textContent = `Bar ${k + 1} of ${S.bars}`; } }
-    while (nextBar < ctx.currentTime + 0.6 && !(run && run.n >= S.bars)) { scheduleBar(nextBar, false); starts.push(nextBar); if (starts.length > 4) starts.shift(); nextBar += barLen(); if (run) run.n++; }
+    const nb = S.list.length;
+    if (run && ctx.currentTime >= run.stop) { halt(); $f('fpMsg').textContent = `That was ${nb} bar${nb > 1 ? 's' : ''} over the beat. Play again, or move the dots.`; return; }
+    if (run) { const k = Math.floor((ctx.currentTime - lat() - run.first) / barLen()); if (k >= 0 && k < run.len && k !== run.shown) { run.shown = k; $f('fpMsg').textContent = `Bar ${k + 1} of ${run.len}`; } }
+    while (nextBar < ctx.currentTime + 0.6 && !(run && run.n >= run.len)) {
+      const bi = tap ? S.cur : seq % nb; seq++;
+      scheduleBar(nextBar, false, bi); starts.push({ t: nextBar, bi }); if (starts.length > 6) starts.shift(); nextBar += barLen(); if (run) run.n++;
+    }
   }
   const lat = () => (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
   function frame() {
     if (!playing) return;
-    const now = ctx.currentTime - lat(), bs = starts.filter(x => x <= now + PK * unit()).pop();
-    let cur = null; if (bs != null) { const s = Math.floor((now - bs) / unit()); if (s >= -PK && s < G()) cur = s; }
+    const now = ctx.currentTime - lat(), e = starts.filter(x => x.t <= now + PK * unit()).pop();
+    if (e && e.bi !== S.cur && !tap && S.list[e.bi]) show(e.bi, true);   // the grid follows the bar that is playing
+    let cur = null; if (e) { const s = Math.floor((now - e.t) / unit()); if (s >= -PK && s < G()) cur = s; }
     document.querySelectorAll('#fpGrid .fp-c').forEach(e => e.classList.toggle('now', +e.dataset.s === cur));
     raf = requestAnimationFrame(frame);
   }
@@ -13451,9 +13493,9 @@ var FP = (function () {
     if (typeof running !== 'undefined' && running) try { stop(); } catch {}
     const c = ac(); c.resume && c.resume();
     out = c.createGain(); out.gain.value = 0.8; out.connect(c.destination);
-    playing = true; starts = [];
+    playing = true; starts = []; seq = 0;
     const t0 = c.currentTime + 0.15;
-    scheduleBar(t0, true);   // count-in bar
+    scheduleBar(t0, true, S.cur);   // count-in bar
     nextBar = t0 + barLen();
     run = null;
     if (S.beat && !withTap && typeof beatBuf !== 'undefined' && beatBuf) {
@@ -13463,10 +13505,10 @@ var FP = (function () {
       const src = c.createBufferSource(), g = c.createGain(); src.buffer = beatBuf; src.loop = true; g.gain.value = +$('beatVol').value || 0.8;
       src.connect(g); g.connect(out);
       const from = b1 - barLen(); if (from >= 0) src.start(t0, from % d); else src.start(t0 - from, 0);
-      const end = nextBar + S.bars * barLen(), tail = barLen();
+      const len = S.list.length, end = nextBar + len * barLen(), tail = barLen();
       g.gain.setValueAtTime(g.gain.value, end + tail * 0.4); g.gain.linearRampToValueAtTime(0.0001, end + tail + 0.6);
       src.stop(end + tail + 0.7);
-      run = { first: nextBar, stop: end + tail + 0.7, n: 0, shown: -1, src };
+      run = { first: nextBar, stop: end + tail + 0.7, n: 0, len, shown: -1, src };
     }
     if (withTap) { tap = { start: nextBar, end: nextBar + barLen(), got: [] }; $f('fpMsg').textContent = 'Count-in… then tap (Space or the grid) on every syllable for one bar.'; }
     tmr = setInterval(pump, 40); pump(); raf = requestAnimationFrame(frame); ui();
@@ -13489,22 +13531,27 @@ var FP = (function () {
     if (got.length) $f('fpMsg').textContent = `${new Set(got).size} taps placed. It plays back now; tap a dot off or on to fix it.`;
   }
   // ---- my voice (2026-11-15): rap the bar once, core voiceSlices cuts it into one slice per syllable, each slice plays on its slot.
-  // The take stays on this device (IndexedDB metrobar-fpvoice) and belongs to the bar's text: change the words = the robot again.
-  let take = null, rec = null, tbuf = null;
-  const mine = () => !!(take && take.text === S.text && take.sl.length === syl.length && syl.length);
+  // Takes stay on this device (IndexedDB metrobar-fpvoice, key 'takes' = { [bar text]: take }); change the words = the robot again.
+  let takes = {}, rec = null;
+  const tbufs = new WeakMap();
+  const mine = B => { const t = takes[B.text]; return t && B.syl.length && t.sl.length === B.syl.length ? t : null; };
   const vdb = () => new Promise((ok, no) => { const r = indexedDB.open('metrobar-fpvoice', 1); r.onupgradeneeded = () => r.result.createObjectStore('t'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
-  const vput = v => vdb().then(d => { const x = d.transaction('t', 'readwrite'); v ? x.objectStore('t').put(v, 'take') : x.objectStore('t').delete('take'); }).catch(() => {});
-  vdb().then(d => { const r = d.transaction('t').objectStore('t').get('take'); r.onsuccess = () => { if (r.result) { take = r.result; tbuf = null; recUi(); } }; }).catch(() => {});
-  function sayMine(k, t, room) {
+  const vput = () => { const keep = new Set(S.list.map(b => b.text)); Object.keys(takes).forEach(k => { if (!keep.has(k)) delete takes[k]; });
+    return vdb().then(d => { const x = d.transaction('t', 'readwrite'); x.objectStore('t').put(takes, 'takes'); x.objectStore('t').delete('take'); }).catch(() => {}); };
+  vdb().then(d => { const st = d.transaction('t').objectStore('t'), r = st.get('takes'), o = st.get('take');
+    r.onsuccess = () => { if (r.result) Object.assign(takes, r.result); recUi(); };
+    o.onsuccess = () => { if (o.result && o.result.text && !takes[o.result.text]) { takes[o.result.text] = o.result; recUi(); } };   // the one take from v132
+  }).catch(() => {});
+  function sayMine(take, k, t, room) {
     const c = ctx, x = take.sl[k];
-    if (!tbuf || tbuf.sampleRate !== take.sr) { tbuf = c.createBuffer(1, take.data.length, take.sr); tbuf.getChannelData(0).set(take.data); }
+    let tbuf = tbufs.get(take); if (!tbuf || tbuf.sampleRate !== take.sr) { tbuf = c.createBuffer(1, take.data.length, take.sr); tbuf.getChannelData(0).set(take.data); tbufs.set(take, tbuf); }
     const d = Math.max(0.05, Math.min(x.e - x.s, room + 0.04)), src = c.createBufferSource(), g = c.createGain(); src.buffer = tbuf;
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.004); g.gain.setValueAtTime(1, t + d - 0.02); g.gain.linearRampToValueAtTime(0, t + d);
     src.connect(g); g.connect(out); src.start(t, x.s, d + 0.01);
   }
   function recUi() {
-    const b = $f('fpRec'); b.textContent = rec ? 'Stop' : mine() ? 'Record again' : 'Record my voice'; b.setAttribute('aria-pressed', !!rec); b.classList.toggle('on', !!rec);
-    $f('fpRecDel').hidden = !take;
+    const b = $f('fpRec'); b.textContent = rec ? 'Stop' : mine(barData(S.cur)) ? 'Record again' : 'Record my voice'; b.setAttribute('aria-pressed', !!rec); b.classList.toggle('on', !!rec);
+    $f('fpRecDel').hidden = !takes[S.text];
   }
   async function recStart() {
     if (!syl.length) { $f('fpText').focus(); return; }
@@ -13538,19 +13585,18 @@ var FP = (function () {
     const sl = voiceSlices(data, sr, syl.length);
     if (!sl.length) { $f('fpMsg').textContent = 'I didn’t hear the bar. Get closer to the mic and try again.'; recUi(); return; }
     const end = sl[sl.length - 1].e, cut = data.slice(0, Math.min(len, Math.ceil((end + 0.05) * sr)));
-    take = { text: S.text, sr, data: cut, sl }; tbuf = null; vput(take); recUi();
+    takes[S.text] = { text: S.text, sr, data: cut, sl }; vput(); recUi();
     if (!S.hits.length) $f('fpEven').click();
     $f('fpMsg').textContent = `Got it: ${sl.length} syllables in your voice. Press Play; move the dots and your voice moves with them.`;
     if (S.hits.length) play(false);
   }
   $f('fpRec').addEventListener('click', () => (rec ? recStop() : recStart()));
-  $f('fpRecDel').addEventListener('click', () => { take = null; tbuf = null; vput(null); recUi(); $f('fpMsg').textContent = 'Back to the robot voice.'; });
+  $f('fpRecDel').addEventListener('click', () => { delete takes[S.text]; vput(); recUi(); $f('fpMsg').textContent = 'Back to the robot voice.'; });
   // ---- the beat under it (2026-11-15): the beat loaded on MetroBar, at its own tempo, 1-4 bars, then it rings on
   const hasBeat = () => typeof beatBuf !== 'undefined' && !!beatBuf;
   function beatUi() {
     const on = S.beat && hasBeat(), b = $f('fpBeat');
     b.setAttribute('aria-pressed', on); b.classList.toggle('on', on); b.textContent = on ? 'Beat on' : 'Beat';
-    $f('fpBarsW').hidden = !on; $f('fpBars').textContent = S.bars;
     $f('fpSlow').disabled = $f('fpFast').disabled = on;
     if (on) $f('fpBpm').textContent = Math.round(beatTempo());
   }
@@ -13558,11 +13604,9 @@ var FP = (function () {
     if (playing) halt();
     if (!hasBeat()) { S.beat = true; save(); $f('fpMsg').textContent = 'Pick your beat: MetroBar finds its tempo, then Play runs your bar over it.'; const f = $('beatFile'); if (f) f.click(); return; }
     S.beat = !S.beat; save(); render();
-    if (S.beat) $f('fpMsg').textContent = `Beat on at ${Math.round(beatTempo())} BPM: Play gives a count-in, then ${S.bars} bar${S.bars > 1 ? 's' : ''} over the beat. Turn Voice off (More) to rap it yourself.`;
+    if (S.beat) $f('fpMsg').textContent = `Beat on at ${Math.round(beatTempo())} BPM: Play gives a count-in, then your ${S.list.length} bar${S.list.length > 1 ? 's' : ''} over the beat (+ Add bar for more, up to ${MAXB}). Turn Voice off (More) to rap it yourself.`;
   });
   $('beatFile') && $('beatFile').addEventListener('change', () => { let n = 0; const w = setInterval(() => { if (hasBeat() || ++n > 60) { clearInterval(w); render(); } }, 250); });
-  const barsBy = d => { S.bars = Math.max(1, Math.min(4, S.bars + d)); save(); render(); };
-  $f('fpBarsM').addEventListener('click', () => barsBy(-1)); $f('fpBarsP').addEventListener('click', () => barsBy(1));
   function ui() { recUi(); const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
   $f('fpText').value = S.text;
@@ -13597,8 +13641,8 @@ var FP = (function () {
   $f('fpClick').addEventListener('change', e => { S.click = e.target.checked; save(); });
   $f('fpClear').addEventListener('click', () => { sel = null; setHits([]); });
   $f('fpToLyr').addEventListener('click', () => {
-    const ta = $f('lyrics'); if (!ta || !S.text.trim()) return;
-    ta.value = (ta.value.replace(/\s+$/, '') ? ta.value.replace(/\s+$/, '') + '\n' : '') + S.text.trim(); ta.dispatchEvent(new Event('input', { bubbles: true }));
+    save(); const all = S.list.map(b => b.text.trim()).filter(Boolean).join('\n'), ta = $f('lyrics'); if (!ta || !all) return;
+    ta.value = (ta.value.replace(/\s+$/, '') ? ta.value.replace(/\s+$/, '') + '\n' : '') + all; ta.dispatchEvent(new Event('input', { bubbles: true }));
     if (typeof toast === 'function') toast('Added to your lyrics (Advanced > Fit)');
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden && playing) halt(); if (document.hidden && rec) recStop(); });
@@ -13613,7 +13657,7 @@ var FP = (function () {
     L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
     if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return take; }, _take: useTake };
+  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, show, addBar, _take: useTake };
 })();
 </script>
 <script>
