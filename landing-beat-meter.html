@@ -1399,7 +1399,6 @@ h1.sr-only { font-size: 1.25rem; margin: 0; }
 @media (max-width: 700px) { body.book .logo-sub, body.book .readout { display: none; } body.book .logo { width: auto; } body.book .logo-tile { padding: 6px 14px 5px; border-radius: 9px; } body.book .logo .wm { font-size: 1rem; } body.book .lwave { inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); } body.book header { gap: 8px; } }
 @keyframes rbPop { from { opacity: 0; transform: translateY(16px) scale(.985); } }
 html.mw-vt::view-transition-old(*), html.mw-vt::view-transition-new(*), html.mw-vt::view-transition-group(*) { animation: none; }
-html.mw-vt::view-transition-old(root) { opacity: 0; }
 body.book #viewBook.rb-pop { animation: rbPop .24s cubic-bezier(.2, .9, .3, 1.15) both; transform-origin: 50% 0; }
 @media (prefers-reduced-motion: reduce) { body.book #viewBook.rb-pop { animation: none; } }
 /* Beat player (Bennie 2026-11-10/11; layout idea from RhymeFlux's beat sheet, own code). A floating beat button sits at the bottom right of
@@ -6919,13 +6918,16 @@ function mwGo(hash) {
     const g = mwGroups(), fr = g.map(([el, dir]) => mwFrames(el, dir, el.mwRef));
     g.forEach(([el], i) => { el.style.viewTransitionName = 'mw' + i; });
     r.classList.add('mw-vt');
-    const clean = () => { g.forEach(([el]) => { el.style.viewTransitionName = ''; }); r.classList.remove('mw-vt'); mwBusy = false; };
+    const anims = [], clean = () => { anims.forEach(a => a.cancel()); g.forEach(([el]) => { el.style.viewTransitionName = ''; }); r.classList.remove('mw-vt'); mwBusy = false; };
     let vt; try { vt = document.startViewTransition(() => arrive()); } catch (e) { clean(); location.hash = hash; return; }
     vt.ready.then(() => {
       const o = { duration: 420, easing: MW_EASE, fill: 'both' };
       g.forEach((_, i) => { const k = fr[i].map(f => ({ ...f })); k[2].opacity = 0;
-        try { r.animate(k, { ...o, delay: Math.min(i * 14, 110), pseudoElement: `::view-transition-old(mw${i})` }); } catch (e) {} });
-      r.animate([{ opacity: 0, transform: 'translateY(8px) scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both', pseudoElement: '::view-transition-new(root)' });
+        try { anims.push(r.animate(k, { ...o, delay: Math.min(i * 14, 110), pseudoElement: `::view-transition-old(mw${i})` })); } catch (e) {} });
+      // Bennie 2026-11-14: "fades in whilst the buttons are moving aside": the Highlight Zone fades in over the whole slide, the old page fades out under it
+      const fade = { duration: 520, easing: 'cubic-bezier(.33,0,.2,1)', fill: 'both' };
+      anims.push(r.animate([{ opacity: 0, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { ...fade, pseudoElement: '::view-transition-new(root)' }),
+        r.animate([{ opacity: 1 }, { opacity: 0 }], { ...fade, pseudoElement: '::view-transition-old(root)' }));
     }, () => {});
     vt.finished.then(clean, clean);
     return;
