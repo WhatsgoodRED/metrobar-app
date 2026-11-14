@@ -3229,7 +3229,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-msg { margin: 0; color: var(--muted); font-size: .9rem; min-height: 1.3em; }
 .fp-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .fp-sp { flex: 1; }
-.fp-b { font: 600 .9rem/1 var(--body); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.fp-b { font: 600 .74rem/1 var(--body); padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 .fp-b:disabled { opacity: .5; cursor: default; }
 .fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
 .fp-rec.on { border-color: var(--accent); }
@@ -3248,8 +3248,23 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-add:hover { border-color: var(--fg); }
 .fp-rec.on::before { animation: fpRec 1s ease-in-out infinite; }
 @keyframes fpRec { 50% { opacity: .25; } }
-.fp-play { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 6rem; }
-.fp-sq { padding: 10px 12px; min-width: 2.6rem; }
+.fp-play { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border-radius: 50%; background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.fp-play svg { display: block; }
+.fp-sq { padding: 7px 8px; min-width: 1.9rem; }
+.fp-knob { position: relative; width: 56px; height: 56px; flex: none; cursor: ns-resize; touch-action: none; border-radius: 50%; user-select: none; -webkit-user-select: none; }
+.fp-knob:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fp-knob svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.fp-kt, .fp-ka { fill: none; stroke-width: 4; stroke-linecap: round; }
+.fp-kt { stroke: var(--line); }
+.fp-ka { stroke: var(--accent); stroke-dasharray: 1; stroke-dashoffset: var(--kd, 1); }
+.fp-kp { position: absolute; inset: 9px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); box-shadow: 0 2px 6px rgba(0,0,0,.12); transform: rotate(var(--ka, -135deg)); }
+.fp-kp::before { content: ''; position: absolute; left: 50%; top: 3px; width: 2px; height: 7px; margin-left: -1px; border-radius: 1px; background: var(--fg); }
+.fp-kv { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -62%); z-index: 1; min-width: 2.4em; padding: 1px 2px; border: 0; border-radius: 4px; background: transparent; color: var(--fg); font: 600 .82rem/1 var(--mono); cursor: text; }
+.fp-kv:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.fp-knob small { position: absolute; left: 0; right: 0; top: 50%; margin-top: 5px; z-index: 1; text-align: center; font: 500 .5rem/1 var(--mono); letter-spacing: .08em; color: var(--muted); pointer-events: none; }
+.fp-kin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -62%); z-index: 2; width: 3.2em; padding: 1px 2px; border: 1px solid var(--accent); border-radius: 4px; background: var(--bg); color: var(--fg); font: 600 .82rem/1 var(--mono); text-align: center; }
+.fp-knob.off { opacity: .6; cursor: default; }
+.fp-knob.off .fp-kv { cursor: default; }
 .fp-bpm { display: inline-flex; align-items: center; gap: 6px; font: 500 .9rem/1 var(--mono); color: var(--muted); }
 .fp-bpm b { color: var(--fg); min-width: 2.2ch; text-align: right; }
 .fp-more { position: relative; }
@@ -3686,12 +3701,16 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <button class="fp-add" id="fpAdd" type="button">+ Add bar</button>
     <p class="fp-msg" id="fpMsg" role="status"></p>
     <div class="fp-ctl">
-      <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false">Play</button>
+      <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false" aria-label="Play"><svg class="ic ic-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg></button>
       <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
       <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
       <button class="fp-b fp-beat" id="fpBeat" type="button" aria-pressed="false" title="Practise over your beat (the one loaded on MetroBar): up to 4 bars, then the beat rings on a bar so you never get cut off">Beat</button>
       <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
-      <span class="fp-bpm"><button class="fp-b fp-sq" id="fpSlow" type="button" aria-label="Slower">−</button><b id="fpBpm">90</b> BPM<button class="fp-b fp-sq" id="fpFast" type="button" aria-label="Faster">+</button></span>
+      <div class="fp-knob" id="fpKnob" role="slider" tabindex="0" aria-label="Tempo in BPM: drag, scroll or arrow keys; click the number to type it" aria-valuemin="50" aria-valuemax="200" aria-valuenow="90">
+        <svg viewBox="0 0 64 64" aria-hidden="true"><path class="fp-kt" d="M13.6 50.4 A26 26 0 1 1 50.4 50.4"/><path class="fp-ka" id="fpKArc" pathLength="1" d="M13.6 50.4 A26 26 0 1 1 50.4 50.4"/></svg>
+        <span class="fp-kp" id="fpKPtr" aria-hidden="true"></span>
+        <button class="fp-kv" id="fpBpm" type="button" tabindex="-1" title="Type a tempo">90</button><small aria-hidden="true">BPM</small>
+      </div>
       <span class="fp-sp"></span>
       <span class="fp-grp">
       <button class="fp-b fp-sq" id="fpEarly" type="button" aria-label="Shift every syllable a slot earlier" title="Shift everything a slot earlier">←</button>
@@ -13457,7 +13476,7 @@ var FP = (function () {
       : p < n ? `${p} of ${n} syllables placed. Tap the slot where “${syl[p].t}” goes.`
       : S.hits.length > n ? `${S.hits.length - n} dot${S.hits.length - n > 1 ? 's' : ''} too many: tap one to take it off.`
       : `All ${n} syllables are on the grid. Press Play and listen. To move a syllable, tap it and then its new slot (or drag it).`;
-    $f('fpBpm').textContent = S.bpm; beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
+    knobShow(S.bpm, false); beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
     $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click;
   }
   function setHits(a) { S.hits = [...new Set(a)].filter(s => s >= -PK && s < G()).sort((x, y) => x - y); save(); render(); }
@@ -13622,8 +13641,7 @@ var FP = (function () {
   function beatUi() {
     const on = S.beat && hasBeat(), b = $f('fpBeat');
     b.setAttribute('aria-pressed', on); b.classList.toggle('on', on); b.textContent = on ? 'Beat on' : 'Beat';
-    $f('fpSlow').disabled = $f('fpFast').disabled = on;
-    if (on) $f('fpBpm').textContent = Math.round(beatTempo());
+    knobShow(on ? Math.round(beatTempo()) : S.bpm, on);
   }
   $f('fpBeat').addEventListener('click', () => {
     if (playing) halt();
@@ -13632,7 +13650,8 @@ var FP = (function () {
     if (S.beat) $f('fpMsg').textContent = `Beat on at ${Math.round(beatTempo())} BPM: Play gives a count-in, then your ${S.list.length} bar${S.list.length > 1 ? 's' : ''} over the beat (+ Add bar for more, up to ${MAXB}). Turn Voice off (More) to rap it yourself.`;
   });
   $('beatFile') && $('beatFile').addEventListener('change', () => { let n = 0; const w = setInterval(() => { if (hasBeat() || ++n > 60) { clearInterval(w); render(); } }, 250); });
-  function ui() { recUi(); const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
+  const ICP = '<svg class="ic ic-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>', ICS = '<svg class="ic ic-stop" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="currentColor"/></svg>';
+  function ui() { recUi(); const b = $f('fpPlay'); b.innerHTML = playing ? ICS : ICP; b.setAttribute('aria-label', playing ? 'Stop' : 'Play'); b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
   const barOf = el => { const b = el && el.closest && el.closest('.fp-bar'); return b ? +b.dataset.i : -1; };
   const take = el => { const i = barOf(el); if (i >= 0 && i !== S.cur) show(i); return i; };   // touching a bar makes it the current one
@@ -13657,8 +13676,41 @@ var FP = (function () {
   $f('fpPlay').addEventListener('click', () => (playing ? halt() : play(false)));
   $f('fpTap').addEventListener('click', () => { if (!syl.length) { $f('fpText').focus(); return; } play(true); });
   document.addEventListener('keydown', e => { if (tap && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) tapHit(); } }, true);   // Space is the tap key here, not Start
-  const bpmBy = d => { S.bpm = Math.max(50, Math.min(200, S.bpm + d)); save(); render(); if (playing) { const t = tap; halt(); if (!t) play(false); } };
-  $f('fpSlow').addEventListener('click', () => bpmBy(-5)); $f('fpFast').addEventListener('click', () => bpmBy(5));
+  // ---- tempo knob (Bennie 2026-11-15): drag up/down (or sideways), scroll, arrow keys (PageUp/Down = 5); click the number to type it.
+  // Changing it while playing just moves the next bars; with Beat on it shows the beat's tempo and stays put.
+  const KN = $f('fpKnob'), knOff = () => S.beat && hasBeat();
+  function knobShow(v, off) {
+    const f = (Math.max(50, Math.min(200, v)) - 50) / 150;
+    KN.style.setProperty('--ka', (-135 + f * 270) + 'deg'); KN.style.setProperty('--kd', 1 - f);
+    $f('fpBpm').textContent = v; KN.setAttribute('aria-valuenow', v); KN.setAttribute('aria-valuetext', v + ' BPM');
+    KN.classList.toggle('off', !!off); KN.setAttribute('aria-disabled', !!off);
+  }
+  function knobSet(v) { if (knOff()) return; v = Math.round(Math.max(50, Math.min(200, v))); if (v === S.bpm) return; S.bpm = v; save(); knobShow(v, false); }
+  let kd = null;
+  KN.addEventListener('pointerdown', e => {
+    if (knOff() || e.target.closest('.fp-kv, .fp-kin')) return;
+    e.preventDefault(); KN.focus(); KN.setPointerCapture(e.pointerId); kd = { x: e.clientX, y: e.clientY, v: S.bpm };
+  });
+  KN.addEventListener('pointermove', e => { if (!kd) return; knobSet(kd.v + ((kd.y - e.clientY) + (e.clientX - kd.x)) / 3); });
+  const kEnd = () => { kd = null; };
+  KN.addEventListener('pointerup', kEnd); KN.addEventListener('pointercancel', kEnd);
+  KN.addEventListener('wheel', e => { if (knOff()) return; e.preventDefault(); knobSet(S.bpm + (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 5 : 1)); }, { passive: false });
+  KN.addEventListener('keydown', e => {
+    if (e.target !== KN) return;
+    const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 5, PageDown: -5 }[e.key];
+    if (d) { e.preventDefault(); knobSet(S.bpm + d); } else if (e.key === 'Home') { e.preventDefault(); knobSet(50); } else if (e.key === 'End') { e.preventDefault(); knobSet(200); }
+    else if (e.key === 'Enter') { e.preventDefault(); knobType(); }
+  });
+  function knobType() {
+    if (knOff() || KN.querySelector('.fp-kin')) return;
+    const i = document.createElement('input'); i.className = 'fp-kin'; i.type = 'text'; i.inputMode = 'numeric'; i.value = S.bpm; i.setAttribute('aria-label', 'Tempo in BPM (50 to 200)');
+    let done = false;
+    const fin = ok => { if (done) return; done = true; const v = parseInt(i.value, 10); i.remove(); if (ok && v) knobSet(v); KN.focus(); };
+    i.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); fin(true); } else if (e.key === 'Escape') { e.preventDefault(); fin(false); } });
+    i.addEventListener('blur', () => fin(true));
+    KN.append(i); i.focus(); i.select();
+  }
+  $f('fpBpm').addEventListener('click', knobType);
   const shift = d => { if (!S.hits.length) return; const a = S.hits.map(s => s + d); if (a[0] < -PK || a[a.length - 1] >= G()) return; setHits(a); };
   $f('fpEarly').addEventListener('click', () => shift(-1)); $f('fpLate').addEventListener('click', () => shift(1));
   // even start: the syllables from beat 1, one per 8th (16ths when they don't fit), the last stressed one pulled to the last beat
