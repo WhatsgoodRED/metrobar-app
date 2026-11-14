@@ -1398,6 +1398,8 @@ h1.sr-only { font-size: 1.25rem; margin: 0; }
 }
 @media (max-width: 700px) { body.book .logo-sub, body.book .readout { display: none; } body.book .logo { width: auto; } body.book .logo-tile { padding: 6px 14px 5px; border-radius: 9px; } body.book .logo .wm { font-size: 1rem; } body.book .lwave { inset: 4px 8px; width: calc(100% - 16px); height: calc(100% - 8px); } body.book header { gap: 8px; } }
 @keyframes rbPop { from { opacity: 0; transform: translateY(16px) scale(.985); } }
+html.mw-vt::view-transition-old(*), html.mw-vt::view-transition-new(*), html.mw-vt::view-transition-group(*) { animation: none; }
+html.mw-vt::view-transition-old(root) { opacity: 0; }
 body.book #viewBook.rb-pop { animation: rbPop .24s cubic-bezier(.2, .9, .3, 1.15) both; transform-origin: 50% 0; }
 @media (prefers-reduced-motion: reduce) { body.book #viewBook.rb-pop { animation: none; } }
 /* Beat player (Bennie 2026-11-10/11; layout idea from RhymeFlux's beat sheet, own code). A floating beat button sits at the bottom right of
@@ -6830,7 +6832,7 @@ function setView() {
   { const nm = w ? 'Write' : b ? 'The Highlight Zone' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
   document.querySelectorAll('.views a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === here ? 'page' : 'false'));
   if (w) { wrOpen(); return; }
-  if (b) { wrFlush(); if (typeof bookOpen === 'function') bookOpen(); if (typeof bookPop === 'function') bookPop(); return; }
+  if (b) { wrFlush(); if (typeof bookOpen === 'function') bookOpen(true); if (typeof bookPop === 'function') bookPop(); return; }
   if (z) { wrFlush(); if (typeof zoneOpen === 'function') zoneOpen(); return; }
   wrFlush(); wrMerge(); updateSaveBtn();
   const s = WR.songs.find(x => x.id === linkedSong);
@@ -6910,6 +6912,24 @@ function mwGo(hash) {
   // each stage moves on when its animation ends OR after a set time (a busy or background tab must never stay half way)
   const after = (anims, ms) => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; Promise.all(anims.map(a => a.finished)).then(go, go); setTimeout(go, ms); });
   const arrive = () => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; addEventListener('hashchange', go, { once: true }); location.hash = hash; setTimeout(go, 200); });
+  if (toBook && document.startViewTransition) {
+    // Bennie 2026-11-14: "Rhyme should pop up right away, and the boxes moving away go after". The browser keeps a picture of
+    // every box (view-transition-name mw0, mw1, ...), the Highlight Zone opens behind them at once, and the pictures slide to
+    // the screen edges and fade over it. The real boxes are already gone, so nothing waits for the slide.
+    const g = mwGroups(), fr = g.map(([el, dir]) => mwFrames(el, dir, el.mwRef));
+    g.forEach(([el], i) => { el.style.viewTransitionName = 'mw' + i; });
+    r.classList.add('mw-vt');
+    const clean = () => { g.forEach(([el]) => { el.style.viewTransitionName = ''; }); r.classList.remove('mw-vt'); mwBusy = false; };
+    let vt; try { vt = document.startViewTransition(() => arrive()); } catch (e) { clean(); location.hash = hash; return; }
+    vt.ready.then(() => {
+      const o = { duration: 420, easing: MW_EASE, fill: 'both' };
+      g.forEach((_, i) => { const k = fr[i].map(f => ({ ...f })); k[2].opacity = 0;
+        try { r.animate(k, { ...o, delay: Math.min(i * 14, 110), pseudoElement: `::view-transition-old(mw${i})` }); } catch (e) {} });
+      r.animate([{ opacity: 0, transform: 'translateY(8px) scale(.985)' }, { opacity: 1, transform: 'none' }], { duration: 240, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both', pseudoElement: '::view-transition-new(root)' });
+    }, () => {});
+    vt.finished.then(clean, clean);
+    return;
+  }
   if (toBook) {
     const out = mwGroups().map(([el, dir], i) => el.animate(mwFrames(el, dir, el.mwRef), { duration: 420, delay: Math.min(i * 14, 110), easing: MW_EASE, fill: 'both' }));
     r.style.overflowX = 'hidden';
@@ -7777,13 +7797,16 @@ window.bookAdd = bookAdd;
 function rbDate(t) { try { return new Date(t).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }); } catch { return ''; } }
 function rbFolders() { return [...new Set(RB.pages.map(p => p.folder).filter(Boolean))].sort((a, b) => a.localeCompare(b)); }
 function rbList() {
-  const q = $('rbSearch').value.trim().toLowerCase(), ul = $('rbList'); ul.replaceChildren();
+  const q = $('rbSearch').value.trim().toLowerCase(), ul = $('rbList');
+  const sig = [q, RB.folder, RB.sort, !!window.BBAPP, RB.bin.length, ...RB.pages.map(p => [p.id, p.updated, p.title, p.folder, p.pin, p.locked, !!p.cover, (p.text || '').length].join('\u0001'))].join('\u0002');
+  if (sig === RB.listSig && ul.children.length) { ul.querySelectorAll('button[data-id]').forEach(b => b.setAttribute('aria-current', b.dataset.id === RB.cur ? 'true' : 'false')); rbBinList(); return; }
+  RB.listSig = sig; ul.replaceChildren();
   const fs = rbFolders(), sel = $('rbFolder'), keep = RB.folder;
   sel.replaceChildren(new Option('All', '')); fs.forEach(f => sel.append(new Option(f, f))); sel.value = fs.includes(keep) ? keep : ''; RB.folder = sel.value;
   $('rbFolders').replaceChildren(...fs.map(f => new Option(f)));
   const list = RB.pages.filter(p => (!RB.folder || p.folder === RB.folder) && (!q || (p.title + '\n' + p.text).toLowerCase().includes(q))).sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (RB.sort === 'old' ? (a.updated || 0) - (b.updated || 0) : RB.sort === 'az' ? String(a.title || '').localeCompare(String(b.title || '')) : RB.sort === 'new' ? (b.updated || 0) - (a.updated || 0) : 0));
   for (const p of list) {
-    const li = h('li'), b = h('button'); b.type = 'button'; b.setAttribute('aria-current', p.id === RB.cur ? 'true' : 'false');
+    const li = h('li'), b = h('button'); b.type = 'button'; b.dataset.id = p.id; b.setAttribute('aria-current', p.id === RB.cur ? 'true' : 'false');
     if (window.BBAPP) b.append(bookMini(p)); else if (p.cover) { const im = new Image(); im.className = 'rb-cov'; im.src = p.cover; im.alt = ''; b.append(im); }
     b.append(h('span', 't' + (p.locked ? ' lock' : '') + (p.pin ? ' pin' : ''), p.title || 'Untitled'), h('span', 'd', (p.folder ? p.folder + ' · ' : '') + rbDate(p.updated)));
     if (window.BBAPP) b.append(h('span', 'p', String(p.text || '').split('\n').filter(x => x.trim() && !/^\s*\[[^\]]*\]\s*$/.test(x)).slice(0, 3).join(' / ')));
@@ -7791,6 +7814,9 @@ function rbList() {
     li.append(b); ul.append(li);
   }
   if (!list.length) ul.append(h('li', 'note', RB.pages.length ? 'Nothing matches.' : 'No pages yet.'));
+  rbBinList();
+}
+function rbBinList() {
   $('rbBinN').textContent = RB.bin.length; const bin = $('rbBin'); bin.replaceChildren();
   RB.bin.slice(0, 30).forEach(p => {
     const r = h('div', 'row'), back = h('button', 'mini', 'Put back'); r.append(h('span', '', p.title || 'Untitled'), back);
@@ -7893,11 +7919,14 @@ async function bookSync() {
   finally { RBS.busy = false; if (RBS.again) { RBS.again = false; rbSyncSoon(1500); } }
 }
 window.bookSync = bookSync;
-function bookOpen() {
+function bookOpen(lazy) {
   if (!rbPage()) { if (RB.pages.length) RB.cur = RB.pages[0].id; else bookAdd('', ''); }
   const p = rbPage(); $('rbTitle').value = p.title; $('rbText').value = p.text; $('rbFolderIn').value = p.folder || '';
   $('rbText').readOnly = !!p.locked; $('rbTitle').readOnly = !!p.locked; $('rbLock').setAttribute('aria-pressed', String(!!p.locked));
-  rbList(); rbApplyLook(); rbPaint(); rbGrow(); rbSuggest(); bookFit();
+  // lazy (opening the Rhyme view): show the page you write in first; the song list and rhyme suggestions fill in right after the first frame
+  if (lazy) requestAnimationFrame(() => setTimeout(() => { if (location.hash !== '#book') return; try { rbList(); rbSuggest(); } catch (e) { console.error(e); } }, 0));
+  else rbList();
+  rbApplyLook(); rbPaint(); rbGrow(); if (!lazy) rbSuggest(); bookFit();
   if (RB.openId !== p.id) { RB.openId = p.id; const m = $('rbText').closest('.rb-main'); if (m) m.scrollTop = 0; }   // another page starts at its top
 }
 window.bookOpen = bookOpen;
@@ -8022,9 +8051,12 @@ function rbInsert(word) {
   if (!document.execCommand || !document.execCommand('insertText', false, ins)) { t.value = before + ins + v.slice(b); t.setSelectionRange(a + ins.length, a + ins.length); }
   rbInput();
 }
+const RWL = { d: null, m: new Map() };   // rhyme lists per word, kept while the dictionary stays the same (opening Rhyme was waiting ~0.5 s on this)
 function rbWordList(word, max) {
+  if (RWL.d !== DICT) { RWL.d = DICT; RWL.m.clear(); }
+  const key = word + '|' + max; if (RWL.m.has(key)) return RWL.m.get(key);
   const r = typeof dictRhymes === 'function' ? dictRhymes(word, max) : null; if (!r) return null;
-  return r;
+  if (RWL.m.size > 400) RWL.m.clear(); RWL.m.set(key, r); return r;
 }
 function rbSuggest() {
   const box = $('rbSug'), { prev } = rbCaretInfo(); box.replaceChildren();
@@ -8259,7 +8291,7 @@ rbMode(RB.mode);
   t.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { if (RB2.tools.includes('check')) checkRender(); }, 500); });
 })();
 const _bookOpen = window.bookOpen;
-window.bookOpen = bookOpen = function () { _bookOpen(); if (RB2.view !== 'write') rbView(RB2.view); if (RB2.tools.includes('check')) checkRender(); if (RB2.tools.includes('topic')) topicRender(); };
+window.bookOpen = bookOpen = function () { _bookOpen.apply(this, arguments); if (RB2.view !== 'write') rbView(RB2.view); if (RB2.tools.includes('check')) checkRender(); if (RB2.tools.includes('topic')) topicRender(); };
 
 // ---- Booth: big lyric sheet, a click at the BPM, and the current bar lit (one line = one bar of 4 beats)
 const BOOTH = { on: false, ctx: null, t0: 0, next: 0, beat: 0, timer: 0, raf: 0 };
@@ -11265,7 +11297,7 @@ void main(){
   }, 0));
   const _open = window.bookOpen;
   window.bookOpen = bookOpen = function () {
-    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; S.extra = 0; S.oneSec = 0; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); _open(); histReset(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
+    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; S.extra = 0; S.oneSec = 0; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); _open.apply(this, arguments); histReset(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
   };
   const _apply = rbApplyLook; rbApplyLook = function () { _apply.apply(this, arguments); if (S.rows.length) render(); };
   window.addEventListener('hashchange', () => { if (location.hash === '#book') drawer(); else { drawerOpen(false); moreOpen(false); menuClose(); if (S.rec) S.rec.mr.stop(); } });
@@ -12289,7 +12321,7 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   const sync = () => { count(); actSync(); statSync(); };
   BE.drawer = function () { drawer0(); sync(); };
   const open0 = bookOpen;
-  bookOpen = function () { if (CK.el) { CK.el.remove(); CK.el = null; } open0(); sync(); if (RB2.view === 'compare') cmp(); if (RB2.view === 'structure') struct(); };
+  bookOpen = function () { if (CK.el) { CK.el.remove(); CK.el = null; } open0.apply(this, arguments); sync(); if (RB2.view === 'compare') cmp(); if (RB2.view === 'structure') struct(); };
   if (window.MutationObserver) new MutationObserver(count).observe(BE.recList, { childList: true });
   rhyApply(); ready = true; rbPaint(); sync();
   return { settings, library, check, place, actOpen, cmp, struct };
