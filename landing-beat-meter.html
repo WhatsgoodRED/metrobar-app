@@ -8,13 +8,15 @@
    class). bbLook() sets day/night, colour and paper from storage before paint. barbook.html and ?barbook still open it directly. */
 window.bbLook = function () {
   var r = document.documentElement;
-  try { r.classList.toggle('bb-day', JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false); } catch (e) { r.classList.add('bb-day'); }
+  r.classList.toggle('bb-day', window.mbDay ? window.mbDay() : true);
   try { var ac = JSON.parse(localStorage.getItem('metrobar.bookAccent') || '"#af0000"'); r.classList.toggle('bb-mb', ac === '#af0000' || ac === '#ff3b4e'); } catch (e) { r.classList.add('bb-mb'); }
   try { r.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
 };
 /* Day/night for every page (Bennie 2026-11-14: "go to dark mode on every page"). One setting, metrobar.bookDay (true = day),
    shared with the Highlight Zone. mbTheme() sets data-theme (light/dark) + bb-day before paint and syncs every .smt switch. */
-window.mbDay = function () { try { return JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false; } catch (e) { return true; } };
+/* Not set yet = follow the phone/computer's own light or dark setting (HIG dark-mode: respond to the system choice); the switch overrides it. */
+window.mbSys = function () { try { return !matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return true; } };
+window.mbDay = function () { try { var v = localStorage.getItem('metrobar.bookDay'); return v == null ? window.mbSys() : JSON.parse(v) !== false; } catch (e) { return true; } };
 window.mbTheme = function () {
   var r = document.documentElement, d = window.mbDay(); r.dataset.theme = d ? 'light' : 'dark'; r.classList.toggle('bb-day', d);
   var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = d ? '#eef0ec' : '#111413';
@@ -27,6 +29,7 @@ window.mbDayToggle = function () {
   try { if (window.BBAPP && typeof rbPaint === 'function') rbPaint(); } catch (e) {}
 };
 window.mbTheme();
+try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function () { if (localStorage.getItem('metrobar.bookDay') == null) { window.mbTheme(); try { if (typeof rbApplyLook === 'function') rbApplyLook(); } catch (e) {} } }); } catch (e) {}
 (function () {
   var q = /[?&]barbook\b/.test(location.search), bb = location.hash === '#book' || (q && !location.hash); window.BBAPP = bb;
   if (q) { try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])barbook\b(=[^&]*)?&?/, '$1').replace(/[?&]$/, '') + (bb ? '#book' : location.hash)); } catch (e) {} }
@@ -1329,6 +1332,7 @@ body.write { padding-bottom: var(--sheet-pad, 0px); }
 .zn-pf-mw { position: relative; flex: none; }
 .zn-pf-more { width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent-text); display: grid; place-items: center; cursor: pointer; padding: 0; }
 .zn-pf-more svg { width: 28px; height: 28px; fill: var(--accent); }
+:root[data-theme="dark"] .zn-pf-more { border-color: var(--accent-text); } :root[data-theme="dark"] .zn-pf-more svg, :root[data-theme="dark"] .zn-pf-row .n svg { fill: var(--accent-text); }   /* #af0000 on the dark page is 2.49:1; icons need 3:1 */
 .zn-pf-more:hover, .zn-pf-more[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .zn-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 190px; display: grid; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 14px 34px #0003; animation: zn-menu .16s var(--ease, ease-out); }
 .zn-menu button { white-space: nowrap; border: 0; background: none; color: var(--fg); font: 500 .95rem var(--body); text-align: left; padding: 10px 12px; border-radius: 8px; cursor: pointer; }
@@ -9597,6 +9601,12 @@ function znMenu(anchor, items) {
   const m = h('div', 'zn-menu'); m.setAttribute('role', 'menu');
   items.forEach(([label, fn, cls]) => { const b = h('button', cls || '', label); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.addEventListener('click', () => { m.remove(); fn(); }); m.append(b); });
   anchor.parentElement.append(m); anchor.setAttribute('aria-expanded', 'true');
+  m.addEventListener('keydown', e => {
+    const bs = [...m.querySelectorAll('button')], i = bs.indexOf(document.activeElement);
+    const go = { ArrowDown: (i + 1) % bs.length, ArrowUp: (i - 1 + bs.length) % bs.length, Home: 0, End: bs.length - 1 }[e.key];
+    if (go != null) { e.preventDefault(); bs[go].focus(); }
+    if (e.key === 'Escape' || e.key === 'Tab') { m.remove(); anchor.setAttribute('aria-expanded', 'false'); if (e.key === 'Escape') anchor.focus(); }
+  });
   const off = e => { if (e.type === 'keydown' ? e.key === 'Escape' : !m.contains(e.target) && e.target !== anchor) { m.remove(); anchor.setAttribute('aria-expanded', 'false'); document.removeEventListener('pointerdown', off, true); document.removeEventListener('keydown', off, true); } };
   setTimeout(() => { document.addEventListener('pointerdown', off, true); document.addEventListener('keydown', off, true); }, 0);
   const f = m.querySelector('button'); if (f) f.focus();
@@ -9639,7 +9649,8 @@ async function znProfile(body) {
     mid.append(h('div', 't', x.title), h('div', 'u', p.username));
     pr.innerHTML = '<span></span>' + ZN_FIRE; pr.firstChild.textContent = String(x.respect_count || 0); pr.title = (x.respect_count || 0) + ' Props!';
     n.append(pr, h('small', '', znAgo(x.created_at)));
-    li.append(znAvatar(p), mid, n);
+    li.append(znAvatar(p), mid, n); li.setAttribute('role', 'link');
+    li.setAttribute('aria-label', `${x.title}, ${x.respect_count || 0} Props!, ${znAgo(x.created_at)}${x.featured ? ', Featured' : ''}`);
     li.addEventListener('click', () => znGo('post', x.id)); li.addEventListener('keydown', e => { if (e.key === 'Enter') znGo('post', x.id); }); ul.append(li);
   }
   wrap.append(top, idr, posts.length ? ul : h('p', 'zn-empty', me ? 'No posts yet. Post a page from the Highlight Zone.' : 'No posts yet.'));
@@ -12090,7 +12101,7 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap'; document.head.append(l); }
 
   // ---- day (white page, default) or night (the dark look) (Bennie 2026-11-13); the toggle sits in the sidebar header
-  const isDay = () => store.get('metrobar.bookDay', true) !== false;
+  const isDay = () => mbDay();
   const look0 = rbApplyLook;
   rbApplyLook = function () { const d = isDay(); RB.look.shell = d ? 'light' : 'dark'; RB.look.theme = d ? 'white' : 'dark'; look0(); vb.classList.toggle('rb-dark', !d); root.classList.toggle('bb-day', d); };
   rbApplyLook();
