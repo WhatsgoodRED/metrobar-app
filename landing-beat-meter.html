@@ -7,8 +7,15 @@
    no MetroBar header, the address bar shows barbook.html. In MetroBar itself #book sends you there. */
 (function () {
   var bb = /[?&]barbook\b/.test(location.search); window.BBAPP = bb;
-  if (!bb) { if (location.hash === '#book') location.replace('barbook.html'); return; }
+  if (!bb) {
+    if (location.hash === '#book') { location.replace('barbook.html'); return; }
+    // back from the Highlight Zone (stamp, 4s): hide the column until the boxes slide back in (mw-back, see mwGroups)
+    try { var mb = +sessionStorage.getItem('metrobar.makeWayBack') || 0; sessionStorage.removeItem('metrobar.makeWayBack'); if (Date.now() - mb < 4000 && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('mw-back'); } catch (e) {}
+    return;
+  }
   document.documentElement.classList.add('bb');
+  // arriving from MetroBar's Rhyme "make way" transition (sessionStorage stamp, 4s): the page rises in front (CSS html.mw-in)
+  try { var mw = +sessionStorage.getItem('metrobar.makeWay') || 0; sessionStorage.removeItem('metrobar.makeWay'); if (Date.now() - mw < 4000 && !matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('mw-in'); } catch (e) {}
   // day (white page, default) or night (the dark look): metrobar.bookDay, set before the first paint so night never flashes
   try { if (JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false) document.documentElement.classList.add('bb-day'); } catch (e) { document.documentElement.classList.add('bb-day'); }
   // Red (the default) = the MetroBar look: its palette and font (bb-mb), set here so nothing flashes
@@ -34,6 +41,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
 <style>
+/* Highlight Zone arriving from MetroBar's Rhyme "make way" transition: it rises to the front (class set in the head script) */
+@keyframes mwIn { from { opacity: 0; transform: translateY(14px) scale(.965); } to { opacity: 1; transform: none; } }
+html.mw-back .wrap > * { opacity: 0; }
+html.mw-run .views > .ff-cv { opacity: 0; } .views > .ff-cv { transition: opacity .3s; }
+html.mw-in body { animation: mwIn .5s cubic-bezier(.2,.8,.2,1) backwards; transform-origin: 50% 30vh; }
 /* The page is always light (data-theme="light" on <html>); the dark set below is used by the analysis cards. Accent (--accent) is the one tweak colour: landing tiles, Start button, logo "4". Change it with the picker. */
 :root {
   --accent: #af0000; --on-accent: #fff;
@@ -6838,9 +6850,101 @@ function setView() {
 window.addEventListener('hashchange', setView);
 // Barbook lives on its own page: from MetroBar, #book goes there; from Barbook, any other tab goes back to MetroBar's page
 window.addEventListener('hashchange', () => {
-  if (window.BBAPP) { if (location.hash !== '#book') { try { if (typeof rbFlush === 'function') rbFlush(); } catch (e) {} location.href = 'landing-beat-meter.html' + (location.hash || ''); } }
+  if (window.BBAPP) { if (location.hash !== '#book') { try { if (typeof rbFlush === 'function') rbFlush(); } catch (e) {} const u = 'landing-beat-meter.html' + (location.hash || ''); window.mwLeave ? mwLeave(u) : (location.href = u); } }
   else if (location.hash === '#book') { try { if (typeof rbSaveNow === 'function') rbSaveNow(); } catch (e) {} location.href = 'barbook.html'; }
 });
+// ---- Rhyme "makes way" (Bennie 2026-11-14): clicking Rhyme is a transition, not a page load. The screen splits: wordmark,
+// tiles 1 2, MetroBar + Write and the left boxes go left; tiles 3 4, Rhyme + The Zone, the readout and the right boxes go right
+// (per view, see mwGroups). All at once, all the way to the screen edge (a sliver stays), no fade while moving; then they fade, and the Highlight Zone rises in
+// front (`mw-in`, head script). The way back (mwLeave on the Highlight Zone page): that page sinks back and fades, and here the
+// boxes slide back into place from the sides (`mw-back`). Reduced motion: plain navigation both ways.
+const MW_EASE = 'cubic-bezier(.65,0,.35,1)';
+const mwCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !Element.prototype.animate;
+function mwGroups() {
+  const vis = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
+  const L = [], R = [], q = s => document.querySelector(s);
+  const sub = document.querySelectorAll('.logo-sub i'), nav = document.querySelectorAll('.views a');
+  L.push(q('.logo-tile'), sub[0], sub[1], nav[0], nav[1]); R.push(sub[2], sub[3], nav[2], nav[3], q('header .hright'));
+  // the liquid-glass pill under the current tab (.ff-cv canvas) goes with that tab
+  const cur = [...nav].findIndex(a => a.getAttribute('aria-current') === 'page'), pill = q('.views > .ff-cv'); if (pill && nav[cur]) pill.mwRef = nav[cur]; (cur > 1 ? R : L).push(pill);
+  // below the header, per view. Boxes with a wrapper move whole; loose buttons go to the side of the screen they sit on.
+  const side = el => { const r = el.getBoundingClientRect(); (r.left + r.width / 2 < innerWidth / 2 ? L : R).push(el); };
+  const kids = s => { const p = q(s); return p ? [...p.children] : []; };
+  R.push(q('#intro')); L.push(q('#resume'));
+  if (!$('viewWrite').hidden) {          // Write (Bennie 2026-11-14): dock box right; Rhymes/Stress/Flow/Aim/Place my bars/Beat left,
+    const rows = document.querySelectorAll('.wr-main > .row');   // Template/Lyric template/To Highlight Zone/Practice right; editor
+    L.push(q('#wrLib'), q('.wr-top'), q('.wr-ed'), q('#wrStats'), rows[1]); R.push(q('#wrDock'), q('#wrPanels'));   // + Duplicate row left, Techniques right
+    if (rows[0]) [...rows[0].children].forEach(side);
+  } else if (!$('viewZone').hidden) {    // The Zone: head items and loose buttons by side, posts alternate
+    kids('.zn-head').forEach(side);
+    kids('#znBody').forEach((el, i) => el.classList.contains('row') ? [...el.children].forEach(side) : (i % 2 ? R : L).push(el));
+  } else {                               // MetroBar: deck left, Start box right, Flow game left, Advanced right
+    kids('#viewPractice').reverse().filter(el => vis(el) && el.offsetHeight > 8).forEach((el, i) => (i % 2 ? L : R).push(el));
+  }
+  const ok = el => { if (!vis(el)) return false; const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; };
+  return [...L.filter(ok).map(el => [el, -1]), ...R.filter(ok).map(el => [el, 1])];
+}
+// out (Bennie 2026-11-14, like macOS Show Desktop): every box slides all the way to its screen edge until only a sliver
+// (MW_EDGE px) shows, then fades to a ghost. back: the same frames reversed. `ref` = the element that sets the distance
+// (the tab pill travels exactly as far as its tab).
+const MW_EDGE = 18;
+const mwFrames = (el, dir, ref) => {
+  const r = (ref || el).getBoundingClientRect(), dx = dir < 0 ? MW_EDGE - r.right : innerWidth - MW_EDGE - r.left;
+  return [
+    { transform: 'none', opacity: 1, offset: 0 },
+    { transform: `translateX(${dx}px)`, opacity: 1, offset: .62 },
+    { transform: `translateX(${dx}px)`, opacity: .16, offset: 1 }];
+};
+(function () {
+  if (window.BBAPP) {
+    // Highlight Zone page: every way back to MetroBar sinks this page back first
+    let gone = false;
+    window.mwLeave = url => {
+      if (gone) return; gone = true;
+      try { sessionStorage.setItem('metrobar.makeWayBack', String(Date.now())); } catch (e) {}
+      if (mwCalm()) { location.href = url; return; }
+      const a = document.body.animate([{ opacity: 1, transform: 'none', filter: 'blur(0)' }, { opacity: 0, transform: 'scale(.93)', filter: 'blur(4px)' }],
+        { duration: 380, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+      document.body.style.transformOrigin = `50% ${scrollY + innerHeight * .4}px`;
+      let done = false; const fin = () => { if (!done) { done = true; location.href = url; } };
+      a.finished.then(fin, fin); setTimeout(fin, 700);
+      addEventListener('pageshow', ev => { if (ev.persisted) { a.cancel(); gone = false; } }, { once: true });
+    };
+    document.addEventListener('click', e => {
+      const a = e.target.closest && e.target.closest('a[href^="landing-beat-meter.html"]');
+      if (!a || a.target === '_blank' || /[?&]barbook|#move/.test(a.getAttribute('href')) || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
+      e.preventDefault(); window.mwLeave(a.getAttribute('href'));
+    }, true);
+    return;
+  }
+  // MetroBar arriving back from the Highlight Zone: the boxes slide back in from the sides
+  if (document.documentElement.classList.contains('mw-back')) {
+    const back = () => {
+      const root = document.documentElement; let all = [];
+      try { all = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef).reverse().map((k, i, arr) => ({ ...k, offset: 1 - arr[i].offset })), { duration: 900, easing: MW_EASE, fill: 'backwards' })); } catch (e) {}
+      root.style.overflowX = 'hidden'; root.classList.add('mw-run'); root.classList.remove('mw-back');   // mw-run: the tab pill waits, then fades in
+      const end = () => { root.style.overflowX = ''; root.classList.remove('mw-run'); };
+      Promise.all(all.map(a => a.finished)).then(end, end); setTimeout(end, 1500);
+    };
+    requestAnimationFrame(() => requestAnimationFrame(back));
+    setTimeout(() => document.documentElement.classList.remove('mw-back'), 1500);   // never leave the page hidden
+  }
+  const link = document.querySelector('.views a[href="barbook.html"]'); if (!link) return;
+  let busy = false;
+  const go = () => { try { if (typeof rbSaveNow === 'function') rbSaveNow(); } catch (e) {} try { sessionStorage.setItem('metrobar.makeWay', String(Date.now())); } catch (e) {} location.href = 'landing-beat-meter.html?barbook#book'; };
+  link.addEventListener('click', e => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;   // new tab / window: leave it to the browser
+    e.preventDefault(); if (busy) return; busy = true;
+    if (mwCalm()) return go();
+    // all at the same moment (no stagger), so the tab pill stays under its tab
+    const all = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef), { duration: 950, easing: MW_EASE, fill: 'forwards' }));
+    document.documentElement.style.overflowX = 'hidden';
+    let done = false; const fin = () => { if (!done) { done = true; go(); } };
+    Promise.all(all.map(a => a.finished)).then(fin, fin); setTimeout(fin, 1500);
+    // back with the browser's Back button (bfcache): everything returns to its place
+    addEventListener('pageshow', ev => { if (ev.persisted) { all.forEach(a => a.cancel()); document.documentElement.style.overflowX = ''; busy = false; done = false; } }, { once: true });
+  });
+})();
 // ---- wiring
 Object.entries(TEMPLATES).forEach(([id, t]) => { const o = h('option', '', t.name); o.value = id; $('wrTpl').append(o); });
 $('wrText').addEventListener('input', wrInput);
@@ -11840,7 +11944,7 @@ var BS = (() => {
   dayB.addEventListener('click', () => { store.set('metrobar.bookDay', !isDay()); rbApplyLook(); if (typeof rbPaint === 'function') try { rbPaint(); } catch (e) {} dayShow(); });
   dayShow();
   brand.append(bname, homeB, colB); dayB.classList.add('smt-lg'); { const fab = document.getElementById('bkFab'); if (fab) fab.before(dayB); else document.body.append(dayB); }
-  homeB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html'; });
+  homeB.addEventListener('click', () => { rbFlush(); window.mwLeave ? mwLeave('landing-beat-meter.html') : (location.href = 'landing-beat-meter.html'); });
   colB.addEventListener('click', () => nolib(true));
   const all = h('div', 'bs-all'), allA = btn('a', `<span>${I.lib}</span><b>All songs</b><small></small>`, 'Your full library'), allS = btn('s', IC.find, 'Search your songs', 'Search your songs'); all.append(allA, allS);
   const rech = h('div', 'bs-rech'); rech.append(h('span', '', 'Recent'));
@@ -12440,7 +12544,7 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
     if (a === 'pay') { d.close(); aiPaywall(); }
     else if (a === 'cancel') { const u = acctPortal(w); if (u) window.open(u, '_blank', 'noopener'); acctNote(d, 'Cancel on the Stripe page', 'A secure Stripe page opened in a new tab. Enter the email you paid with, then press Cancel subscription. Your plan keeps running until the end of the month you paid for. Stripe confirms by email.'); const g = d.querySelector('.acct-go'); g.textContent = 'Done'; g.replaceWith(g.cloneNode(true)); d.querySelector('.acct-go').addEventListener('click', () => d.close()); }
     else if (a === 'withdraw') acctWithdraw(d, api, w);
-    else if (a === 'zone') { if (typeof rbFlush === 'function') rbFlush(); location.href = 'landing-beat-meter.html#zone'; }
+    else if (a === 'zone') { if (typeof rbFlush === 'function') rbFlush(); window.mwLeave ? mwLeave('landing-beat-meter.html#zone') : (location.href = 'landing-beat-meter.html#zone'); }
     else if (a === 'out') { b.disabled = true; try { await api.signOut(); } catch (e) {} ZN.me = null; if (typeof AIW !== 'undefined') AIW.w = null; try { await znAuthChanged(); } catch (e) {} if (typeof aiWalletShow === 'function') aiWalletShow(); d.close(); if (typeof toast === 'function') toast('Signed out. Your songs stay in this browser.'); }
   }));
 }
