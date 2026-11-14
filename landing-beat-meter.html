@@ -3231,6 +3231,10 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-sp { flex: 1; }
 .fp-b { font: 600 .9rem/1 var(--body); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 .fp-b:disabled { opacity: .5; cursor: default; }
+.fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
+.fp-rec.on { border-color: var(--accent); }
+.fp-rec.on::before { animation: fpRec 1s ease-in-out infinite; }
+@keyframes fpRec { 50% { opacity: .25; } }
 .fp-play { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 6rem; }
 .fp-sq { padding: 10px 12px; min-width: 2.6rem; }
 .fp-bpm { display: inline-flex; align-items: center; gap: 6px; font: 500 .9rem/1 var(--mono); color: var(--muted); }
@@ -3672,6 +3676,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="fp-ctl">
       <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false">Play</button>
       <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
+      <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
       <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
       <span class="fp-bpm"><button class="fp-b fp-sq" id="fpSlow" type="button" aria-label="Slower">−</button><b id="fpBpm">90</b> BPM<button class="fp-b fp-sq" id="fpFast" type="button" aria-label="Faster">+</button></span>
       <span class="fp-sp"></span>
@@ -3682,6 +3687,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <label class="fp-ck"><input type="checkbox" id="fpVoice" checked> Voice</label>
         <label class="fp-ck"><input type="checkbox" id="fpClick" checked> Click</label>
         <button class="fp-b" id="fpClear" type="button">Clear the grid</button>
+        <button class="fp-b" id="fpRecDel" type="button" hidden>Robot voice again</button>
         <button class="fp-b" id="fpToLyr" type="button" title="Add this bar to the lyrics box in Advanced > Fit">Add to my lyrics</button>
       </div></details>
     </div>
@@ -5512,6 +5518,32 @@ function onsetTracker(sr) {
       return out;
     },
   };
+}
+// Pocket Practice "my voice" (2026-11-15): cut one recorded bar into n syllable slices. Onsets from onsetTracker; too many =
+// drop the one closest to its neighbour, too few = split the longest slice. Each slice runs to the next onset (the last one to the
+// end of the speech: the last 10 ms block within 35 dB of the loudest). Returns [{ s, e }] in seconds, or [] for silence.
+function voiceSlices(data, sr, n) {
+  if (!n || !data || !data.length) return [];
+  const tr = onsetTracker(sr), on = [];
+  for (let i = 0; i < data.length; i += 1024) on.push(...tr.push(data.subarray(i, i + 1024), i / sr));
+  const blk = Math.round(sr * 0.01), lv = [];
+  for (let i = 0; i + blk <= data.length; i += blk) { let a = 0; for (let k = i; k < i + blk; k++) a += data[k] * data[k]; lv.push(10 * Math.log10(a / blk + 1e-12)); }
+  const pk = Math.max(...lv); if (!on.length || pk < -50) return [];
+  let end = lv.length; while (end > 0 && lv[end - 1] < pk - 35) end--;
+  end = Math.min(data.length / sr, end * 0.01 + 0.03);
+  const o = on.filter(t => t < end - 0.04);
+  // too many: keep the n with the biggest jump in level (peak of the next 40 ms over the lowest of the 60 ms before); the first stays
+  const at = t => Math.max(0, Math.min(lv.length - 1, Math.round(t * 100)));
+  const rise = t => { let hi = -200, lo = 200; for (let i = at(t); i <= at(t + 0.04); i++) hi = Math.max(hi, lv[i]); for (let i = at(t - 0.06); i < at(t); i++) lo = Math.min(lo, lv[i]); return hi - (lo === 200 ? -120 : lo); };
+  if (o.length > n) { const keep = o.slice(1).map(t => [t, rise(t)]).sort((x, y) => y[1] - x[1]).slice(0, n - 1).map(x => x[0]); const f = o[0]; o.length = 0; o.push(f, ...keep.sort((x, y) => x - y)); }
+  // a syllable without a hard start (a vowel after a vowel) hides in the longest slice: cut that slice at its quietest dip
+  while (o.length < n) {
+    let b = 0, w = -1; o.forEach((t, i) => { const d = (i + 1 < o.length ? o[i + 1] : end) - t; if (d > w) { w = d; b = i; } });
+    const i0 = Math.ceil((o[b] + 0.07) * 100), i1 = Math.floor((o[b] + w - 0.07) * 100); let m = -1;
+    for (let i = i0; i <= i1 && i < lv.length; i++) if (m < 0 || lv[i] < lv[m]) m = i;
+    o.splice(b + 1, 0, m >= 0 ? m * 0.01 + 0.01 : o[b] + w / 2);
+  }
+  return o.map((t, i) => ({ s: Math.max(0, t - 0.015), e: i + 1 < o.length ? o[i + 1] - 0.015 : end }));
 }
 </script>
 <script>
@@ -13387,6 +13419,7 @@ var FP = (function () {
     if (S.click || count) for (let b = 0; b < 4; b++) click(t + b * 60 / S.bpm, b === 0);
     if (count || tap || !S.voice) return;
     const hs = S.hits.slice(0, syl.length);
+    if (mine()) { hs.forEach((s, k) => { const nx = k + 1 < hs.length ? hs[k + 1] : G() + PK; sayMine(k, t + s * u, (nx - s) * u); }); return; }
     hs.forEach((s, k) => {
       const nx = k + 1 < hs.length ? hs[k + 1] : Math.min(s + 4, G());
       VOX.say(ctx, out, syl[k].ph, t + s * u, Math.min(0.5, (nx - s) * u), { st: syl[k].st, last: k === hs.length - 1 });
@@ -13407,6 +13440,7 @@ var FP = (function () {
     raf = requestAnimationFrame(frame);
   }
   function play(withTap) {
+    if (rec) recStop();
     if (playing) halt();
     if (typeof running !== 'undefined' && running) try { stop(); } catch {}
     const c = ac(); c.resume && c.resume();
@@ -13434,10 +13468,67 @@ var FP = (function () {
     if (got.length) setHits(got); else render();
     if (got.length) $f('fpMsg').textContent = `${new Set(got).size} taps placed. It plays back now; tap a dot off or on to fix it.`;
   }
-  function ui() { const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
+  // ---- my voice (2026-11-15): rap the bar once, core voiceSlices cuts it into one slice per syllable, each slice plays on its slot.
+  // The take stays on this device (IndexedDB metrobar-fpvoice) and belongs to the bar's text: change the words = the robot again.
+  let take = null, rec = null, tbuf = null;
+  const mine = () => !!(take && take.text === S.text && take.sl.length === syl.length && syl.length);
+  const vdb = () => new Promise((ok, no) => { const r = indexedDB.open('metrobar-fpvoice', 1); r.onupgradeneeded = () => r.result.createObjectStore('t'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
+  const vput = v => vdb().then(d => { const x = d.transaction('t', 'readwrite'); v ? x.objectStore('t').put(v, 'take') : x.objectStore('t').delete('take'); }).catch(() => {});
+  vdb().then(d => { const r = d.transaction('t').objectStore('t').get('take'); r.onsuccess = () => { if (r.result) { take = r.result; tbuf = null; recUi(); } }; }).catch(() => {});
+  function sayMine(k, t, room) {
+    const c = ctx, x = take.sl[k];
+    if (!tbuf || tbuf.sampleRate !== take.sr) { tbuf = c.createBuffer(1, take.data.length, take.sr); tbuf.getChannelData(0).set(take.data); }
+    const d = Math.max(0.05, Math.min(x.e - x.s, room + 0.04)), src = c.createBufferSource(), g = c.createGain(); src.buffer = tbuf;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.004); g.gain.setValueAtTime(1, t + d - 0.02); g.gain.linearRampToValueAtTime(0, t + d);
+    src.connect(g); g.connect(out); src.start(t, x.s, d + 0.01);
+  }
+  function recUi() {
+    const b = $f('fpRec'); b.textContent = rec ? 'Stop' : mine() ? 'Record again' : 'Record my voice'; b.setAttribute('aria-pressed', !!rec); b.classList.toggle('on', !!rec);
+    $f('fpRecDel').hidden = !take;
+  }
+  async function recStart() {
+    if (!syl.length) { $f('fpText').focus(); return; }
+    if (playing) halt();
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $f('fpMsg').textContent = 'This browser can’t use the mic here (it needs https or localhost).'; return; }
+    let st; try { st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
+    catch (e) { $f('fpMsg').textContent = 'No mic: allow the microphone for this page and try again.'; return; }
+    const c = ac(); c.resume && c.resume();
+    const srcN = c.createMediaStreamSource(st), pr = c.createScriptProcessor(2048, 1, 1), mute = c.createGain(); mute.gain.value = 0;
+    const tr = onsetTracker(c.sampleRate), parts = []; let n = 0, heard = -1, quiet = 0;
+    rec = { st, srcN, pr, mute };
+    pr.onaudioprocess = e => {
+      if (!rec) return; const b = new Float32Array(e.inputBuffer.getChannelData(0)); parts.push(b);
+      const t0 = n / c.sampleRate; n += b.length; if (tr.push(b, t0).length && heard < 0) heard = t0;
+      quiet = tr.level < -46 ? quiet + b.length / c.sampleRate : 0;
+      if ((heard >= 0 && quiet > 1.1) || n / c.sampleRate > 10) recStop(parts, c.sampleRate);
+    };
+    srcN.connect(pr); pr.connect(mute); mute.connect(c.destination);
+    rec.parts = parts; rec.sr = c.sampleRate;
+    $f('fpMsg').textContent = `Recording: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause.`; recUi();
+  }
+  function recStop(parts, sr) {
+    if (!rec) return; const r = rec; rec = null;
+    try { r.pr.disconnect(); r.srcN.disconnect(); r.mute.disconnect(); r.st.getTracks().forEach(t => t.stop()); } catch {}
+    parts = parts || r.parts; sr = sr || r.sr;
+    const len = parts.reduce((a, b) => a + b.length, 0), data = new Float32Array(len); let o = 0; parts.forEach(b => { data.set(b, o); o += b.length; });
+    useTake(data, sr);
+  }
+  function useTake(data, sr) {
+    const len = data.length; let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(data[i])); if (pk > 0.001) for (let i = 0; i < len; i++) data[i] *= 0.9 / pk;
+    const sl = voiceSlices(data, sr, syl.length);
+    if (!sl.length) { $f('fpMsg').textContent = 'I didn’t hear the bar. Get closer to the mic and try again.'; recUi(); return; }
+    const end = sl[sl.length - 1].e, cut = data.slice(0, Math.min(len, Math.ceil((end + 0.05) * sr)));
+    take = { text: S.text, sr, data: cut, sl }; tbuf = null; vput(take); recUi();
+    if (!S.hits.length) $f('fpEven').click();
+    $f('fpMsg').textContent = `Got it: ${sl.length} syllables in your voice. Press Play; move the dots and your voice moves with them.`;
+    if (S.hits.length) play(false);
+  }
+  $f('fpRec').addEventListener('click', () => (rec ? recStop() : recStart()));
+  $f('fpRecDel').addEventListener('click', () => { take = null; tbuf = null; vput(null); recUi(); $f('fpMsg').textContent = 'Back to the robot voice.'; });
+  function ui() { recUi(); const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
   $f('fpText').value = S.text;
-  $f('fpText').addEventListener('input', e => { S.text = e.target.value; sel = null; parse(); save(); render(); });
+  $f('fpText').addEventListener('input', e => { S.text = e.target.value; sel = null; parse(); save(); render(); recUi(); });
   let drag = null;
   $f('fpGrid').addEventListener('pointerdown', e => {
     if (tap) { e.preventDefault(); tapHit(); return; }
@@ -13472,8 +13563,8 @@ var FP = (function () {
     ta.value = (ta.value.replace(/\s+$/, '') ? ta.value.replace(/\s+$/, '') + '\n' : '') + S.text.trim(); ta.dispatchEvent(new Event('input', { bubbles: true }));
     if (typeof toast === 'function') toast('Added to your lyrics (Advanced > Fit)');
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && playing) halt(); });
-  parse(); render();
+  document.addEventListener('visibilitychange', () => { if (document.hidden && playing) halt(); if (document.hidden && rec) recStop(); });
+  parse(); render(); recUi();
   // open a bar from a Fit card: its text and the slots Fit gave it
   function load(L, stay) {
     if (!L) return;
@@ -13484,7 +13575,7 @@ var FP = (function () {
     L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
     if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  return { load, play, halt, get state() { return S; }, get syl() { return syl; } };
+  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return take; }, _take: useTake };
 })();
 </script>
 <script>
