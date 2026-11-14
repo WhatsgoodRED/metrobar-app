@@ -3266,8 +3266,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-kv:hover { background: color-mix(in srgb, var(--fg) 8%, transparent); }
 .fp-knob small { position: absolute; left: 0; right: 0; top: 50%; margin-top: 5px; z-index: 1; text-align: center; font: 500 .5rem/1 var(--mono); letter-spacing: .08em; color: var(--muted); pointer-events: none; }
 .fp-kin { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -62%); z-index: 2; width: 3.2em; padding: 1px 2px; border: 1px solid var(--accent); border-radius: 4px; background: var(--bg); color: var(--fg); font: 600 .82rem/1 var(--mono); text-align: center; }
-.fp-knob.off { opacity: .6; cursor: default; }
-.fp-knob.off .fp-kv { cursor: default; }
+.fp-knob.off .fp-ka { stroke: var(--fg); }   /* Beat on: the knob is the beat's tempo */
 .fp-bpm { display: inline-flex; align-items: center; gap: 6px; font: 500 .9rem/1 var(--mono); color: var(--muted); }
 .fp-bpm b { color: var(--fg); min-width: 2.2ch; text-align: right; }
 .fp-more { position: relative; }
@@ -13402,7 +13401,9 @@ var FP = (function () {
   S.cur = Math.max(0, Math.min(S.cur || 0, S.list.length - 1)); Object.assign(S, S.list[S.cur]); delete S.bars;
   let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null, seq = 0, sel = null;
   const G = () => 4 * S.sub, PK = 2, tempo = () => (S.beat && typeof beatBuf !== 'undefined' && beatBuf ? beatTempo() : S.bpm), unit = () => 60 / tempo() / S.sub, barLen = () => 240 / tempo();
-  const beatTempo = () => (typeof detected !== 'undefined' && detected && detected.bpm) || bpm();   // the beat plays at its own speed, so the grid follows it
+  // the beat plays at its own speed, so the grid follows it: your knob setting for this beat (S.bt), else MetroBar's BPM when it is
+  // within 3 of what was detected (you typed 91, it heard 92: 91 wins), else the detected BPM. S.bt resets when another beat loads.
+  const beatTempo = () => { if (S.bt) return S.bt; const d = typeof detected !== 'undefined' && detected && detected.bpm, m = bpm(); return d ? (Math.abs(m - d) <= 3 ? m : d) : m; };
   const save = () => { S.list[S.cur] = { text: S.text, hits: S.hits, sub: S.sub }; store.set('metrobar.fpad', { list: S.list, cur: S.cur, bpm: S.bpm, voice: S.voice, click: S.click, beat: S.beat }); };
   const fixes = () => (typeof fix !== 'undefined' && fix) || {};
   const SYC = new Map();
@@ -13648,6 +13649,7 @@ var FP = (function () {
     const on = S.beat && hasBeat(), b = $f('fpBeat');
     b.setAttribute('aria-pressed', on); b.classList.toggle('on', on); b.textContent = on ? 'Beat on' : 'Beat';
     knobShow(on ? Math.round(beatTempo()) : S.bpm, on);
+    KN.title = on ? 'The beat\'s tempo. Off by a little? Turn or type it to match the beat.' : '';
   }
   $f('fpBeat').addEventListener('click', () => {
     if (playing) halt();
@@ -13655,7 +13657,9 @@ var FP = (function () {
     S.beat = !S.beat; save(); render();
     if (S.beat) $f('fpMsg').textContent = `Beat on at ${Math.round(beatTempo())} BPM: Play gives a count-in, then your ${S.list.length} bar${S.list.length > 1 ? 's' : ''} over the beat (+ Add bar for more, up to ${MAXB}). Turn Voice off (More) to rap it yourself.`;
   });
-  $('beatFile') && $('beatFile').addEventListener('change', () => { let n = 0; const w = setInterval(() => { if (hasBeat() || ++n > 60) { clearInterval(w); render(); } }, 250); });
+  // a new beat: forget the old correction, then show its tempo once the BPM detection is done (it runs after the file is read)
+  $('beatFile') && $('beatFile').addEventListener('change', () => { S.bt = 0; let n = 0; const w = setInterval(() => { const ok = typeof detected !== 'undefined' && detected; if (hasBeat()) render(); if ((hasBeat() && ok) || ++n > 160) clearInterval(w); }, 250); });
+  ['bpm', 'useDet', 'halfDet', 'dblDet'].forEach(id => { const el = $(id); if (el) el.addEventListener(id === 'bpm' ? 'change' : 'click', () => setTimeout(() => { if (S.beat && hasBeat()) { S.bt = 0; render(); } }, 0)); });
   const ICP = '<svg class="ic ic-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>', ICS = '<svg class="ic ic-stop" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="currentColor"/></svg>';
   function ui() { recUi(); const b = $f('fpPlay'); b.innerHTML = playing ? ICS : ICP; b.setAttribute('aria-label', playing ? 'Stop' : 'Play'); b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
@@ -13684,32 +13688,36 @@ var FP = (function () {
   document.addEventListener('keydown', e => { if (tap && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) tapHit(); } }, true);   // Space is the tap key here, not Start
   // ---- tempo knob (Bennie 2026-11-15): drag up/down (or sideways), scroll, arrow keys (PageUp/Down = 5); click the number to type it.
   // Changing it while playing just moves the next bars; with Beat on it shows the beat's tempo and stays put.
-  const KN = $f('fpKnob'), knOff = () => S.beat && hasBeat();
+  const KN = $f('fpKnob'), beatMode = () => S.beat && hasBeat(), knVal = () => (beatMode() ? Math.round(beatTempo()) : S.bpm);
   function knobShow(v, off) {
     const f = (Math.max(50, Math.min(200, v)) - 50) / 150;
     KN.style.setProperty('--ka', (-135 + f * 270) + 'deg'); KN.style.setProperty('--kd', 1 - f);
     $f('fpBpm').textContent = v; KN.setAttribute('aria-valuenow', v); KN.setAttribute('aria-valuetext', v + ' BPM');
-    KN.classList.toggle('off', !!off); KN.setAttribute('aria-disabled', !!off);
+    KN.classList.toggle('off', !!off);
   }
-  function knobSet(v) { if (knOff()) return; v = Math.round(Math.max(50, Math.min(200, v))); if (v === S.bpm) return; S.bpm = v; save(); knobShow(v, false); }
+  function knobSet(v) {
+    v = Math.round(Math.max(50, Math.min(200, v))); if (v === knVal()) return;
+    if (beatMode()) S.bt = v; else { S.bpm = v; save(); }
+    knobShow(v, beatMode());
+  }
   let kd = null;
   KN.addEventListener('pointerdown', e => {
-    if (knOff() || e.target.closest('.fp-kv, .fp-kin')) return;
-    e.preventDefault(); KN.focus(); KN.setPointerCapture(e.pointerId); kd = { x: e.clientX, y: e.clientY, v: S.bpm };
+    if (e.target.closest('.fp-kv, .fp-kin')) return;
+    e.preventDefault(); KN.focus(); KN.setPointerCapture(e.pointerId); kd = { x: e.clientX, y: e.clientY, v: knVal() };
   });
   KN.addEventListener('pointermove', e => { if (!kd) return; knobSet(kd.v + ((kd.y - e.clientY) + (e.clientX - kd.x)) / 3); });
   const kEnd = () => { kd = null; };
   KN.addEventListener('pointerup', kEnd); KN.addEventListener('pointercancel', kEnd);
-  KN.addEventListener('wheel', e => { if (knOff()) return; e.preventDefault(); knobSet(S.bpm + (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 5 : 1)); }, { passive: false });
+  KN.addEventListener('wheel', e => { e.preventDefault(); knobSet(knVal() + (e.deltaY < 0 ? 1 : -1) * (e.shiftKey ? 5 : 1)); }, { passive: false });
   KN.addEventListener('keydown', e => {
     if (e.target !== KN) return;
     const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 5, PageDown: -5 }[e.key];
-    if (d) { e.preventDefault(); knobSet(S.bpm + d); } else if (e.key === 'Home') { e.preventDefault(); knobSet(50); } else if (e.key === 'End') { e.preventDefault(); knobSet(200); }
+    if (d) { e.preventDefault(); knobSet(knVal() + d); } else if (e.key === 'Home') { e.preventDefault(); knobSet(50); } else if (e.key === 'End') { e.preventDefault(); knobSet(200); }
     else if (e.key === 'Enter') { e.preventDefault(); knobType(); }
   });
   function knobType() {
-    if (knOff() || KN.querySelector('.fp-kin')) return;
-    const i = document.createElement('input'); i.className = 'fp-kin'; i.type = 'text'; i.inputMode = 'numeric'; i.value = S.bpm; i.setAttribute('aria-label', 'Tempo in BPM (50 to 200)');
+    if (KN.querySelector('.fp-kin')) return;
+    const i = document.createElement('input'); i.className = 'fp-kin'; i.type = 'text'; i.inputMode = 'numeric'; i.value = knVal(); i.setAttribute('aria-label', 'Tempo in BPM (50 to 200)');
     let done = false;
     const fin = ok => { if (done) return; done = true; const v = parseInt(i.value, 10); i.remove(); if (ok && v) knobSet(v); KN.focus(); };
     i.addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); fin(true); } else if (e.key === 'Escape') { e.preventDefault(); fin(false); } });
