@@ -6,9 +6,9 @@
 /* The Highlight Zone (Barbook, menu "Rhyme") is a view of this page (Bennie 2026-11-14: "no separate HTML page loading in"; it was its
    own page since 11-12). window.BBAPP = the Highlight Zone is showing; html.bb gives it its own shell (every bb style hangs on that
    class). bbLook() sets day/night, colour and paper from storage before paint. barbook.html and ?barbook still open it directly. */
-/* Motion (design pass 2026-11-14, "one moving thing per screen"): metrobar.motion = 'calm' (default: only the beat tiles
-   and the rail ball move with the beat), 'full' (also the logo tiles, the live logo waveform, the pendulum swing and the
-   box glow) or 'off' (everything as if the system asked for reduced motion). 'off' answers every
+/* Motion (design pass 2026-11-14, "one moving thing per screen"): metrobar.motion = 'calm' (default: the beat tiles,
+   the rail ball and the metronome's swing + glow move with the beat), 'full' (also the logo tiles and the live logo
+   waveform) or 'off' (everything as if the system asked for reduced motion). 'off' answers every
    (prefers-reduced-motion: reduce) query with yes, so all the existing reduced-motion code paths apply; html.mo-off stops
    the CSS animations. */
 window.mbMotion = function () { try { var v = localStorage.getItem('metrobar.motion'); return v === 'full' || v === 'off' ? v : 'calm'; } catch (e) { return 'calm'; } };
@@ -3406,7 +3406,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <span class="mod-label">Swing <span class="val" id="swingOut">0%</span></span>
         <div class="sl"><input id="swing" type="range" min="0" max="60" step="1" value="0" aria-label="Swing"></div>
       </div>
-      <div class="mod" title="Calm: only the beat tiles and the ball move with the beat. Full: the logo, the pendulum and the glow move too. Off: no animation at all (same as your system's reduce-motion setting).">
+      <div class="mod" title="Calm: the beat tiles, the ball and the metronome move with the beat. Full: the logo and its waveform move too. Off: no animation at all (same as your system's reduce-motion setting).">
         <span class="mod-label">Motion</span>
         <select id="motion" data-seg class="wide" aria-label="Motion"><option value="calm" selected>Calm</option><option value="full">Full</option><option value="off">Off</option></select>
       </div>
@@ -5839,10 +5839,10 @@ function metroFrame(now) {
   railFrame(now);
   if (!pend) { mPend.style.transform = ''; deck.style.setProperty('--g', 0); return; }
   const f = Math.min(1, Math.max(0, (now - pend.t) / pend.dur));
-  const moFull = !calmQ.matches && window.mbMotion() === 'full';
-  mPend.style.transform = !moFull ? '' : `rotate(${(22 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
+  const swing = !calmQ.matches, glowOn = window.mbMotion() !== 'off';   // the metronome is a tool: it swings in Calm too; reduced motion keeps the glow, Off stops both
+  mPend.style.transform = !swing ? '' : `rotate(${(22 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
   const g = (pend.glow * Math.exp(-(now - pend.t) / Math.min(0.14, pend.dur * 0.35))).toFixed(3);
-  deck.style.setProperty('--g', moFull ? g : 0);
+  deck.style.setProperty('--g', glowOn ? g : 0);
 }
 function metroReset() { pend = null; pendN = 0; metroFrame(0); }
 metroWeight(bpm());
@@ -5855,7 +5855,7 @@ const logoEls = [...document.querySelectorAll('#logo .logo-sub i')];
     try { localStorage.setItem('metrobar.motion', sel.value); } catch (e) {}
     const r = document.documentElement; r.classList.toggle('mo-off', sel.value === 'off'); r.classList.toggle('mo-full', sel.value === 'full');
     logoEls.forEach(e => e.classList.remove('on', 'one')); metroFrame(0); logoWave();
-    if (window.toast) toast(sel.value === 'calm' ? 'Motion: calm. Only the beat tiles and the ball move.' : sel.value === 'full' ? 'Motion: full. The logo, pendulum and glow move too.' : 'Motion off. No animation.');
+    if (window.toast) toast(sel.value === 'calm' ? 'Motion: calm. The beat tiles, the ball and the metronome move.' : sel.value === 'full' ? 'Motion: full. The logo and its waveform move too.' : 'Motion off. No animation.');
   });
 })();
 function draw() {
