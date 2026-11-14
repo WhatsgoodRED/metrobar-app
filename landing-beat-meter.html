@@ -2615,6 +2615,14 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 .views > a[aria-current="page"], .views.ff-nav > a[aria-current="page"] { color: var(--on-accent, #fff) !important; }
 @media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
+/* Studio tile + round Zone button (Bennie 2026-11-14): the fourth tile opens studio.html; The Zone moved to a round button
+   right under Info (same .ibtn look and size). .hbtns = search | (Info over Zone). The button turns accent while you're on the Zone. */
+.hbtns { display: grid; grid-template-columns: auto auto; gap: 6px; align-items: start; }
+.hbtns > #cmdkBtn { grid-row: 1; grid-column: 1; } .hbtns > #infoBtn { grid-row: 1; grid-column: 2; } .hbtns > #zoneBtn { grid-row: 2; grid-column: 2; }
+#zoneBtn { text-decoration: none; }
+@media (max-width: 1080px) { header > .hright { align-items: start; } header > .hright > .readout { margin-top: calc((36px - 1lh) / 2); } }   /* readout lines up with the top row */
+#zoneBtn svg { width: 18px; height: 18px; stroke-width: 1.9; stroke-linejoin: round; }
+#zoneBtn[aria-current="page"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent, #fff); }
 /* Flow game and Advanced sit in the page column like every other box (Bennie 2026-11-13: same size as the 1 2 3 4 box,
    not the whole window); this undoes the old full-window break-out of #viewPractice > .adv / .tg-entry */
 #viewPractice > .adv, #viewPractice > .tg-entry { margin-inline: 0; }
@@ -2940,10 +2948,10 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="#zone"><span>The Zone</span></a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio.html" title="Studio: record your vocals over a beat"><span>Studio</span></a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
-      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button></div>
+      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a></div>
     </div>
   </header>
   <dialog class="tg" id="tgDlg" aria-labelledby="tgTitle">
@@ -6830,6 +6838,7 @@ function setView() {
   $('viewWrite').hidden = !w; $('viewBook').hidden = !b; $('viewZone').hidden = !z; $('viewPractice').hidden = w || b || z;
   { const nm = w ? 'Write' : b ? 'The Highlight Zone' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
   document.querySelectorAll('.views a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === here ? 'page' : 'false'));
+  { const zb = $('zoneBtn'); if (zb) zb.setAttribute('aria-current', z ? 'page' : 'false'); }
   if (w) { wrOpen(); return; }
   if (b) { wrFlush(); if (typeof bookOpen === 'function') bookOpen(true); if (typeof bookPop === 'function') bookPop(); return; }
   if (z) { wrFlush(); if (typeof zoneOpen === 'function') zoneOpen(); return; }
@@ -12545,12 +12554,12 @@ function acctWithdraw(d, api, w) {
       d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
 <h2>Withdrawal received</h2>
 <div class="wd-rc"><p><b>Receipt</b> · ${r.id ? 'no. ' + r.id + ' · ' : ''}<span class="t"></span></p><p class="w"></p><p class="n"></p></div>
-<p class="acct-sub">Keep this receipt. Pink Elephant Salon (MetroBar) confirms by email to <b class="m"></b> and refunds within 14 days to the way you paid. Questions: <a href="mailto:ben@pinkelephantsalon.nl">ben@pinkelephantsalon.nl</a></p>
+<p class="acct-sub">Keep this receipt. Pink Elephant Salon (MetroBar) confirms by email to <b class="m"></b> and refunds within 14 days to the way you paid. Questions: <a href="mailto:info@metrobarz.com">info@metrobarz.com</a></p>
 <button class="acct-go" type="button">Done</button>`;
       d.querySelector('.t').textContent = at.toLocaleString(); d.querySelector('.w').textContent = 'Withdrawal from: ' + row.what;
       d.querySelector('.n').textContent = row.name + ' · ' + row.email; d.querySelector('.m').textContent = row.email;
       d.querySelector('.acct-go').addEventListener('click', () => d.close());
-    } catch (x) { err.textContent = (x && x.message) || 'That did not go through. Try again, or email ben@pinkelephantsalon.nl.'; go.disabled = false; go.textContent = 'Confirm withdrawal'; }
+    } catch (x) { err.textContent = (x && x.message) || 'That did not go through. Try again, or email info@metrobarz.com.'; go.disabled = false; go.textContent = 'Confirm withdrawal'; }
   });
 }
 function acctDone(d) {
