@@ -6845,7 +6845,7 @@ window.addEventListener('hashchange', setView);
 // (per view, see mwGroups). All at once, all the way to the screen edge (a sliver stays), no fade while moving; then they fade, and the Highlight Zone rises in
 // front. The way back: the Highlight Zone sinks back and fades, and the boxes slide back into place from the edges. All in this
 // page (mwGo, bbMode), no page load. Reduced motion: plain switch both ways.
-const MW_EASE = 'cubic-bezier(.65,0,.35,1)';
+const MW_EASE = 'cubic-bezier(.22,.88,.22,1)';
 const mwCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !Element.prototype.animate;
 function mwGroups() {
   const vis = el => !!el && el.getClientRects().length > 0 && getComputedStyle(el).visibility !== 'hidden';
@@ -6911,19 +6911,19 @@ function mwGo(hash) {
   const after = (anims, ms) => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; Promise.all(anims.map(a => a.finished)).then(go, go); setTimeout(go, ms); });
   const arrive = () => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; addEventListener('hashchange', go, { once: true }); location.hash = hash; setTimeout(go, 200); });
   if (toBook) {
-    const out = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef), { duration: 950, easing: MW_EASE, fill: 'forwards' }));
+    const out = mwGroups().map(([el, dir], i) => el.animate(mwFrames(el, dir, el.mwRef), { duration: 420, delay: Math.min(i * 14, 110), easing: MW_EASE, fill: 'both' }));
     r.style.overflowX = 'hidden';
-    after(out, 1300).then(arrive).then(() => {
+    after(out, 640).then(arrive).then(() => {
       out.forEach(a => a.cancel()); r.style.overflowX = '';
-      $('viewBook').animate([{ opacity: 0, transform: 'translateY(14px) scale(.965)' }, { opacity: 1, transform: 'none' }], { duration: 500, easing: 'cubic-bezier(.2,.8,.2,1)' });
+      $('viewBook').animate([{ opacity: 0, transform: 'translateY(10px) scale(.975)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'cubic-bezier(.2,.8,.2,1)' });
       mwBusy = false;
     });
   } else {
-    const sink = $('viewBook').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.93)' }], { duration: 380, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
-    after([sink], 700).then(arrive).then(() => {
+    const sink = $('viewBook').animate([{ opacity: 1, transform: 'none' }, { opacity: 0, transform: 'scale(.95)' }], { duration: 240, easing: 'cubic-bezier(.4,0,1,1)', fill: 'forwards' });
+    after([sink], 420).then(arrive).then(() => {
       sink.cancel(); r.classList.add('mw-run'); r.style.overflowX = 'hidden';
-      const back = mwGroups().map(([el, dir]) => el.animate(mwFrames(el, dir, el.mwRef).reverse().map((k, i, arr) => ({ ...k, offset: 1 - arr[i].offset })), { duration: 900, easing: MW_EASE, fill: 'backwards' }));
-      after(back, 1400).then(() => { back.forEach(a => a.cancel()); r.style.overflowX = ''; r.classList.remove('mw-run'); mwBusy = false; });
+      const back = mwGroups().map(([el, dir], i) => el.animate(mwFrames(el, dir, el.mwRef).reverse().map((k, j, arr) => ({ ...k, offset: 1 - arr[j].offset })), { duration: 460, delay: Math.min(i * 12, 90), easing: MW_EASE, fill: 'backwards' }));
+      after(back, 760).then(() => { back.forEach(a => a.cancel()); r.style.overflowX = ''; r.classList.remove('mw-run'); mwBusy = false; });
     });
   }
 }
