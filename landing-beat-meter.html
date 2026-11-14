@@ -1872,7 +1872,7 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 /* ---- Flow game (`TG`, dialog #tgDlg): play a Breakdown bar by tap or by voice. All classes are tg-*. */
 /* Entry (Bennie 2026-11-14): under Advanced, as wide as the tile box, an arcade button: dark cabinet, a bar of dots that
    pulse like targets, a red PLAY key that sinks when pressed */
-#viewPractice > .tg-entry { display: grid; justify-items: center; min-width: 0; margin-top: 6px; }
+#viewPractice > .tg-entry { display: grid; justify-items: center; min-width: 0; margin-top: 18px; }
 .tg-ebtn .tg-edots { width: 100%; }   /* the bar of dots runs from the left edge of tile 1 to the right edge of tile 4 (Bennie 2026-11-14) */
 /* Advanced: the title sits on the right, next to the chevron (Bennie 2026-11-14) */
 #advTg .adv-s { order: 1; } #advTg .adv-t { order: 2; margin-left: auto; } #advTg .adv-c { order: 3; }
@@ -3195,7 +3195,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 /* Flow pad (2026-11-14): type a bar, tap where each syllable goes, hear it rapped back. Classes fp-*. */
 #viewPractice > .fp { margin-inline: 0; }
 .fp { display: grid; gap: 12px; min-width: 0; width: 100%; max-width: 860px; justify-self: center; margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
-.fp-hd h2 { margin: 0; font: 700 1.5rem/1.1 var(--display); letter-spacing: .02em; text-transform: uppercase; color: var(--fg); }
+.fp-hd { text-align: center; }
+.fp-hd h2 { margin: 0; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.15rem, 6vw, 1.9rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; color: var(--fg); }
 .fp-hd p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
 .fp-in { width: 100%; min-width: 0; font: 500 1.05rem/1.3 var(--body); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
 .fp-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
@@ -3662,9 +3663,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     </div></div>
   </section>
 
-  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-ebt">Flow game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
   <section class="fp" id="fp" aria-labelledby="fpTitle">
-    <div class="fp-hd"><h2 id="fpTitle">Flow pad</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
+    <div class="fp-hd"><h2 id="fpTitle">Pocket Practice</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
     <input id="fpText" class="fp-in" type="text" spellcheck="false" autocomplete="off" placeholder="Type one bar, e.g. Mic in my hand and I ride in the pocket" aria-label="One bar of lyrics">
     <div class="fp-syl" id="fpSyl" aria-live="polite"></div>
     <div class="fp-wrap"><div class="fp-grid" id="fpGrid" role="group" aria-label="The bar: one button per slot"></div></div>
@@ -3686,6 +3686,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       </div></details>
     </div>
   </section>
+  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-ebt">Flow game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
@@ -6492,7 +6493,7 @@ function renderFit() {
     const cb = h('button', 'mini push', cmpOpen.has(L.text) ? 'Hide compare' : 'Compare A/B/C/D'); cb.setAttribute('aria-expanded', cmpOpen.has(L.text));
     cb.addEventListener('click', () => { cmpOpen.has(L.text) ? cmpOpen.delete(L.text) : cmpOpen.add(L.text); renderFit(); });
     if (L.N) hd.append(cb);
-    if (L.N && typeof FP !== 'undefined' && FP) { const fb = h('button', 'mini', 'Hear it'); fb.title = 'Open this bar in the Flow pad: hear it rapped back and move the syllables yourself'; fb.addEventListener('click', () => { FP.load(L); FP.play(false); }); hd.append(fb); }
+    if (L.N && typeof FP !== 'undefined' && FP) { const fb = h('button', 'mini', 'Hear it'); fb.title = 'Open this bar in Pocket Practice: hear it rapped back and move the syllables yourself'; fb.addEventListener('click', () => { FP.load(L); FP.play(false); }); hd.append(fb); }
     if (L.N) { const pb = h('button', 'mini', 'Play'); pb.title = 'Play this bar in the flow game, by tap or by voice'; pb.addEventListener('click', () => TG.openFit(i)); hd.append(pb); }
     if (L.src != null) { const eb = h('button', 'mini', editSrc === L.src ? 'Editing' : 'Edit'); eb.dataset.src = L.src; eb.title = 'Edit, add or delete words in this bar'; eb.setAttribute('aria-pressed', editSrc === L.src); eb.addEventListener('click', () => { editSrc = editSrc === L.src ? null : L.src; renderFit(); }); hd.append(eb); }
     const words = h('div', 'words');
@@ -13476,7 +13477,7 @@ var FP = (function () {
   // open a bar from a Fit card: its text and the slots Fit gave it
   function load(L, stay) {
     if (!L) return;
-    if (!(L.lay.den === 4 && L.lay.nb === 4 && (L.lay.sub === 4 || L.lay.sub === 3))) { if (typeof toast === 'function') toast('The Flow pad does 4/4 bars in 16ths or triplets'); return; }
+    if (!(L.lay.den === 4 && L.lay.nb === 4 && (L.lay.sub === 4 || L.lay.sub === 3))) { if (typeof toast === 'function') toast('Pocket Practice does 4/4 bars in 16ths or triplets'); return; }
     if (playing) halt();
     S.text = L.text; $f('fpText').value = S.text; S.sub = L.lay.sub; parse();
     const pk = Math.min(PK, L.pickup || 0), a = []; for (let i = 0; i < pk; i++) a.push(i - pk);
