@@ -6,6 +6,21 @@
 /* The Highlight Zone (Barbook, menu "Rhyme") is a view of this page (Bennie 2026-11-14: "no separate HTML page loading in"; it was its
    own page since 11-12). window.BBAPP = the Highlight Zone is showing; html.bb gives it its own shell (every bb style hangs on that
    class). bbLook() sets day/night, colour and paper from storage before paint. barbook.html and ?barbook still open it directly. */
+/* Motion (design pass 2026-11-14, "one moving thing per screen"): metrobar.motion = 'calm' (default: only the beat tiles
+   and the rail ball move with the beat), 'full' (also the logo tiles, the live logo waveform, the pendulum swing and the
+   box glow) or 'off' (everything as if the system asked for reduced motion). 'off' answers every
+   (prefers-reduced-motion: reduce) query with yes, so all the existing reduced-motion code paths apply; html.mo-off stops
+   the CSS animations. */
+window.mbMotion = function () { try { var v = localStorage.getItem('metrobar.motion'); return v === 'full' || v === 'off' ? v : 'calm'; } catch (e) { return 'calm'; } };
+(function () {
+  var r = document.documentElement, m = window.mbMotion(); r.classList.toggle('mo-off', m === 'off'); r.classList.toggle('mo-full', m === 'full');
+  var mm = window.matchMedia && window.matchMedia.bind(window); if (!mm) return;
+  window.matchMedia = function (q) {
+    var l = mm(q); if (!/prefers-reduced-motion\s*:\s*reduce/.test(String(q))) return l;
+    return { get matches() { return window.mbMotion() === 'off' || l.matches; }, media: l.media, get onchange() { return l.onchange; }, set onchange(f) { l.onchange = f; },
+      addEventListener: l.addEventListener.bind(l), removeEventListener: l.removeEventListener.bind(l), addListener: l.addListener ? l.addListener.bind(l) : function () {}, removeListener: l.removeListener ? l.removeListener.bind(l) : function () {}, dispatchEvent: l.dispatchEvent.bind(l) };
+  };
+})();
 window.bbLook = function () {
   var r = document.documentElement;
   r.classList.toggle('bb-day', window.mbDay ? window.mbDay() : true);
@@ -110,14 +125,15 @@ header > .hright { grid-column: 3; grid-row: 1; justify-self: end; align-self: s
 .logo.wave .wm { visibility: hidden; }
 .logo.wave .lwave { display: block; }
 .logo-sub i { transition: background .08s, color .08s; }
-.logo.run .logo-sub i.a:not(.on) { background: var(--cell); color: var(--muted); }
-.logo.run .logo-sub i.on { background: var(--accent); color: var(--on-accent); }
+html.mo-full .logo.run .logo-sub i.a:not(.on) { background: var(--cell); color: var(--muted); }
+html.mo-full .logo.run .logo-sub i.on { background: var(--accent); color: var(--on-accent); }
 /* Logo wordmark (Bennie 2026-11-13): Panchang by Indian Type Foundry (Fontshare, ITF Free Font License, self-hosted in fonts/), weight 605, all caps */
 @font-face { font-family: 'Panchang'; src: url('fonts/Panchang-Variable.woff2') format('woff2-variations'), url('fonts/Panchang-Variable.woff2') format('woff2'); font-weight: 200 800; font-display: swap; }
 .wm { display: block; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.1rem, 9cqi, 2.8rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; white-space: nowrap; text-align: center; }
 .logo-sub { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .logo-sub i { font-style: normal; font-family: var(--mono); font-weight: 600; font-size: .8rem; text-align: center; padding-block: 4px; border-radius: 6px; background: var(--cell); color: var(--muted); }
 .logo-sub i.a { background: var(--accent); color: var(--on-accent); }
+.logo-sub i:not(.a) { color: color-mix(in srgb, var(--fg) 45%, var(--muted)); }   /* 1-2-3 were 4.1:1 on the light cell; now ~7:1 (design pass 2026-11-14) */
 .hright { display: grid; gap: 6px; justify-items: end; }
 .readout { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
 .readout b { color: var(--fg); font-weight: 600; }
@@ -246,7 +262,7 @@ button, select, input, textarea { font: inherit; color: var(--fg); }
 .btn { padding: 7px 12px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); cursor: pointer; min-height: 36px; }
 .steps { font-size: .8em; color: var(--muted); letter-spacing: .02em; }
 .pk { font-family: var(--mono); font-size: .75rem; color: var(--muted); }
-.intro { background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 8px; padding: 14px 16px; margin: 0 0 16px; display: grid; gap: 8px; }
+.intro { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; margin: 0 0 16px; display: grid; gap: 8px; }
 .intro .tag { font-family: var(--display); font-size: 1.3rem; letter-spacing: .02em; text-transform: uppercase; }
 .intro ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; }
 .intro .btn { justify-self: start; }
@@ -506,8 +522,9 @@ body.lib-pop { overflow: hidden; }
 .ibtn:hover, .ibtn:focus-visible { border-color: var(--accent); color: var(--accent); }
 .ibtn.x { font-family: var(--body); font-style: normal; font-size: 1.3rem; }
 .beatbtn { font-weight: 600; }
-.controls .beatbtn { background: var(--bg); color: var(--fg); border: 2px solid var(--accent); }
-.controls .beatbtn:hover { background: var(--accent); color: var(--on-accent); }
+/* red only on what starts the beat (design pass 2026-11-14, "highlighter rule"): Load beat is a plain button */
+.controls .beatbtn { background: var(--bg); color: var(--fg); border: 1px solid var(--line); }
+.controls .beatbtn:hover { border-color: var(--fg); }
 dialog.info { width: min(760px, calc(100vw - 32px)); max-height: calc(100dvh - 48px); overflow: auto; padding: 0; border: 1px solid var(--line); border-top: 4px solid var(--accent); border-radius: 10px; background: var(--bg); color: var(--fg); }
 dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 .info-h { position: sticky; top: 0; z-index: 1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; background: var(--bg); border-bottom: 1px solid var(--line); }
@@ -563,7 +580,13 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 #spTotal.warn { color: var(--accent-text); }
 /* Advanced panel: everything below the transport row. Closed on every load. It drops open from the point you click,
    and its bottom edge bounces a few times like a ball before it settles (advOpen in the script). */
-.transport { border: 1px solid var(--line); flex-direction: column; align-items: center; gap: 12px; }
+/* layers (design pass 2026-11-14): page = back, the tile box = middle, START = the one thing in front. The transport
+   sits straight on the page (no second grey box under the tile box) and only START gets a soft shadow. */
+.transport { background: none; border: 0; flex-direction: column; align-items: center; gap: 12px; }
+.transport .go { box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--land) 70%, transparent), 0 2px 4px -1px rgb(0 0 0 / .18); }
+.transport .go[aria-pressed="true"] { box-shadow: 0 2px 4px -1px rgb(0 0 0 / .18); }
+/* Motion: Off (Advanced > Sound) = no CSS animation or transition anywhere, like the system reduced-motion setting */
+html.mo-off *, html.mo-off *::before, html.mo-off *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 /* Transport: Tap · START · Mic centred, then BPM and Load beat; status lines only when they have something to say */
 .t-grid { display: grid; grid-template-columns: repeat(4, auto); justify-content: center; align-items: center; gap: 12px 12px; }
 .t-side { min-width: 72px; min-height: 44px; font-weight: 600; }
@@ -1181,6 +1204,7 @@ dialog.info[open]::backdrop, dialog.cmdk[open]::backdrop, dialog.keys[open]::bac
 /* header search + shortcut buttons */
 .hd-k { font-family: var(--body); font-style: normal; display: grid; place-items: center; padding: 0; }
 .hd-k svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; }
+.hd-i { display: grid; place-items: center; } .hd-i svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
 .hbtns { display: inline-flex; gap: 6px; }
 /* Toasts (idea from Sonner): one stack at the bottom; the newest in front, older ones tucked behind; hover or focus fans them
    out; each one has its own Undo; swipe one away on a phone */
@@ -2693,6 +2717,12 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
 .hz-card h2 { margin: 0 0 8px; font-size: 1.5rem; letter-spacing: -.01em; } .hz-card p { margin: 0 0 20px; color: #a3a7ab; line-height: 1.5; }
 .hz-card .hz-go { display: block; width: 100%; padding: 13px 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--bb-on, #fff); font: 600 1rem var(--body); cursor: pointer; }
 .hz-card .hz-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+/* free sample (design pass 2026-11-14, "give a taste before the ask"): a slim bar at the bottom while someone without Pro
+   writes their first bars; the Pro card follows at SAMPLE_BARS bars */
+.hz-sample { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 57; display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px - 80px); padding: 8px 8px 8px 16px; border: 1px solid #ffffff1f; border-radius: 14px; background: #111315; color: #f2f2f2; box-shadow: 0 12px 36px #0006; font: 500 .88rem/1.35 var(--body); }
+.hz-sample b { font-weight: 600; } .hz-sample .hz-n { font-family: var(--mono); color: #a3a7ab; white-space: nowrap; }
+.hz-sample button { flex: none; padding: 8px 12px; border: 0; border-radius: 10px; background: var(--accent); color: var(--bb-on, #fff); font: 600 .85rem var(--body); cursor: pointer; }
+@media (max-width: 1000px) { .hz-sample { left: 16px; transform: none; bottom: calc(16px + var(--bk-dock, 0px)); max-width: calc(100vw - 32px - 72px); } }
 .hz-card .hz-row > * { flex: 1 1 auto; padding: 10px 12px; border: 1px solid #ffffff24; border-radius: 12px; background: none; color: inherit; font: 500 .9rem var(--body); text-align: center; text-decoration: none; cursor: pointer; }
 /* Menu = four tiles exactly as wide as the 1 2 3 4 tiles under the wordmark (Bennie 2026-11-13): same width, same 6px gap,
    same radius; the Highlight Zone tab is labelled "Rhyme" (the page keeps its title). Fonts unchanged (logo face tried and dropped). */
@@ -2711,6 +2741,9 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 .views.ff-nav > a[aria-current="page"]::before { background: none; }
 .views:not(.ff-nav) > a[aria-current="page"]::before { background: var(--accent); }
 .views > a[aria-current="page"], .views.ff-nav > a[aria-current="page"] { color: var(--on-accent, #fff) !important; }
+/* design pass 2026-11-14 (highlighter rule, Bennie approved): the active tab is ink, not red, so red is left for what you
+   click to play (START). The bubble reads its tint from --accent on .views, so the drop turns ink too. */
+.views { --accent: var(--fg); --on-accent: var(--bg); }
 @media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
 /* Studio tile + round Zone button (Bennie 2026-11-14): the fourth tile opens studio.html; The Zone moved to a round button
@@ -3056,7 +3089,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
-      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
+      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
     </div>
   </header>
   <script>document.getElementById('hdDay').addEventListener('click', function () { mbDayToggle(); }); mbTheme();</script>
@@ -3220,7 +3253,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="t-grid" id="tGrid">
       <button class="btn t-side" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button>
       <button class="go" id="go" aria-pressed="false">Start</button>
-      <button class="btn pri beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
+      <button class="btn beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
       <button class="btn t-side" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
       <div class="tempo t-bpm">
         <button id="minus" aria-label="Slower">−</button>
@@ -3275,6 +3308,10 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <div class="mod" title="Delays the in-between 16ths: 0 = straight, 33 = triplet swing, 50+ = hard bounce">
         <span class="mod-label">Swing <span class="val" id="swingOut">0%</span></span>
         <div class="sl"><input id="swing" type="range" min="0" max="60" step="1" value="0" aria-label="Swing"></div>
+      </div>
+      <div class="mod" title="Calm: only the beat tiles and the ball move with the beat. Full: the logo, the pendulum and the glow move too. Off: no animation at all (same as your system's reduce-motion setting).">
+        <span class="mod-label">Motion</span>
+        <select id="motion" data-seg class="wide" aria-label="Motion"><option value="calm" selected>Calm</option><option value="full">Full</option><option value="off">Off</option></select>
       </div>
       <div class="mod span2" title="Meter of every bar. In lyrics, a tag like [7/8] or [7/8:3+2+2] at the start of a line switches the meter from that bar on. BPM always counts quarter notes, so a 16th keeps its length when the meter changes.">
         <span class="mod-label">Meter <span class="val" data-out="beats"></span></span>
@@ -5546,7 +5583,7 @@ function logoWave() {
   if (cv.width !== Math.round(w * dpr) || cv.height !== Math.round(hgt * dpr)) { cv.width = Math.round(w * dpr); cv.height = Math.round(hgt * dpr); }
   const c = cv.getContext('2d'), n = Math.max(24, Math.min(64, Math.floor(w / 5))), bw = w / n, cs = getComputedStyle(document.documentElement);
   let vals;
-  if (running && beatSrc && beatAn) {
+  if (running && beatSrc && beatAn && window.mbMotion() === 'full' && !motionCalm()) {
     // live: the loudness of what plays right now enters on the right and scrolls left, so the logo draws the beat as it plays
     if (!waveLive || waveLive.n !== n) waveLive = { n, h: new Array(n).fill(0), top: 0.05, f: 0 };
     if (waveLive.f++ % 2 === 0) {
@@ -5705,19 +5742,31 @@ function metroFrame(now) {
   railFrame(now);
   if (!pend) { mPend.style.transform = ''; deck.style.setProperty('--g', 0); return; }
   const f = Math.min(1, Math.max(0, (now - pend.t) / pend.dur));
-  mPend.style.transform = calmQ.matches ? '' : `rotate(${(22 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
+  const moFull = !calmQ.matches && window.mbMotion() === 'full';
+  mPend.style.transform = !moFull ? '' : `rotate(${(22 * pend.side * Math.cos(Math.PI * f)).toFixed(2)}deg)`;   // extreme on the tick, across by the next
   const g = (pend.glow * Math.exp(-(now - pend.t) / Math.min(0.14, pend.dur * 0.35))).toFixed(3);
-  deck.style.setProperty('--g', g);
+  deck.style.setProperty('--g', moFull ? g : 0);
 }
 function metroReset() { pend = null; pendN = 0; metroFrame(0); }
 metroWeight(bpm());
 const logoEls = [...document.querySelectorAll('#logo .logo-sub i')];
+// Motion setting (Advanced > Sound): Calm / Full / Off, stored in metrobar.motion; the head script reads it before paint
+(function () {
+  const sel = $('motion'); if (!sel) return;
+  sel.value = window.mbMotion();
+  sel.addEventListener('change', () => {
+    try { localStorage.setItem('metrobar.motion', sel.value); } catch (e) {}
+    const r = document.documentElement; r.classList.toggle('mo-off', sel.value === 'off'); r.classList.toggle('mo-full', sel.value === 'full');
+    logoEls.forEach(e => e.classList.remove('on', 'one')); metroFrame(0); logoWave();
+    if (window.toast) toast(sel.value === 'calm' ? 'Motion: calm. Only the beat tiles and the ball move.' : sel.value === 'full' ? 'Motion: full. The logo, pendulum and glow move too.' : 'Motion off. No animation.');
+  });
+})();
 function draw() {
   const now = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0);   // what the ear hears now, so the eye lands with the click
   while (queue.length && queue[0].t <= now) {
     const q = queue.shift(), b = q.beat;
     if (q.sub === 0) { pend = { t: q.t, dur: q.bd, side: ++pendN % 2 ? 1 : -1, glow: q.bar < 0 ? 0.45 : b === 0 ? 1 : 0.6 }; metroWeight(q.tp);
-      logoEls.forEach((e, i) => { e.classList.toggle('on', i === b % 4); e.classList.toggle('one', i === b % 4 && b === 0); }); }
+      if (window.mbMotion() === 'full') logoEls.forEach((e, i) => { e.classList.toggle('on', i === b % 4); e.classList.toggle('one', i === b % 4 && b === 0); }); }
     subEls.forEach((e, i) => e.classList.toggle('on', i === q.idx));
     beatEls.forEach((e, i) => e.num.classList.toggle('on', i === b && q.sub < 2));
     if (q.step === 0) { stepBarT = { t: q.t, dur: barQuarters(q.bar) * 60 / q.tp, bar: q.bar }; showBar(q.bar, q.tp); stripBar(q.bar, q.tp); dropTick(q.bar); if (q.bar >= 0) playTick(); }
@@ -7410,6 +7459,17 @@ $('introTry').addEventListener('click', () => {
   $('intro').hidden = true; try { localStorage.setItem('metrobar.introSeen', '1'); } catch {}
   $('bar').scrollIntoView({ block: 'start', behavior: 'smooth' }); spot('go');
 });
+// front page hand-over (index.html, design pass 2026-11-14): ?example runs the example like "Try it with the example",
+// ?bpm=92 opens at the tempo tapped on the front page. Read once, then taken out of the address bar.
+(function () {
+  const u = new URLSearchParams(location.search), ex = u.has('example'), b = parseInt(u.get('bpm'), 10), okB = b >= 60 && b <= 200;
+  if (!ex && !okB) return;
+  try { u.delete('example'); u.delete('bpm'); const q = u.toString(); history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash); } catch (e) {}
+  setTimeout(() => {
+    if (okB) { setBpm(b); if (window.toast) toast('Tempo set to ' + Math.round(b) + ' BPM from your taps.'); }
+    if (ex) $('introTry').click();
+  }, 400);
+})();
 $('guideAgain').addEventListener('click', () => { $('infoDlg').close(); location.hash = '#practice'; $('intro').hidden = false; $('intro').scrollIntoView({ block: 'start' }); });
 
 // ---- Write tools: split sheet, streaming royalties, title ideas
@@ -12801,13 +12861,28 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
    Signed out = sign in; Free = the plans. The gate never hides anyone's songs: Download my songs is always there.
    No accounts configured, offline, or no answer from the server = no gate (never lock people out of their own lyrics by a network error). */
 var HZG = (function () {
-  let gate = null;
-  const shut = () => { if (gate) { gate.remove(); gate = null; } const v = document.getElementById('viewBook'); if (v) v.inert = false; };
-  function show(mode) {
+  let gate = null, bar = null, sampleMode = null;
+  const SAMPLE_BARS = 8;   // free sample: write this many bars before the Pro card (design pass 2026-11-14)
+  const bars = () => { const t = document.getElementById('rbText'); return t ? t.value.split('\n').filter(l => l.trim() && !/^\s*\[[^\]]*\]\s*$/.test(l)).length : 0; };
+  const unbar = () => { if (bar) { bar.remove(); bar = null; } };
+  const shut = () => { sampleMode = null; unbar(); if (gate) { gate.remove(); gate = null; } const v = document.getElementById('viewBook'); if (v) v.inert = false; };
+  // the free sample: the editor stays open with a slim bar; at SAMPLE_BARS bars the Pro card takes over
+  function sample(mode) {
+    if (bars() >= SAMPLE_BARS) return show(mode, true);
+    sampleMode = mode;
+    if (gate) { gate.remove(); gate = null; } const v = document.getElementById('viewBook'); if (v) v.inert = false;
+    if (!bar) { bar = document.createElement('div'); bar.className = 'hz-sample'; bar.setAttribute('role', 'status'); document.body.append(bar); }
+    const n = bars();
+    bar.innerHTML = `<span><b>Free sample.</b> Write ${SAMPLE_BARS} bars and watch your rhymes light up.</span><span class="hz-n">${n}/${SAMPLE_BARS}</span><button type="button">${mode === 'in' ? 'Sign in' : 'Get Pro'}</button>`;
+    bar.querySelector('button').addEventListener('click', () => { mode === 'in' ? acctOpen('in') : aiPaywall('zone'); });
+  }
+  document.addEventListener('input', e => { if (sampleMode && e.target && e.target.id === 'rbText') sample(sampleMode); }, true);
+  function show(mode, done) {
+    unbar(); sampleMode = null;
     const v = document.getElementById('viewBook'); if (v) v.inert = true;
     if (!gate) { gate = document.createElement('div'); gate.className = 'hz-gate'; gate.setAttribute('role', 'dialog'); gate.setAttribute('aria-modal', 'true'); gate.setAttribute('aria-labelledby', 'hzT'); document.body.append(gate); }
     const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {};
-    gate.innerHTML = `<div class="hz-card"><h2 id="hzT">The Highlight Zone is part of Pro</h2>
+    gate.innerHTML = `<div class="hz-card"><h2 id="hzT">${done ? 'That was your free sample' : 'The Highlight Zone is part of Pro'}</h2>
 <p>${mode === 'in' ? 'Sign in to open it. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.' : 'Your rhymes lit up, syllables per bar, drafts, beats and focus mode. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.'}</p>
 <button class="hz-go" type="button" data-a="${mode === 'in' ? 'in' : 'pay'}">${mode === 'in' ? 'Sign in' : 'See the plans'}</button>
 <div class="hz-row"><button type="button" data-a="dl">Download my songs</button><a href="#practice">Back to MetroBar</a></div></div>`;
@@ -12821,12 +12896,12 @@ var HZG = (function () {
     if (!(window.ZONE_CONFIG && ZONE_CONFIG.zoneLock) || typeof znCfg !== 'function' || !znCfg() || !ZONE_CONFIG.ai || typeof rbSyncApi !== 'function') return shut();   // zoneLock in zone-config.js: on once people can really pay (Stripe live)
     let api, uid;
     try { api = await rbSyncApi(); if (!api) return shut(); uid = await api.userId(); } catch (e) { return shut(); }
-    if (!uid) return show('in');
+    if (!uid) return sample('in');
     const w = await aiWallet(true);
     if (!w) return shut();                     // signed in but no answer (offline / server): stay open
-    planPaid(w) ? shut() : show('pay');
+    planPaid(w) ? shut() : sample('pay');
   }
-  document.addEventListener('aiwallet', () => { const w = AIW.w; if (!w || !window.BBAPP) return; planPaid(w) ? shut() : show('pay'); });   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
+  document.addEventListener('aiwallet', () => { const w = AIW.w; if (!w || !window.BBAPP) return; planPaid(w) ? shut() : sample('pay'); });   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
   const go = () => setTimeout(() => { if (window.BBAPP) check(); }, 300);
   if (window.BBAPP) document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
   return { go, shut };
