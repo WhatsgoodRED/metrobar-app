@@ -609,13 +609,30 @@ html.mo-off *, html.mo-off *::before, html.mo-off *::after { animation-duration:
 }
 /* Transport inside the tile box (Bennie 2026-11-14): one row under the 1-2-3-4 tiles, above the rail dots:
    Tap · START · Load beat · Mic · BPM; the status line gets its own row under it. Phones: BPM drops to a second row. */
-.deck-box > .t-grid { grid-template-columns: repeat(5, auto); margin: 16px 0 4px; }
-.deck-box > .t-grid .t-bpm, .deck-box > .t-grid.has-msg .t-bpm { grid-column: auto; }
+.deck-box > .t-grid { position: relative; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); justify-content: stretch; margin: 16px 0 4px; }
+.t-l, .t-r { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.t-l { justify-content: flex-end; } .t-r { justify-content: flex-start; }   /* START is always dead centre (Bennie 2026-11-14) */
 .deck-box > .t-grid .t-msg { grid-column: 1 / -1; }
+.deck-box > .t-grid .t-bpm, .deck-box > .t-grid.has-msg .t-bpm { grid-area: auto; justify-self: auto; }   /* auto = positioned against the whole row, so it stays under START */
+/* no transport button is bigger than a menu tab (Bennie 2026-11-14): START = one tab's size, the rest a tab's height;
+   --tab-w/--tab-h are measured from the MetroBar tab (tabSize) */
+.deck-box > .t-grid .go, .deck-box > .t-grid .btn { height: var(--tab-h, 36px); min-height: 0; box-sizing: border-box; white-space: nowrap; }
+.deck-box > .t-grid .go { width: var(--tab-w, 118px); min-width: 0; padding: 0 8px; font-size: 1.05rem; border-radius: 6px; }
+.deck-box > .t-grid .btn { max-width: var(--tab-w, 118px); min-width: 0; padding: 0 12px; font-size: .92rem; overflow: hidden; text-overflow: ellipsis; }
 .transport:has(> .beatbar[hidden]:only-child) { display: none; }
-@media (max-width: 700px) {
-  .deck-box > .t-grid { grid-template-columns: repeat(4, auto); }
-  .deck-box > .t-grid .t-bpm, .deck-box > .t-grid.has-msg .t-bpm { grid-column: 1 / -1; }
+/* BPM stepper: the readout top right already shows the tempo, so − 145 + only floats up under START when the tempo
+   changes (tap, detection, keys, search) or when you click the BPM in the readout; it stays while hovered or focused */
+.deck-box > .t-grid .t-bpm { position: absolute; left: 50%; top: calc(100% + 4px); z-index: 6; padding: 6px; border-radius: 12px;
+  background: var(--panel); border: 1px solid var(--line); box-shadow: 0 12px 26px -12px rgb(0 0 0 / .35);
+  opacity: 0; visibility: hidden; transform: translate(-50%, -6px) scale(.94); transition: opacity .16s, transform .22s cubic-bezier(.3,1.4,.5,1), visibility 0s .22s; }
+.deck-box > .t-grid.bpm-on .t-bpm { opacity: 1; visibility: visible; transform: translate(-50%, 0) scale(1); transition: opacity .16s, transform .22s cubic-bezier(.3,1.4,.5,1), visibility 0s; }
+.deck-box > .t-grid:not(.bpm-on) .t-bpm:focus-within { opacity: 1; visibility: visible; transform: translate(-50%, 0); }
+.readout .ro-bpm { cursor: pointer; border-radius: 4px; } .readout .ro-bpm:hover { color: var(--fg); text-decoration: underline dotted; text-underline-offset: 3px; }
+@media (max-width: 560px) {
+  .t-l, .t-r { gap: 4px; }
+  .deck-box > .t-grid { gap: 10px 5px; }
+  .deck-box > .t-grid .btn { padding-inline: 6px; font-size: .78rem; flex-shrink: 0; }
+  .deck-box > .t-grid .beatbtn { flex-shrink: 1; }
 }
 .adv { display: grid; min-width: 0; }
 /* Advanced spans the whole window, not the 860px column: it breaks out of .wrap with negative margins and keeps a small gutter */
@@ -2805,9 +2822,7 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 .views.ff-nav > a[aria-current="page"]::before { background: none; }
 .views:not(.ff-nav) > a[aria-current="page"]::before { background: var(--accent); }
 .views > a[aria-current="page"], .views.ff-nav > a[aria-current="page"] { color: var(--on-accent, #fff) !important; }
-/* design pass 2026-11-14 (highlighter rule, Bennie approved): the active tab is ink, not red, so red is left for what you
-   click to play (START). The bubble reads its tint from --accent on .views, so the drop turns ink too. */
-.views { --accent: var(--fg); --on-accent: var(--bg); }
+/* The active tab's bubble is red (Bennie 2026-11-14, twice: "should be red"); the design pass had made it ink. Never make it black again. */
 @media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
 /* Studio tile + round Zone button (Bennie 2026-11-14): the fourth tile opens studio.html; The Zone moved to a round button
@@ -3233,7 +3248,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <h1 class="sr-only" id="scrName">MetroBar</h1>
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
-      <div class="readout"><span class="ro-k">bar <b id="barNo">1</b>/<b id="barTot">4</b></span> · <span class="ro-k"><b id="bpmOut">145</b> BPM</span> · <span id="state">stopped</span></div>
+      <div class="readout"><span class="ro-k">bar <b id="barNo">1</b>/<b id="barTot">4</b></span> · <span class="ro-k ro-bpm" id="roBpm" role="button" tabindex="0" title="Change the tempo"><b id="bpmOut">145</b> BPM</span> · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg class="ic ic-find" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg class="ic ic-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg class="ic ic-ppl" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
     </div>
   </header>
@@ -3392,10 +3407,14 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     </div>
     <div class="deck-box"><div class="bar" id="bar"></div>
     <div class="t-grid" id="tGrid">
-        <button class="btn t-side" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button>
-        <button class="btn beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
+        <span class="t-l">
+          <button class="btn t-side" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button>
+          <button class="btn beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
+        </span>
         <button class="go" id="go" aria-pressed="false">Start</button>
-        <button class="btn t-side" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
+        <span class="t-r">
+          <button class="btn t-side" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
+        </span>
         <div class="tempo t-bpm">
           <button id="minus" aria-label="Slower">−</button>
           <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
@@ -5967,6 +5986,24 @@ function updateSpb() { const e = $('spb'); if (e) e.textContent = (240 / bpm()).
 $('minus').addEventListener('click', () => setBpm(bpm() - 1));
 $('plus').addEventListener('click', () => setBpm(bpm() + 1));
 $('bpm').addEventListener('change', () => setBpm(bpm()));
+// − 145 + floats under START when the tempo changes (not on load) and from the readout's BPM; hover/focus keeps it up
+(function () {
+  const g = $('tGrid'), box = g.querySelector('.t-bpm'), t0 = performance.now(); let tm = 0;
+  function bpmPop(ms) {
+    g.classList.add('bpm-on'); clearTimeout(tm);
+    const hide = () => { if (box.matches(':hover, :focus-within')) tm = setTimeout(hide, 700); else g.classList.remove('bpm-on'); };
+    tm = setTimeout(hide, ms || 2200);
+  }
+  window.bpmPop = bpmPop;
+  const tab = document.querySelector('.views a'), tabSize = () => { const r = tab && tab.getBoundingClientRect(); if (r && r.width) { document.documentElement.style.setProperty('--tab-w', r.width.toFixed(1) + 'px'); document.documentElement.style.setProperty('--tab-h', r.height.toFixed(1) + 'px'); } };
+  if (tab) { tabSize(); if ('ResizeObserver' in window) new ResizeObserver(tabSize).observe(tab); }
+  const set0 = setBpm; setBpm = function (v) { set0(v); if (performance.now() - t0 > 1500) bpmPop(); };
+  const ro = $('roBpm');
+  ro.addEventListener('click', () => { bpmPop(4000); if (matchMedia('(hover: hover)').matches) $('bpm').focus({ preventScroll: true }); });
+  ro.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); bpmPop(4000); $('bpm').focus({ preventScroll: true }); } });
+  box.addEventListener('mouseleave', () => bpmPop(900));
+  box.addEventListener('focusout', () => bpmPop(900));
+})();
 $('beatFile').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
   $('beatBtn').textContent = 'Change beat'; $('beatBtn').title = f.name;
