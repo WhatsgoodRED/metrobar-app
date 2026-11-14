@@ -12,6 +12,21 @@ window.bbLook = function () {
   try { var ac = JSON.parse(localStorage.getItem('metrobar.bookAccent') || '"#af0000"'); r.classList.toggle('bb-mb', ac === '#af0000' || ac === '#ff3b4e'); } catch (e) { r.classList.add('bb-mb'); }
   try { r.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
 };
+/* Day/night for every page (Bennie 2026-11-14: "go to dark mode on every page"). One setting, metrobar.bookDay (true = day),
+   shared with the Highlight Zone. mbTheme() sets data-theme (light/dark) + bb-day before paint and syncs every .smt switch. */
+window.mbDay = function () { try { return JSON.parse(localStorage.getItem('metrobar.bookDay') || 'true') !== false; } catch (e) { return true; } };
+window.mbTheme = function () {
+  var r = document.documentElement, d = window.mbDay(); r.dataset.theme = d ? 'light' : 'dark'; r.classList.toggle('bb-day', d);
+  var m = document.querySelector('meta[name="theme-color"]'); if (m) m.content = d ? '#eef0ec' : '#111413';
+  [].forEach.call(document.querySelectorAll('.smt[data-dn]'), function (b) { b.setAttribute('aria-checked', String(!d)); b.title = d ? 'Night mode' : 'Day mode'; });
+};
+window.mbDayToggle = function () {
+  try { localStorage.setItem('metrobar.bookDay', JSON.stringify(!window.mbDay())); } catch (e) {}
+  window.mbTheme();
+  try { if (typeof rbApplyLook === 'function') rbApplyLook(); } catch (e) {}
+  try { if (window.BBAPP && typeof rbPaint === 'function') rbPaint(); } catch (e) {}
+};
+window.mbTheme();
 (function () {
   var q = /[?&]barbook\b/.test(location.search), bb = location.hash === '#book' || (q && !location.hash); window.BBAPP = bb;
   if (q) { try { history.replaceState(null, '', location.pathname + location.search.replace(/([?&])barbook\b(=[^&]*)?&?/, '$1').replace(/[?&]$/, '') + (bb ? '#book' : location.hash)); } catch (e) {} }
@@ -605,6 +620,19 @@ html, body { overflow-x: clip; }
   --pad-on: linear-gradient(180deg, rgba(138, 100, 0, .10), rgba(138, 100, 0, .035));
 }
 .wr-card {
+  --rack: #191d1c; --rack-2: #131716; --mod: #171b1a; --well: #0b0e0d; --rail: #333a37; --rail-2: #2a302e;
+  --knob-hi: #e6e9e4; --knob-lo: #a8b0ab; --faint: #84918b;
+  --led: #e8b04a; --led-ring: rgba(232, 176, 74, .55); --led-txt: #ffd88f;
+  --pad-a: #232927; --pad-b: #1b201f; --pad-edge: #2f3633; --pad-shadow: #0d100f;
+  --dot-off: #2b312f; --dot-ring: #3b423f; --inset: rgba(255, 255, 255, .045);
+  --ghost: rgba(255, 255, 255, .055); --ghost-hi: rgba(255, 255, 255, .1);
+  --sw-off: #0b0e0d; --sw-off-bd: #333a37; --sw-on: rgba(232, 176, 74, .16); --sw-on-bd: #7a5f28;
+  --sw-knob: linear-gradient(180deg, #5a625e, #39403d); --sw-knob-on: linear-gradient(180deg, #e6e9e4, #e8b04a);
+  --seg-on: linear-gradient(180deg, #2a312e, #1e2321); --seg-on-shadow: inset 0 1px 0 rgba(255, 255, 255, .06);
+  --pad-on: linear-gradient(180deg, rgba(232, 176, 74, .14), rgba(232, 176, 74, .05));
+}
+/* dark mode (2026-11-14): the whole page uses the Write card's dark rack */
+:root[data-theme="dark"] {
   --rack: #191d1c; --rack-2: #131716; --mod: #171b1a; --well: #0b0e0d; --rail: #333a37; --rail-2: #2a302e;
   --knob-hi: #e6e9e4; --knob-lo: #a8b0ab; --faint: #84918b;
   --led: #e8b04a; --led-ring: rgba(232, 176, 74, .55); --led-txt: #ffd88f;
@@ -1281,6 +1309,72 @@ body.write { padding-bottom: var(--sheet-pad, 0px); }
 .zn-bio { margin: 2px 0 0; color: var(--muted); font-size: .9rem; }
 .zn-form { display: grid; gap: 10px; max-width: 26rem; }
 .zn-form label { display: grid; gap: 4px; font-size: .85rem; }
+/* Zone profile + Edit profile (2026-11-14, layout after Rhymer's Block's profile, MetroBar look) */
+.zn-pf { display: grid; gap: 0; }
+.zn-pf-top { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: clamp(16px, 4vw, 40px); align-items: center; padding: 8px 0 18px; }
+.zn-pf-av { padding: 4px; border-radius: 50%; background: var(--bg); box-shadow: 0 0 0 3px var(--accent); line-height: 0; }
+.zn-pf-av .zn-av.big { width: clamp(96px, 22vw, 132px); height: clamp(96px, 22vw, 132px); border: 0; font-size: 2.6rem; }
+.zn-pf-side { display: grid; gap: 14px; min-width: 0; }
+.zn-pf-stats { display: grid; grid-template-columns: repeat(3, 1fr); text-align: center; }
+.zn-pf-stats b { display: block; font: 700 clamp(1.4rem, 4vw, 1.9rem)/1.1 var(--body); font-variant-numeric: tabular-nums; }
+.zn-pf-stats span { font-size: .95rem; color: var(--muted); }
+.zn-pf-main { width: 100%; min-height: 44px; border: 1px solid var(--accent); border-radius: 10px; background: var(--accent); color: var(--on-accent, #fff); font: 600 1.02rem var(--body); cursor: pointer; }
+.zn-pf-main:hover { filter: brightness(1.08); }
+.zn-pf-main.on { background: transparent; color: var(--accent-text); }
+.zn-pf-id { display: flex; gap: 14px; align-items: center; padding: 4px 0 18px; border-bottom: 1px solid var(--line); }
+.zn-pf-who { flex: 1; min-width: 0; }
+.zn-pf-name { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; font: 700 clamp(1.4rem, 4vw, 1.75rem)/1.2 var(--body); overflow-wrap: anywhere; }
+.zn-pf-badge { font: 800 .8rem/1 var(--body); text-transform: uppercase; letter-spacing: .04em; background: var(--accent); color: var(--on-accent, #fff); border-radius: 999px; padding: 5px 10px; }
+.zn-pf-tag { margin: 4px 0 0; color: var(--muted); font-size: 1.05rem; overflow-wrap: anywhere; }
+.zn-pf-mw { position: relative; flex: none; }
+.zn-pf-more { width: 56px; height: 56px; border-radius: 50%; border: 1.5px solid var(--accent); background: transparent; color: var(--accent-text); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.zn-pf-more svg { width: 28px; height: 28px; fill: var(--accent); }
+.zn-pf-more:hover, .zn-pf-more[aria-expanded="true"] { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.zn-menu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 20; min-width: 190px; display: grid; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 14px 34px #0003; animation: zn-menu .16s var(--ease, ease-out); }
+.zn-menu button { white-space: nowrap; border: 0; background: none; color: var(--fg); font: 500 .95rem var(--body); text-align: left; padding: 10px 12px; border-radius: 8px; cursor: pointer; }
+.zn-menu button:hover, .zn-menu button:focus-visible { background: var(--cell); }
+.zn-menu button.bad { color: var(--accent-text); }
+@keyframes zn-menu { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+.zn-pf-list { list-style: none; margin: 0; padding: 0; }
+.zn-pf-row { position: relative; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 18px; align-items: center; padding: 18px 4px; border-bottom: 1px solid var(--line); cursor: pointer; }
+.zn-pf-row.ft { padding-top: 34px; }
+.zn-pf-row:hover { background: color-mix(in srgb, var(--fg) 4%, transparent); }
+.zn-pf-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.zn-pf-row .zn-av { width: 64px; height: 64px; font-size: 1.5rem; }
+.zn-pf-row .t { font-size: clamp(1.1rem, 3vw, 1.35rem); font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.zn-pf-row .u { color: var(--muted); font-size: 1rem; margin-top: 2px; }
+.zn-pf-row .n { display: grid; justify-items: end; gap: 4px; white-space: nowrap; }
+.zn-pf-row .n b { display: inline-flex; align-items: center; gap: 8px; color: var(--accent-text); font: 600 1.15rem var(--body); font-variant-numeric: tabular-nums; }
+.zn-pf-row .n svg { width: 24px; height: 24px; fill: var(--accent); }
+.zn-pf-row .n small { color: var(--muted); font-size: .9rem; }
+.zn-pf-ft { position: absolute; right: 0; top: -1px; display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: var(--on-accent, #fff); font: 800 .8rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; padding: 7px 14px 7px 12px; border-radius: 0 0 0 10px; }
+.zn-pf-ft::before { content: "★"; font-size: .85rem; }
+@media (max-width: 520px) {
+  .zn-pf-row { gap: 12px; } .zn-pf-row .zn-av { width: 48px; height: 48px; font-size: 1.1rem; }
+  .zn-pf-more { width: 46px; height: 46px; } .zn-pf-stats span { font-size: .8rem; }
+}
+.zn-ed { display: grid; gap: 0; margin-inline: auto; width: 100%; max-width: 640px; }
+.zn-ed-pic { justify-self: center; display: grid; justify-items: center; gap: 10px; border: 0; background: none; color: var(--fg); cursor: pointer; padding: 8px 16px 26px; font: 500 1.05rem var(--body); }
+.zn-ed-pic .pv { width: 112px; height: 84px; display: grid; place-items: center; }
+.zn-ed-pic .pv svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 3.2; stroke-linejoin: round; stroke-linecap: round; transition: transform .15s ease-out; }
+.zn-ed-pic .pv img { width: 104px; height: 104px; border-radius: 50%; object-fit: cover; box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px var(--accent); }
+.zn-ed-pic:has(img) .pv { height: 112px; }
+.zn-ed-pic:hover .pv svg { transform: scale(1.04); color: var(--accent-text); }
+.zn-ed-pic:hover .l { color: var(--accent-text); }
+.zn-ed-pic:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+.zn-ed-rows { display: grid; border-top: 1px solid var(--line); }
+.zn-ed-row { display: grid; grid-template-columns: minmax(90px, 32%) minmax(0, 1fr); align-items: center; gap: 12px; border-bottom: 1px solid var(--line); padding: 0 4px; }
+.zn-ed-row > span { color: var(--muted); font-size: 1.05rem; }
+.zn-ed-row input { border: 0; background: none; color: var(--fg); font: 400 1.05rem var(--body); padding: 18px 0; min-width: 0; width: 100%; outline: none; }
+.zn-ed-row input[readonly] { color: var(--muted); }
+.zn-ed-row:focus-within { box-shadow: inset 3px 0 0 var(--accent); }
+.zn-ed-save { margin-top: 18px; min-height: 54px; border: 0; border-radius: 10px; background: var(--accent); color: var(--on-accent, #fff); font: 700 1.25rem var(--body); cursor: pointer; }
+.zn-ed-save:hover { filter: brightness(1.08); } .zn-ed-save:disabled { opacity: .6; cursor: default; }
+.zn-ed-note { text-align: center; color: var(--muted); font-size: .95rem; margin: 16px 0 0; }
+.zn-ed-note a { color: var(--fg); font-weight: 600; }
+.zn-ed .zn-err { text-align: center; margin: 10px 0 0; }
+.zn-ed .zn-err:empty { display: none; }
+@media (prefers-reduced-motion: reduce) { .zn-menu { animation: none; } }
 .zn-form input, .zn-form textarea { text-align: left; font: inherit; width: 100%; box-sizing: border-box; }
 .zn-form textarea { min-height: 12em; }
 .zn-err { color: var(--accent-text); font-size: .85rem; margin: 0; min-height: 1em; }
@@ -2617,8 +2711,15 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
 /* Studio tile + round Zone button (Bennie 2026-11-14): the fourth tile opens studio.html; The Zone moved to a round button
    right under Info (same .ibtn look and size). .hbtns = search | (Info over Zone). The button turns accent while you're on the Zone. */
-.hbtns { display: grid; grid-template-columns: auto auto; gap: 6px; align-items: start; }
-.hbtns > #cmdkBtn { grid-row: 1; grid-column: 1; } .hbtns > #infoBtn { grid-row: 1; grid-column: 2; } .hbtns > #zoneBtn { grid-row: 2; grid-column: 2; }
+.hbtns { display: grid; grid-template-columns: auto auto auto; gap: 6px; align-items: start; }
+/* 2026-11-14 (later): Zone sits NEXT to Info; the day/night switch (#hdDay, same as the Highlight Zone's) sits under the three */
+.hbtns > #cmdkBtn { grid-row: 1; grid-column: 1; } .hbtns > #infoBtn { grid-row: 1; grid-column: 2; } .hbtns > #zoneBtn { grid-row: 1; grid-column: 3; }
+.hbtns > #hdDay { grid-row: 2; grid-column: 1 / -1; justify-self: end; width: 64px; height: 30px; margin: 2px 0 0; }
+#hdDay .smt-k { top: 4px; left: 4px; width: 22px; height: 22px; } #hdDay[aria-checked="true"] .smt-k { translate: 34px 0; }
+#hdDay .smt-k::before { width: 7px; height: 7px; left: 4px; top: 5px; } #hdDay .smt-k::after { width: 4px; height: 4px; left: 12px; top: 13px; }
+#hdDay .smt-cl { right: 6px; bottom: -6px; width: 15px; height: 14px; box-shadow: -9px 4px 0 1px #fff, 7px 5px 0 0 #fff; }
+#hdDay .smt-st { left: 10px; top: 8px; width: 3px; height: 3px; box-shadow: 9px 7px 0 0 #fff, 16px -3px 0 -.5px #fff, 5px 13px 0 -.5px #fff; }
+@media (max-width: 700px) { .hbtns > #hdDay { grid-row: 1; grid-column: 4; margin: 3px 0 0; } .hbtns { grid-template-columns: auto auto auto auto; } }
 #zoneBtn { text-decoration: none; }
 @media (max-width: 1080px) { header > .hright { align-items: start; } header > .hright > .readout { margin-top: calc((36px - 1lh) / 2); } }   /* readout lines up with the top row */
 #zoneBtn svg { width: 18px; height: 18px; stroke-width: 1.9; stroke-linejoin: round; }
@@ -2948,12 +3049,13 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio.html" title="Studio: record your vocals over a beat"><span>Studio</span></a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
       <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
-      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a></div>
+      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works">i</button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
     </div>
   </header>
+  <script>document.getElementById('hdDay').addEventListener('click', function () { mbDayToggle(); }); mbTheme();</script>
   <dialog class="tg" id="tgDlg" aria-labelledby="tgTitle">
     <div class="tg-hd">
       <button class="tg-ib" id="tgBack" type="button" aria-label="Back to the levels" hidden>←</button>
@@ -9181,7 +9283,7 @@ function znSupabase(cfg) {
   const meId = async () => { const { data } = await sb.auth.getSession(); return data.session ? data.session.user.id : null; };
   return {
     demo: false,
-    async session() { const id = await meId(); if (!id) return null; const p = chk(await sb.from('profiles').select('id,username,avatar_url,badge,bio').eq('id', id).maybeSingle()); return p; },
+    async session() { const id = await meId(); if (!id) return null; const p = chk(await sb.from('profiles').select('id,username,avatar_url,badge,bio').eq('id', id).maybeSingle()); if (p) { const { data } = await sb.auth.getSession(); p.email = (data.session && data.session.user.email) || ''; } return p; },
     onAuth(cb) { sb.auth.onAuthStateChange(() => { setTimeout(cb, 0); }); }, // never await supabase inside the callback: it holds the auth lock and every later call would hang
     async signUp(email, pw, username) { const r = await sb.auth.signUp({ email, password: pw, options: { data: { username } } }); chk(r); return r.data.session ? 'in' : 'confirm'; },
     async signIn(email, pw) { chk(await sb.auth.signInWithPassword({ email, password: pw })); },
@@ -9486,30 +9588,62 @@ async function znPost(body) {
   wrap.append(znBtn('← Feed', 'btn zn-back', () => znGo('feed')), by, h('h3', 'zn-title', p.title), znLyrics(p.body), acts, h('h4', '', `Comments (${cms.length})`), ul, say);
   body.replaceChildren(wrap);
 }
+/* Zone profile (Bennie 2026-11-14: laid out like Rhymer's Block's profile, in MetroBar's own look; own code): big avatar with an
+   accent ring | three stats over a full-width Edit profile / Follow button; name + badge + tagline with a round ⋯ menu; then the
+   posts as big rows (avatar, title, @name | Props! count + flame, time) with a Featured tab on the row's top edge. */
+const ZN_FIRE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.6 2.2c.5 3-1.2 4.9-2.8 6.6C8.2 10.5 6.6 12.2 6.6 15a5.4 5.4 0 0 0 10.8 0c0-2.3-1.1-4.1-2.4-5.4.1 1.5-.4 2.7-1.5 3.3.4-3.6-.2-7.6-.9-10.7z"/></svg>';
+function znMenu(anchor, items) {
+  document.querySelectorAll('.zn-menu').forEach(m => m.remove());
+  const m = h('div', 'zn-menu'); m.setAttribute('role', 'menu');
+  items.forEach(([label, fn, cls]) => { const b = h('button', cls || '', label); b.type = 'button'; b.setAttribute('role', 'menuitem'); b.addEventListener('click', () => { m.remove(); fn(); }); m.append(b); });
+  anchor.parentElement.append(m); anchor.setAttribute('aria-expanded', 'true');
+  const off = e => { if (e.type === 'keydown' ? e.key === 'Escape' : !m.contains(e.target) && e.target !== anchor) { m.remove(); anchor.setAttribute('aria-expanded', 'false'); document.removeEventListener('pointerdown', off, true); document.removeEventListener('keydown', off, true); } };
+  setTimeout(() => { document.addEventListener('pointerdown', off, true); document.addEventListener('keydown', off, true); }, 0);
+  const f = m.querySelector('button'); if (f) f.focus();
+}
 async function znProfile(body) {
   const r = await ZN.api.profile(ZN.id); if (!r) { body.replaceChildren(h('p', 'zn-empty', 'No rhymer called @' + ZN.id + '.')); return; }
-  const { p, st, posts } = r, me = ZN.me && ZN.me.id === p.id, top = h('div', 'zn-prof'), side = h('div');
-  const stats = h('div', 'zn-stats');
-  [['respect', 'Props!'], ['followers', 'Followers'], ['following', 'Following'], ['posts', 'Posts']].forEach(([k, l]) => { const d = h('div'); d.append(h('b', '', String(st[k] || 0)), h('span', '', l)); stats.append(d); });
-  const nm = h('div', 'zn-name'); nm.append(znName(p));
-  side.append(stats);
-  try { const g = ZN.api.gameOf ? await ZN.api.gameOf(p.id) : null; if (g && g.game_stars > 0) side.append(h('p', 'zn-game', `Flow game: level ${g.game_level} · ${gameRank(g.game_stars).name} · ${g.game_stars} stars`)); } catch (e) {}
-  const acts = h('div', 'zn-acts'); acts.style.marginTop = '8px';
-  if (me) { acts.append(znBtn('Edit profile', 'btn', () => znGo('edit')), znBtn('Sign out', 'btn', async () => { await ZN.api.signOut(); ZN.me = null; await znAuthChanged(true); znGo('feed'); })); }
+  const { p, st, posts } = r, me = ZN.me && ZN.me.id === p.id, wrap = h('div', 'zn-pf');
+  const top = h('div', 'zn-pf-top'), ring = h('div', 'zn-pf-av'), side = h('div', 'zn-pf-side'), stats = h('div', 'zn-pf-stats');
+  ring.append(znAvatar(p, true));
+  [['respect', 'Props!'], ['followers', 'Followers'], ['following', 'Following']].forEach(([k, l]) => { const d = h('div'); d.append(h('b', '', String(st[k] || 0)), h('span', '', l)); stats.append(d); });
+  let main;
+  if (me) main = znBtn('Edit profile', 'zn-pf-main', () => znGo('edit'));
   else {
-    const fb = znBtn(r.following ? 'Following' : 'Follow', r.following ? 'btn tg' : 'btn pri', async () => {
+    main = znBtn(r.following ? 'Following' : 'Follow', 'zn-pf-main' + (r.following ? ' on' : ''), async () => {
       if (!ZN.me) return znNeedSignIn('Sign in to follow.'); try { await ZN.api.follow(p.id, !r.following); znRender(); } catch (e) { znSay(znErr(e)); }
-    }); if (r.following) fb.setAttribute('aria-pressed', 'true'); acts.append(fb);
-    if (ZN.blocked.has(p.id)) acts.append(znBtn('Unblock', 'btn', async () => { await ZN.api.block(p.id, false); ZN.blocked.delete(p.id); znRender(); }));
+    }); main.setAttribute('aria-pressed', String(!!r.following));
   }
-  side.append(acts); top.append(znAvatar(p, true), side);
-  const ul = h('ul', 'zn-list');
+  side.append(stats, main); top.append(ring, side);
+  const idr = h('div', 'zn-pf-id'), who = h('div', 'zn-pf-who'), nm = h('h3', 'zn-pf-name');
+  nm.append(p.username || 'someone'); if (p.badge) { const bg = h('span', 'zn-pf-badge', (p.badge === 'pro' ? '★ ' : '') + p.badge); nm.append(bg); }
+  who.append(nm, h('p', 'zn-pf-tag', p.bio || (me ? 'Add a tagline in Edit profile.' : '')));
+  try { const g = ZN.api.gameOf ? await ZN.api.gameOf(p.id) : null; if (g && g.game_stars > 0) who.append(h('p', 'zn-game', `Flow game: level ${g.game_level} · ${gameRank(g.game_stars).name} · ${g.game_stars} stars`)); } catch (e) {}
+  const more = h('button', 'zn-pf-more'); more.type = 'button'; more.setAttribute('aria-label', 'More'); more.setAttribute('aria-haspopup', 'menu'); more.setAttribute('aria-expanded', 'false');
+  more.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5.5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="18.5" cy="12" r="2.2"/></svg>';
+  const mw = h('div', 'zn-pf-mw'); mw.append(more);
+  more.addEventListener('click', () => {
+    if (mw.querySelector('.zn-menu')) { mw.querySelector('.zn-menu').remove(); more.setAttribute('aria-expanded', 'false'); return; }
+    const items = [['Copy profile link', () => { const u = location.origin + location.pathname + '#zone'; try { navigator.clipboard.writeText(u + ' @' + p.username); toast('Copied @' + p.username); } catch (e) {} }]];
+    if (me) items.unshift(['Edit profile', () => znGo('edit')]), items.push(['Sign out', async () => { await ZN.api.signOut(); ZN.me = null; await znAuthChanged(true); znGo('feed'); }, 'bad']);
+    else if (ZN.me) items.push(ZN.blocked.has(p.id) ? ['Unblock @' + p.username, async () => { await ZN.api.block(p.id, false); ZN.blocked.delete(p.id); znRender(); }]
+      : ['Block @' + p.username, async () => { try { await ZN.api.block(p.id, true); ZN.blocked.add(p.id); znSay('Blocked @' + p.username + '.'); znRender(); } catch (e) { znSay(znErr(e)); } }, 'bad']);
+    znMenu(more, items);
+  });
+  idr.append(who, mw);
+  const ul = h('ul', 'zn-pf-list');
   for (const x of posts) {
-    const li = h('li', 'zn-row'); li.tabIndex = 0; const mid = h('div'), t = h('div', 't', x.title); if (x.featured) t.append(h('span', 'zn-tag', 'Featured'));
-    mid.append(t, h('div', 'u', p.username)); const n = h('div', 'n'); n.append(h('b', '', '🔥 ' + x.respect_count), h('div', '', znAgo(x.created_at)));
-    li.append(znAvatar(p), mid, n); li.addEventListener('click', () => znGo('post', x.id)); li.addEventListener('keydown', e => { if (e.key === 'Enter') znGo('post', x.id); }); ul.append(li);
+    const li = h('li', 'zn-pf-row' + (x.featured ? ' ft' : '')); li.tabIndex = 0;
+    if (x.featured) li.append(h('span', 'zn-pf-ft', 'Featured'));
+    const mid = h('div', 'mid'), n = h('div', 'n'), pr = h('b');
+    mid.append(h('div', 't', x.title), h('div', 'u', p.username));
+    pr.innerHTML = '<span></span>' + ZN_FIRE; pr.firstChild.textContent = String(x.respect_count || 0); pr.title = (x.respect_count || 0) + ' Props!';
+    n.append(pr, h('small', '', znAgo(x.created_at)));
+    li.append(znAvatar(p), mid, n);
+    li.addEventListener('click', () => znGo('post', x.id)); li.addEventListener('keydown', e => { if (e.key === 'Enter') znGo('post', x.id); }); ul.append(li);
   }
-  body.replaceChildren(znBtn('← Feed', 'btn zn-back', () => znGo('feed')), top, nm, h('p', 'zn-bio', p.bio || ''), posts.length ? ul : h('p', 'zn-empty', 'No posts yet.'));
+  wrap.append(top, idr, posts.length ? ul : h('p', 'zn-empty', me ? 'No posts yet. Post a page from the Highlight Zone.' : 'No posts yet.'));
+  body.replaceChildren(znBtn('← Feed', 'btn zn-back', () => znGo('feed')), wrap);
 }
 function znAuth(body) {
   let mode = 'in'; const f = h('form', 'zn-form'), err = h('p', 'zn-err');
@@ -9540,23 +9674,31 @@ function znAuth(body) {
 }
 function znEdit(body) {
   if (!ZN.me) return znNeedSignIn();
-  const f = h('form', 'zn-form'), err = h('p', 'zn-err'), me = ZN.me;
-  const name = h('input', 'num-in'); name.value = me.username; name.pattern = '[A-Za-z0-9_.]{3,20}'; name.required = true;
-  const bio = h('input', 'num-in'); bio.value = me.bio || ''; bio.maxLength = 160;
-  const pic = h('input'); pic.type = 'file'; pic.accept = 'image/png,image/jpeg,image/webp';
-  const l1 = h('label', '', 'Username'), l2 = h('label', '', 'Bio (160 characters)'), l3 = h('label', '', 'Profile picture (PNG, JPG or WebP, up to 2 MB)');
-  l1.append(name); l2.append(bio); l3.append(pic);
-  const save = h('button', 'btn pri', 'Save'); save.type = 'submit';
-  f.append(h('h3', '', 'Edit profile'), znAvatar(me, true), l1, l2, l3, err, save);
+  const f = h('form', 'zn-ed'), err = h('p', 'zn-err'), me = ZN.me;
+  const pic = h('input'); pic.type = 'file'; pic.accept = 'image/png,image/jpeg,image/webp'; pic.hidden = true;
+  const ph = h('button', 'zn-ed-pic'); ph.type = 'button';
+  const CAM = '<svg viewBox="0 0 64 48" aria-hidden="true"><path d="M8 12h10l4-6h20l4 6h10a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V16a4 4 0 0 1 4-4z"/><circle cx="32" cy="27" r="9.5"/><path d="M11 17h6"/></svg>';
+  const face = url => { ph.replaceChildren(); const box = h('span', 'pv'); if (url) { const i = h('img'); i.src = url; i.alt = ''; box.append(i); } else box.innerHTML = CAM; ph.append(box, h('span', 'l', url ? 'Change profile photo' : 'Set profile photo')); };
+  face(me.avatar_url && /^(https:|blob:)/.test(me.avatar_url) ? me.avatar_url : '');
+  ph.addEventListener('click', () => pic.click());
+  pic.addEventListener('change', () => { const fl = pic.files[0]; if (!fl) return; if (fl.size > 2097152) { err.textContent = 'That picture is over 2 MB.'; pic.value = ''; return; } err.textContent = ''; face(URL.createObjectURL(fl)); });
+  const rows = h('div', 'zn-ed-rows');
+  const row = (label, input) => { const l = h('label', 'zn-ed-row'); l.append(h('span', '', label), input); rows.append(l); return input; };
+  if (me.email) { const em = h('input'); em.type = 'email'; em.value = me.email; em.readOnly = true; em.title = 'Your sign-in email (only you see it)'; row('Email', em); }
+  const name = h('input'); name.value = me.username; name.pattern = '[A-Za-z0-9_.]{3,20}'; name.required = true; name.autocomplete = 'username'; name.spellcheck = false; row('Username', name);
+  const bio = h('input'); bio.value = me.bio || ''; bio.maxLength = 160; bio.placeholder = 'A line about you (160 characters)'; row('Tagline', bio);
+  const save = h('button', 'zn-ed-save', 'Save'); save.type = 'submit';
+  const note = h('p', 'zn-ed-note'); note.innerHTML = 'Your profile and posts in the Zone are public. See the <a href="legal.html" target="_blank" rel="noopener">Terms and Privacy Policy</a>.';
+  f.append(ph, pic, rows, err, save, note);
   f.onsubmit = async e => {
     e.preventDefault(); err.textContent = ''; save.disabled = true;
     try {
       const upd = { username: name.value.trim(), bio: bio.value.trim() };
-      const file = pic.files[0]; if (file) { if (file.size > 2097152) throw new Error('That picture is over 2 MB.'); upd.avatar_url = await ZN.api.uploadAvatar(file); }
+      const file = pic.files[0]; if (file) upd.avatar_url = await ZN.api.uploadAvatar(file);
       await ZN.api.updateProfile(upd); await znAuthChanged(); znGo('profile', upd.username);
     } catch (er) { err.textContent = /duplicate|unique/i.test(znErr(er)) ? 'That username is taken.' : znErr(er); save.disabled = false; }
   };
-  body.replaceChildren(f);
+  body.replaceChildren(znBtn('← Profile', 'btn zn-back', () => znGo('profile', me.username)), f);
 }
 function znCompose(body) {
   if (!ZN.me) return znNeedSignIn('Sign in to post.');
@@ -11979,10 +12121,10 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect class="mk-bg" x=".75" y=".75" width="24.5" height="24.5" rx="6.5"/><g fill="none" stroke-width="2" stroke-linecap="round"><path class="mk1" d="M7 8.5h4"/><path class="mk2" d="M13.5 8.5h5.5"/><path class="mk3" d="M7 13h7.5"/><path class="mk4" d="M17 13h2"/><path class="mk5" d="M7 17.5h2.5"/><path class="mk6" d="M12 17.5h5"/></g></svg></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
   const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
   const dayB = btn('smt', '<i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i>', '', ''); dayB.id = 'bsDay'; dayB.setAttribute('role', 'switch');
-  const dayShow = () => { const d = isDay(); dayB.title = d ? 'Night mode' : 'Day mode'; dayB.setAttribute('aria-label', 'Night mode'); dayB.setAttribute('aria-checked', String(!d)); };
-  dayB.addEventListener('click', () => { store.set('metrobar.bookDay', !isDay()); rbApplyLook(); if (typeof rbPaint === 'function') try { rbPaint(); } catch (e) {} dayShow(); });
-  dayShow();
-  brand.append(bname, homeB, colB); dayB.classList.add('smt-lg'); { const fab = document.getElementById('bkFab'); if (fab) fab.before(dayB); else document.body.append(dayB); }
+  dayB.dataset.dn = ''; dayB.setAttribute('aria-label', 'Night mode');
+  dayB.addEventListener('click', () => mbDayToggle());
+  mbTheme();
+  brand.append(bname, homeB, colB); dayB.classList.add('smt-lg'); { const fab = document.getElementById('bkFab'); if (fab) fab.before(dayB); else document.body.append(dayB); mbTheme(); }
   homeB.addEventListener('click', () => mwGo('#practice'));
   colB.addEventListener('click', () => nolib(true));
   const all = h('div', 'bs-all'), allA = btn('a', `<span>${I.lib}</span><b>All songs</b><small></small>`, 'Your full library'), allS = btn('s', IC.find, 'Search your songs', 'Search your songs'); all.append(allA, allS);
