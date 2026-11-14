@@ -3192,6 +3192,63 @@ html.bb.bb-day .bs-mark .mk-bg { fill:var(--dz-bg0, #ffffff); }
 html.bb.bb-day .be-secm .nf-pool { background:radial-gradient(120% 90% at 30% 0%, #0000000a, #fff0 55%), color-mix(in srgb, var(--accent) 16%, transparent); box-shadow:inset 0 1px 1px #00000010, inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
 html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15%, #0000000a, #fff0 60%), color-mix(in srgb, var(--accent) 14%, transparent); box-shadow:inset 0 1px 1px #00000010, inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
 /* HZ-DAY:END */
+/* Flow pad (2026-11-14): type a bar, tap where each syllable goes, hear it rapped back. Classes fp-*. */
+#viewPractice > .fp { margin-inline: 0; }
+.fp { display: grid; gap: 12px; min-width: 0; width: 100%; max-width: 860px; justify-self: center; margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.fp-hd h2 { margin: 0; font: 700 1.5rem/1.1 var(--display); letter-spacing: .02em; text-transform: uppercase; color: var(--fg); }
+.fp-hd p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
+.fp-in { width: 100%; min-width: 0; font: 500 1.05rem/1.3 var(--body); padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); }
+.fp-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fp-syl { display: flex; flex-wrap: wrap; gap: 4px; min-height: 1.6rem; }
+.fp-s { font: 500 .9rem/1 var(--mono); padding: 5px 7px; border-radius: 6px; background: var(--cell); color: var(--muted); }
+.fp-s.we { margin-right: 6px; }
+.fp-s.st { font-weight: 700; }
+.fp-s.on { color: var(--fg); }
+.fp-s.nx { outline: 2px solid var(--accent); outline-offset: 0; color: var(--fg); }
+.fp-wrap { overflow-x: auto; padding-bottom: 4px; }
+.fp-grid { --cw: minmax(2.3rem, 1fr); display: grid; grid-template-columns: auto repeat(2, var(--cw)) repeat(16, var(--cw)); gap: 3px; min-width: 46rem; align-items: stretch; }
+.fp-grid[data-sub="3"] { grid-template-columns: auto repeat(2, var(--cw)) repeat(12, minmax(3rem, 1fr)); }
+.fp-pkl { align-self: center; font: 500 .7rem/1 var(--mono); color: var(--muted); writing-mode: vertical-rl; transform: rotate(180deg); }
+.fp-c { position: relative; display: grid; grid-template-rows: auto 1fr; justify-items: center; gap: 4px; min-height: 4.2rem; padding: 6px 2px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--fg); cursor: pointer; font: inherit; }
+.fp-c.bt { border-left: 3px solid var(--fg); }
+.fp-c.pk { background: transparent; border-style: dashed; }
+.fp-c.pk + .fp-c:not(.pk) { margin-left: 10px; }
+.fp-l { font: 600 .72rem/1 var(--mono); font-style: normal; color: var(--muted); }
+.fp-c.bt .fp-l { color: var(--fg); font-size: .85rem; }
+.fp-t { align-self: center; max-width: 100%; overflow: hidden; font: 600 .8rem/1.1 var(--body); white-space: nowrap; }
+.fp-c.on { background: var(--cell); border-color: var(--fg); }
+.fp-c.on.st .fp-t { font-weight: 800; }
+.fp-c.extra .fp-t { color: var(--muted); }
+.fp-c.sel { outline: 2px dashed var(--accent); outline-offset: 2px; }
+.fp-c.on { touch-action: none; }
+.fp-c.now { box-shadow: inset 0 0 0 2px var(--accent); }
+.fp-c.on.now { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.fp-c.on.now .fp-l { color: var(--on-accent); }
+.fp-c:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.fp-msg { margin: 0; color: var(--muted); font-size: .9rem; min-height: 1.3em; }
+.fp-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fp-sp { flex: 1; }
+.fp-b { font: 600 .9rem/1 var(--body); padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
+.fp-b:disabled { opacity: .5; cursor: default; }
+.fp-play { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 6rem; }
+.fp-sq { padding: 10px 12px; min-width: 2.6rem; }
+.fp-bpm { display: inline-flex; align-items: center; gap: 6px; font: 500 .9rem/1 var(--mono); color: var(--muted); }
+.fp-bpm b { color: var(--fg); min-width: 2.2ch; text-align: right; }
+.fp-more { position: relative; }
+.fp-more > summary { list-style: none; }
+.fp-more > summary::-webkit-details-marker { display: none; }
+.fp-pop { position: absolute; right: 0; bottom: calc(100% + 6px); z-index: 20; display: grid; gap: 6px; min-width: 13rem; padding: 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 10px 30px rgba(0,0,0,.25); }
+.fp-ck { display: flex; align-items: center; gap: 8px; font-size: .9rem; color: var(--fg); padding: 4px 2px; }
+@media (max-width: 700px) { .fp { padding: 14px; } .fp-sp { display: none; } }
+/* Fit: the extra buttons and the theory lines fold away (Mazbou Q: "the customizability feels a bit overwhelming") */
+.fit-more { display: inline-block; position: relative; }
+.fit-more > summary { list-style: none; cursor: pointer; }
+.fit-more > summary::-webkit-details-marker { display: none; }
+.fit-more[open] > .fit-more-in { display: flex; }
+.fit-more-in { display: none; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.fit-opts > summary { cursor: pointer; padding: 8px 2px; color: var(--muted); font-size: .9rem; }
+.line .why { margin-top: 4px; }
+.line .why > summary { cursor: pointer; color: var(--muted); font-size: .85rem; padding: 2px 0; }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -3327,9 +3384,9 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <p>Puts the lines on the tiles, one per bar, with the landing slot lit.</p>
         <p><b>Tap test:</b> tick it, start Practice, and press <kbd>Space</kbd> (or tap the tiles) on every landing to see how many ms early or late you are. <kbd>Esc</kbd> stops.</p>
         <p><b>Tempo trainer:</b> starts at 70% and adds 5 BPM every 4 bars up to the beat BPM. The beat plays slower and lower while it ramps.</p></section>
-      <section><h3>Rhymes &amp; Bar heel</h3>
+      <section><h3>Rhymes &amp; Shift</h3>
         <p><b>Rhymes</b> colours stressed syllables that share a vowel sound within two bars.</p>
-        <p><b>Bar heel</b> slides every line and its landing a 16th or 8th earlier or later: same words, different syncopation.</p></section>
+        <p><b>Shift</b> (rhythmic displacement) slides every line and its landing a 16th or 8th earlier or later: same words, the stresses move off the grid, so the syncopation changes.</p></section>
       <section><h3>Pronunciation</h3>
         <p class="dict-note">Pronunciation dictionary off: using the spelling rules.</p>
         <p>Syllables, stress and vowel sounds come from the CMU Pronouncing Dictionary (125,000 words, free). Words it does not know, and words you corrected, use the spelling rules.</p></section>
@@ -3546,18 +3603,16 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <button class="cbtn pri" id="practiceBtn">Practice</button>
       <span class="commit-sep"></span>
       <button class="cbtn ghost" id="exampleBtn" title="Load four example bars">Example</button>
+      <details class="fit-more"><summary class="cbtn ghost">More</summary><div class="fit-more-in">
       <button class="cbtn ghost" id="tplWrite" title="Put the template's lyric skeleton (section headings plus example bars) in the box">Lyric template</button>
       <button class="cbtn ghost" id="tplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my lyrics</button>
       <button class="cbtn ghost" id="saveSong" title="Save these lyrics as a song in Write, the writing companion">Save to Songs</button>
       <button class="cbtn ghost" id="bookCopy" title="Copy these lyrics into The Highlight Zone as a new page">Copy to Highlight Zone</button>
+      </div></details>
       <span class="det" id="tplMsg" role="status"></span>
     </div>
     </div>
     <div class="mods">
-      <div class="mod span2" title="Bar heel: slide the whole line, and where it lands, earlier or later. Same words, new syncopation.">
-        <span class="mod-label">Bar heel <span class="val" data-out="heel"></span></span>
-        <select id="heel" data-seg class="wide" aria-label="Bar heel"><option value="-2" data-s="8th early">8th early</option><option value="-1" data-s="16th early">16th early</option><option value="0" data-s="on the grid" selected>on the grid</option><option value="1" data-s="16th late">16th late</option><option value="2" data-s="8th late">8th late</option></select>
-      </div>
       <div class="mod">
         <span class="mod-label">Show</span>
         <label class="sw"><input type="checkbox" id="rhymesOn" checked><span class="track"></span><span class="txt">Rhymes</span></label>
@@ -3567,6 +3622,13 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <label class="sw" title="While practice runs: press Space or tap the tiles on each landing. Esc or Stop ends."><input type="checkbox" id="tapTest"><span class="track"></span><span class="txt">Tap test</span></label>
         <label class="sw" title="Starts at 70% and adds 5 BPM every 4 bars up to the beat BPM."><input type="checkbox" id="trainer"><span class="track"></span><span class="txt">Tempo trainer</span></label>
         <span class="det" id="tapRes"></span>
+      </div>
+    </div>
+    <details class="fit-opts"><summary>More options: shift, loop, split into bars, acapella, files</summary>
+    <div class="mods">
+      <div class="mod span2" title="Shift (rhythmic displacement): slide the whole line, and where it lands, earlier or later. Same words, new syncopation.">
+        <span class="mod-label">Shift <span class="val" data-out="heel"></span></span>
+        <select id="heel" data-seg class="wide" aria-label="Shift"><option value="-2" data-s="8th early">8th early</option><option value="-1" data-s="16th early">16th early</option><option value="0" data-s="on the grid" selected>on the grid</option><option value="1" data-s="16th late">16th late</option><option value="2" data-s="8th late">8th late</option></select>
       </div>
       <div class="mod">
         <span class="mod-label">Loop bars</span>
@@ -3590,6 +3652,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="row-in"><button class="cbtn ghost" id="exportBtn" type="button">Export JSON</button><button class="cbtn ghost" id="resetFix" type="button">Reset corrections</button></div>
       </div>
     </div>
+    </details>
     <div class="fit-out">
     <div class="sum" id="fitSum"></div>
     <div id="songOut" style="display:grid;gap:10px" hidden></div>
@@ -3600,6 +3663,29 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
   </section>
 
   <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-ebt">Flow game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
+  <section class="fp" id="fp" aria-labelledby="fpTitle">
+    <div class="fp-hd"><h2 id="fpTitle">Flow pad</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
+    <input id="fpText" class="fp-in" type="text" spellcheck="false" autocomplete="off" placeholder="Type one bar, e.g. Mic in my hand and I ride in the pocket" aria-label="One bar of lyrics">
+    <div class="fp-syl" id="fpSyl" aria-live="polite"></div>
+    <div class="fp-wrap"><div class="fp-grid" id="fpGrid" role="group" aria-label="The bar: one button per slot"></div></div>
+    <p class="fp-msg" id="fpMsg" role="status"></p>
+    <div class="fp-ctl">
+      <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false">Play</button>
+      <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
+      <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
+      <span class="fp-bpm"><button class="fp-b fp-sq" id="fpSlow" type="button" aria-label="Slower">−</button><b id="fpBpm">90</b> BPM<button class="fp-b fp-sq" id="fpFast" type="button" aria-label="Faster">+</button></span>
+      <span class="fp-sp"></span>
+      <button class="fp-b fp-sq" id="fpEarly" type="button" aria-label="Shift every syllable a slot earlier" title="Shift everything a slot earlier">←</button>
+      <button class="fp-b fp-sq" id="fpLate" type="button" aria-label="Shift every syllable a slot later" title="Shift everything a slot later">→</button>
+      <details class="fp-more"><summary class="fp-b">More</summary><div class="fp-pop">
+        <button class="fp-b" id="fpGridB" type="button" title="Switch between 16ths (4 per beat) and triplets (3 per beat)">Triplets</button>
+        <label class="fp-ck"><input type="checkbox" id="fpVoice" checked> Voice</label>
+        <label class="fp-ck"><input type="checkbox" id="fpClick" checked> Click</label>
+        <button class="fp-b" id="fpClear" type="button">Clear the grid</button>
+        <button class="fp-b" id="fpToLyr" type="button" title="Add this bar to the lyrics box in Advanced > Fit">Add to my lyrics</button>
+      </div></details>
+    </div>
+  </section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
@@ -4106,6 +4192,48 @@ function splitSyl(key, n) {
   for (const c of cuts.concat([w.length])) { out.push(w.slice(p, c)); p = c; }
   return out;
 }
+// ---- Flow pad voice: the phones of each syllable. The dictionary's phones are cut at each vowel (one consonant between two vowels
+// starts the next syllable, two or more split after the first); without the dictionary a rough guess from the spelling.
+// sylPhones('money', 2) -> [['M', 'AH'], ['N', 'IY']]
+const VOWEL_P = new Set('AA AE AH AO AW AY EH ER EY IH IY OW OY UH UW'.split(' '));
+function sylPhones(key, n) {
+  const ph = dictPhones(key);
+  if (ph) {
+    const vi = []; ph.forEach((x, i) => { if (VOWEL_P.has(x.p)) vi.push(i); });
+    if (vi.length === n) {
+      const out = []; let a = 0;
+      vi.forEach((v, k) => { const c = k < n - 1 ? vi[k + 1] - v - 1 : 0, b = k === n - 1 ? ph.length : v + 1 + (c >= 2 ? 1 : 0); out.push(ph.slice(a, b).map(x => x.p)); a = b; });
+      return out;
+    }
+  }
+  if (n === 1 && SP_WORD[key]) return [SP_WORD[key].split(' ')];
+  return splitSyl(key, n).map(spellPhones);
+}
+const SP_WORD = { i: 'AY', "i'm": 'AY M', my: 'M AY', by: 'B AY', why: 'W AY', fly: 'F L AY', the: 'DH AH', a: 'AH', to: 'T UW', you: 'Y UW', do: 'D UW', we: 'W IY', me: 'M IY', he: 'HH IY', she: 'SH IY', be: 'B IY',
+  of: 'AH V', one: 'W AH N', was: 'W AH Z', is: 'IH Z', what: 'W AH T', are: 'AA R', they: 'DH EY', said: 'S EH D', have: 'HH AE V', give: 'G IH V', love: 'L AH V', come: 'K AH M', some: 'S AH M', done: 'D AH N', who: 'HH UW', go: 'G OW', no: 'N OW', so: 'S OW', oh: 'OW' };
+const SP_V = [['igh', 'AY'], ['eigh', 'EY'], ['ee', 'IY'], ['ea', 'IY'], ['ie', 'IY'], ['oo', 'UW'], ['ou', 'AW'], ['ow', 'OW'], ['oa', 'OW'], ['oi', 'OY'], ['oy', 'OY'], ['ai', 'EY'], ['ay', 'EY'],
+  ['au', 'AO'], ['aw', 'AO'], ['ew', 'UW'], ['ue', 'UW'], ['ey', 'IY'], ['er', 'ER'], ['ir', 'ER'], ['ur', 'ER'], ['ar', 'AA R'], ['or', 'AO R'], ['a', 'AE'], ['e', 'EH'], ['i', 'IH'], ['o', 'AA'], ['u', 'AH'], ['y', 'IY']];
+const SP_C = [['tch', 'CH'], ['sh', 'SH'], ['ch', 'CH'], ['th', 'TH'], ['ng', 'NG'], ['ph', 'F'], ['ck', 'K'], ['qu', 'K W'], ['wh', 'W'], ['gh', ''], ['kn', 'N'], ['wr', 'R'],
+  ['b', 'B'], ['c', 'K'], ['d', 'D'], ['f', 'F'], ['g', 'G'], ['h', 'HH'], ['j', 'JH'], ['k', 'K'], ['l', 'L'], ['m', 'M'], ['n', 'N'], ['p', 'P'], ['q', 'K'], ['r', 'R'], ['s', 'S'], ['t', 'T'], ['v', 'V'], ['w', 'W'], ['x', 'K S'], ['z', 'Z']];
+const SP_LONG = { a: 'EY', e: 'IY', i: 'AY', o: 'OW', u: 'UW' };
+function spellPhones(t) {
+  t = String(t || '').toLowerCase().replace(/[^a-z]/g, '');
+  let long = -1; const m = t.match(/([aeiou])[bcdfgklmnprstvz]e$/);   // magic e: "time", "rope" -> long vowel, the e is silent
+  if (m && t.length >= 3) { long = t.length - 3; t = t.slice(0, -1); }
+  const out = []; let i = 0;
+  while (i < t.length) {
+    if (t[i] === 'y' && i === 0 && t.length > 1) { out.push('Y'); i++; continue; }
+    let hit = null;
+    if (i === long) hit = [t[i], SP_LONG[t[i]]];
+    if (!hit) for (const x of SP_V) if (t.startsWith(x[0], i)) { hit = x; break; }
+    if (!hit) for (const x of SP_C) if (t.startsWith(x[0], i)) { hit = x; break; }
+    if (!hit) { i++; continue; }
+    if (hit[1]) out.push(...hit[1].split(' '));
+    i += hit[0].length;
+  }
+  if (!out.some(p => VOWEL_P.has(p))) out.push('AH');
+  return out;
+}
 // ---- Meters. A bar is a row of beats; in x/8 the "beats" are the 2- and 3-eighth groups (7/8 = 2+2+3 = "1 2 1 2 1 2 3").
 // Every slot is a 16th in 16th grids (x/4 and x/8), a third or a fifth of a beat in triplet / quintuplet grids. BPM = quarter notes.
 const GROUPS8 = { 2: [2], 3: [3], 4: [2, 2], 5: [3, 2], 6: [3, 3], 7: [2, 2, 3], 8: [3, 3, 2], 9: [3, 3, 3], 10: [3, 3, 2, 2], 11: [3, 3, 3, 2], 12: [3, 3, 3, 3], 13: [3, 3, 3, 2, 2], 14: [3, 3, 3, 3, 2], 15: [3, 3, 3, 3, 3] };
@@ -4147,11 +4275,11 @@ const FLOWS = [
     advice: 'Lean on the three hits, soften the words between, last hit is the landing.' },
   { id: '16ths', name: '16ths', color: '--s2', on: sub16, hits: lay => range(lay.G),
     advice: "Cut filler words first, keep the rhyme on the last beat, don't start every line on beat 1." },
-  { id: 'half', name: 'Half-time', color: '--s3', on: lay => lay.sub === 4 && lay.den === 4, hits: lay => lay.starts.slice(),
-    advice: 'One idea per bar, long vowels, this is where the hook lives.' },
+  { id: 'half', name: 'Quarter notes', color: '--s3', on: lay => lay.sub === 4 && lay.den === 4, hits: lay => lay.starts.slice(),
+    advice: 'One syllable per beat: one idea per bar, long vowels. Hooks often live here.' },
   { id: 'grp', name: 'On the groups', color: '--s3', on: lay => lay.den === 8, hits: lay => lay.starts.slice(),
     advice: 'Put a stressed syllable on every group start (the 1s of the count). The long group is where the bar limps: let a word sit there instead of rushing it.' },
-  { id: 'hem', name: 'Hemiola 3s over 4', color: '--s5', on: sub16, hits: lay => range(lay.G).filter(s => s % 3 === 0),
+  { id: 'hem', name: 'Groups of 3 (3 over 4)', color: '--s5', on: sub16, hits: lay => range(lay.G).filter(s => s % 3 === 0),
     advice: 'Group the words in threes against the beat: the accent slides one 16th earlier every beat, so it pulls against the drums until the rhyme lands.' },
 ];
 // Triplet and quintuplet flows live on their own grids (3 or 5 slots per beat) and are scored separately.
@@ -4222,6 +4350,55 @@ function groupingFit(slots, syl, lay) {
   const mine = all.find(x => x.key === cur);
   return { fit: mine.fit, best: all[0].key !== cur && all[0].fit >= mine.fit + 0.15 ? all[0] : null };
 }
+// One bar of syllables -> one slot each (indices into the grid), chosen together by dynamic programming. Costs (lower = better):
+// a stressed syllable on a hit of the flow, a weak one off the downbeat, an even step between syllables (the flow's own step:
+// 8ths = 2 slots, 16ths / triplets / quintuplets = 1), no stretching inside a word, rests only at punctuation or before the
+// rhyme word, the rhyme (last syllable) on the last beat. Returns null when the line has more syllables than slots.
+function placeLine(body, words, lay, hits, id, nb, land = true, pk = 0) {
+  const G = lay.G, N = body.length; if (!N || N > G) return null;
+  const hs = new Set(hits), sub4 = lay.sub === 4;
+  const str = s => { const i = s - lay.starts[lay.beatOf[s]]; return i === 0 ? 3 : sub4 && i === 2 ? 2 : 1; };
+  const fine = id === '16ths' || id === 'trip' || id === 'quint';
+  const pref = fine ? 1 : N <= G / 2 ? 2 : 1;
+  const lastW = body[N - 1].w; let lw0 = N - 1; while (lw0 > 0 && body[lw0 - 1].w === lastW) lw0--;
+  const brk = i => i > 0 && body[i].w !== body[i - 1].w && /[,.;:!?…]/.test((words[body[i - 1].w] || {}).p || '');
+  const unit = (i, s) => {
+    const x = body[i]; let c = 0;
+    if (x.st) c += hs.has(s) ? -3 : str(s) === 3 ? 0.5 : str(s) === 2 ? 1.5 : 2.2;
+    else if (i > 0 && str(s) === 3) c += fine ? 0.25 : 0.7;   // a weak syllable on the beat is normal inside a 16ths stream
+    if (i === 0) c += s * (pk ? 3 : 1.4);   // start on the 1, above all right after a pickup
+    if (land && i === N - 1) { const b = lay.beatOf[s]; c += b === nb - 1 ? (hs.has(s) || s === lay.starts[b] ? -2 : -0.5) : 2.5 * (nb - 1 - b); }
+    return c;
+  };
+  const trans = (i, d, d0) => {
+    const gap = brk(i) || i === lw0 && N > 2;
+    let c = d > pref ? (gap ? (fine ? 0.45 : 0.15) : fine ? 1 : 0.6) * (d - pref) : 0.6 * (pref - d);   // a 16ths stream rests less readily than an 8ths line
+    if (body[i].w === body[i - 1].w && d > pref) c += 1.5 * (d - pref);   // a word is not pulled apart
+    if (d > 4 && !gap) c += 1.2 * (d - 4);
+    if (d0 && !brk(i) && !(i === lw0)) c += 0.5 * Math.abs(d - d0);
+    return c;
+  };
+  // cost[i][s][d]: syllable i on slot s, reached with a step of d slots (d = 0 for the first)
+  const INF = 1e9, cost = [], from = [];
+  for (let i = 0; i < N; i++) { cost.push([]); from.push([]); for (let s = 0; s < G; s++) { cost[i].push(new Float64Array(G + 1).fill(INF)); from[i].push(new Int16Array(G + 1).fill(-1)); } }
+  for (let s = 0; s + N - 1 < G; s++) cost[0][s][0] = unit(0, s);
+  for (let i = 1; i < N; i++) for (let s = i; s + (N - 1 - i) < G; s++) {
+    const u = unit(i, s);
+    for (let p = i - 1; p < s; p++) {
+      const d = s - p, row = cost[i - 1][p]; let best = INF, bd = -1;
+      for (let d0 = 0; d0 <= G; d0++) { if (row[d0] >= INF) continue; const v = row[d0] + trans(i, d, d0); if (v < best) { best = v; bd = d0; } }
+      if (bd >= 0 && best + u < cost[i][s][d]) { cost[i][s][d] = best + u; from[i][s][d] = bd; }
+    }
+  }
+  let bs = -1, bdd = -1, bv = INF;
+  for (let s = 0; s < G; s++) for (let d = 0; d <= G; d++) if (cost[N - 1][s][d] < bv) { bv = cost[N - 1][s][d]; bs = s; bdd = d; }
+  if (bs < 0) return null;
+  const out = new Array(N); let s = bs, d = bdd;
+  for (let i = N - 1; i >= 0; i--) { out[i] = s; const d0 = from[i][s][d]; s -= d; d = d0; }
+  return out;
+}
+// where the words would run out without the pull to the last beat (for the half-empty flag)
+function dpNatEnd(body, lay, hits, id, nb) { const r = placeLine(body, [], lay, hits, id, nb, false); return r ? r[r.length - 1] : 0; }
 function analyseLine(text, fix, heel = 0, force = null, meter = '4/4') {   // heel: displace the whole line by this many slots; force: a flow id instead of the best match; meter: "7/8", "7/8:3+2+2", "5/4"...
   const toks = text.replace(/[’‘]/g, "'").split(/[\s—–\/-]+/).filter(Boolean);
   const words = [], syl = [];
@@ -4284,7 +4461,13 @@ function analyseLine(text, fix, heel = 0, force = null, meter = '4/4') {   // he
     });
     placed = Nb; p = G;
   }
-  for (let i = id === 'stomp' ? Nb : 0; i < Nb; i++) {
+  // Placement (2026-11-14, after Mazbou Q's feedback that the flows "realistically wouldn't be rapped"): no more greedy "next slot,
+  // stressed ones jump to the next hit", which crammed the weak syllables together and then left holes. placeLine picks the whole
+  // bar at once: stresses on the flow's hits, the weak syllables spread evenly between them, rests only at a comma or before the
+  // rhyme word, words kept together, the rhyme on the last beat. Sparse half-time / group lines keep one syllable per beat.
+  const dp = id === 'stomp' || sparse && (id === 'half' || id === 'grp') ? null : placeLine(body, words, lay, hits0, id, nb, true, pickup);
+  if (dp) { dp.forEach((s, i) => { slots[s] = i + pickup; at.push(s); }); placed = Nb; }
+  for (let i = id === 'stomp' || dp ? Nb : 0; i < Nb; i++) {
     let s = p;
     if (sparse) s = sparse[i] != null ? sparse[i] : G;
     else if (body[i].st) { const h = hits0.find(x => x >= p); if (h != null && h <= G - (Nb - i)) s = h; }   // stressed syllables go to the next hit, unless that leaves no room for the rest
@@ -4294,8 +4477,8 @@ function analyseLine(text, fix, heel = 0, force = null, meter = '4/4') {   // he
   }
   // the rhyme lands on the last beat: if the line ends early, move its last word so the final stressed syllable sits on the first hit of the last beat
   const lastBeat = lay.starts[nb - 1];
-  const natEnd = at.length ? lay.beatOf[at[at.length - 1]] + 1 : 0;   // where the words run out before the rhyme is moved
-  if (placed === Nb && Nb && body[Nb - 1].st) {
+  const natEnd = dp ? lay.beatOf[dpNatEnd(body, lay, hits0, id, nb)] + 1 : at.length ? lay.beatOf[at[at.length - 1]] + 1 : 0;   // where the words run out before the rhyme is moved
+  if (!dp && placed === Nb && Nb && body[Nb - 1].st) {
     const target = hits0.find(x => x >= lastBeat), lw = body[Nb - 1].w;
     let k = 0; while (k < Nb && body[Nb - 1 - k].w === lw) k++;
     const prev = Nb - k - 1 >= 0 ? at[Nb - k - 1] : -1;
@@ -4493,8 +4676,8 @@ function deviceOf(name) { return /mono/i.test(name) ? 'mono' : /chant/i.test(nam
 /* Technique checker: which of the 18 Write techniques a bar or a verse uses. Reads analysed bars (analyseLine) and the rhyme map; the
    thresholds follow the technique specs in "AI lyric tools research and our AI design". Local code only: no AI, no network.
    Returns one row per technique, in the order of the Write tab's technique list: { id, name, used, bars: [bar index], why }. */
-const TECH_LIST = [['8ths', 'Straight 8ths'], ['16ths', '16ths'], ['trip', 'Triplets'], ['tres', 'Tresillo 3-3-2'], ['stomp', 'Stomp cadence'], ['hem', 'Hemiola'],
-  ['quint', 'Quintuplets'], ['sync', 'Syncopation'], ['heel', 'Bar heel'], ['pickup', 'Pickups'], ['multi', 'Multisyllable rhymes'], ['mono', 'Monorhyme run'],
+const TECH_LIST = [['8ths', 'Straight 8ths'], ['16ths', '16ths'], ['trip', 'Triplets'], ['tres', 'Tresillo 3-3-2'], ['stomp', 'Stomp cadence'], ['hem', 'Groups of 3'],
+  ['quint', 'Quintuplets'], ['sync', 'Syncopation'], ['heel', 'Displacement'], ['pickup', 'Pickups'], ['multi', 'Multisyllable rhymes'], ['mono', 'Monorhyme run'],
   ['chant', 'Chant'], ['tag', 'Fixed end tag'], ['space', 'Space'], ['enj', 'Enjambment'], ['odd', 'Odd meter'], ['poly', 'Polymeter']];
 // a phrase of 2-5 words said `times` times back to back in a word list; returns [{ from, len, syl }]
 function phraseRuns(ws, times, minSyl, maxSyl) {
@@ -4522,7 +4705,7 @@ function techniqueCheck(ls, rh) {
   R.hem = [per(L => nat(L) === 'hem' || phraseRuns(keysOf(L), 3, 3, 3).length > 0), 'a 3-syllable pattern repeated against the beat'];
   R.quint = [per(L => nat(L) === 'quint'), '17 to 20 syllables, five a beat'];
   R.sync = [per(L => L.sync >= 0.3 && L.syl.filter(x => x.st).length >= 3), 'stresses off the beat (syncopation 30% or more)'];
-  R.heel = [per(L => !!L.heel), 'the line slid early or late with Bar heel'];
+  R.heel = [per(L => !!L.heel), 'the line shifted early or late (displacement)'];
   R.pickup = [per(L => !L.heel && L.pickup > 0 && L.pickup <= 2), '1 or 2 soft syllables before beat 1'];
   // a repeated word is not a rhyme: at least one word of the multi must be new to the bars around it (rules out chants and end tags)
   const near = i => new Set(ls.slice(Math.max(0, i - 2), i + 3).filter((_, k) => k !== Math.min(i, 2)).flatMap(L => L.words.map(w => w.key)));
@@ -5242,8 +5425,8 @@ function scParse(s) {
 // ---- Flow game (Bennie 2026-11-11): the Breakdown bar becomes playable. Levels in the order flow is usually taught; every bar goes
 // through analyseLine with its flow forced, so the game plays exactly what the Breakdown view draws. Lyrics are our own.
 const LADDER = [
-  { id: 'beat', name: 'On the beat', flow: 'half', bpm: 90, tip: 'One syllable on every beat. Feel where 1, 2, 3 and 4 are.',
-    bars: ['Feet on the floor', 'Break down the door', 'Give me some more'] },
+  { id: 'beat', name: 'On the beat', flow: 'half', bpm: 90, tip: 'One syllable on every beat (quarter notes). Feel where 1, 2, 3 and 4 are.',
+    bars: ['Head nod, beat drop', 'Feet down, don\'t stop', 'Hands up, hip hop'] },
   { id: '8ths', name: 'Straight 8ths', flow: '8ths', bpm: 90, tip: 'Two even syllables per beat. The rhyme lands on beat 4.',
     bars: ['Keep it steady on the beat', 'Every bar I land my feet', 'Say it plain and take a seat'] },
   { id: 'space', name: 'Leave space', flow: '8ths', bpm: 90, tip: 'Stop early and wait. The silence before the landing is part of the bar.',
@@ -5251,25 +5434,41 @@ const LADDER = [
   { id: 'stomp', name: 'Stomp cadence', flow: 'stomp', bpm: 90, tip: 'Two-beat cells that stop dead on 2 and 4, like boots on the ground.',
     bars: ['Pick it up, put it down', 'Run it back, hold the line', 'Left right left, hold tight'] },
   { id: 'tres', name: 'Tresillo 3-3-2', flow: 'tres', bpm: 90, tip: 'Count 3, 3, 2. The hits slide off the beat and come home on the last one.',
-    bars: ['Push pull lean back bounce down', 'Kick snare kick kick snare clap', 'Big steps small steps big sound'] },
+    bars: ['Feet stay down, heads go round', 'Big bass drum, deep low hum', 'Lights go down, bass comes up'] },
   { id: 'trip', name: 'Triplets', flow: 'trip', bpm: 80, tip: 'Three even syllables per beat. Lean on the first of every three.',
-    bars: ['Rolling it rolling it over the drum', 'Three at a time and I never go numb', 'Counting it counting it under my thumb'] },
+    bars: ['Rolling it rolling it over the drum', 'Three at a time and I\'m never undone', 'Counting it counting it under my thumb'] },
   { id: '16ths', name: '16ths', flow: '16ths', bpm: 75, tip: 'Four syllables per beat. Keep them even and light.',
     bars: ['Every little syllable is sitting in the pocket', 'Tap it like a drummer till the rhythm is a rocket', 'Never let the tempo get away before you lock it'] },
-  { id: 'late', name: 'Behind the beat', flow: '8ths', bpm: 90, tip: 'The same 8ths, slid late. Every word sits just after where you expect it.',
-    bars: [{ t: 'Drag it back and let it breathe', heel: 1 }, { t: 'Lean a little late behind the beat', heel: 2 }, { t: 'Take your time and still arrive', heel: 1 }] },
-  { id: 'early', name: 'Ahead of the beat', flow: '8ths', bpm: 90, tip: 'The same 8ths, pulled early. The landing arrives before the beat does.',
-    bars: [{ t: 'Jump the gun and get there first', heel: -2 }, { t: 'Out the gate before the bell', heel: -1 }, { t: 'Never wait until the one', heel: -2 }] },
-  { id: 'hem', name: 'Threes over four', flow: 'hem', bpm: 85, tip: 'Group the words in threes against the beat. It pulls until the rhyme lands.',
-    bars: ['Money on my mind and I am running out of time', 'Sliding off the beat but I am landing every line', 'Counting in threes while the drummer is counting in fours'] },
+  // 'late' / 'early' keep their ids (Zone scores are keyed by them). Mazbou Q (2026-11-14): sliding the 8ths off the grid is
+  // syncopation, not "behind the beat" (that is microtiming: the laid-back feel the tap verdict measures).
+  { id: 'late', name: 'Syncopation', flow: '8ths', bpm: 90, tip: 'The same 8ths, shifted off the grid: the stresses fall between the beats, on the e or the and. Count 1 e & a and come in late on purpose.',
+    bars: [{ t: 'Drag it back and let it breathe', heel: 1 }, { t: 'Step around the beat and bounce', heel: 1 }, { t: 'Take your time and still arrive', heel: 2 }] },
+  { id: 'early', name: 'Anticipation', flow: '8ths', bpm: 90, ant: 1, tip: 'The rhyme comes a 16th early, on the "a" just before beat 4, and pushes into it.',
+    bars: ['Jump the gun and get there first', 'Out the gate before the bell', 'Never wait until the one'] },
+  { id: 'hem', name: 'Groups of 3', flow: 'hem', bpm: 85, tip: 'A three-syllable pattern against the four: every accent comes a 16th earlier against the beat, then the last word lands.',
+    bars: ['Turn it up, turn it up, turn it up, turn it up, loud', 'Pick it up, pick it up, pick it up, pick it up, go', 'Digital, physical, mystical, magical flow'] },
   { id: 'seven', name: 'Seven eight', flow: 'grp', meter: '7/8', bpm: 90, tip: 'The bar is short, short, long: 2 + 2 + 3. The next 1 comes early.',
     bars: ['One two one two one two three', { t: 'Seven steps and then it turns', flow: '8ths' }, 'Short short long is how it goes'] },
   { id: 'quint', name: 'Quintuplets', flow: 'quint', bpm: 60, tip: 'Five syllables per beat. Lock the first of every five and let the rest roll.',
-    bars: ['All the people in the building better listen when I talk into the mic', 'Syllable on syllable on syllable I never trip on one', 'Five in any beat and it is floating over anything you play'] },
+    bars: ['Syllable after syllable after syllable after syllable and done', 'Listen to it now, listen to it here, listen to it loud, listen to it clear', 'Rolling it over, rolling it under, rolling it faster, rolling it back home'] },
 ];
 function ladderBar(lv, i) {
   const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b;
-  return analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, V.meter || '4/4');
+  const L = analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, V.meter || '4/4');
+  return o.ant || V.ant ? anticipate(L, o.ant || V.ant) : L;
+}
+// Anticipation: the rhyme word moves `by` slots earlier (when they are free), so the landing comes just before the beat.
+function anticipate(L, by = 1) {
+  const lw = L.landSlot >= 0 ? L.slotWord[L.landSlot] : -1; if (lw < 0) return L;
+  const ss = []; L.slots.forEach((v, s) => { if (v >= 0 && L.syl[v].w === lw) ss.push(s); });
+  for (let k = 1; k <= by; k++) if (ss[0] - k < 0 || L.slots[ss[0] - k] >= 0) return L;
+  const slots = L.slots.slice(), lay = L.lay; ss.forEach(s => { slots[s] = -1; }); ss.forEach(s => { slots[s - by] = L.slots[s]; });
+  let landSlot = -1; for (let s = slots.length - 1; s >= 0; s--) if (slots[s] >= 0 && L.syl[slots[s]].st) { landSlot = s; break; }
+  let on = 0, off = 0; slots.forEach((v, s) => { if (v < 0 || !L.syl[v].st) return; const i = s - lay.starts[lay.beatOf[s]]; if (lay.sub === 4 ? i % 2 === 0 : i === 0) on++; else off++; });
+  const lb = lay.beatOf[landSlot], nb = lay.starts.length;
+  let endSlot = -1; for (let s = slots.length - 1; s >= 0; s--) if (slots[s] >= 0) { endSlot = s; break; }
+  return Object.assign({}, L, { slots, slotWord: slots.map(v => (v >= 0 ? L.syl[v].w : -1)), landSlot, landBeat: lb + 1, sync: on + off ? off / (on + off) : 0,
+    anticipated: landSlot === lay.starts[lb] + lay.lens[lb] - 1 ? (lb + 1) % nb + 1 : 0, endSlot, endBeat: lay.beatOf[endSlot] + 1, landOff: lb + 1 < nb - 1 });
 }
 // the dots to hit in one pass of a bar: slot, time from the bar line in quarter notes, stressed, landing
 function gameTargets(L) {
@@ -5959,7 +6158,7 @@ function tapLanding() {
   const ms = Math.round((t - best) * 1000); tapOffs.push(ms); if (tapOffs.length > 8) tapOffs.shift();
   const avg = Math.round(tapOffs.reduce((a, b) => a + b, 0) / tapOffs.length);
   const say = v => v === 0 ? 'on time' : Math.abs(v) + ' ms ' + (v > 0 ? 'late' : 'early');
-  const feel = tapOffs.length < 3 ? '' : avg > 25 ? ' · laid back (behind the beat, like Ghetts)' : avg < -25 ? ' · pushing (ahead of the beat)' : ' · locked in';
+  const feel = tapOffs.length < 3 ? '' : avg > 25 ? ' · laid back (behind the beat)' : avg < -25 ? ' · pushing (ahead of the beat)' : ' · locked in';
   $('tapRes').textContent = `tap: ${say(ms)} · avg of ${tapOffs.length}: ${say(avg)}${feel}`;
 }
 $('bar').addEventListener('pointerdown', e => { if (running && $('tapTest').checked) { e.preventDefault(); tapLanding(); } }, true);
@@ -6293,6 +6492,7 @@ function renderFit() {
     const cb = h('button', 'mini push', cmpOpen.has(L.text) ? 'Hide compare' : 'Compare A/B/C/D'); cb.setAttribute('aria-expanded', cmpOpen.has(L.text));
     cb.addEventListener('click', () => { cmpOpen.has(L.text) ? cmpOpen.delete(L.text) : cmpOpen.add(L.text); renderFit(); });
     if (L.N) hd.append(cb);
+    if (L.N && typeof FP !== 'undefined' && FP) { const fb = h('button', 'mini', 'Hear it'); fb.title = 'Open this bar in the Flow pad: hear it rapped back and move the syllables yourself'; fb.addEventListener('click', () => { FP.load(L); FP.play(false); }); hd.append(fb); }
     if (L.N) { const pb = h('button', 'mini', 'Play'); pb.title = 'Play this bar in the flow game, by tap or by voice'; pb.addEventListener('click', () => TG.openFit(i)); hd.append(pb); }
     if (L.src != null) { const eb = h('button', 'mini', editSrc === L.src ? 'Editing' : 'Edit'); eb.dataset.src = L.src; eb.title = 'Edit, add or delete words in this bar'; eb.setAttribute('aria-pressed', editSrc === L.src); eb.addEventListener('click', () => { editSrc = editSrc === L.src ? null : L.src; renderFit(); }); hd.append(eb); }
     const words = h('div', 'words');
@@ -6310,7 +6510,7 @@ function renderFit() {
       info.append(`Pattern ${L.pat} · landing slot ${L.landSlot + 1} (beat ${L.landBeat}) `);
       info.append(h('span', '', `· syncopation ${Math.round(L.sync * 100)}% `));
       if (L.anticipated) info.append(h('span', 'warn', `· anticipated landing: the rhyme hits just before beat ${L.anticipated}${L.anticipated === 1 ? ' of the next bar' : ''} `));
-      if (L.heel) info.append(h('span', '', `· bar heel ${L.heel < 0 ? 'pulled' : 'pushed'} ${Math.abs(L.heel)} slot${Math.abs(L.heel) > 1 ? 's' : ''} ${L.heel < 0 ? 'early' : 'late'} `));
+      if (L.heel) info.append(h('span', '', `· shifted ${L.heel < 0 ? 'pulled' : 'pushed'} ${Math.abs(L.heel)} slot${Math.abs(L.heel) > 1 ? 's' : ''} ${L.heel < 0 ? 'early' : 'late'} `));
       if (L.landOff) info.append(h('span', 'warn', '· not on beat 3 or 4'));
       if (L.halfEmpty) info.append(h('span', 'warn', ` · words run out on beat 2: the bar is half empty, the rhyme is held to beat 4`));
       if (L.overflow > 0) info.append(h('span', 'warn', ` · ${L.overflow} syllables do not fit in ${L.grid} slots`));
@@ -6323,7 +6523,11 @@ function renderFit() {
         L.enj.midBreaks.filter(m => m.strong).forEach(m => info.append(h('span', '', ` · the phrase ends mid-bar after "${L.words[m.word].raw}", so the next phrase starts on beat ${m.beat}`)));
       }
     }
-    card.append(hd, editSrc === L.src ? barEditor(L) : words, bd, info, h('p', 'adv', L.flow.advice));
+    // the theory lines fold away; only problems stay in view (Mazbou Q 2026-11-14: too much at once)
+    const short = h('p', 'sum'); if (L.N) short.append(`Lands on beat ${L.landBeat}`); [...info.querySelectorAll('.warn')].forEach(w => short.append(w.cloneNode(true)));
+    const why = h('details', 'why'); why.append(h('summary', '', 'Why it sits like this'), info, h('p', 'adv', L.flow.advice));
+    card.append(hd, editSrc === L.src ? barEditor(L) : words, bd, L.N ? short : info);
+    if (L.N) card.append(why);
     if (L.N && cmpOpen.has(L.text)) card.append(renderCompare(L, i, padSlots));
     out.appendChild(card);
   });
@@ -6678,7 +6882,7 @@ const TECHS = [
     song: { hook: 'Boots on the ground, fists in the air\nChins to the sky, nobody scared\nLeft foot, right foot, stamp it down\nMarch through the block, shake the town',
       verse: 'Who goes there? Us again\nCount the steps, count to ten\nHold the line, hold the fort\nFront line, back line, all in step\nWho\'s at the door? It\'s us\nBig crowd, no fuss\nKeep it loud, keep it short\nEvery drum a promise kept',
       chorus: 'Who\'s at the door? Us again\nHow many strong? Count to ten\nBoots on the ground, fists in the air\nSay it out loud, we\'re still here' } },
-  { name: 'Hemiola', what: 'Groups of 3 over a beat of 2 (or 2s over triplets): the phrase pulls against the beat, then lands.', how: 'Repeat a 3-syllable stress pattern across the bar so it lands on a new beat each time.', head: 'Hemiola: 3s over the 4',
+  { name: 'Groups of 3', what: 'A 3-syllable pattern repeated across the 4 (3 against 4): each accent comes one 16th earlier against the beat, so the phrase pulls, then lands. A true hemiola is 3 against 2: try the Polymeter preset for that.', how: 'Repeat a 3-syllable stress pattern across the bar so it lands on a new beat each time.', head: 'Groups of 3: 3s over the 4',
     song: { hook: 'Turn it up, turn it up, turn it up and go\nBack it up, back it up, back it up real slow\nRun it back, run it back, run it back once more\nShake the room, shake the room, shake the room, the floor',
       verse: 'Every day, every day, every day the bus\nClock in, clock out, nobody thinks of us\nWrite it down, write it down, write it down at night\nEvery page, every page, every page a fight\nNine to five, nine to five, nine to five, then me\nTen to two in the morning when the mind runs free\nPull it close, pull it close, pull it close and hold\nEvery word, every word, every word is gold',
       chorus: 'Turn it up, turn it up, turn it up and go\nLet it ride, let it ride, let it ride the flow\nRun it back, run it back, run it back once more\nShake the room, shake the room, shake the room, the floor' } },
@@ -6686,11 +6890,11 @@ const TECHS = [
     song: { hook: 'Three in the morning and the thoughts in my head are like a carousel spinning\nEvery little worry is a horse with a rider and the rider is winning\nCounting all the ceiling tiles, the cracks and the corners and the light from the city\nLittle bit of everything is rattling around and none of it is pretty',
       verse: 'Monday was a deadline and a phone call and a letter I forgot to deliver\nTuesday I was standing at the window of the bus with my hands in a shiver\nWednesday was the day I told myself I would slow it down and just let it be\nThursday it was quicker and the quicker that I got the more it got away from me\nEvery single syllable is tumbling like a coin in a dryer on a spin\nRattling and battering and clattering and scattering and coming back again\nIf I ever get a minute I will tell you all the things that I been meaning to say\nBut the minute that I find it it\'s a memory, it\'s history, it\'s yesterday',
       chorus: 'Three in the morning and the thoughts in my head are like a carousel spinning\nEvery little worry is a horse with a rider and the rider is winning\nFive to a beat and every beat a little faster than the one that it follows\nBreathe at the bar line, let it out and let it in and do it all again tomorrow' } },
-  { name: 'Syncopation', what: 'Stresses off the beat and off the 8th: on the "e" and the "a". It makes a flow bounce.', how: 'Move one stressed word a 16th early in every bar. MetroBar shows your syncopation %.', head: 'Syncopation: stress the off-beats',
+  { name: 'Syncopation', what: 'Stresses on the weak spots, where you do not expect them: off the beat. The strongest pull is on the "e" and the "a" (the 16ths between the 8ths). It makes a flow bounce. (Rapping a little late on purpose is a different thing: laid back, behind the beat.)', how: 'Move one stressed word a 16th early in every bar. MetroBar shows your syncopation %.', head: 'Syncopation: stress the off-beats',
     song: { hook: 'I been on it, never sleep, I been going in\nGot a feeling in my feet, let the bass begin\nEvery corner of the street got a different spin\nI been on it, never sleep, I been going in',
       verse: 'Took a minute, made it count, didn\'t count the cost\nTook a hit and took a loss but I never lost\nGot a little in the bank, got a lot to say\nGot a habit when I\'m stuck, I just walk away\nThen I come back with a bounce in the way I talk\nGot the rhythm in the heel every time I walk\nPut the accent where it\'s odd, put it in between\nEvery beat they never hit, that\'s the beat I mean',
       chorus: 'I been on it, never sleep, I been going in\nGot a feeling in my feet, let the bass begin\nPut the weight where it\'s odd, put it in between\nI been on it, never sleep, I been going in' } },
-  { name: 'Bar heel', what: 'Slide the whole line, and its landing, a 16th or 8th early or late. Same words, new feel.', how: 'Write the bar, then try Bar heel in MetroBar\'s Fit row: 8th early, 16th late.', head: 'Bar heel: same bar, landing slid early or late',
+  { name: 'Displacement', what: 'Shift the whole line, and its landing, a 16th or 8th early or late. Same words, the stresses move off the grid: syncopation.', how: 'Write the bar, then try Shift in MetroBar\'s Fit row: 8th early, 16th late.', head: 'Displacement: same bar, shifted early or late',
     song: { hook: 'I came to the city with a plan in my hand\nLittle bit late but I\'m right where I stand\nSlide it up early or I let it lag behind\nSame words, new feel, every single time',
       verse: 'Some people rush like the clock owes them money\nI take my time and the time finds it funny\nHit it a hair late, the snare gets lazy\nHit it a hair soon, the room goes crazy\nSame bar, same words, a sixteenth away\nThat\'s the whole difference in the way that I play\nLean on the beat like a wall that I trust\nNever in a hurry and I never get rushed',
       chorus: 'I came to the city with a plan in my hand\nLittle bit late but I\'m right where I stand\nSlide it up early or I let it lag behind\nSame words, new feel, every single time' } },
@@ -7037,8 +7241,8 @@ function wrMsg(text, undoText) {
 }
 // Techniques as a pad bank: all 18 at once, one tap shows what it is, how to do it and its drill (no collapsible per technique)
 const TECH_TAG = { 'Straight 8ths': ['even, on the beat', 'flow'], '16ths': ['4 a beat', 'flow'], 'Triplets': ['3 a beat', 'flow'], 'Tresillo 3-3-2': ['3-3-2 stresses', 'flow'],
-  'Stomp cadence (military bounce)': ['stop on 2 and 4', 'flow'], 'Hemiola': ['3s over the 4', 'meter'], 'Quintuplets': ['5 a beat', 'flow'], 'Syncopation': ['off the beat', 'flow'],
-  'Bar heel': ['slide the line', 'flow'], 'Pickups': ['lead into beat 1', 'flow'], 'Multisyllable rhymes': ['two vowels rhyme', 'rhyme'], 'Monorhyme run': ['one end sound', 'rhyme'],
+  'Stomp cadence (military bounce)': ['stop on 2 and 4', 'flow'], 'Groups of 3': ['3s over the 4', 'meter'], 'Quintuplets': ['5 a beat', 'flow'], 'Syncopation': ['off the beat', 'flow'],
+  'Displacement': ['shift the line', 'flow'], 'Pickups': ['lead into beat 1', 'flow'], 'Multisyllable rhymes': ['two vowels rhyme', 'rhyme'], 'Monorhyme run': ['one end sound', 'rhyme'],
   'Chant': ['4 bars, twice', 'shape'], 'Fixed end tag': ['same tag every bar', 'rhyme'], 'Space': ['leave air', 'shape'], 'Enjambment': ['run over the bar', 'shape'],
   '7/8 (odd meter)': ['odd meter, 2+2+3', 'meter'], 'Polymeter': ['3 beats over 4', 'meter'] };
 let techOn = -1;
@@ -13049,6 +13253,237 @@ ${w ? `<div class="acct-w"><div><b>${w.left}</b><span>AI credits left</span></di
       location.replace('landing-beat-meter.html?moved=' + n + (localStorage.getItem('metrobar.book') ? '#book' : '')); };
     addEventListener('message', on); window.opener.postMessage({ mb: 'ready' }, OLD);
   }
+})();
+</script>
+<script>
+/* Flow pad (2026-11-14). Mazbou Q's idea for the writing side: "the user can more easily place syllables on the flow grid, and then
+   have a voice rap it back to them so they can hear what it sounds like". Type one bar; tap the grid where each syllable goes (in
+   order), or Tap it in live, or Start me off; Play loops the bar with a click and a small built-in voice that says every syllable
+   on its slot. The voice is our own formant synth (WebAudio, phones from core sylPhones): robotic, but exactly in time.
+   Two pickup slots before beat 1 (slots -2, -1). State in metrobar.fpad. Nothing is recorded or sent. */
+var VOX = (function () {
+  const VF = { IY: [270, 2290, 3010], IH: [390, 1990, 2550], EH: [530, 1840, 2480], AE: [660, 1720, 2410], AH: [600, 1170, 2390], AA: [730, 1090, 2440],
+    AO: [570, 840, 2410], UH: [440, 1020, 2240], UW: [300, 870, 2240], ER: [490, 1350, 1690] };
+  const DI = { EY: ['EH', 'IY'], AY: ['AA', 'IY'], OW: ['AO', 'UW'], AW: ['AA', 'UW'], OY: ['AO', 'IY'] };
+  const CF = { M: [280, 1100, 2300], N: [280, 1700, 2600], NG: [280, 2300, 2750], L: [360, 1300, 2700], R: [420, 1300, 1600], W: [300, 700, 2200], Y: [280, 2200, 2900],
+    V: [300, 1200, 2400], DH: [300, 1500, 2500], Z: [300, 1600, 2600], ZH: [300, 1800, 2500], B: [250, 900, 2200], D: [250, 1700, 2600], G: [250, 2000, 2600], JH: [250, 1800, 2500] };
+  // noise colour per consonant: centre Hz, Q, level
+  const NZ = { S: [6200, 3, 0.55], Z: [6000, 3, 0.3], SH: [2800, 1.6, 0.55], ZH: [2800, 1.6, 0.3], F: [5000, 0.7, 0.25], V: [4500, 0.7, 0.12], TH: [5500, 0.8, 0.2], DH: [5000, 0.8, 0.1],
+    HH: [1500, 0.5, 0.3], CH: [3000, 1.6, 0.55], JH: [3000, 1.6, 0.35], P: [900, 0.8, 0.6], B: [900, 0.8, 0.3], T: [4500, 1, 0.6], D: [3500, 1, 0.35], K: [2200, 1.2, 0.6], G: [2000, 1.2, 0.35] };
+  const STOP = new Set(['P', 'B', 'T', 'D', 'K', 'G', 'CH', 'JH']), UNV = new Set(['P', 'T', 'K', 'F', 'TH', 'S', 'SH', 'HH', 'CH']);
+  let noise = null;
+  const nbuf = c => { if (noise && noise.sampleRate === c.sampleRate) return noise; const n = c.sampleRate, b = c.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; return (noise = b); };
+  function hiss(c, dest, p, t, d) {
+    const z = NZ[p]; if (!z) return;
+    const src = c.createBufferSource(); src.buffer = nbuf(c);
+    const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = z[0]; f.Q.value = z[1];
+    const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(z[2], t + Math.min(0.006, d / 3)); g.gain.setTargetAtTime(0, t + d * 0.6, d * 0.25 + 0.004);
+    src.connect(f); f.connect(g); g.connect(dest); src.start(t, Math.random() * 0.8); src.stop(t + d + 0.05);
+  }
+  // say one syllable: ph = phones, t = start (s), dur = time until the next syllable (s), o = { st: stressed, last: landing, base: Hz }
+  function say(c, dest, ph, t, dur, o) {
+    o = o || {}; dur = Math.max(0.07, dur);
+    const isV = p => !!(VF[p] || DI[p]);
+    let vi = ph.findIndex(isV); if (vi < 0) { ph = ph.concat(['AH']); vi = ph.length - 1; }
+    const on = ph.slice(0, vi), co = ph.slice(vi + 1).filter(p => !isV(p)), nuc = ph[vi];
+    const cd = Math.max(0.022, Math.min(0.06, dur * 0.15)), vd = Math.max(0.04, dur * 0.9 - cd * (on.length + co.length));
+    const segs = on.map(p => ({ p, d: cd })).concat([{ p: nuc, d: vd, v: 1 }], co.map(p => ({ p, d: cd * 0.85 })));
+    const tot = segs.reduce((a, s) => a + s.d, 0), f0 = (o.base || 112) * (o.st ? 1.12 : 1), amp = o.st ? 0.75 : 0.5;
+    const osc = c.createOscillator(); osc.type = 'sawtooth';
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3600;
+    const vg = c.createGain(); vg.gain.setValueAtTime(0, t);
+    const fs = [0, 1, 2].map(k => { const f = c.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = [5, 8, 9][k]; const g = c.createGain(); g.gain.value = [2.2, 1.3, 0.6][k]; lp.connect(f); f.connect(g); g.connect(vg); return f; });
+    osc.connect(lp); vg.connect(dest);
+    const F0 = segs[0].v ? (DI[nuc] ? VF[DI[nuc][0]] : VF[nuc]) : CF[segs[0].p] || VF.AH;
+    fs.forEach((f, k) => f.frequency.setValueAtTime(F0[k], t));
+    const toF = (F, at) => fs.forEach((f, k) => f.frequency.linearRampToValueAtTime(F[k], at));
+    osc.frequency.setValueAtTime(f0 * 1.03, t); osc.frequency.linearRampToValueAtTime(f0 * (o.last ? 0.84 : 0.95), t + tot);
+    let x = t;
+    segs.forEach(s => {
+      const p = s.p;
+      if (s.v) {
+        const A = DI[p] ? VF[DI[p][0]] : VF[p], B = DI[p] ? VF[DI[p][1]] : VF[p];
+        toF(A, x + Math.min(0.025, s.d / 3)); toF(B, x + s.d * 0.85);
+        vg.gain.setTargetAtTime(amp, x, 0.007);
+      } else {
+        const voiced = !UNV.has(p);
+        if (CF[p]) toF(CF[p], x + Math.min(0.012, s.d / 2));
+        if (STOP.has(p)) { vg.gain.setTargetAtTime(voiced ? amp * 0.12 : 0, x, 0.003); hiss(c, dest, p === 'CH' ? 'CH' : p === 'JH' ? 'JH' : p, x + s.d * 0.55, s.d * (p === 'CH' || p === 'JH' ? 0.6 : 0.4)); }
+        else if (NZ[p]) { vg.gain.setTargetAtTime(voiced ? amp * 0.35 : 0, x, 0.005); hiss(c, dest, p, x, s.d); }
+        else vg.gain.setTargetAtTime(amp * (p === 'M' || p === 'N' || p === 'NG' ? 0.4 : 0.6), x, 0.005);
+      }
+      x += s.d;
+    });
+    vg.gain.setTargetAtTime(0, x, 0.012);
+    osc.start(t); osc.stop(x + 0.1);
+  }
+  return { say };
+})();
+
+var FP = (function () {
+  const $f = id => document.getElementById(id);
+  if (!$f('fp')) return null;
+  const S = Object.assign({ text: '', hits: [], bpm: 90, sub: 4, voice: true, click: true }, store.get('metrobar.fpad', {}));
+  let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null;
+  const G = () => 4 * S.sub, PK = 2, unit = () => 60 / S.bpm / S.sub, barLen = () => 240 / S.bpm;
+  const save = () => store.set('metrobar.fpad', { text: S.text, hits: S.hits, bpm: S.bpm, sub: S.sub, voice: S.voice, click: S.click });
+  const fixes = () => (typeof fix !== 'undefined' && fix) || {};
+  function parse() {
+    syl = []; let wi = 0;
+    for (const raw of S.text.replace(/[’‘]/g, "'").split(/[\s—–\/-]+/).filter(Boolean)) {
+      const key = cleanKey(raw); if (!/[a-z0-9]/.test(key)) continue;
+      const n = sylCount(key, fixes()), st = wordStress(key, n), parts = splitSyl(key, n), ph = sylPhones(key, n);
+      for (let i = 0; i < n; i++) syl.push({ t: parts[i] || key, st: !!st[i], w: wi, ph: ph[i] || ['AH'], end: i === n - 1 });
+      wi++;
+    }
+  }
+  const label = s => { if (s < 0) return s === -2 ? '&' : 'a'; const j = s % S.sub; return j === 0 ? String(s / S.sub + 1) : S.sub === 4 ? ['', 'e', '&', 'a'][j] : ['', 'trip', 'let'][j]; };
+  function render() {
+    const g = $f('fpGrid'); g.replaceChildren(); g.dataset.sub = S.sub;
+    for (let s = -PK; s < G(); s++) {
+      const k = S.hits.indexOf(s), x = k >= 0 && k < syl.length ? syl[k] : null, j = s < 0 ? -1 : s % S.sub;
+      const c = h('button', 'fp-c' + (s < 0 ? ' pk' : '') + (j === 0 ? ' bt' : '') + (k >= 0 ? ' on' : '') + (k >= syl.length ? ' extra' : '') + (x && x.st ? ' st' : '') + (s === sel ? ' sel' : ''));
+      c.type = 'button'; c.dataset.s = s; c.setAttribute('aria-pressed', k >= 0);
+      c.setAttribute('aria-label', (s < 0 ? 'Pickup ' : 'Beat ' + (Math.floor(s / S.sub) + 1) + ' ') + label(s) + ': ' + (x ? x.t : k >= 0 ? 'extra dot' : 'empty'));
+      c.append(h('i', 'fp-l', label(s)), h('b', 'fp-t', x ? x.t : k >= 0 ? '·' : ''));
+      if (s === -PK) g.append(h('span', 'fp-pkl', 'pickup'));
+      g.append(c);
+    }
+    const ch = $f('fpSyl'); ch.replaceChildren();
+    syl.forEach((x, k) => ch.append(h('span', 'fp-s' + (x.st ? ' st' : '') + (k < S.hits.length ? ' on' : '') + (k === S.hits.length ? ' nx' : '') + (x.end ? ' we' : ''), x.t)));
+    const n = syl.length, p = Math.min(n, S.hits.length);
+    $f('fpMsg').textContent = !n ? 'Type a bar above. Then tap a slot for every syllable, in order. Bold syllables are the stressed ones: they usually sit best on a beat or an &.'
+      : p < n ? `${p} of ${n} syllables placed. Tap the slot where “${syl[p].t}” goes.`
+      : S.hits.length > n ? `${S.hits.length - n} dot${S.hits.length - n > 1 ? 's' : ''} too many: tap one to take it off.`
+      : `All ${n} syllables are on the grid. Press Play and listen. To move a syllable, tap it and then its new slot (or drag it).`;
+    $f('fpBpm').textContent = S.bpm; $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
+    $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click;
+  }
+  function setHits(a) { S.hits = [...new Set(a)].filter(s => s >= -PK && s < G()).sort((x, y) => x - y); save(); render(); }
+  // tap an empty slot = the next syllable goes there; tap a placed one = pick it up, then tap where it should go (tap it again = take it off).
+  // Dragging a placed syllable to another slot does the same in one move. Order stays: a syllable moves between its neighbours.
+  let sel = null;
+  function move(from, to) {
+    const k = S.hits.indexOf(from), lo = k > 0 ? S.hits[k - 1] : -PK - 1, hi = k + 1 < S.hits.length ? S.hits[k + 1] : G();
+    if (to <= lo || to >= hi) { $f('fpMsg').textContent = 'A syllable moves between its neighbours. To change the order, change the words.'; return false; }
+    const a = S.hits.slice(); a[k] = to; setHits(a); return true;
+  }
+  function toggle(s) {
+    const k = S.hits.indexOf(s);
+    if (sel != null) { const f = sel; sel = null; if (f === s) setHits(S.hits.filter(x => x !== s)); else if (k < 0) move(f, s); else { render(); } return; }
+    if (k >= 0) { sel = s; render(); const x = syl[k]; $f('fpMsg').textContent = `Picked up “${x ? x.t : '·'}”. Tap where it should go, or tap it again to take it off.`; return; }
+    setHits(S.hits.concat(s));
+  }
+  // ---- sound
+  function ac() { ctx = ctx || new (window.AudioContext || window.webkitAudioContext)(); return ctx; }
+  function click(t, hi) {
+    const c = ctx, o = c.createOscillator(), g = c.createGain(); o.frequency.value = hi ? 1500 : 1000;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(hi ? 0.35 : 0.22, t + 0.002); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.04);
+    o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.05);
+  }
+  function scheduleBar(t, count) {
+    const u = unit();
+    if (S.click || count) for (let b = 0; b < 4; b++) click(t + b * 60 / S.bpm, b === 0);
+    if (count || tap || !S.voice) return;
+    const hs = S.hits.slice(0, syl.length);
+    hs.forEach((s, k) => {
+      const nx = k + 1 < hs.length ? hs[k + 1] : Math.min(s + 4, G());
+      VOX.say(ctx, out, syl[k].ph, t + s * u, Math.min(0.5, (nx - s) * u), { st: syl[k].st, last: k === hs.length - 1 });
+    });
+  }
+  function pump() {
+    if (!playing) return;
+    if (typeof running !== 'undefined' && running) { halt(); return; }   // the main metronome took over
+    if (tap && ctx.currentTime - lat() >= tap.end) endTap();
+    while (nextBar < ctx.currentTime + 0.6) { scheduleBar(nextBar, false); starts.push(nextBar); if (starts.length > 4) starts.shift(); nextBar += barLen(); }
+  }
+  const lat = () => (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
+  function frame() {
+    if (!playing) return;
+    const now = ctx.currentTime - lat(), bs = starts.filter(x => x <= now + PK * unit()).pop();
+    let cur = null; if (bs != null) { const s = Math.floor((now - bs) / unit()); if (s >= -PK && s < G()) cur = s; }
+    document.querySelectorAll('#fpGrid .fp-c').forEach(e => e.classList.toggle('now', +e.dataset.s === cur));
+    raf = requestAnimationFrame(frame);
+  }
+  function play(withTap) {
+    if (playing) halt();
+    if (typeof running !== 'undefined' && running) try { stop(); } catch {}
+    const c = ac(); c.resume && c.resume();
+    out = c.createGain(); out.gain.value = 0.8; out.connect(c.destination);
+    playing = true; starts = [];
+    const t0 = c.currentTime + 0.15;
+    scheduleBar(t0, true);   // count-in bar
+    nextBar = t0 + barLen();
+    if (withTap) { tap = { start: nextBar, end: nextBar + barLen(), got: [] }; $f('fpMsg').textContent = 'Count-in… then tap (Space or the grid) on every syllable for one bar.'; }
+    tmr = setInterval(pump, 40); pump(); raf = requestAnimationFrame(frame); ui();
+  }
+  function halt() {
+    playing = false; tap = null; clearInterval(tmr); cancelAnimationFrame(raf);
+    if (out) { try { out.gain.setTargetAtTime(0, ctx.currentTime, 0.02); const o = out; setTimeout(() => o.disconnect(), 300); } catch {} out = null; }
+    document.querySelectorAll('#fpGrid .fp-c.now').forEach(e => e.classList.remove('now')); ui();
+  }
+  function tapHit() {
+    if (!tap) return false;
+    const t = ctx.currentTime - lat(), s = Math.round((t - tap.start) / unit());
+    if (t > tap.start - (PK + 0.5) * unit() && s < G()) tap.got.push(Math.max(-PK, s));
+    return true;
+  }
+  function endTap() {
+    const got = tap.got; tap = null;
+    if (got.length) setHits(got); else render();
+    if (got.length) $f('fpMsg').textContent = `${new Set(got).size} taps placed. It plays back now; tap a dot off or on to fix it.`;
+  }
+  function ui() { const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
+  // ---- controls
+  $f('fpText').value = S.text;
+  $f('fpText').addEventListener('input', e => { S.text = e.target.value; sel = null; parse(); save(); render(); });
+  let drag = null;
+  $f('fpGrid').addEventListener('pointerdown', e => {
+    if (tap) { e.preventDefault(); tapHit(); return; }
+    const c = e.target.closest('.fp-c'); if (c && c.classList.contains('on') && sel == null) drag = { from: +c.dataset.s, id: e.pointerId };
+  });
+  document.addEventListener('pointerup', e => {
+    if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null;
+    const c = document.elementFromPoint(e.clientX, e.clientY), t = c && c.closest && c.closest('#fpGrid .fp-c');
+    if (t && +t.dataset.s !== d.from && !t.classList.contains('on')) { move(d.from, +t.dataset.s); dragged = true; }
+  });
+  let dragged = false;
+  $f('fpGrid').addEventListener('click', e => { const c = e.target.closest('.fp-c'); if (!c || tap) return; if (dragged) { dragged = false; return; } toggle(+c.dataset.s); });
+  $f('fpPlay').addEventListener('click', () => (playing ? halt() : play(false)));
+  $f('fpTap').addEventListener('click', () => { if (!syl.length) { $f('fpText').focus(); return; } play(true); });
+  document.addEventListener('keydown', e => { if (tap && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) tapHit(); } }, true);   // Space is the tap key here, not Start
+  const bpmBy = d => { S.bpm = Math.max(50, Math.min(180, S.bpm + d)); save(); render(); if (playing) { const t = tap; halt(); if (!t) play(false); } };
+  $f('fpSlow').addEventListener('click', () => bpmBy(-5)); $f('fpFast').addEventListener('click', () => bpmBy(5));
+  const shift = d => { if (!S.hits.length) return; const a = S.hits.map(s => s + d); if (a[0] < -PK || a[a.length - 1] >= G()) return; setHits(a); };
+  $f('fpEarly').addEventListener('click', () => shift(-1)); $f('fpLate').addEventListener('click', () => shift(1));
+  // even start: the syllables from beat 1, one per 8th (16ths when they don't fit), the last stressed one pulled to the last beat
+  $f('fpEven').addEventListener('click', () => {
+    if (!syl.length) return; const L = analyseLine(S.text, fixes()); if (L.lay.sub !== S.sub) S.sub = L.lay.sub === 3 ? 3 : 4;
+    if (L.lay.sub === 5) { const step = syl.length <= 8 ? 2 : 1; S.sub = 4; setHits(syl.map((_, k) => Math.min(k * step, G() - syl.length + k))); return; }
+    load(L, true);
+  });
+  $f('fpGridB').addEventListener('click', () => { const was = S.sub; S.sub = was === 4 ? 3 : 4; S.hits = S.hits.map(s => s < 0 ? s : Math.round(s * S.sub / was)); setHits(S.hits); if (playing) { halt(); play(false); } });
+  $f('fpVoice').addEventListener('change', e => { S.voice = e.target.checked; save(); });
+  $f('fpClick').addEventListener('change', e => { S.click = e.target.checked; save(); });
+  $f('fpClear').addEventListener('click', () => { sel = null; setHits([]); });
+  $f('fpToLyr').addEventListener('click', () => {
+    const ta = $f('lyrics'); if (!ta || !S.text.trim()) return;
+    ta.value = (ta.value.replace(/\s+$/, '') ? ta.value.replace(/\s+$/, '') + '\n' : '') + S.text.trim(); ta.dispatchEvent(new Event('input', { bubbles: true }));
+    if (typeof toast === 'function') toast('Added to your lyrics (Advanced > Fit)');
+  });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && playing) halt(); });
+  parse(); render();
+  // open a bar from a Fit card: its text and the slots Fit gave it
+  function load(L, stay) {
+    if (!L) return;
+    if (!(L.lay.den === 4 && L.lay.nb === 4 && (L.lay.sub === 4 || L.lay.sub === 3))) { if (typeof toast === 'function') toast('The Flow pad does 4/4 bars in 16ths or triplets'); return; }
+    if (playing) halt();
+    S.text = L.text; $f('fpText').value = S.text; S.sub = L.lay.sub; parse();
+    const pk = Math.min(PK, L.pickup || 0), a = []; for (let i = 0; i < pk; i++) a.push(i - pk);
+    L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
+    if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  return { load, play, halt, get state() { return S; }, get syl() { return syl; } };
 })();
 </script>
 <script>
