@@ -584,8 +584,8 @@ dialog.info::backdrop { background: rgb(0 0 0 / .6); }
 /* layers (design pass 2026-11-14): page = back, the tile box = middle, START = the one thing in front. The transport
    sits straight on the page (no second grey box under the tile box) and only START gets a soft shadow. */
 .transport { background: none; border: 0; flex-direction: column; align-items: center; gap: 12px; }
-.transport .go { box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--land) 70%, transparent), 0 2px 4px -1px rgb(0 0 0 / .18); }
-.transport .go[aria-pressed="true"] { box-shadow: 0 2px 4px -1px rgb(0 0 0 / .18); }
+.t-grid .go { box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--land) 70%, transparent), 0 2px 4px -1px rgb(0 0 0 / .18); }
+.t-grid .go[aria-pressed="true"] { box-shadow: 0 2px 4px -1px rgb(0 0 0 / .18); }
 /* Motion: Off (Advanced > Sound) = no CSS animation or transition anywhere, like the system reduced-motion setting */
 html.mo-off *, html.mo-off *::before, html.mo-off *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 /* Transport: Tap · START · Mic centred, then BPM and Load beat; status lines only when they have something to say */
@@ -606,6 +606,16 @@ html.mo-off *, html.mo-off *::before, html.mo-off *::after { animation-duration:
   .t-grid .go { min-width: 92px; padding-inline: 10px; font-size: 1.2rem; }
   .t-grid .beatbtn { padding-inline: 8px; font-size: .9rem; }
   .t-msg .det { font-size: .72rem; gap: 4px; }
+}
+/* Transport inside the tile box (Bennie 2026-11-14): one row under the 1-2-3-4 tiles, above the rail dots:
+   Tap · START · Load beat · Mic · BPM; the status line gets its own row under it. Phones: BPM drops to a second row. */
+.deck-box > .t-grid { grid-template-columns: repeat(5, auto); margin: 16px 0 4px; }
+.deck-box > .t-grid .t-bpm, .deck-box > .t-grid.has-msg .t-bpm { grid-column: auto; }
+.deck-box > .t-grid .t-msg { grid-column: 1 / -1; }
+.transport:has(> .beatbar[hidden]:only-child) { display: none; }
+@media (max-width: 700px) {
+  .deck-box > .t-grid { grid-template-columns: repeat(4, auto); }
+  .deck-box > .t-grid .t-bpm, .deck-box > .t-grid.has-msg .t-bpm { grid-column: 1 / -1; }
 }
 .adv { display: grid; min-width: 0; }
 /* Advanced spans the whole window, not the 860px column: it breaks out of .wrap with negative margins and keeps a small gutter */
@@ -3377,26 +3387,27 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <g class="m-key"><path class="m-keystem" d="M96 112 L102 112"/><circle class="m-knob" cx="102" cy="112" r="2.8"/><path class="m-wing" d="M104 112 L109 104 L118 102 L116 112 L118 122 L109 120 Z"/></g>
       </svg>
     </div>
-    <div class="deck-box"><div class="bar" id="bar"></div><div class="rail" id="rail" aria-hidden="true"><i class="rail-line" id="railLine"></i><i class="rail-fill" id="railFill"></i><i class="rail-shadow" id="railShadow"></i><i class="rail-ball" id="railBall"></i></div><div class="steps" id="steps"><div class="step-dots" id="stepDots" role="group" aria-label="Bars: click one to start there"></div><span class="step-lab" id="stepLab"></span></div></div>
+    <div class="deck-box"><div class="bar" id="bar"></div>
+    <div class="t-grid" id="tGrid">
+        <button class="btn t-side" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button>
+        <button class="go" id="go" aria-pressed="false">Start</button>
+        <button class="btn beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
+        <button class="btn t-side" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
+        <div class="tempo t-bpm">
+          <button id="minus" aria-label="Slower">−</button>
+          <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
+          <button id="plus" aria-label="Faster">+</button>
+        </div>
+        <div class="t-msg" id="tMsg" aria-live="polite">
+          <span class="det" id="detBox"><canvas id="orb" hidden aria-hidden="true"></canvas><span id="det"></span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
+          <span class="det" id="tapInfo"></span>
+        </div>
+      </div>
+    <div class="rail" id="rail" aria-hidden="true"><i class="rail-line" id="railLine"></i><i class="rail-fill" id="railFill"></i><i class="rail-shadow" id="railShadow"></i><i class="rail-ball" id="railBall"></i></div><div class="steps" id="steps"><div class="step-dots" id="stepDots" role="group" aria-label="Bars: click one to start there"></div><span class="step-lab" id="stepLab"></span></div></div>
   </div>
 
 
   <div class="controls transport">
-    <div class="t-grid" id="tGrid">
-      <button class="btn t-side" id="tapBtn" title="Tap tempo (also key T). Space keeps tapping after the first tap.">Tap</button>
-      <button class="go" id="go" aria-pressed="false">Start</button>
-      <button class="btn beatbtn" id="beatBtn" title="Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.">Load beat</button><input type="file" id="beatFile" accept="audio/*" hidden>
-      <button class="btn t-side" id="micBtn" aria-pressed="false" title="No file? Play the beat out loud: MetroBar listens through the microphone for 12 seconds and finds the BPM. The sound stays on this device and is not recorded.">Mic</button>
-      <div class="tempo t-bpm">
-        <button id="minus" aria-label="Slower">−</button>
-        <input id="bpm" type="number" min="60" max="200" value="145" aria-label="BPM">
-        <button id="plus" aria-label="Faster">+</button>
-      </div>
-      <div class="t-msg" id="tMsg" aria-live="polite">
-        <span class="det" id="detBox"><canvas id="orb" hidden aria-hidden="true"></canvas><span id="det"></span><span id="keyInfo"></span><button class="btn" id="useDet" hidden>Use</button><button class="btn" id="halfDet" hidden title="Detected tempo is double: use half">½</button><button class="btn" id="dblDet" hidden title="Detected tempo is half: use double">×2</button></span><span class="det" id="keyNotes" hidden></span>
-        <span class="det" id="tapInfo"></span>
-      </div>
-    </div>
     <div class="beatbar" id="beatBar" hidden>
       <button class="bb-play" id="bbPlay" type="button" aria-label="Start"><svg class="pl" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1.5v11l9.5-5.5z"/></svg><svg class="ps" viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 1.5h3.2v11H2.5zM8.3 1.5h3.2v11H8.3z"/></svg></button>
       <canvas id="bbWave" tabindex="0" role="slider" aria-label="Where the beat starts" aria-valuemin="1" aria-valuenow="1" title="Click or drag to start the beat from that bar (arrow keys: one bar)"></canvas>
