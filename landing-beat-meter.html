@@ -3227,14 +3227,17 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-c.on.now .fp-l { color: var(--on-accent); }
 .fp-c:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .fp-msg { margin: 0; color: var(--muted); font-size: .9rem; min-height: 1.3em; }
-.fp-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.fp-ctl { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.fp-lft { display: flex; align-items: center; gap: 10px; }
+.fp-mid { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+@media (max-width: 700px) { .fp-ctl { grid-template-columns: auto 1fr; } .fp-mid { grid-column: 1 / -1; grid-row: 2; } }
 .fp-sp { flex: 1; }
 .fp-b { font: 600 .74rem/1 var(--body); padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 .fp-b:disabled { opacity: .5; cursor: default; }
 .fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
 .fp-rec.on { border-color: var(--accent); }
 .fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
-.fp-grp { display: inline-flex; gap: 8px; align-items: center; margin-left: auto; }
+.fp-grp { display: inline-flex; gap: 6px; align-items: center; justify-self: end; }
 .fp-bars { display: grid; gap: 14px; min-width: 0; }
 .fp-bar { display: grid; gap: 8px; min-width: 0; }
 .fp-bar + .fp-bar { padding-top: 14px; border-top: 1px solid var(--line); }
@@ -3701,17 +3704,20 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <button class="fp-add" id="fpAdd" type="button">+ Add bar</button>
     <p class="fp-msg" id="fpMsg" role="status"></p>
     <div class="fp-ctl">
+      <span class="fp-lft">
       <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false" aria-label="Play"><svg class="ic ic-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg></button>
-      <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
-      <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
-      <button class="fp-b fp-beat" id="fpBeat" type="button" aria-pressed="false" title="Practise over your beat (the one loaded on MetroBar): up to 4 bars, then the beat rings on a bar so you never get cut off">Beat</button>
-      <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
       <div class="fp-knob" id="fpKnob" role="slider" tabindex="0" aria-label="Tempo in BPM: drag, scroll or arrow keys; click the number to type it" aria-valuemin="50" aria-valuemax="200" aria-valuenow="90">
         <svg viewBox="0 0 64 64" aria-hidden="true"><path class="fp-kt" d="M13.6 50.4 A26 26 0 1 1 50.4 50.4"/><path class="fp-ka" id="fpKArc" pathLength="1" d="M13.6 50.4 A26 26 0 1 1 50.4 50.4"/></svg>
         <span class="fp-kp" id="fpKPtr" aria-hidden="true"></span>
         <button class="fp-kv" id="fpBpm" type="button" tabindex="-1" title="Type a tempo">90</button><small aria-hidden="true">BPM</small>
       </div>
-      <span class="fp-sp"></span>
+      </span>
+      <span class="fp-mid">
+      <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
+      <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
+      <button class="fp-b fp-beat" id="fpBeat" type="button" aria-pressed="false" title="Practise over your beat (the one loaded on MetroBar): up to 4 bars, then the beat rings on a bar so you never get cut off">Beat</button>
+      <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
+      </span>
       <span class="fp-grp">
       <button class="fp-b fp-sq" id="fpEarly" type="button" aria-label="Shift every syllable a slot earlier" title="Shift everything a slot earlier">←</button>
       <button class="fp-b fp-sq" id="fpLate" type="button" aria-label="Shift every syllable a slot later" title="Shift everything a slot later">→</button>
