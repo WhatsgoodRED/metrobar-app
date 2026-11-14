@@ -3233,6 +3233,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-b:disabled { opacity: .5; cursor: default; }
 .fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
 .fp-rec.on { border-color: var(--accent); }
+.fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
 .fp-rec.on::before { animation: fpRec 1s ease-in-out infinite; }
 @keyframes fpRec { 50% { opacity: .25; } }
 .fp-play { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 6rem; }
@@ -3677,6 +3678,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false">Play</button>
       <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
       <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
+      <button class="fp-b fp-beat" id="fpBeat" type="button" aria-pressed="false" title="Practise over your beat (the one loaded on MetroBar): up to 4 bars, then the beat rings on a bar so you never get cut off">Beat</button>
+      <span class="fp-bpm" id="fpBarsW" hidden><button class="fp-b fp-sq" id="fpBarsM" type="button" aria-label="Fewer bars">−</button><b id="fpBars">4</b> bars<button class="fp-b fp-sq" id="fpBarsP" type="button" aria-label="More bars">+</button></span>
       <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
       <span class="fp-bpm"><button class="fp-b fp-sq" id="fpSlow" type="button" aria-label="Slower">−</button><b id="fpBpm">90</b> BPM<button class="fp-b fp-sq" id="fpFast" type="button" aria-label="Faster">+</button></span>
       <span class="fp-sp"></span>
@@ -13356,10 +13359,11 @@ var VOX = (function () {
 var FP = (function () {
   const $f = id => document.getElementById(id);
   if (!$f('fp')) return null;
-  const S = Object.assign({ text: '', hits: [], bpm: 90, sub: 4, voice: true, click: true }, store.get('metrobar.fpad', {}));
-  let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null;
-  const G = () => 4 * S.sub, PK = 2, unit = () => 60 / S.bpm / S.sub, barLen = () => 240 / S.bpm;
-  const save = () => store.set('metrobar.fpad', { text: S.text, hits: S.hits, bpm: S.bpm, sub: S.sub, voice: S.voice, click: S.click });
+  const S = Object.assign({ text: '', hits: [], bpm: 90, sub: 4, voice: true, click: true, beat: false, bars: 4 }, store.get('metrobar.fpad', {}));
+  let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null;
+  const G = () => 4 * S.sub, PK = 2, tempo = () => (S.beat && typeof beatBuf !== 'undefined' && beatBuf ? beatTempo() : S.bpm), unit = () => 60 / tempo() / S.sub, barLen = () => 240 / tempo();
+  const beatTempo = () => (typeof detected !== 'undefined' && detected && detected.bpm) || bpm();   // the beat plays at its own speed, so the grid follows it
+  const save = () => store.set('metrobar.fpad', { text: S.text, hits: S.hits, bpm: S.bpm, sub: S.sub, voice: S.voice, click: S.click, beat: S.beat, bars: S.bars });
   const fixes = () => (typeof fix !== 'undefined' && fix) || {};
   function parse() {
     syl = []; let wi = 0;
@@ -13389,7 +13393,7 @@ var FP = (function () {
       : p < n ? `${p} of ${n} syllables placed. Tap the slot where “${syl[p].t}” goes.`
       : S.hits.length > n ? `${S.hits.length - n} dot${S.hits.length - n > 1 ? 's' : ''} too many: tap one to take it off.`
       : `All ${n} syllables are on the grid. Press Play and listen. To move a syllable, tap it and then its new slot (or drag it).`;
-    $f('fpBpm').textContent = S.bpm; $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
+    $f('fpBpm').textContent = S.bpm; beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
     $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click;
   }
   function setHits(a) { S.hits = [...new Set(a)].filter(s => s >= -PK && s < G()).sort((x, y) => x - y); save(); render(); }
@@ -13416,7 +13420,7 @@ var FP = (function () {
   }
   function scheduleBar(t, count) {
     const u = unit();
-    if (S.click || count) for (let b = 0; b < 4; b++) click(t + b * 60 / S.bpm, b === 0);
+    if (S.click || count) for (let b = 0; b < 4; b++) click(t + b * barLen() / 4, b === 0);
     if (count || tap || !S.voice) return;
     const hs = S.hits.slice(0, syl.length);
     if (mine()) { hs.forEach((s, k) => { const nx = k + 1 < hs.length ? hs[k + 1] : G() + PK; sayMine(k, t + s * u, (nx - s) * u); }); return; }
@@ -13429,7 +13433,9 @@ var FP = (function () {
     if (!playing) return;
     if (typeof running !== 'undefined' && running) { halt(); return; }   // the main metronome took over
     if (tap && ctx.currentTime - lat() >= tap.end) endTap();
-    while (nextBar < ctx.currentTime + 0.6) { scheduleBar(nextBar, false); starts.push(nextBar); if (starts.length > 4) starts.shift(); nextBar += barLen(); }
+    if (run && ctx.currentTime >= run.stop) { halt(); $f('fpMsg').textContent = `That was ${S.bars} bar${S.bars > 1 ? 's' : ''} over the beat. Play again, or move the dots.`; return; }
+    if (run) { const k = Math.floor((ctx.currentTime - lat() - run.first) / barLen()); if (k >= 0 && k < S.bars && k !== run.shown) { run.shown = k; $f('fpMsg').textContent = `Bar ${k + 1} of ${S.bars}`; } }
+    while (nextBar < ctx.currentTime + 0.6 && !(run && run.n >= S.bars)) { scheduleBar(nextBar, false); starts.push(nextBar); if (starts.length > 4) starts.shift(); nextBar += barLen(); if (run) run.n++; }
   }
   const lat = () => (ctx.outputLatency || 0) + (ctx.baseLatency || 0);
   function frame() {
@@ -13449,10 +13455,24 @@ var FP = (function () {
     const t0 = c.currentTime + 0.15;
     scheduleBar(t0, true);   // count-in bar
     nextBar = t0 + barLen();
+    run = null;
+    if (S.beat && !withTap && typeof beatBuf !== 'undefined' && beatBuf) {
+      // the beat under it: bar 1 of the run = the beat's first bar (offset + the bar picked on the beat bar); the count-in hears the
+      // bar before it when there is one. After the last bar the beat rings on one more bar and fades, so nobody gets cut off.
+      const off = +$('beatOffset').value || 0, b1 = off + (typeof beatSkip !== 'undefined' ? beatSkip : 0) * barLen(), d = beatBuf.duration;
+      const src = c.createBufferSource(), g = c.createGain(); src.buffer = beatBuf; src.loop = true; g.gain.value = +$('beatVol').value || 0.8;
+      src.connect(g); g.connect(out);
+      const from = b1 - barLen(); if (from >= 0) src.start(t0, from % d); else src.start(t0 - from, 0);
+      const end = nextBar + S.bars * barLen(), tail = barLen();
+      g.gain.setValueAtTime(g.gain.value, end + tail * 0.4); g.gain.linearRampToValueAtTime(0.0001, end + tail + 0.6);
+      src.stop(end + tail + 0.7);
+      run = { first: nextBar, stop: end + tail + 0.7, n: 0, shown: -1, src };
+    }
     if (withTap) { tap = { start: nextBar, end: nextBar + barLen(), got: [] }; $f('fpMsg').textContent = 'Count-in… then tap (Space or the grid) on every syllable for one bar.'; }
     tmr = setInterval(pump, 40); pump(); raf = requestAnimationFrame(frame); ui();
   }
   function halt() {
+    if (run) { try { run.src.stop(); } catch {} run = null; }
     playing = false; tap = null; clearInterval(tmr); cancelAnimationFrame(raf);
     if (out) { try { out.gain.setTargetAtTime(0, ctx.currentTime, 0.02); const o = out; setTimeout(() => o.disconnect(), 300); } catch {} out = null; }
     document.querySelectorAll('#fpGrid .fp-c.now').forEach(e => e.classList.remove('now')); ui();
@@ -13525,6 +13545,24 @@ var FP = (function () {
   }
   $f('fpRec').addEventListener('click', () => (rec ? recStop() : recStart()));
   $f('fpRecDel').addEventListener('click', () => { take = null; tbuf = null; vput(null); recUi(); $f('fpMsg').textContent = 'Back to the robot voice.'; });
+  // ---- the beat under it (2026-11-15): the beat loaded on MetroBar, at its own tempo, 1-4 bars, then it rings on
+  const hasBeat = () => typeof beatBuf !== 'undefined' && !!beatBuf;
+  function beatUi() {
+    const on = S.beat && hasBeat(), b = $f('fpBeat');
+    b.setAttribute('aria-pressed', on); b.classList.toggle('on', on); b.textContent = on ? 'Beat on' : 'Beat';
+    $f('fpBarsW').hidden = !on; $f('fpBars').textContent = S.bars;
+    $f('fpSlow').disabled = $f('fpFast').disabled = on;
+    if (on) $f('fpBpm').textContent = Math.round(beatTempo());
+  }
+  $f('fpBeat').addEventListener('click', () => {
+    if (playing) halt();
+    if (!hasBeat()) { S.beat = true; save(); $f('fpMsg').textContent = 'Pick your beat: MetroBar finds its tempo, then Play runs your bar over it.'; const f = $('beatFile'); if (f) f.click(); return; }
+    S.beat = !S.beat; save(); render();
+    if (S.beat) $f('fpMsg').textContent = `Beat on at ${Math.round(beatTempo())} BPM: Play gives a count-in, then ${S.bars} bar${S.bars > 1 ? 's' : ''} over the beat. Turn Voice off (More) to rap it yourself.`;
+  });
+  $('beatFile') && $('beatFile').addEventListener('change', () => { let n = 0; const w = setInterval(() => { if (hasBeat() || ++n > 60) { clearInterval(w); render(); } }, 250); });
+  const barsBy = d => { S.bars = Math.max(1, Math.min(4, S.bars + d)); save(); render(); };
+  $f('fpBarsM').addEventListener('click', () => barsBy(-1)); $f('fpBarsP').addEventListener('click', () => barsBy(1));
   function ui() { recUi(); const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
   $f('fpText').value = S.text;
@@ -13544,7 +13582,7 @@ var FP = (function () {
   $f('fpPlay').addEventListener('click', () => (playing ? halt() : play(false)));
   $f('fpTap').addEventListener('click', () => { if (!syl.length) { $f('fpText').focus(); return; } play(true); });
   document.addEventListener('keydown', e => { if (tap && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) tapHit(); } }, true);   // Space is the tap key here, not Start
-  const bpmBy = d => { S.bpm = Math.max(50, Math.min(180, S.bpm + d)); save(); render(); if (playing) { const t = tap; halt(); if (!t) play(false); } };
+  const bpmBy = d => { S.bpm = Math.max(50, Math.min(200, S.bpm + d)); save(); render(); if (playing) { const t = tap; halt(); if (!t) play(false); } };
   $f('fpSlow').addEventListener('click', () => bpmBy(-5)); $f('fpFast').addEventListener('click', () => bpmBy(5));
   const shift = d => { if (!S.hits.length) return; const a = S.hits.map(s => s + d); if (a[0] < -PK || a[a.length - 1] >= G()) return; setHits(a); };
   $f('fpEarly').addEventListener('click', () => shift(-1)); $f('fpLate').addEventListener('click', () => shift(1));
