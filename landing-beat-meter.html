@@ -13620,7 +13620,10 @@ var FP = (function () {
   }
   async function recStart() {
     if (!syl.length) { $f('fpText').focus(); return; }
+    // acapella only (Bennie 2026-11-15): nothing of ours plays while the mic is open, so no beat or click bleeds into your take
     if (playing) halt();
+    if (typeof running !== 'undefined' && running) try { stop(); } catch {}
+    try { if (typeof BKB !== 'undefined' && BKB && BKB.pause) BKB.pause(); } catch {}
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $f('fpMsg').textContent = 'This browser can’t use the mic here (it needs https or localhost).'; return; }
     let st; try { st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
     catch (e) { $f('fpMsg').textContent = 'No mic: allow the microphone for this page and try again.'; return; }
