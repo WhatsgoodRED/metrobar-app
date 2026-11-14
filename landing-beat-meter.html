@@ -7467,11 +7467,11 @@ function mwGo(hash) {
     const anims = [], clean = () => { anims.forEach(a => a.cancel()); g.forEach(([el]) => { el.style.viewTransitionName = ''; }); r.classList.remove('mw-vt'); mwBusy = false; };
     let vt; try { vt = document.startViewTransition(() => arrive()); } catch (e) { clean(); location.hash = hash; return; }
     vt.ready.then(() => {
-      const o = { duration: 420, easing: MW_EASE, fill: 'both' };
+      const o = { duration: 640, easing: MW_EASE, fill: 'both' };   // Bennie 2026-11-14: "make it slower" (was 420 slide / 520 fade)
       g.forEach((_, i) => { const k = fr[i].map(f => ({ ...f })); k[2].opacity = 0;
         try { anims.push(r.animate(k, { ...o, delay: Math.min(i * 14, 110), pseudoElement: `::view-transition-old(mw${i})` })); } catch (e) {} });
       // Bennie 2026-11-14: "fades in whilst the buttons are moving aside": the Highlight Zone fades in over the whole slide, the old page fades out under it
-      const fade = { duration: 520, easing: 'cubic-bezier(.33,0,.2,1)', fill: 'both' };
+      const fade = { duration: 800, easing: 'cubic-bezier(.33,0,.2,1)', fill: 'both' };
       anims.push(r.animate([{ opacity: 0, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { ...fade, pseudoElement: '::view-transition-new(root)' }),
         r.animate([{ opacity: 1 }, { opacity: 0 }], { ...fade, pseudoElement: '::view-transition-old(root)' }));
     }, () => {});
