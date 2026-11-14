@@ -1952,6 +1952,26 @@ html.bb .rb-libh, html.bb .rb-lib > .rb-search, html.bb .rb-lib > .rb-fsel, html
 .bs-mark { width: 26px; height: 26px; flex: none; border-radius: 7px; display: block; } .bs-mark svg { display: block; }
 .bs-ib { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
 .bs-ib:hover { color: var(--fg); background: var(--card2); }
+/* Sun/moon switch (Bennie 2026-11-14; vanilla port of components/ui/sun-moon-theme-toggle.tsx): day sky with a sun and clouds, night sky with a moon and stars.
+   Fixed sky colours on purpose (same in day and night theme); --smt-d is the one speed, the Settings cog turns on the same curve. */
+.smt { --smt-d: .5s; --smt-e: cubic-bezier(.34, 1.4, .5, 1); position: relative; flex: none; width: 40px; height: 22px; margin: 0 1px; padding: 0; border: 0; border-radius: 99px; overflow: hidden; cursor: pointer; background: linear-gradient(180deg, #3f8fe0, #a5d4f6); box-shadow: inset 0 1px 3px #0006, 0 0 0 1px #0002; -webkit-tap-highlight-color: transparent; }
+.smt::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, #070b1f, #2a3364); opacity: 0; transition: opacity var(--smt-d) ease; }
+.smt i { position: absolute; display: block; }
+.smt-k { top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #ffd034; box-shadow: 0 0 9px 1px #ffd034b0, inset -2px -2px 3px #e89a00a0; transition: translate var(--smt-d) var(--smt-e), scale .2s ease-out, background-color var(--smt-d) ease, box-shadow var(--smt-d) ease; }
+.smt-k::before, .smt-k::after { content: ""; position: absolute; border-radius: 50%; background: #9aa3b5; opacity: 0; transition: opacity var(--smt-d) ease; }
+.smt-k::before { width: 5px; height: 5px; left: 3px; top: 4px; } .smt-k::after { width: 3px; height: 3px; left: 9px; top: 9px; }
+.smt-cl { right: 3px; bottom: -5px; width: 11px; height: 10px; border-radius: 50%; background: #fff; box-shadow: -7px 3px 0 1px #fff, 5px 4px 0 0 #fff; transition: translate var(--smt-d) ease, opacity var(--smt-d) ease; }
+.smt-st { left: 7px; top: 6px; width: 2px; height: 2px; border-radius: 50%; background: #fff; box-shadow: 6px 5px 0 0 #fff, 11px -2px 0 -.3px #fff, 3px 10px 0 -.3px #fff; opacity: 0; translate: 0 -8px; transition: translate var(--smt-d) ease, opacity var(--smt-d) ease; }
+.smt[aria-checked="true"]::before { opacity: 1; }
+.smt[aria-checked="true"] .smt-k { translate: 18px 0; background: #e3e7ee; box-shadow: 0 0 8px 0 #c9d4ff80, inset -2px -2px 3px #8d96a8a0; }
+.smt[aria-checked="true"] .smt-k::before, .smt[aria-checked="true"] .smt-k::after { opacity: 1; }
+.smt[aria-checked="true"] .smt-cl { translate: 0 14px; opacity: 0; } .smt[aria-checked="true"] .smt-st { translate: 0 0; opacity: 1; }
+.smt:hover .smt-k { scale: 1.1; } .smt:active .smt-k { scale: 1.25 .9; }
+.bs-brand { gap: 2px; padding: 0 6px 0 12px; } .bs-brand b { gap: 7px; } .bs-brand .bs-ib { width: 26px; flex: none; }   /* name + home + switch + hide fit the 264px sidebar */
+.smt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.bs-gear svg { transition: rotate var(--smt-d, .5s) cubic-bezier(.34, 1.4, .5, 1), scale .2s ease-out; }
+.bs-gear:hover svg { rotate: 90deg; } .bs-gear:active svg { rotate: 240deg; scale: .85; }
+@media (prefers-reduced-motion: reduce) { .smt, .smt *, .smt *::before, .smt::before, .bs-gear svg { transition-duration: .01s !important; } }
 .bs-all { display: grid; grid-template-columns: minmax(0, 1fr) 44px; margin: 14px 12px 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); flex: none; }
 .bs-all button { border: 0; background: none; color: var(--fg); cursor: pointer; text-align: left; }
 .bs-all .a { display: grid; grid-template-columns: 34px minmax(0, 1fr); column-gap: 10px; align-items: center; padding: 9px 10px; border-radius: 11px 0 0 11px; }
@@ -2820,18 +2840,44 @@ html.bb.bb-day .be-cyb .be-why { color:var(--dz-t2, #555b62); }
 html.bb.bb-day .be-ai { border-top:1px solid var(--dz-l2, #d9dce0); }
 html.bb.bb-day .bs-mark .mk-bg { fill:var(--dz-bg0, #ffffff); }
 /* HZ-DAY:END */
-/* Section menu as three cards side by side (Bennie 2026-11-13): the middle one (Jump to) drops down, the other two slide out from under it */
-html.bb .be-menu.be-secm { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(12rem, 14rem); align-items: start; gap: 8px; max-width: calc(100vw - 24px); max-height: none; padding: 0; overflow: visible; border: 0; background: none; box-shadow: none; }
-html.bb .be-secm .be-sc { position: relative; max-height: min(70vh, 32rem); overflow: auto; padding: 6px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); box-shadow: 0 20px 60px #000c; scrollbar-width: thin; }
-html.bb.bb-day .be-secm .be-sc { box-shadow: 0 20px 50px #00000024; }
-html.bb .be-secm .be-sc.l { order: 0; z-index: 1; animation: beScL .38s cubic-bezier(.2, .8, .2, 1) .1s both; }
-html.bb .be-secm .be-sc.c { order: 1; z-index: 2; animation: beScC .24s cubic-bezier(.2, .8, .2, 1) both; }
-html.bb .be-secm .be-sc.r { order: 2; z-index: 1; animation: beScR .38s cubic-bezier(.2, .8, .2, 1) .1s both; }
-@keyframes beScC { from { opacity: 0; transform: translateY(-14px); } }
-@keyframes beScL { 0% { opacity: 0; transform: translateX(calc(100% + 8px)); } 25% { opacity: 1; } }
-@keyframes beScR { 0% { opacity: 0; transform: translateX(calc(-100% - 8px)); } 25% { opacity: 1; } }
-@media (max-width: 640px) { html.bb .be-menu.be-secm { grid-auto-flow: row; grid-auto-columns: auto; width: min(20rem, calc(100vw - 24px)); } html.bb .be-secm .be-sc { max-height: 40vh; } html.bb .be-secm .be-sc.l, html.bb .be-secm .be-sc.r { animation-name: beScC; } }
-@media (prefers-reduced-motion: reduce) { html.bb .be-secm .be-sc { animation: none !important; } }
+/* Section menu (Bennie 2026-11-14): five items, Add / Add on top open in place as a liquid accordion ("Spillway", Nimbus UI by Guglielmo Giannattasio, MIT; vanilla port) */
+.be-menu.be-secm { min-width: 15rem; max-height: none; overflow: visible; isolation: isolate; animation: beSecIn .22s cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes beSecIn { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.be-secm .nf-water { position: absolute; left: -14px; top: -14px; z-index: -1; pointer-events: none; }
+.be-secm[data-gl="off"] .nf-water { display: none; }
+.be-secm .nf-pool { display: none; position: absolute; left: 6px; right: 6px; top: 0; border-radius: 10px; z-index: -1; pointer-events: none; opacity: 0; transition: transform .5s cubic-bezier(.3, 1.3, .4, 1), height .5s cubic-bezier(.25, .9, .3, 1), opacity .3s;
+  background: radial-gradient(120% 90% at 30% 0%, #ffffff30, #fff0 55%), color-mix(in srgb, var(--accent) 16%, transparent); box-shadow: inset 0 1px 1px #ffffff40, inset 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent); }
+.be-secm[data-gl="off"] .nf-pool { display: block; }
+.be-secm .nf-item { position: relative; border-radius: 10px; }
+.be-menu.be-secm .nf-q { font-weight: 600; }
+.be-menu.be-secm .nf-item[data-open="true"] > .nf-q { background: none; }
+.be-secm .nf-ico { position: relative; flex: none; width: 22px; height: 22px; margin-left: auto; border-radius: 50%; color: var(--fg);
+  background: radial-gradient(120% 120% at 30% 15%, #ffffff55, #fff0 60%), color-mix(in srgb, var(--accent) 14%, transparent); box-shadow: inset 0 1px 1px #ffffff50, inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); transition: transform .55s cubic-bezier(.3, 1.6, .5, 1); }
+.be-secm .nf-ico::before, .be-secm .nf-ico::after { content: ""; position: absolute; left: 50%; top: 50%; width: 9px; height: 1.6px; margin: -.8px 0 0 -4.5px; border-radius: 2px; background: currentColor; transition: transform .45s cubic-bezier(.3, 1.6, .5, 1); }
+.be-secm .nf-ico::after { transform: rotate(90deg); }
+.be-secm .nf-item[data-open="true"] .nf-ico { transform: rotate(180deg); }
+.be-secm .nf-item[data-open="true"] .nf-ico::after { transform: rotate(90deg) scaleX(0); }
+.be-secm .nf-ico[data-fx="drip"] { animation: nfDrip .7s cubic-bezier(.4, 0, .3, 1); }
+@keyframes nfDrip { 0% { translate: 0 0; scale: 1; } 25% { translate: 0 -4px; scale: .9 1.1; } 50% { translate: 0 2px; scale: 1.18 .84; } 72% { translate: 0 -1px; scale: .96 1.04; } 100% { translate: 0 0; scale: 1; } }
+.be-secm .nf-panel { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .5s cubic-bezier(.25, .9, .3, 1); }
+.be-secm .nf-item[data-open="true"] > .nf-panel { grid-template-rows: 1fr; }
+.be-secm .nf-inner { min-height: 0; overflow: hidden; visibility: hidden; transition: visibility 0s .5s; }
+.be-secm .nf-item[data-open="true"] .nf-inner { visibility: visible; transition: visibility 0s; }
+.be-secm .nf-a { padding: 0 0 6px 12px; opacity: 0; transform: translateY(-6px); transition: opacity .25s, transform .4s; }
+.be-secm .nf-item[data-open="true"] .nf-a { opacity: 1; transform: none; transition: opacity .4s .1s, transform .5s .06s cubic-bezier(.25, .9, .3, 1); }
+.be-menu.be-secm .nf-a button.mi { padding: 7px 10px; }
+.be-menu.be-secm h6.be-sech { display: flex; align-items: center; gap: 4px; }
+.be-sech span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-sech .be-mv { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--muted); cursor: pointer; }
+.be-sech .be-mv:hover:not(:disabled) { color: var(--fg); background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.be-sech .be-mv:disabled { opacity: .3; cursor: default; }
+/* hold the section pill = jump to its first bar: a quiet fill while you hold, a small pulse when it jumps */
+.be-pill#beSec { position: relative; overflow: hidden; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; touch-action: manipulation; }
+.be-pill#beSec::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: color-mix(in srgb, var(--accent) 22%, transparent); transform: scaleX(0); transform-origin: left; pointer-events: none; }
+.be-pill#beSec.be-hold::after { transform: scaleX(1); transition: transform .45s linear .08s; }
+.be-pill#beSec.be-jumped { animation: beJump .35s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes beJump { 40% { transform: scale(.94); } }
+@media (prefers-reduced-motion: reduce) { .be-menu.be-secm, .be-secm .nf-panel, .be-secm .nf-inner, .be-secm .nf-a, .be-secm .nf-ico, .be-secm .nf-ico::before, .be-secm .nf-ico::after, .be-secm .nf-pool, .be-pill#beSec.be-jumped { transition: none !important; animation: none !important; } }
 </style>
 <script src="zone-config.js"></script>
 </head>
@@ -9511,14 +9557,14 @@ void main(){
       if (calm()) { s.a.x = s.b.x = T.x; s.a.v = s.b.v = 0; s.cy.x = T.cy; s.sy.s = 1; s.q = T.q; s.sats = []; s.moving = false; return true; }
       if (Math.abs(T.q - s.q) > .25) still = false; else s.q = T.q;
       bodies.forEach((B, i) => {
-        // the menu drop (s.fill) glides on critically damped springs, no wobble: ~0.4 s (Bennie 2026-11-13: was ~0.8 s, "make it faster")
-        const lead = i === s.lead, k = s.fill ? (lead ? 136 : 68) : lead ? 210 : 72, c = s.fill ? (lead ? 23.3 : 16.5) : lead ? 25 : 13, f = !lead && now < s.lagFrom ? .08 : 1;
+        // the menu drop (s.fill) glides on critically damped springs, no wobble: ~0.2 s (Bennie 2026-11-14: "2x the speed"; was ~0.4 s)
+        const lead = i === s.lead, k = s.fill ? (lead ? 544 : 272) : lead ? 210 : 72, c = s.fill ? (lead ? 46.6 : 33) : lead ? 25 : 13, f = !lead && now < s.lagFrom ? .08 : 1;
         B.v += (k * (T.x - B.x) - c * B.v) * dt * f; B.x += B.v * dt;
         const lo = PAD + 2 + s.q + T.r - 3, hi = PAD + s.w - 2 - s.q - T.r + 3;
         if (B.x < lo || B.x > hi) { s.sy.v -= Math.min(Math.abs(B.v), 900) * .0016; B.x = Math.max(lo, Math.min(hi, B.x)); B.v *= -.25; }
         if (Math.abs(T.x - B.x) > .3 || Math.abs(B.v) > 3) still = false;
       });
-      s.cy.v += ((s.fill ? 240 : 320) * (T.cy - s.cy.x) - (s.fill ? 31 : 30) * s.cy.v) * dt; s.cy.x += s.cy.v * dt;
+      s.cy.v += ((s.fill ? 960 : 320) * (T.cy - s.cy.x) - (s.fill ? 62 : 30) * s.cy.v) * dt; s.cy.x += s.cy.v * dt;
       if (Math.abs(T.cy - s.cy.x) > .3 || Math.abs(s.cy.v) > 3) still = false;
       const L = bodies[s.lead], syT = 1 - .2 * Math.min(Math.abs(L.v) / 1500, 1);
       s.sy.v += (280 * (syT - s.sy.s) - 9 * s.sy.v) * dt; s.sy.s += s.sy.v * dt;
@@ -9555,7 +9601,7 @@ void main(){
       const nx = PAD + b.offsetLeft + b.offsetWidth / 2;
       if (!s.ready) { s.a.x = s.b.x = nx; s.cy.x = T.cy; s.q = T.q; s.ready = true; }
       else if (Math.abs(nx - T.x) > .5 || Math.abs(T.cy - s.cy.x) > .5) {
-        s.lead = Math.abs(nx - s.a.x) <= Math.abs(nx - s.b.x) ? 0 : 1; s.lagFrom = performance.now() + (s.fill ? 80 : 70); s.moving = true; s.split = false;
+        s.lead = Math.abs(nx - s.a.x) <= Math.abs(nx - s.b.x) ? 0 : 1; s.lagFrom = performance.now() + (s.fill ? 40 : 70); s.moving = true; s.split = false;
       }
       T.x = nx; s.show = true;
       const dpr = s.dpr = dprOf(), W = s.w + PAD * 2, Hh = s.h + PAD * 2;
@@ -10095,7 +10141,7 @@ var BE = (() => {
   // ---- layout: head (drawer, section pill, Flow, Search, Focus, ⋯), title, rows, tip; the old title bar + page toolbar move into the ⋯ panel
   const head = h('div', 'be-head');
   const drawerTg = btn('be-ib', IC.menu, 'Songs, goal and saved bars', 'Open the songs drawer'); drawerTg.id = 'beDrawerTg';
-  const secBtn = btn('be-pill', '<span>Verse 1</span>' + IC.down, 'Jump to a section or add one'); secBtn.id = 'beSec'; secBtn.setAttribute('aria-haspopup', 'menu');
+  const secBtn = btn('be-pill', '<span>Verse 1</span>' + IC.down, 'Section menu'); secBtn.id = 'beSec'; secBtn.setAttribute('aria-haspopup', 'menu');
   const flowBtn = btn('be-ib', IC.flow + '<span class="lbl">Flow</span>', 'Flow: light up the stressed syllables in each bar\'s meter', 'Flow'); flowBtn.setAttribute('aria-pressed', String(S.flow));
   const findBtn = btn('be-ib', IC.find, 'Search this song (Ctrl+F)', 'Search this song'); findBtn.setAttribute('aria-pressed', 'false');
   const zenBtn = btn('be-ib', IC.focus, 'Focus: only your page and a live list of rhymes. Esc brings everything back.', 'Focus');
@@ -10775,39 +10821,221 @@ var BE = (() => {
       if (!ro) { m.append(h('hr')); mi(m, 'Delete bar', () => delBar(i), 'dz'); }
     });
   }
-  const SECS = ['Verse', 'Hook', 'Pre-hook', 'Bridge', 'Intro', 'Outro'];
+  // Liquid accordion "Spillway" (Nimbus UI by Guglielmo Giannattasio, MIT; vanilla port, tinted with the accent): the open part of the section menu holds a pool of water
+  const SPILL = (() => {
+    const PAD = 14, R = 10, CR = 12;
+    const VERT = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+    const FRAG = `precision highp float;
+uniform vec2 uRes;uniform float uDpr;uniform float uTime;uniform vec4 uCard;uniform float uCardR;uniform vec3 uAcc;
+uniform vec4 uBox[2];uniform float uBoxR[2];uniform vec4 uSat[4];uniform vec4 uRip[6];uniform vec3 uMouse;uniform vec3 uFront;
+uniform float uDark;uniform float uAmb;
+float sdRB(vec2 p,vec2 b,float r){vec2 q=abs(p)-b+r;return length(max(q,0.))+min(max(q.x,q.y),0.)-r;}
+float smin(float a,float b,float k){float h=clamp(.5+.5*(b-a)/k,0.,1.);return mix(b,a,h)-k*h*(1.-h);}
+float dropD(vec2 p){float d=1e4;
+ for(int i=0;i<2;i++){vec4 B=uBox[i];if(B.z>.5){vec2 q=p;
+  if(i==int(uFront.z)){float f=exp(-pow(q.y-uFront.x,2.)/260.);q.y+=f*uFront.y*(sin(q.x*.075+uTime*6.)+.5*sin(q.x*.19-uTime*4.3));}
+  d=smin(d,sdRB(q-B.xy,B.zw,uBoxR[i]),13.);}}
+ for(int i=0;i<4;i++){vec4 S=uSat[i];if(S.z>.5){d=smin(d,length(p-S.xy)-S.z,13.);}}
+ return d;}
+float cardD(vec2 p){vec2 h=uCard.zw*.5;return sdRB(p-uCard.xy-h,h,uCardR);}
+float lens(float d,float w){float t=clamp(-d/w,0.,1.);return sqrt(1.-(1.-t)*(1.-t));}
+float waves(vec2 p){float w=0.;
+ for(int i=0;i<6;i++){vec4 R=uRip[i];if(R.w>0.){float x=length(p-R.xy)-R.z*240.;w+=R.w*exp(-R.z*1.7)*sin(x*.3)*exp(-x*x/700.);}}
+ vec2 m=p-uMouse.xy;w+=uMouse.z*3.6*exp(-dot(m,m)/1400.);
+ w+=uAmb*(sin(p.x*.04+p.y*.02+uTime*1.1)*.45+sin(p.x*.11-uTime*.8+p.y*.13)*.25);return w;}
+float H(vec2 p){float dc=cardD(p);return lens(dc,18.)*1.2+lens(dropD(p),11.)*7.5+waves(p)*smoothstep(0.,9.,-dc);}
+float caus(vec2 p,float t){vec2 q=p;float c=0.;for(int i=0;i<3;i++){q+=vec2(sin(q.y*1.1+t),cos(q.x*1.3-t*.7))*.6;c+=1./(1.+16.*abs(sin(q.x)*sin(q.y)));}return c/3.;}
+void main(){
+ vec2 p=vec2(gl_FragCoord.x,uRes.y*uDpr-gl_FragCoord.y)/uDpr;
+ float dp=cardD(p);if(dp>16.){gl_FragColor=vec4(0.);return;}
+ float dd=dropD(p);
+ float h0=H(p);vec3 n=normalize(vec3(h0-H(p+vec2(1.,0.)),h0-H(p+vec2(0.,1.)),1.));
+ vec3 V=vec3(0.,0.,1.);
+ float spec=pow(max(dot(reflect(-normalize(vec3(-.45,-.8,.85)),n),V),0.),70.);
+ float spec2=pow(max(dot(reflect(-normalize(vec3(.6,.75,.7)),n),V),0.),22.)*.3;
+ float fres=clamp((1.-n.z)*4.,0.,1.);
+ vec3 irid=.5+.5*cos(6.2831*(vec3(0.,.33,.67)+fres*.85+p.x*.0028+p.y*.0015+uTime*.035));
+ float pm=smoothstep(1.,-1.,dp);float dm=smoothstep(1.,-1.,dd)*smoothstep(1.,-2.,dp);
+ float sh=smoothstep(9.,-9.,dropD(p-vec2(0.,5.)))*(1.-dm)*pm*(.11+.07*uDark);
+ vec3 c=uAcc*.25*sh;float a=sh;
+ float pa=clamp(pm*(fres*.35+spec*.6+spec2*.7),0.,1.);
+ c=mix(vec3(1.),irid,.5*fres)*pa+c*(1.-pa);a=pa+a*(1.-pa);
+ float th=lens(dd,11.);
+ float cs=caus((p+n.xy*th*18.)*.085,uTime*.9);
+ vec3 tint=mix(mix(uAcc,vec3(1.),.78),mix(uAcc,vec3(1.),.4),uDark);
+ float rim=dm*(1.-smoothstep(0.,8.,-dd));
+ float cres=dm*smoothstep(.12,.55,dot(n.xy,normalize(vec2(.55,.85))))*smoothstep(0.,3.,-dd);
+ float body=.5+.5*clamp(-n.y*3.,-1.,1.);
+ float da=dm*(.2+.12*body)*(1.-.4*uDark);vec3 dc=mix(tint,vec3(1.),body*.5);
+ float la=rim*.3;vec3 lc=mix(uAcc*.85,uAcc,uDark);dc=lc*la+dc*da*(1.-la);da=la+da*(1.-la);
+ la=clamp(cres*.6+smoothstep(.6,1.,cs)*.07*th*dm,0.,1.);dc=vec3(1.)*la+dc*(1.-la);da=la+da*(1.-la);
+ la=clamp(dm*(spec*1.2+spec2*.5),0.,1.);dc=vec3(1.)*la+dc*(1.-la);da=la+da*(1.-la);
+ la=dm*smoothstep(-2.,0.,dd)*.35;dc=mix(vec3(1.),irid,.35)*la+dc*(1.-la);da=la+da*(1.-la);
+ c=dc+c*(1.-da);a=da+a*(1.-da);
+ gl_FragColor=vec4(c,a);
+}`;
+    let G = null, cv = null, tried = false;   // one canvas + one WebGL context for every menu, reused (no context pile-up)
+    function initGL(c) {
+      const gl = c.getContext('webgl', { premultipliedAlpha: true, alpha: true, antialias: false }); if (!gl) return null;
+      const sh = (t, src) => { const s = gl.createShader(t); if (!s) return null; gl.shaderSource(s, src); gl.compileShader(s); return gl.getShaderParameter(s, gl.COMPILE_STATUS) ? s : null; };
+      const vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG), p = gl.createProgram(); if (!vs || !fs || !p) return null;
+      gl.attachShader(p, vs); gl.attachShader(p, fs); gl.linkProgram(p); if (!gl.getProgramParameter(p, gl.LINK_STATUS)) return null;
+      gl.useProgram(p); gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer()); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+      const loc = gl.getAttribLocation(p, 'a'); gl.enableVertexAttribArray(loc); gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+      const u = {}; ['uRes', 'uDpr', 'uTime', 'uCard', 'uCardR', 'uAcc', 'uBox', 'uBoxR', 'uSat', 'uRip', 'uMouse', 'uFront', 'uDark', 'uAmb'].forEach(n => { u[n] = gl.getUniformLocation(p, n); });
+      return { gl, u };
+    }
+    function canvas() {
+      if (!tried) { tried = true; cv = document.createElement('canvas'); cv.className = 'nf-water'; cv.setAttribute('aria-hidden', 'true'); try { G = initGL(cv); } catch (e) { G = null; } cv.addEventListener('webglcontextlost', e => { e.preventDefault(); G = null; }); }
+      return G ? cv : null;
+    }
+    function acc() {   // the accent as 0-1 rgb (any css colour)
+      try { const x = document.createElement('canvas').getContext('2d'); x.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#ff3b4e'; const v = x.fillStyle;
+        if (v[0] === '#') return [1, 3, 5].map(k => parseInt(v.slice(k, k + 2), 16) / 255); const m = v.match(/[\d.]+/g); return m ? m.slice(0, 3).map(n => +n / 255) : [1, .23, .3]; } catch (e) { return [1, .23, .3]; }
+    }
+    const box = () => ({ x: 0, y: 0, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0 });
+    // root = the menu (position fixed, so it is every item's offsetParent); items = [{ el, ico }]
+    function mount(root, items) {
+      const s = { a: box(), b: box(), lead: 0, lagUntil: 0, sats: [], rips: [], mouse: { x: 0, y: 0, s: 0, on: false }, open: null, lastIdx: 0, moving: false, split: false, ready: false, w: 0, h: 0, ch: 0, raf: 0, last: 0, time: 0,
+        reduce: !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches), dark: document.documentElement.classList.contains('bb-day') ? 0 : 1, acc: acc() };
+      const c = canvas(), pool = document.createElement('span'); pool.className = 'nf-pool'; pool.setAttribute('aria-hidden', 'true');
+      root.dataset.gl = c ? 'on' : 'off'; if (c) root.prepend(c); root.prepend(pool);
+      const target = () => {
+        if (s.open !== null) { const el = items[s.open].el; return { x: PAD + el.offsetLeft + el.offsetWidth / 2, y: PAD + el.offsetTop + el.offsetHeight / 2, w: el.offsetWidth / 2, h: Math.max(4, el.offsetHeight / 2 - 1) }; }
+        const ic = items[s.lastIdx].ico, r = root.getBoundingClientRect(), b = ic.getBoundingClientRect();
+        return { x: PAD + b.left - r.left + b.width / 2, y: PAD + b.top - r.top + b.height / 2, w: 0, h: 0 };
+      };
+      const draw = () => {
+        const head = s.lead === 0 ? s.a : s.b, tail = s.lead === 0 ? s.b : s.a, gap = Math.abs(head.y - tail.y) - (head.h + tail.h), thin = Math.max(0, Math.min(1, (gap + 80) / 70));
+        const shape = (B, k) => { const w = B.w * (1 - k * thin), h = B.h; return { w, h, r: Math.max(0, Math.min(R + (Math.min(w, h) - R) * thin, w, h)) }; };
+        const hs = shape(head, .22), ts = shape(tail, .5);
+        if (G && c && c.parentNode === root) {
+          const { gl, u } = G, dpr = Math.min(devicePixelRatio || 1, 1.75), on = B => B.w > 1 && B.h > 1;
+          gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+          gl.uniform2f(u.uRes, s.w + PAD * 2, s.ch); gl.uniform1f(u.uDpr, dpr); gl.uniform1f(u.uTime, s.time); gl.uniform4f(u.uCard, PAD, PAD, s.w, s.h); gl.uniform1f(u.uCardR, CR); gl.uniform3f(u.uAcc, s.acc[0], s.acc[1], s.acc[2]);
+          gl.uniform4fv(u.uBox, new Float32Array([head.x, head.y, on(hs) ? hs.w : 0, hs.h, tail.x, tail.y, on(ts) ? ts.w : 0, ts.h])); gl.uniform1fv(u.uBoxR, new Float32Array([hs.r, ts.r]));
+          const sats = new Float32Array(16); s.sats.slice(0, 4).forEach((d, i) => sats.set([d.x, d.y, d.r, 0], i * 4)); gl.uniform4fv(u.uSat, sats);
+          const rips = new Float32Array(24); s.rips.slice(-6).forEach((p, i) => rips.set([p.x, p.y, p.age, p.amp], i * 4)); gl.uniform4fv(u.uRip, rips);
+          gl.uniform3f(u.uMouse, s.mouse.x, s.mouse.y, s.mouse.s); gl.uniform3f(u.uFront, head.y + head.h, s.reduce ? 0 : Math.min(Math.abs(head.vh) * .012, 4.5), 0);
+          gl.uniform1f(u.uDark, s.dark); gl.uniform1f(u.uAmb, s.reduce ? 0 : .6); gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT); gl.drawArrays(gl.TRIANGLES, 0, 3);
+        } else { const T = target(); if (s.open !== null && T) { pool.style.opacity = '1'; pool.style.height = T.h * 2 + 'px'; pool.style.transform = `translateY(${T.y - T.h - PAD}px)`; } else pool.style.opacity = '0'; }
+      };
+      const step = (dt, now) => {
+        s.time += dt; const T = target(); let still = true; const bodies = [s.a, s.b];
+        if (s.reduce) { bodies.forEach(B => Object.assign(B, T, { vx: 0, vy: 0, vw: 0, vh: 0 })); s.sats = []; }
+        else {
+          bodies.forEach((B, i) => {
+            const lead = i === s.lead, k = lead ? 210 : 60, cc = lead ? 25 : 13, f = !lead && now < s.lagUntil ? .04 : 1, kh = lead ? 260 : 90;
+            B.vx += (k * (T.x - B.x) - cc * B.vx) * dt * f; B.vy += (k * (T.y - B.y) - cc * B.vy) * dt * f; B.vw += (k * (T.w - B.w) - cc * B.vw) * dt * f; B.vh += (kh * (T.h - B.h) - (lead ? 22 : 14) * B.vh) * dt * f;
+            B.x += B.vx * dt; B.y += B.vy * dt; B.w = Math.max(0, B.w + B.vw * dt); B.h = Math.max(0, B.h + B.vh * dt);
+            if (Math.abs(T.y - B.y) > .3 || Math.abs(T.h - B.h) > .3 || Math.abs(T.w - B.w) > .3 || Math.abs(B.vy) + Math.abs(B.vh) > 3) still = false;
+          });
+          const head = bodies[s.lead], tail = bodies[1 - s.lead], gap = Math.abs(head.y - tail.y) - (head.h + tail.h);
+          if (!s.split && s.moving && gap > 4 && s.open !== null) {   // pinch off droplets on a long jump
+            s.split = true; const top = Math.min(head.y, tail.y) + (head.y < tail.y ? head.h : tail.h);
+            [.25, .55, .85].forEach((t, j) => s.sats.push({ x: head.x + (Math.random() - .5) * s.w * .35, y: top + gap * t, vx: (Math.random() - .5) * 80, vy: (head.vy + tail.vy) * .4, r: 7 - j * 1.2 + Math.random() * 2, k: 60 + Math.random() * 80 }));
+          }
+          s.sats = s.sats.filter(d => { d.vx += (25 * (head.x - d.x) - 6 * d.vx) * dt; d.vy += (d.k * (head.y - d.y) - 9 * d.vy) * dt; d.x += d.vx * dt; d.y += d.vy * dt; if (Math.abs(head.y - d.y) < head.h * .85 || head.h < 6) d.r -= dt * 30; return d.r > .6; });
+          if (s.sats.length) still = false;
+        }
+        if (s.moving && still) { s.moving = false; if (!s.reduce && s.open !== null) s.rips.push({ x: T.x, y: T.y - T.h + 16, age: 0, amp: s.split ? 1.1 : .6 }); }
+        s.rips.forEach(p => { p.age += dt; }); s.rips = s.rips.filter(p => p.age < 2.4);
+        s.mouse.s += ((s.mouse.on ? 1 : 0) - s.mouse.s) * Math.min(1, dt * 7);
+      };
+      const loop = () => {
+        if (s.raf) return; s.last = performance.now();
+        const tick = now => {
+          s.raf = 0; if (!root.isConnected) return;
+          const dt = Math.min((now - s.last) / 1000, 1 / 30); s.last = now; step(dt, now); draw();
+          const busy = s.moving || s.rips.length || s.sats.length || s.mouse.s > .01;
+          if (!document.hidden && (!s.reduce || busy)) s.raf = requestAnimationFrame(tick);
+        };
+        s.raf = requestAnimationFrame(tick);
+      };
+      const resize = () => {
+        s.w = root.offsetWidth; s.h = root.offsetHeight;
+        if (c && c.parentNode === root) {
+          const dpr = Math.min(devicePixelRatio || 1, 1.75), W = s.w + PAD * 2, Hc = Math.ceil((s.h + PAD * 2) / 96) * 96;
+          if (Hc !== s.ch || c.width !== Math.round(W * dpr)) { s.ch = Hc; c.width = Math.round(W * dpr); c.height = Math.round(Hc * dpr); c.style.width = W + 'px'; c.style.height = Hc + 'px'; }
+        }
+        if (!s.ready) { const T = target(); Object.assign(s.a, T); Object.assign(s.b, T); s.ready = true; }
+        loop();
+      };
+      const ro = window.ResizeObserver ? new ResizeObserver(() => { if (!root.isConnected) { ro.disconnect(); return; } resize(); }) : null; if (ro) ro.observe(root);
+      const local = e => { const r = root.getBoundingClientRect(); return { x: e.clientX - r.left + PAD, y: e.clientY - r.top + PAD }; };
+      root.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse') return; const p = local(e); s.mouse.x = p.x; s.mouse.y = p.y; s.mouse.on = true; loop(); });
+      root.addEventListener('pointerleave', () => { s.mouse.on = false; loop(); });
+      root.addEventListener('pointerdown', e => { if (s.reduce) return; const p = local(e); s.rips.push({ x: p.x, y: p.y, age: 0, amp: .7 }); loop(); });
+      resize();
+      return {
+        get open() { return s.open; },
+        set(i) {   // open item i (null = close); the pool flows there, grows out of the "+" drop or drains back into it
+          if (s.open === i) return; const from = s.open; s.open = i;
+          if (i !== null) {
+            s.lastIdx = i;
+            if (from === null) { const r = root.getBoundingClientRect(), b = items[i].ico.getBoundingClientRect(), x = PAD + b.left - r.left + b.width / 2, y = PAD + b.top - r.top + b.height / 2; [s.a, s.b].forEach(B => Object.assign(B, { x, y, w: 0, h: 0, vx: 0, vy: 0, vw: 0, vh: 0 })); }
+          }
+          const T = target(); s.lead = Math.abs(T.y - s.a.y) <= Math.abs(T.y - s.b.y) ? 0 : 1;
+          s.lagUntil = performance.now() + (from === null || i === null ? 0 : 120); s.moving = true; s.split = false; loop();
+        },
+      };
+    }
+    return { mount };
+  })();
+  const SECS = ['Intro', 'Outro', 'Bridge', 'Pre-hook', 'Hook', 'Verse'];
+  // Section menu (Bennie 2026-11-14): five items. Add / Add on top open in place (liquid accordion), then Rename, Duplicate, Delete.
+  // No "Jump to" list: press and hold the section pill to jump to the start of that section.
   function secMenu() {
     const C = S.C, cur = secOfCur();
-    // three cards side by side (Bennie 2026-11-13): Jump to drops down in the middle, this section's actions and Add a section slide out from under it, left and right
     menu(secBtn, M => {
-      M.classList.add('be-secm'); const cC = h('div', 'be-sc c'), cL = h('div', 'be-sc l'), cR = h('div', 'be-sc r'); let m = cC;
-      const put = () => [cC, cL, cR].forEach(d => { if (d.childElementCount) M.append(d); });
-      if (C.heads.length) { m.append(h('h6', '', 'Jump to')); C.heads.forEach(s => { const b = mi(m, s.name, () => { const j = S.L[s.i + 1] != null && !isHead(S.L[s.i + 1]) ? s.i + 1 : s.i; focusRow(j, 0); }, '', s.bars ? `${s.bars} bar${s.bars === 1 ? '' : 's'}` : ''); if (cur && s.i === cur.i) b.setAttribute('aria-current', 'true'); }); }
-      if (locked()) { put(); return; }
-      if (cur) {
-        m = cL;
+      M.classList.add('be-secm');
+      const acc = [], grp = (label, names, top) => {
+        const it = h('div', 'nf-item'), q = btn('mi nf-q', ''), ico = h('span', 'nf-ico'), pan = h('div', 'nf-panel'), inn = h('div', 'nf-inner'), a = h('div', 'nf-a');
+        q.setAttribute('role', 'menuitem'); q.setAttribute('aria-expanded', 'false'); q.append(h('span', '', label), ico); ico.setAttribute('aria-hidden', 'true');
+        names.forEach(n => { const b = mi(a, n, () => addSec(n, top)); b.tabIndex = -1; });
+        inn.append(a); pan.append(inn); it.append(q, pan); M.append(it); acc.push({ el: it, ico, q });
+        q.addEventListener('click', () => {
+          const k = acc.findIndex(x => x.q === q), nx = W.open === k ? null : k;
+          acc.forEach((x, j) => { const o = j === nx; x.el.dataset.open = String(o); x.q.setAttribute('aria-expanded', String(o)); x.el.querySelectorAll('.nf-a .mi').forEach(b => { b.tabIndex = o ? 0 : -1; }); });
+          if (nx !== null) { ico.removeAttribute('data-fx'); void ico.offsetWidth; ico.dataset.fx = 'drip'; }
+          W.set(nx);
+        });
+      };
+      if (!locked()) { grp('Add', SECS, false); grp('Add on top', ['Intro', 'Hook', 'Verse'], true); }
+      if (cur && !locked()) {
         const end = (() => { const nx = C.heads.find(s => s.i > cur.i); let e = nx ? nx.i : S.L.length; while (e > cur.i + 1 && S.L[e - 1] === '' && !nx) e--; return e; })();
-        m.append(h('h6', '', cur.name));
-        mi(m, 'Rename section', () => { const r = rowAt(cur.i); if (r) { r._.hin.focus(); r._.hin.select(); } });
-        mi(m, 'Duplicate section', () => {
+        const k = C.heads.findIndex(s => s.i === cur.i), up = k > 0 || (k === 0 && cur.i > 0 && S.L.slice(0, cur.i).some(x => x.trim())), down = k >= 0 && k < C.heads.length - 1;
+        const hd = h('h6', 'be-sech'); hd.append(h('span', '', cur.name));
+        if (up || down) { const mv = (d, on, t, path) => { const b = btn('be-mv', sv(path, 14), t); b.disabled = !on; b.addEventListener('click', () => { menuClose(); moveSec(cur.i, d); }); return b; };
+          hd.append(mv(-1, up, 'Move section up', '<path d="M12 19V5M6 11l6-6 6 6"/>'), mv(1, down, 'Move section down', '<path d="M12 5v14M6 13l6 6 6-6"/>')); }
+        M.append(h('hr'), hd);
+        mi(M, 'Rename section', () => { const r = rowAt(cur.i); if (r) { r._.hin.focus(); r._.hin.select(); } });
+        mi(M, 'Duplicate section', () => {
           const L = S.L.slice(), blk = L.slice(cur.i, end); blk[0] = '[' + cur.name + ' (copy)]'; L.splice(end, 0, ...blk); shiftDrafts(end, blk.length); rowsChanged(L, end, 0);
         });
-        mi(m, 'Delete section', () => {
+        mi(M, 'Delete section', () => {
           const p = page(), pd = p && p.drafts ? JSON.parse(JSON.stringify(p.drafts)) : null;
           const before = S.L.slice(), L = S.L.slice(); L.splice(cur.i, end - cur.i); if (!L.length) L.push(''); shiftDrafts(cur.i, -(end - cur.i)); const j = Math.max(0, cur.i - 1); rowsChanged(L, j, (L[j] || '').length);
           if (typeof toast === 'function') toast(`“${cur.name}” deleted.`, { undo: () => { if (p) p.drafts = pd || undefined; rowsChanged(before, cur.i, 0); } });
         }, 'dz');
-        const k = C.heads.findIndex(s => s.i === cur.i);
-        if (k > 0 || (k === 0 && cur.i > 0 && S.L.slice(0, cur.i).some(x => x.trim()))) mi(m, 'Move section up', () => moveSec(cur.i, -1));
-        if (k >= 0 && k < C.heads.length - 1) mi(m, 'Move section down', () => moveSec(cur.i, 1));
       }
-      m = cR; m.append(h('h6', '', 'Add a section at the end'));
-      SECS.forEach(n => mi(m, n, () => addSec(n)));
-      m.append(h('hr'), h('h6', '', 'Add a section on top'));
-      ['Intro', 'Hook', 'Verse'].forEach(n => mi(m, n, () => addSec(n, true), '', 'first on the page'));
-      put();
+      if (!M.childElementCount) M.append(h('h6', '', 'This song is locked.'));
+      const W = acc.length ? SPILL.mount(M, acc) : { open: null, set() {} };
     }, 'center');
   }
+  // press and hold the section pill = jump to the first bar of that section (no label: if you know, you know)
+  function secJump() {
+    const cur = secOfCur(); if (!cur) { focusRow(0, 0); return; }
+    const j = S.L[cur.i + 1] != null && !isHead(S.L[cur.i + 1]) ? cur.i + 1 : cur.i; focusRow(j, 0); const r = rowAt(j); if (r) reveal(r);
+    secBtn.classList.remove('be-jumped'); void secBtn.offsetWidth; secBtn.classList.add('be-jumped'); try { if (navigator.vibrate) navigator.vibrate(12); } catch (e) {}
+  }
+  const HOLD = { t: 0, fired: false };
+  secBtn.addEventListener('pointerdown', e => {
+    if (e.button) return; HOLD.fired = false; clearTimeout(HOLD.t); secBtn.classList.add('be-hold');
+    HOLD.t = setTimeout(() => { HOLD.fired = true; secBtn.classList.remove('be-hold'); menuClose(); secJump(); }, 450);
+  });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => secBtn.addEventListener(ev, () => { clearTimeout(HOLD.t); secBtn.classList.remove('be-hold'); }));
+  secBtn.addEventListener('contextmenu', e => e.preventDefault());
   function addSec(n, top) {
     if (locked()) return; const C = S.C, L = S.L.slice(), same = C.heads.filter(s => s.name.replace(/\s*\d+$/, '').toLowerCase() === n.toLowerCase()).length, name = n === 'Verse' || same ? n + ' ' + (same + 1) : n;
     while (L.length > 1 && L[L.length - 1] === '' && !isHead(L[L.length - 2])) L.pop();
@@ -10834,7 +11062,7 @@ var BE = (() => {
     more.hidden = !on; moreBtn.setAttribute('aria-expanded', String(on)); if (!on) return;
     const r = moreBtn.getBoundingClientRect(); more.style.left = Math.max(12, Math.min(innerWidth - more.offsetWidth - 12, r.right - more.offsetWidth)) + 'px'; more.style.top = (r.bottom + 6) + 'px';
   }
-  secBtn.addEventListener('click', () => (S.menu && S.menu.anchor === secBtn ? menuClose() : secMenu()));
+  secBtn.addEventListener('click', () => { if (HOLD.fired) { HOLD.fired = false; return; } (S.menu && S.menu.anchor === secBtn ? menuClose() : secMenu()); });
   moreBtn.addEventListener('click', () => moreOpen(more.hidden));
   flowBtn.addEventListener('click', () => { S.flow = !S.flow; store.set('metrobar.bookFlow', S.flow); flowBtn.setAttribute('aria-pressed', String(S.flow)); render(); });
   zenBtn.addEventListener('click', () => rbZen(true));
@@ -11551,7 +11779,7 @@ var BS = (() => {
     home: sv('<path d="M4 11l8-7 8 7"/><path d="M6 10v9h12v-9"/>', 18),
     sun: sv('<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"/>', 18),
     moon: sv('<path d="M19.5 14.5A8 8 0 0 1 9.5 4.5a8 8 0 1 0 10 10z"/>', 18),
-    gear: sv('<circle cx="12" cy="12" r="3"/><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/>', 18),
+    gear: sv('<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>', 18),
     col: sv('<rect x="4" y="5" width="16" height="14" rx="2"/><path d="M9.5 5v14"/>', 18),
     lib: sv('<path d="M2.5 8.2h19M2.5 12h19M2.5 15.8h19" stroke-width=".9" opacity=".38"/><path d="M7.4 22.2c-1 .2-1.8-.4-1.7-1.2.1-.7.9-1 1.4-.5M7.1 21l-.8-17.3c-.1-1.2 1.3-1.5 1.7-.4.5 1.4-.4 3.1-1.8 4.5-1.7 1.7-2.4 3-2 4.6.4 1.6 2.3 2.1 3.5 1.3 1.2-.8 1.1-2.5-.2-3.1-1.2-.5-2.6.2-2.6 1.4"/><ellipse cx="13.4" cy="17.7" rx="1.75" ry="1.3" transform="rotate(-22 13.4 17.7)" fill="currentColor" stroke="none"/><ellipse cx="19.2" cy="16.1" rx="1.75" ry="1.3" transform="rotate(-22 19.2 16.1)" fill="currentColor" stroke="none"/><path d="M15 17V6.9M20.8 15.4V5.3"/><path d="M15 6.9l5.8-1.6" stroke-width="2.1"/>', 22),   // All songs: clef, staff and notes (Bennie's example)
     grid: sv('<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>', 17),
@@ -11597,12 +11825,12 @@ var BS = (() => {
 
   // ---- sidebar
   const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect class="mk-bg" x=".75" y=".75" width="24.5" height="24.5" rx="6.5"/><g fill="none" stroke-width="2" stroke-linecap="round"><path class="mk1" d="M7 8.5h4"/><path class="mk2" d="M13.5 8.5h5.5"/><path class="mk3" d="M7 13h7.5"/><path class="mk4" d="M17 13h2"/><path class="mk5" d="M7 17.5h2.5"/><path class="mk6" d="M12 17.5h5"/></g></svg></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
-  const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), setB = btn('bs-ib', I.gear, 'Settings', 'Settings'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
-  const dayB = btn('bs-ib', '', '', ''); dayB.id = 'bsDay';
-  const dayShow = () => { const d = isDay(); dayB.innerHTML = d ? I.moon : I.sun; dayB.title = d ? 'Night mode' : 'Day mode'; dayB.setAttribute('aria-label', dayB.title); dayB.setAttribute('aria-pressed', String(!d)); };
+  const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
+  const dayB = btn('smt', '<i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i>', '', ''); dayB.id = 'bsDay'; dayB.setAttribute('role', 'switch');
+  const dayShow = () => { const d = isDay(); dayB.title = d ? 'Night mode' : 'Day mode'; dayB.setAttribute('aria-label', 'Night mode'); dayB.setAttribute('aria-checked', String(!d)); };
   dayB.addEventListener('click', () => { store.set('metrobar.bookDay', !isDay()); rbApplyLook(); if (typeof rbPaint === 'function') try { rbPaint(); } catch (e) {} dayShow(); });
   dayShow();
-  brand.append(bname, homeB, dayB, setB, colB);
+  brand.append(bname, homeB, dayB, colB);
   homeB.addEventListener('click', () => { rbFlush(); location.href = 'landing-beat-meter.html'; });
   colB.addEventListener('click', () => nolib(true));
   const all = h('div', 'bs-all'), allA = btn('a', `<span>${I.lib}</span><b>All songs</b><small></small>`, 'Your full library'), allS = btn('s', IC.find, 'Search your songs', 'Search your songs'); all.append(allA, allS);
@@ -11741,7 +11969,6 @@ var BS = (() => {
       fb.addEventListener('click', e => { e.preventDefault(); open(list.hidden); });
       sel.hidden = true; sel.after(fb); lab.after(list); sel.addEventListener('change', show); show();
     } }
-  setB.addEventListener('click', settings);
   { const del = $('rbDel'); if (del) del.addEventListener('click', () => ST.d.close()); }
 
   // ---- Actions panel: views with a line each, one section / whole song, Flow, tools, your work
@@ -11930,7 +12157,7 @@ var BS = (() => {
   function place(row) { if (CK.el && row && CK.el.parentNode !== row) row.append(CK.el); }
 
   // ---- sidebar status: is the AI ready, is the book synced; and who is writing
-  const stat = h('p', 'bs-stat'), sAi = btn('', ''), sSy = h('span'), me = h('div', 'bs-me'), meB = btn('a', ''), meG = btn('bs-ib', I.gear, 'Settings', 'Settings');
+  const stat = h('p', 'bs-stat'), sAi = btn('', ''), sSy = h('span'), me = h('div', 'bs-me'), meB = btn('a', ''), meG = btn('bs-ib bs-gear', I.gear, 'Settings', 'Settings');
   stat.append(sAi, h('i', '', '·'), sSy); me.append(meB, meG); BE.syncLine.hidden = true; BE.syncLine.after(stat, me); meG.addEventListener('click', settings);
   sAi.addEventListener('click', () => rbTool('ai', true));
   function statSync() {
