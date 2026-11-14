@@ -2461,7 +2461,7 @@ html.bb.bb-day .bs-sw button.nog { box-shadow: 0 0 0 1px #d9dce0; } html.bb.bb-d
 html.bb.bb-day .bs-sw button { box-shadow: 0 0 0 1px #d9dce0, 0 0 14px -2px var(--c); }
 html.bb.bb-day .bs-sw button[aria-checked="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px #fff inset, 0 0 20px 0 var(--c); }
 @media (prefers-reduced-motion: reduce) { html.bb .be-rb:hover, html.bb .be-links > button:hover { transform: none; } }
-@media (max-width: 640px) { html.bb .be-head [aria-label="Redo"], html.bb .be-head [aria-label="Rhyme Finder"], html.bb .be-head [aria-label="Share"] { display: none; } html.bb #bsFlowB { padding: 0; border-color: transparent; } html.bb .be-pill { padding: 0 8px 0 12px; } }
+@media (max-width: 640px) { html.bb .be-head [aria-label="Redo"], html.bb .be-head [aria-label="Share"] { display: none; } html.bb #bsFlowB { padding: 0; border-color: transparent; } html.bb .be-pill { padding: 0 8px 0 12px; } }
 /* phones (mobile pass 2026-11-14): the top bar was 8 controls in one 390px row, so the song title read "UNTI..." and the
    section pill "V..". Two rows now: drawer, title, Actions on top; section pill (full width), templates, undo, High-Light,
    search under it. The sticky search row follows the taller bar (--be-hh). */
@@ -2794,6 +2794,64 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 html.bb .be-head > #bsDay.smt-hb { display: block; position: relative; right: auto; bottom: auto; z-index: auto; width: 46px; height: 26px; margin: 0 2px; box-shadow: inset 0 1px 3px #0005, 0 0 0 1px #0002; }
 html.bb .be-head > #bsDay.smt-hb .smt-k { top: 3px; left: 3px; width: 20px; height: 20px; }
 html.bb .be-head > #bsDay.smt-hb[aria-checked="true"] .smt-k { translate: 20px 0; }
+/* Icon motion (Bennie 2026-11-14: "neat and animated, like the settings gear on the profile"). Every svg.ic (tagged with its
+   name where the icon sets are built) springs on the gear's curve; each icon moves its own way on hover/keyboard focus and
+   gives a little on press. Reduced motion and MetroBar Motion: Off keep them still. */
+.ic { --ic-e: cubic-bezier(.34, 1.4, .5, 1); transition: rotate .5s var(--ic-e), translate .4s var(--ic-e), scale .25s ease-out, filter .3s; }
+.ic * { transform-box: fill-box; transform-origin: center; transition: translate .4s var(--ic-e), rotate .5s var(--ic-e), scale .35s var(--ic-e), stroke-dashoffset .6s ease, opacity .3s; }
+@media (hover: hover) {
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-home { rotate: -8deg; translate: 0 -2px; scale: 1.08; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-back { translate: -3px 0; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-next { translate: 3px 0; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-find { rotate: -14deg; scale: 1.12; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-info { rotate: 12deg; scale: 1.12; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-undo { rotate: -40deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-redo { rotate: 40deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-acts { rotate: 90deg; scale: 1.12; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-spark { rotate: 18deg; scale: 1.12; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-wand { rotate: -18deg; scale: 1.08; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-plus { rotate: 90deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-x { rotate: 90deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-grid { rotate: 90deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-sun { rotate: 90deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-moon { rotate: -20deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-beat { rotate: -12deg; scale: 1.08; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-save { translate: 0 -2px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-bulb { translate: 0 -1.5px; filter: drop-shadow(0 0 4px var(--accent)); }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-ad { rotate: -10deg; translate: 0 -1px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-bin { rotate: -10deg; translate: 0 -1px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-lib { rotate: -6deg; scale: 1.08; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-focus { scale: 1.15; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-move { translate: 2px 0; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-grip { scale: 1.12; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-ppl { translate: 0 -2px; scale: 1.06; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-star { rotate: 72deg; scale: 1.1; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-gear { rotate: 90deg; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-play { scale: 1.15; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) :is(.ic-share, .ic-up) path:first-child { translate: 0 -3px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-dl path:first-child { translate: 0 3px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-col path { translate: -3px 0; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-menu path { transform-origin: 0 50%; scale: .72 1; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-down { translate: 0 2px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-copy rect { translate: 1.5px -1.5px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-drafts path:first-child { translate: 0 -2.5px; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-dots circle:first-child { translate: -2.5px 0; } :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-dots circle:last-child { translate: 2.5px 0; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-mic { animation: ic-wig .5s ease-in-out; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-flame { animation: ic-flick .7s ease-in-out infinite alternate; transform-origin: 50% 90%; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-flow path { animation: ic-draw .7s ease-out; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-check path { animation: ic-draw .5s ease-out; } :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-check circle { scale: 1.1; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-tpl rect:nth-child(2) { translate: 4px 0; } :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-tpl rect:nth-child(3) { translate: 2px 0; }
+  :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-rf .rf-a { scale: 1.3; } :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-rf .rf-b { scale: 1.3; transition-delay: .08s; } :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-rf .rf-ln { stroke-dashoffset: 0; } :is(button,a,label,[role=button]):is(:hover,:focus-visible) .ic-rf .rf-l2 { translate: 1.5px 0; }
+}
+.ic-flow path, .ic-check path { stroke-dasharray: 1; }
+.ic-menu path { transform-origin: 0 50%; } .ic-flame { transform-origin: 50% 90%; }
+:is(button,a,label,[role=button]):active .ic { scale: .84; transition-duration: .12s; }
+:is(button,a,label,[role=button]):active .ic-gear { rotate: 240deg; } :is(button,a,label,[role=button]):active .ic-acts, :is(button,a,label,[role=button]):active .ic-plus { rotate: 180deg; }
+@keyframes ic-wig { 0%, 100% { rotate: 0deg; } 25% { rotate: -14deg; } 60% { rotate: 10deg; } }
+@keyframes ic-flick { from { scale: 1 1; } to { scale: .92 1.12; } }
+@keyframes ic-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@media (prefers-reduced-motion: reduce) { .ic, .ic * { translate: none !important; rotate: none !important; scale: none !important; animation: none !important; transition: none !important; } }
+html.mo-off .ic, html.mo-off .ic * { translate: none !important; rotate: none !important; scale: none !important; animation: none !important; }
 @media (max-width: 700px) { .hbtns > #hdDay { grid-row: 1; grid-column: 4; margin: 3px 0 0; } .hbtns { grid-template-columns: auto auto auto auto; } }
 #zoneBtn { text-decoration: none; }
 @media (max-width: 1080px) { header > .hright { align-items: start; } header > .hright > .readout { margin-top: calc((36px - 1lh) / 2); } }   /* readout lines up with the top row */
@@ -2853,6 +2911,7 @@ html.bb.bb-day .bs-mark .mk-bg { fill: var(--dz-bg1, #f7f8f9); stroke: #fff; }
 html.bb.bb-day .bs-mark .mk1, html.bb.bb-day .bs-mark .mk6 { stroke: var(--t-rw); } html.bb.bb-day .bs-mark .mk2 { stroke: var(--t-rhy); } html.bb.bb-day .bs-mark .mk3 { stroke: var(--t-rec); } html.bb.bb-day .bs-mark .mk4 { stroke: var(--t-ad); } html.bb.bb-day .bs-mark .mk5 { stroke: var(--t-add); }
 /* Templates (2026-11-13): song structure templates, button next to the section pill */
 html.bb .be-tplb svg { color: var(--accent); }
+html.bb .be-rfb svg { color: var(--fg); } html.bb .be-rfb .rf-a, html.bb .be-rfb .rf-b { fill: var(--accent); stroke: none; } html.bb .be-rfb .rf-ln { stroke: var(--accent); stroke-width: 2.2; stroke-dasharray: 1; stroke-dashoffset: .5; }
 .be-tpl .tp-intro { margin: 0; color: var(--muted); font-size: .9rem; line-height: 1.45; }
 .be-tpl .tp-favl { margin: 0; padding: 9px 12px; border: 1px solid var(--line); border-radius: 10px; font-size: .88rem; }
 .be-tpl .tp-card { display: grid; gap: 8px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--card2); }
@@ -2870,7 +2929,7 @@ html.bb .be-tplb svg { color: var(--accent); }
 .be-tpl .tp-row .num-in { height: 38px; padding: 0 10px; text-align: left; } .be-tpl .tp-row small { color: var(--muted); font-size: .8rem; }
 .be-tpl .tp-prev { display: grid; gap: 6px; padding: 10px 12px; border: 1px dashed var(--line); border-radius: 12px; }
 .be-tpl .tp-fl { display: flex; align-items: center; gap: 6px; font-size: .9rem; } .be-tpl > div > .btn:first-child { justify-self: start; }
-@media (max-width: 640px) { html.bb .be-tplb span { display: none; } html.bb .be-tplb { padding: 0 10px; } }
+@media (max-width: 640px) { html.bb .be-tplb span, html.bb .be-rfb span { display: none; } html.bb .be-tplb, html.bb .be-rfb { padding: 0 10px; } }
 /* Section menu (Bennie 2026-11-14): five items, Add / Add on top open in place as a liquid accordion ("Spillway", Nimbus UI by Guglielmo Giannattasio, MIT; vanilla port) */
 .be-menu.be-secm { min-width: 15rem; max-height: none; overflow: visible; isolation: isolate; animation: beSecIn .22s cubic-bezier(.2, .8, .2, 1) both; }
 @keyframes beSecIn { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
@@ -3127,7 +3186,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
       <div class="readout"><span class="ro-k">bar <b id="barNo">1</b>/<b id="barTot">4</b></span> · <span class="ro-k"><b id="bpmOut">145</b> BPM</span> · <span id="state">stopped</span></div>
-      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
+      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg class="ic ic-find" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg class="ic ic-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg class="ic ic-ppl" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
     </div>
   </header>
   <script>document.getElementById('hdDay').addEventListener('click', function () { mbDayToggle(); }); mbTheme();</script>
@@ -3568,17 +3627,17 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 
   </div>
   <div id="viewBook" class="rb" hidden>
-    <button class="bk-fab" type="button" id="bkFab" aria-controls="bkBeat" aria-expanded="false" aria-label="Beat" title="Beat: play, pick or search a beat (Alt+P plays and pauses)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span class="bk-eq" aria-hidden="true"><i></i><i></i><i></i></span><svg class="bk-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"/></svg></button>
+    <button class="bk-fab" type="button" id="bkFab" aria-controls="bkBeat" aria-expanded="false" aria-label="Beat" title="Beat: play, pick or search a beat (Alt+P plays and pauses)"><svg class="ic ic-beat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg><span class="bk-eq" aria-hidden="true"><i></i><i></i><i></i></span><svg class="bk-ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30"/></svg></button>
     <section class="bk-beat" id="bkBeat" aria-label="Beat player" data-src="none" data-tab="yt">
       <div class="bk-hd"><b>Beat</b>
         <div class="bk-tabs" role="group" aria-label="Where the beat comes from"><button type="button" data-tab="file" aria-pressed="false">My file</button><button type="button" data-tab="yt" aria-pressed="true">YouTube</button><button type="button" data-tab="sc" aria-pressed="false">SoundCloud</button></div>
-        <button class="bk-ib" type="button" id="bkTuck" title="Tuck the player away. The beat keeps playing." aria-label="Tuck the player away"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="bk-ib" type="button" id="bkTuck" title="Tuck the player away. The beat keeps playing." aria-label="Tuck the player away"><svg class="ic ic-down" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
       </div>
       <div class="bk-vid" id="bkVid" hidden><div id="bkYt"></div></div>
       <div class="bk-scbox" id="bkScBox" hidden></div>
       <div class="bk-now">
         <div class="bk-l">
-          <button class="bk-play" type="button" id="bkPlay" aria-label="Play the beat" title="Play / pause (Alt+P)" disabled><svg class="i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg><svg class="i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z" fill="currentColor"/></svg></button>
+          <button class="bk-play" type="button" id="bkPlay" aria-label="Play the beat" title="Play / pause (Alt+P)" disabled><svg class="ic ic-play" class="i-play" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg><svg class="i-pause" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7.5 5h3v14h-3zM13.5 5h3v14h-3z" fill="currentColor"/></svg></button>
           <div class="bk-meta"><b id="bkName">No beat</b><small id="bkSub">Pick a file, or a YouTube or SoundCloud link</small></div>
         </div>
         <div class="bk-r">
@@ -10530,11 +10589,14 @@ var BE = (() => {
     spark: sv('<path d="M10 3.5l1.7 4.6 4.6 1.7-4.6 1.7L10 16.1l-1.7-4.6-4.6-1.7 4.6-1.7z"/><path d="M18 13.5l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8zM17.5 3.5l.5 1.3 1.3.5-1.3.5-.5 1.3-.5-1.3-1.3-.5 1.3-.5z"/>', 16),
     dots: sv('<circle cx="6" cy="12" r="1.3" fill="currentColor"/><circle cx="12" cy="12" r="1.3" fill="currentColor"/><circle cx="18" cy="12" r="1.3" fill="currentColor"/>', 18),
     down: sv('<path d="M7 10l5 5 5-5"/>', 14), find: sv('<circle cx="11" cy="11" r="6"/><path d="M20 20l-4.5-4.5"/>', 17),
-    flow: sv('<path d="M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6"/>', 17), menu: sv('<path d="M4 7h16M4 12h16M4 17h16"/>', 18),
+    flow: sv('<path pathLength="1" d="M3 15c3 0 3-6 6-6s3 6 6 6 3-6 6-6"/>', 17), menu: sv('<path d="M4 7h16M4 12h16M4 17h16"/>', 18),
     info: sv('<circle cx="12" cy="12" r="8.5"/><path d="M12 11v5M12 8h.01"/>', 15), focus: sv('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>', 16),
     beat: sv('<path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/>', 17), save: sv('<path d="M6 4h12v16l-6-4-6 4z"/>', 17),
-    check: sv('<circle cx="12" cy="12" r="8"/><path d="M8.5 12.2l2.4 2.4 4.6-5"/>', 17), flame: sv('<path d="M12 21c4 0 6.5-2.6 6.5-6.2 0-3.6-2.6-5.6-3.7-9.3-2 1.6-2.6 3.6-2.6 5.3C11 9.3 9.7 8 9.3 6.3 7 8.3 5.5 11.4 5.5 14.8 5.5 18.4 8 21 12 21z"/>', 16)
+    check: sv('<circle cx="12" cy="12" r="8"/><path pathLength="1" d="M8.5 12.2l2.4 2.4 4.6-5"/>', 17), flame: sv('<path d="M12 21c4 0 6.5-2.6 6.5-6.2 0-3.6-2.6-5.6-3.7-9.3-2 1.6-2.6 3.6-2.6 5.3C11 9.3 9.7 8 9.3 6.3 7 8.3 5.5 11.4 5.5 14.8 5.5 18.4 8 21 12 21z"/>', 16)
   };
+  // every icon carries its name (svg.ic.ic-<name>) so each one gets its own small motion (icon pass 2026-11-14)
+  for (const k in IC) IC[k] = IC[k].replace('<svg ', '<svg class="ic ic-' + k + '" ');
+
   const btn = (cls, html, title, label) => { const b = h('button', cls); b.type = 'button'; b.innerHTML = html; if (title) b.title = title; if (label) b.setAttribute('aria-label', label); return b; };
   const page = () => (typeof rbPage === 'function' ? rbPage() : null);
   const locked = () => { const p = page(); return !p || !!p.locked; };
@@ -10548,7 +10610,7 @@ var BE = (() => {
   const findBtn = btn('be-ib', IC.find, 'Search this song (Ctrl+F)', 'Search this song'); findBtn.setAttribute('aria-pressed', 'false');
   const zenBtn = btn('be-ib', IC.focus, 'Focus: only your page and a live list of rhymes. Esc brings everything back.', 'Focus');
   const moreBtn = btn('be-ib', IC.dots, 'Page settings and actions', 'More'); moreBtn.setAttribute('aria-haspopup', 'dialog');
-  const undoBtn = btn('be-ib', sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', 17), 'Undo (Ctrl/⌘+Z)', 'Undo'), redoBtn = btn('be-ib', sv('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', 17), 'Redo (Ctrl/⌘+Shift+Z)', 'Redo');
+  const undoBtn = btn('be-ib', sv('<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>', 17).replace('<svg ', '<svg class="ic ic-undo" '), 'Undo (Ctrl/⌘+Z)', 'Undo'), redoBtn = btn('be-ib', sv('<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>', 17).replace('<svg ', '<svg class="ic ic-redo" '), 'Redo (Ctrl/⌘+Shift+Z)', 'Redo');
   undoBtn.disabled = redoBtn.disabled = true; [undoBtn, redoBtn].forEach(b => b.addEventListener('mousedown', e => e.preventDefault()));
   head.append(drawerTg, secBtn, h('span', 'be-sp'), undoBtn, redoBtn, flowBtn, findBtn, zenBtn, moreBtn);
   const find = h('div', 'be-find'); find.hidden = true;
@@ -11949,9 +12011,15 @@ var BX = (() => {
   const aiSetup = () => { rbTool('ai', true); if (innerWidth <= 1000) $('rbSide').classList.add('open'); const s = $('aiSet'); if (s) s.open = true; const b = document.querySelector('.rb-tool[data-tool="ai"]'); if (b && b.scrollIntoView) b.scrollIntoView({ block: 'nearest' }); };
 
   // ---- head buttons: Rhyme Finder + Share (next to ⋯)
-  const rfB = btn('be-ib', sv('<path d="M4 6h8M4 12h5M4 18h8"/><circle cx="16.5" cy="13.5" r="3.5"/><path d="M19 16l2.5 2.5"/>', 17), 'Rhyme Finder (Ctrl/⌘+J)', 'Rhyme Finder');
-  const shB = btn('be-ib', sv('<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 13v6h14v-6"/>', 17), 'Share: a card with your rhymes lit, copy lyrics or save .txt', 'Share');
-  BE.head.insertBefore(rfB, BE.moreBtn); BE.head.insertBefore(shB, BE.moreBtn);
+  // Rhyme Finder (Bennie 2026-11-14: "make something creative that fits my template and my colors, next to Templates"):
+  // a pill like Templates. Its icon is two bars whose last words rhyme: two red end dots joined by a link that draws
+  // itself on hover, the way the Highlight Zone pairs rhymes. Moved next to Templates by the TPL script.
+  const RFI = '<svg class="ic ic-rf" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + '<path class="rf-l1" d="M2.5 6.5h10"/><path class="rf-l2" d="M2.5 17.5h8"/><path class="rf-ln" pathLength="1" d="M19.4 8.9c2.6 2 2.4 5.6-1.8 7.2"/>'
+    + '<circle class="rf-a" cx="17" cy="6.5" r="3"/><circle class="rf-b" cx="15" cy="17.5" r="3"/></svg>';
+  const rfB = btn('be-pill be-rfb', RFI + '<span>Rhymes</span>', 'Rhyme Finder: type a word, get rhymes, multis and near rhymes (Ctrl/⌘+J)', 'Rhyme Finder'); rfB.id = 'beRf';
+  const shB = btn('be-ib', sv('<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 13v6h14v-6"/>', 17).replace('<svg ', '<svg class="ic ic-share" '), 'Share: a card with your rhymes lit, copy lyrics or save .txt', 'Share');
+  BE.secBtn.after(rfB); BE.head.insertBefore(shB, BE.moreBtn);
   rfB.addEventListener('click', () => finder()); shB.addEventListener('click', () => share());
 
   // ---- Rhyme Finder: type a word, click a result to put it at your cursor (Shift-click copies)
@@ -12196,6 +12264,8 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
     ring: sv('<circle cx="12" cy="12" r="8.5"/>', 22), share: sv('<path d="M12 4v11M8 8l4-4 4 4"/><path d="M5 13v6h14v-6"/>', 17),
     acts: sv('<path d="M12 4l1.8 5.2L19 11l-5.2 1.8L12 18l-1.8-5.2L5 11l5.2-1.800z"/>', 17), x: sv('<path d="M6 6l12 12M18 6L6 18"/>', 15)
   };
+  // every icon carries its name (svg.ic.ic-<name>) so each one gets its own small motion (icon pass 2026-11-14)
+  for (const k in I) I[k] = I[k].replace('<svg ', '<svg class="ic ic-' + k + '" ');
   { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap'; document.head.append(l); }
 
   // ---- day (white page, default) or night (the dark look) (Bennie 2026-11-13); the toggle sits in the sidebar header
@@ -12641,10 +12711,10 @@ function tplBoot() { if (TPL.use) return; TPL = (() => {
   $('rbNew').addEventListener('click', () => { const t = byId(fav()); if (t && pageEmpty()) applyHere(t); });
 
   // ---- the button, next to the section pill
-  const ICT = sv('<rect x="4" y="4" width="16" height="4" rx="1.2"/><rect x="4" y="10" width="10" height="4" rx="1.2"/><rect x="4" y="16" width="13" height="4" rx="1.2"/>', 16);
+  const ICT = sv('<rect x="4" y="4" width="16" height="4" rx="1.2"/><rect x="4" y="10" width="10" height="4" rx="1.2"/><rect x="4" y="16" width="13" height="4" rx="1.2"/>', 16).replace('<svg ', '<svg class="ic ic-tpl" ');
   const STAR = on => sv('<path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"' + (on ? ' fill="currentColor"' : '') + '/>', 17);
   const tb = btn('be-pill be-tplb', ICT + '<span>Templates</span>', 'Song structure templates: start a song from one, make your own, star one for every new song');
-  tb.setAttribute('aria-haspopup', 'dialog'); BE.secBtn.after(tb);
+  tb.setAttribute('aria-haspopup', 'dialog'); BE.secBtn.after(tb); { const rf = document.getElementById('beRf'); if (rf) tb.after(rf); }   // Rhyme Finder sits right after Templates
 
   // ---- the dialog
   const D = document.createElement('dialog'); D.className = 'bs-dlg be-tpl'; D.setAttribute('aria-label', 'Templates');
