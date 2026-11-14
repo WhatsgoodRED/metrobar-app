@@ -63,9 +63,7 @@ try { matchMedia('(prefers-color-scheme: dark)').addEventListener('change', func
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MetroBar">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<link rel="stylesheet" href="fonts/fonts.css"><!-- self-hosted, no Google requests (GDPR) -->
 <style>
 /* make-way transition (mwGo): the tab pill waits while the boxes slide back, then fades in */
 html.mw-run .views > .ff-cv { opacity: 0; transition: none; } .views > .ff-cv { transition: opacity .3s; }
@@ -8068,7 +8066,7 @@ RB.seen = {}; RB.pages.concat(RB.bin).forEach(p => { RB.seen[p.id] = Math.max(+p
 if (!store.get('metrobar.bookWhite', false)) { RB.look.shell = 'light'; if (RB.look.theme === 'dark') RB.look.theme = 'white'; store.set('metrobar.bookLook', RB.look); store.set('metrobar.bookWhite', true); }
 const RB_THEMES = { white: 'White', dark: 'MetroBar dark', paper: 'Paper', notebook: 'Notebook', sky: 'Sky', blush: 'Blush', night: 'Night', studio: 'Studio', chalk: 'Chalkboard' };
 const RB_FONTS = { sans: 'Clean', rounded: 'Rounded', serif: 'Book', type: 'Typewriter', mono: 'Mono', hand: 'Marker' };
-// More fonts (Bennie 2026-11-08): Google Fonts, loaded only when picked; the page and its colour mirror both use --rb-font
+// More fonts (Bennie 2026-11-08): Google Fonts, self-hosted in fonts/ (2026-11-14, GDPR), loaded only when picked; the page and its colour mirror both use --rb-font
 const RB_GFONTS = {
   Sans: ['Inter', 'Poppins', 'Montserrat', 'DM Sans', 'Work Sans', 'Space Grotesk', 'Manrope', 'Outfit', 'Lexend', 'Rubik', 'Nunito', 'Quicksand', 'Karla', 'Barlow'],
   Serif: ['Merriweather', 'Lora', 'Playfair Display', 'EB Garamond', 'Libre Baskerville', 'Crimson Pro', 'Bitter', 'Zilla Slab'],
@@ -8079,10 +8077,11 @@ const RB_GFONTS = {
 const RB_GFALL = { Sans: 'system-ui, sans-serif', Serif: 'Georgia, serif', Handwriting: 'cursive', Typewriter: 'monospace', Display: 'Impact, sans-serif' };
 function rbGFont(name) {   // load one Google font once; returns its CSS family list, or null
   const grp = Object.keys(RB_GFONTS).find(g => RB_GFONTS[g].includes(name)); if (!grp) return null;
-  const id = 'gf-' + name.replace(/\W+/g, '-');
+  const id = 'gf-picker';   // every picker font is self-hosted in fonts/picker.css; a face downloads only when used
   if (!document.getElementById(id)) { const l = document.createElement('link'); l.id = id; l.rel = 'stylesheet';
-    l.href = 'https://fonts.googleapis.com/css2?family=' + encodeURIComponent(name).replace(/%20/g, '+') + ':wght@400;700&display=swap'; document.head.append(l);
-    if (document.fonts) document.fonts.load(`16px "${name}"`).then(() => { if (location.hash === '#book') { rbGrow(); rbPaint(); } }).catch(() => {}); }
+    l.href = 'fonts/picker.css'; document.head.append(l); }
+  if (document.fonts) { const go = () => document.fonts.load(`16px "${name}"`).then(() => { if (location.hash === '#book') { rbGrow(); rbPaint(); } }).catch(() => {});
+    const l = document.getElementById(id); if (l.sheet) go(); else l.addEventListener('load', go, { once: true }); }
   return `"${name}", ${RB_GFALL[grp]}`;
 }
 function rbPage() { return RB.pages.find(p => p.id === RB.cur); }
@@ -12349,8 +12348,7 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   };
   // every icon carries its name (svg.ic.ic-<name>) so each one gets its own small motion (icon pass 2026-11-14)
   for (const k in I) I[k] = I[k].replace('<svg ', '<svg class="ic ic-' + k + '" ');
-  { const l = document.createElement('link'); l.rel = 'stylesheet'; l.href = 'https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap'; document.head.append(l); }
-
+  
   // ---- day (white page, default) or night (the dark look) (Bennie 2026-11-13); the toggle sits in the sidebar header
   const isDay = () => mbDay();
   const look0 = rbApplyLook;
@@ -12517,12 +12515,10 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
       const BUILT = { sans: 'system-ui, -apple-system, "Segoe UI", sans-serif', rounded: 'ui-rounded, "SF Pro Rounded", "Nunito", "Arial Rounded MT Bold", system-ui, sans-serif',
         serif: '"Iowan Old Style", Georgia, "Times New Roman", serif', type: '"American Typewriter", "Courier New", Courier, monospace', mono: 'var(--mono)',
         hand: '"Marker Felt", "Bradley Hand", "Segoe Print", "Comic Sans MS", cursive' };
-      const fam = v => v.startsWith('g:') ? `"pv ${v.slice(2)}", "${v.slice(2)}", system-ui, sans-serif` : BUILT[v] || 'inherit';
+      const fam = v => v.startsWith('g:') ? `"${v.slice(2)}", system-ui, sans-serif` : BUILT[v] || 'inherit';
       const nameOf = v => v.startsWith('g:') ? v.slice(2) : (RB_FONTS[v] || v);
       let pvOn = false;
-      const pv = () => { if (pvOn) return; pvOn = true; const all = Object.values(RB_GFONTS).flat(), chars = [...new Set(all.join(''))].join('');
-        const url = 'https://fonts.googleapis.com/css2?' + all.map(n => 'family=' + encodeURIComponent(n).replace(/%20/g, '+')).join('&') + '&text=' + encodeURIComponent(chars) + '&display=swap';
-        fetch(url).then(r => r.ok ? r.text() : '').then(css => { if (!css) return; const st = document.createElement('style'); st.textContent = css.replace(/font-family:\s*'([^']+)'/g, "font-family: 'pv $1'"); document.head.append(st); }).catch(() => {}); };
+      const pv = () => { if (pvOn) return; pvOn = true; rbGFont(RB_GFONTS.Sans[0]); };   // self-hosted picker.css; each name downloads only its own face
       const fb = h('button', 'bs-fontb'); fb.type = 'button'; fb.setAttribute('aria-haspopup', 'listbox'); fb.setAttribute('aria-expanded', 'false');
       const list = h('div', 'bs-fonts'); list.hidden = true; list.setAttribute('role', 'listbox'); list.setAttribute('aria-label', 'Font');
       const show = () => { const v = sel.value; fb.textContent = nameOf(v); fb.style.fontFamily = fam(v); list.querySelectorAll('[role=option]').forEach(o => o.setAttribute('aria-selected', String(o.dataset.v === v))); };
