@@ -137,6 +137,7 @@ html.mo-full .logo.run .logo-sub i.on { background: var(--accent); color: var(--
 .hright { display: grid; gap: 6px; justify-items: end; }
 .readout { font-family: var(--mono); font-variant-numeric: tabular-nums; color: var(--muted); font-size: .9rem; }
 .readout b { color: var(--fg); font-weight: 600; }
+.readout .ro-k, .readout #state { white-space: nowrap; }   /* phones: never break "145 / BPM" across lines */
 
 /* Deck: the pendulum metronome standing on its own (no box) above the beat-tile box. Both run off the Web Audio clock in draw():
    the rod reaches its extreme exactly on each beat (where you hear the click) and swings across in between,
@@ -2461,6 +2462,20 @@ html.bb.bb-day .bs-sw button { box-shadow: 0 0 0 1px #d9dce0, 0 0 14px -2px var(
 html.bb.bb-day .bs-sw button[aria-checked="true"] { border-color: var(--fg); box-shadow: 0 0 0 2px #fff inset, 0 0 20px 0 var(--c); }
 @media (prefers-reduced-motion: reduce) { html.bb .be-rb:hover, html.bb .be-links > button:hover { transform: none; } }
 @media (max-width: 640px) { html.bb .be-head [aria-label="Redo"], html.bb .be-head [aria-label="Rhyme Finder"], html.bb .be-head [aria-label="Share"] { display: none; } html.bb #bsFlowB { padding: 0; border-color: transparent; } html.bb .be-pill { padding: 0 8px 0 12px; } }
+/* phones (mobile pass 2026-11-14): the top bar was 8 controls in one 390px row, so the song title read "UNTI..." and the
+   section pill "V..". Two rows now: drawer, title, Actions on top; section pill (full width), templates, undo, High-Light,
+   search under it. The sticky search row follows the taller bar (--be-hh). */
+@media (max-width: 640px) {
+  html.bb { --be-hh: 98px; }
+  html.bb .be-head { flex-wrap: wrap; height: auto; min-height: var(--be-hh); padding: 6px 10px; row-gap: 6px; align-content: center; }
+  html.bb .be-head > * { order: 4; }
+  html.bb .be-head > #beDrawerTg { order: 0; }
+  html.bb .be-head > #rbTitle { order: 1; flex: 1 1 0; min-width: 0; }
+  html.bb .be-head > #bsAct { order: 2; }
+  html.bb .be-head > .be-sp { order: 3; flex: 0 0 100%; height: 0; }
+  html.bb .be-head > #beSec { flex: 1 1 auto; min-width: 0; justify-content: space-between; }
+  html.bb .be-find { top: var(--be-hh); }
+}
 html.bb .be-row > .bs-chk { grid-column: 1 / -1; width: min(46rem, 100%); justify-self: center; text-align: left; }
 @media (min-width: 1001px) { html.bb:not(.bb-nolib) #beDrawerTg { display: none; } html.bb.bb-nolib #beDrawerTg { display: inline-flex; } }
 html.bb .be-row:not(.has) .be-meter { visibility: hidden; }
@@ -2722,6 +2737,7 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
 .hz-sample { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: 57; display: flex; align-items: center; gap: 12px; width: max-content; max-width: calc(100vw - 32px - 80px); padding: 8px 8px 8px 16px; border: 1px solid #ffffff1f; border-radius: 14px; background: #111315; color: #f2f2f2; box-shadow: 0 12px 36px #0006; font: 500 .88rem/1.35 var(--body); }
 .hz-sample b { font-weight: 600; } .hz-sample .hz-n { font-family: var(--mono); color: #a3a7ab; white-space: nowrap; }
 .hz-sample button { flex: none; padding: 8px 12px; border: 0; border-radius: 10px; background: var(--accent); color: var(--bb-on, #fff); font: 600 .85rem var(--body); cursor: pointer; }
+@media (max-width: 640px) { .hz-sample .hz-long { display: none; } .hz-sample { gap: 10px; padding-left: 14px; } }   /* phones: one line, the counter says the rest */
 @media (max-width: 1000px) { .hz-sample { left: 16px; transform: none; bottom: calc(16px + var(--bk-dock, 0px)); max-width: calc(100vw - 32px - 72px); } }
 .hz-card .hz-row > * { flex: 1 1 auto; padding: 10px 12px; border: 1px solid #ffffff24; border-radius: 12px; background: none; color: inherit; font: 500 .9rem var(--body); text-align: center; text-decoration: none; cursor: pointer; }
 /* Menu = four tiles exactly as wide as the 1 2 3 4 tiles under the wordmark (Bennie 2026-11-13): same width, same 6px gap,
@@ -2756,6 +2772,28 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 #hdDay .smt-k::before { width: 7px; height: 7px; left: 4px; top: 5px; } #hdDay .smt-k::after { width: 4px; height: 4px; left: 12px; top: 13px; }
 #hdDay .smt-cl { right: 6px; bottom: -6px; width: 15px; height: 14px; box-shadow: -9px 4px 0 1px #fff, 7px 5px 0 0 #fff; }
 #hdDay .smt-st { left: 10px; top: 8px; width: 3px; height: 3px; box-shadow: 9px 7px 0 0 #fff, 16px -3px 0 -.5px #fff, 5px 13px 0 -.5px #fff; }
+/* Day/night switch in MetroBar's colours (Bennie 2026-11-14: "a red sun, grey skies, and when you switch it should look like
+   a solar eclipse for night mode"). Day = grey cloudy sky + red sun. Night = the moon (.smt-k::before) slides over the sun
+   and covers it; what's left is the red corona ring (the sun's box-shadow) and a bright "diamond ring" bead (::after).
+   :is(.smt, #hdDay) so this beats the per-size crater rules above (#hdDay, .smt-lg). Same CSS goes into the Studio copy. */
+.smt { background: linear-gradient(180deg, #8f9893 0%, #bcc3be 55%, #d3d8d1 100%); box-shadow: inset 0 1px 3px #0005, 0 0 0 1px #0002; }
+.smt::before { background: radial-gradient(120% 140% at 70% 0%, #1d2321 0%, #0b0d0d 70%); }
+.smt-cl { background: #e9ece8; box-shadow: -7px 3px 0 1px #dfe3de, 5px 4px 0 0 #f4f5f3; }
+.smt-lg .smt-cl { box-shadow: -11px 4px 0 1px #dfe3de, 8px 6px 0 0 #f4f5f3; } #hdDay .smt-cl { box-shadow: -9px 4px 0 1px #dfe3de, 7px 5px 0 0 #f4f5f3; }
+.smt-st { background: #c9cfcb; }
+:is(.smt, #hdDay) .smt-k { background: radial-gradient(circle at 36% 34%, #e2392e 0%, #af0000 58%, #7a0000 100%); box-shadow: 0 0 8px 1px rgb(175 0 0 / .55), inset -1px -2px 3px rgb(80 0 0 / .45);
+  transition: translate var(--smt-d) var(--smt-e), scale .2s ease-out, box-shadow var(--smt-d) ease; }
+:is(.smt, #hdDay) .smt-k::before { left: 0; top: 0; width: 100%; height: 100%; background: radial-gradient(circle at 40% 38%, #232826, #0c0e0e 70%); opacity: 0; translate: -140% 0; transition: translate var(--smt-d) cubic-bezier(.3, .7, .2, 1), opacity calc(var(--smt-d) * .5) ease; }
+:is(.smt, #hdDay) .smt-k::after { left: auto; right: -12%; top: -10%; width: 34%; height: 34%; background: #fff; opacity: 0; scale: .2; box-shadow: 0 0 3px 1px #fff, 0 0 7px 2px #ff6a5c; transition: opacity .25s ease, scale .35s var(--smt-e); }
+:is(.smt, #hdDay)[aria-checked="true"] .smt-k { background: radial-gradient(circle at 36% 34%, #e2392e 0%, #af0000 58%, #7a0000 100%);
+  box-shadow: 0 0 0 1.5px #ff4a3d, 0 0 6px 2px rgb(255 74 61 / .85), 0 0 14px 5px rgb(175 0 0 / .55); }
+:is(.smt, #hdDay)[aria-checked="true"] .smt-k::before { opacity: 1; translate: 0 0; }
+:is(.smt, #hdDay)[aria-checked="true"] .smt-k::after { opacity: 1; scale: 1; transition-delay: calc(var(--smt-d) * .8); }
+:root[data-theme="dark"] .smt { box-shadow: inset 0 1px 3px #0008, 0 0 0 1px #ffffff1a; }
+/* phones: the Highlight Zone switch sits in the editor's top bar (moved there by script, class .smt-hb) */
+html.bb .be-head > #bsDay.smt-hb { display: block; position: relative; right: auto; bottom: auto; z-index: auto; width: 46px; height: 26px; margin: 0 2px; box-shadow: inset 0 1px 3px #0005, 0 0 0 1px #0002; }
+html.bb .be-head > #bsDay.smt-hb .smt-k { top: 3px; left: 3px; width: 20px; height: 20px; }
+html.bb .be-head > #bsDay.smt-hb[aria-checked="true"] .smt-k { translate: 20px 0; }
 @media (max-width: 700px) { .hbtns > #hdDay { grid-row: 1; grid-column: 4; margin: 3px 0 0; } .hbtns { grid-template-columns: auto auto auto auto; } }
 #zoneBtn { text-decoration: none; }
 @media (max-width: 1080px) { header > .hright { align-items: start; } header > .hright > .readout { margin-top: calc((36px - 1lh) / 2); } }   /* readout lines up with the top row */
@@ -3088,7 +3126,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <h1 class="sr-only" id="scrName">MetroBar</h1>
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
-      <div class="readout">bar <b id="barNo">1</b>/<b id="barTot">4</b> · <b id="bpmOut">145</b> BPM · <span id="state">stopped</span></div>
+      <div class="readout"><span class="ro-k">bar <b id="barNo">1</b>/<b id="barTot">4</b></span> · <span class="ro-k"><b id="bpmOut">145</b> BPM</span> · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
     </div>
   </header>
@@ -12196,6 +12234,14 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   dayB.addEventListener('click', () => mbDayToggle());
   mbTheme();
   brand.append(bname, homeB, colB); dayB.classList.add('smt-lg'); { const fab = document.getElementById('bkFab'); if (fab) fab.before(dayB); else document.body.append(dayB); mbTheme(); }
+  // phones (mobile pass 2026-11-14): the floating switch sat on top of the bars' ⋯ buttons; on <=640px it moves into the
+  // editor's top bar (row 1, before Actions) and back above the Beat button on wider screens
+  { const mq = matchMedia('(max-width: 640px)'), place = () => {
+      const head = document.querySelector('.be-head'), act = document.getElementById('bsAct');
+      if (mq.matches && head && act) { if (dayB.parentElement !== head) act.before(dayB); dayB.classList.add('smt-hb'); }
+      else if (dayB.classList.contains('smt-hb')) { dayB.classList.remove('smt-hb'); const fab = document.getElementById('bkFab'); if (fab) fab.before(dayB); else document.body.append(dayB); }
+    };
+    mq.addEventListener('change', place); place(); setTimeout(place, 0); }
   homeB.addEventListener('click', () => mwGo('#practice'));
   colB.addEventListener('click', () => nolib(true));
   const all = h('div', 'bs-all'), allA = btn('a', `<span>${I.lib}</span><b>All songs</b><small></small>`, 'Your full library'), allS = btn('s', IC.find, 'Search your songs', 'Search your songs'); all.append(allA, allS);
@@ -12873,7 +12919,7 @@ var HZG = (function () {
     if (gate) { gate.remove(); gate = null; } const v = document.getElementById('viewBook'); if (v) v.inert = false;
     if (!bar) { bar = document.createElement('div'); bar.className = 'hz-sample'; bar.setAttribute('role', 'status'); document.body.append(bar); }
     const n = bars();
-    bar.innerHTML = `<span><b>Free sample.</b> Write ${SAMPLE_BARS} bars and watch your rhymes light up.</span><span class="hz-n">${n}/${SAMPLE_BARS}</span><button type="button">${mode === 'in' ? 'Sign in' : 'Get Pro'}</button>`;
+    bar.innerHTML = `<span><b>Free sample.</b><span class="hz-long"> Write ${SAMPLE_BARS} bars and watch your rhymes light up.</span></span><span class="hz-n">${n}/${SAMPLE_BARS} bars</span><button type="button">${mode === 'in' ? 'Sign in' : 'Get Pro'}</button>`;
     bar.querySelector('button').addEventListener('click', () => { mode === 'in' ? acctOpen('in') : aiPaywall('zone'); });
   }
   document.addEventListener('input', e => { if (sampleMode && e.target && e.target.id === 'rbText') sample(sampleMode); }, true);
