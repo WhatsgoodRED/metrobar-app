@@ -1848,35 +1848,41 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 /* Entry (Bennie 2026-11-14): under Advanced, as wide as the logo, an arcade button: dark cabinet, a bar of dots that
    pulse like targets, a red PLAY key that sinks when pressed */
 #viewPractice > .tg-entry { display: grid; justify-items: center; min-width: 0; margin-top: 6px; }
+/* light page = light cabinet in the logo tile's grey; dark page = the black cabinet */
+.tg-ebtn { --tge-bg: linear-gradient(180deg, color-mix(in srgb, var(--cell) 70%, #fff) 0%, var(--cell) 100%); --tge-edge: var(--line); --tge-hi: rgba(255,255,255,.75);
+  --tge-base: color-mix(in srgb, var(--cell) 70%, #000); --tge-sh: rgba(17,20,19,.25); --tge-dot: color-mix(in srgb, var(--fg) 12%, transparent);
+  --tge-dot1: color-mix(in srgb, var(--fg) 22%, transparent); --tge-shine: rgba(255,255,255,.55); }
+:root[data-theme="dark"] .tg-ebtn { --tge-bg: radial-gradient(120% 90% at 0% 0%, #2a2f2d 0%, #151817 60%, #0e100f 100%); --tge-edge: #000; --tge-hi: rgba(255,255,255,.08);
+  --tge-base: #050606; --tge-sh: rgba(0,0,0,.55); --tge-dot: #2c312f; --tge-dot1: #3a403d; --tge-shine: rgba(255,255,255,.07); }
 .tg-ebtn { position: relative; display: grid; grid-template-columns: 1fr auto; grid-template-areas: "bk play" "dots dots"; align-items: center; gap: 12px 14px;
-  width: min(100%, 31rem); padding: 16px 18px 16px; text-align: left; cursor: pointer; color: #f4f1ea; overflow: hidden;
-  background: radial-gradient(120% 90% at 0% 0%, #2a2f2d 0%, #151817 60%, #0e100f 100%); border: 1px solid #000; border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 0 #050606, 0 14px 26px -10px rgba(0,0,0,.55);
+  width: min(100%, 31rem); padding: 16px 18px 16px; text-align: left; cursor: pointer; color: var(--fg); overflow: hidden;
+  background: var(--tge-bg); border: 1px solid var(--tge-edge); border-radius: 16px;
+  box-shadow: inset 0 1px 0 var(--tge-hi), 0 6px 0 var(--tge-base), 0 14px 26px -10px var(--tge-sh);
   transition: transform .12s cubic-bezier(.3,1.4,.5,1), box-shadow .12s; }
 .tg-ebtn::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.07) 45%, transparent 60%); transform: translateX(-100%); }
-.tg-ebtn:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.1), 0 8px 0 #050606, 0 18px 30px -10px rgba(0,0,0,.6), 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent); }
+  background: linear-gradient(105deg, transparent 30%, var(--tge-shine) 45%, transparent 60%); transform: translateX(-100%); }
+.tg-ebtn:hover { transform: translateY(-2px); box-shadow: inset 0 1px 0 var(--tge-hi), 0 8px 0 var(--tge-base), 0 18px 30px -10px var(--tge-sh), 0 0 0 1px color-mix(in srgb, var(--accent) 55%, transparent); }
 .tg-ebtn:hover::after { transform: translateX(100%); transition: transform .8s ease; }
-.tg-ebtn:active { transform: translateY(5px); box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 1px 0 #050606, 0 6px 12px -8px rgba(0,0,0,.5); }
+.tg-ebtn:active { transform: translateY(5px); box-shadow: inset 0 1px 0 var(--tge-hi), 0 1px 0 var(--tge-base), 0 6px 12px -8px var(--tge-sh); }
 .tg-ebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .tg-ebk { grid-area: bk; display: grid; gap: 4px; min-width: 0; }
-.tg-ebt { font-family: var(--display); font-weight: 900; font-size: 1.7rem; line-height: 1; text-transform: uppercase; letter-spacing: .03em; }
-.tg-ebs { font-family: var(--mono); font-size: .72rem; color: #a9aea9; line-height: 1.35; }
+.tg-ebt { font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: 1.45rem; line-height: 1; text-transform: uppercase; letter-spacing: 0; white-space: nowrap; }
+.tg-ebs { font-family: var(--mono); font-size: .72rem; color: var(--muted); line-height: 1.35; }
 .tg-eplay { grid-area: play; display: inline-flex; align-items: center; gap: 7px; padding: 11px 16px 10px; border-radius: 999px;
   background: var(--accent); color: var(--on-accent); font-family: var(--display); font-weight: 900; font-size: 1rem; text-transform: uppercase; letter-spacing: .06em;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 3px 0 color-mix(in srgb, var(--accent) 45%, #000); transition: transform .12s, box-shadow .12s; }
 .tg-eplay svg { width: 13px; height: 13px; fill: currentColor; }
 .tg-ebtn:active .tg-eplay { transform: translateY(2px); box-shadow: inset 0 1px 0 rgba(255,255,255,.3), 0 1px 0 color-mix(in srgb, var(--accent) 45%, #000); }
 .tg-edots { grid-area: dots; display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; align-items: center; }
-.tg-edots i { height: 8px; border-radius: 4px; background: #2c312f; }
-.tg-edots i:nth-child(4n+1) { background: #3a403d; }
+.tg-edots i { height: 8px; border-radius: 4px; background: var(--tge-dot); }
+.tg-edots i:nth-child(4n+1) { background: var(--tge-dot1); }
 .tg-edots i.on { height: 12px; border-radius: 6px; background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); animation: tg-ehit 2.4s infinite; }
 .tg-edots i.on:nth-child(4) { animation-delay: .3s; } .tg-edots i.on:nth-child(7) { animation-delay: .6s; } .tg-edots i.on:nth-child(9) { animation-delay: .9s; }
 .tg-edots i.on:nth-child(11) { animation-delay: 1.2s; } .tg-edots i.on:nth-child(13) { animation-delay: 1.5s; } .tg-edots i.on:nth-child(15) { animation-delay: 1.8s; }
 @keyframes tg-ehit { 0%, 100% { transform: scale(1); filter: none; } 6% { transform: scale(1.35); filter: brightness(1.5); } 16% { transform: scale(1); filter: none; } }
 @media (prefers-reduced-motion: reduce) { .tg-edots i.on { animation: none; } .tg-ebtn, .tg-ebtn::after, .tg-eplay { transition: none; } }
 @media (hover: none) { .tg-ebtn:hover { transform: none; } }
-@media (max-width: 420px) { .tg-ebt { font-size: 1.4rem; } .tg-eplay { padding: 10px 13px 9px; } }
+@media (max-width: 420px) { .tg-ebt { font-size: 1.15rem; } .tg-eplay { padding: 10px 13px 9px; } }
 dialog.tg { --tg-perfect: #59b36b; --tg-good: #f2c94c; --tg-ok: #e07b39; width: min(1000px, calc(100vw - 24px)); height: min(960px, calc(100dvh - 24px)); max-width: none; max-height: none; padding: 0;
   border: 1px solid var(--line); border-radius: 14px; background: var(--bg); color: var(--fg); overflow: hidden; }
 dialog.tg[open] { display: grid; grid-template-rows: auto minmax(0, 1fr); animation: dlg-in .2s cubic-bezier(.2, .8, .3, 1); }
