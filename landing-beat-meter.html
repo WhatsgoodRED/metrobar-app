@@ -3235,12 +3235,17 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-rec.on { border-color: var(--accent); }
 .fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
 .fp-grp { display: inline-flex; gap: 8px; align-items: center; margin-left: auto; }
-.fp-tabs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-.fp-tab { font: 600 .85rem/1 var(--body); padding: 8px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--muted); cursor: pointer; }
-.fp-tab.cur { color: var(--fg); border-color: var(--fg); }
-.fp-add { border-style: dashed; color: var(--fg); }
-.fp-tabx { font: 600 1rem/1 var(--body); width: 28px; height: 28px; margin-left: -4px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
-.fp-tabx:hover { color: var(--fg); }
+.fp-bars { display: grid; gap: 14px; min-width: 0; }
+.fp-bar { display: grid; gap: 8px; min-width: 0; }
+.fp-bar + .fp-bar { padding-top: 14px; border-top: 1px solid var(--line); }
+.fp-bh { display: flex; align-items: center; justify-content: space-between; }
+.fp-bn { font: 600 .78rem/1 var(--mono, monospace); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.fp-bar.cur .fp-bn { color: var(--fg); }
+.fp-bar.fp-live .fp-bn { color: var(--accent); }
+.fp-bx { font: 600 1.1rem/1 var(--body); width: 30px; height: 30px; border-radius: 50%; border: 0; background: transparent; color: var(--muted); cursor: pointer; }
+.fp-bx:hover { color: var(--fg); background: var(--bg); }
+.fp-add { justify-self: start; font: 600 .9rem/1 var(--body); padding: 10px 14px; border-radius: 10px; border: 1px dashed var(--line); background: transparent; color: var(--fg); cursor: pointer; }
+.fp-add:hover { border-color: var(--fg); }
 .fp-rec.on::before { animation: fpRec 1s ease-in-out infinite; }
 @keyframes fpRec { 50% { opacity: .25; } }
 .fp-play { background: var(--accent); color: var(--on-accent); border-color: var(--accent); min-width: 6rem; }
@@ -3677,10 +3682,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 
   <section class="fp" id="fp" aria-labelledby="fpTitle">
     <div class="fp-hd"><h2 id="fpTitle">Pocket Practice</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
-    <div class="fp-tabs" id="fpTabs" role="group" aria-label="Your bars (up to 4)"></div>
-    <input id="fpText" class="fp-in" type="text" spellcheck="false" autocomplete="off" placeholder="Type one bar, e.g. Mic in my hand and I ride in the pocket" aria-label="One bar of lyrics">
-    <div class="fp-syl" id="fpSyl" aria-live="polite"></div>
-    <div class="fp-wrap"><div class="fp-grid" id="fpGrid" role="group" aria-label="The bar: one button per slot"></div></div>
+    <div class="fp-bars" id="fpBars"></div>
+    <button class="fp-add" id="fpAdd" type="button">+ Add bar</button>
     <p class="fp-msg" id="fpMsg" role="status"></p>
     <div class="fp-ctl">
       <button class="fp-b fp-play" id="fpPlay" type="button" aria-pressed="false">Play</button>
@@ -13392,47 +13395,69 @@ var FP = (function () {
   function parse() { syl = sylOf(S.text); }
   // any bar's data for playback: the one on screen is live, the others come from the list
   const barData = i => i === S.cur ? { text: S.text, hits: S.hits, sub: S.sub, syl } : Object.assign({}, S.list[i], { syl: sylOf(S.list[i].text) });
-  function tabs() {
-    const w = $f('fpTabs'); w.replaceChildren();
-    S.list.forEach((b, i) => {
-      const t = h('button', 'fp-tab' + (i === S.cur ? ' cur' : ''), 'Bar ' + (i + 1)); t.type = 'button'; t.title = b.text || 'empty bar';
-      if (i === S.cur) t.setAttribute('aria-current', 'true');
-      t.addEventListener('click', () => show(i)); w.append(t);
-      if (i === S.cur && S.list.length > 1) { const x = h('button', 'fp-tabx', '×'); x.type = 'button'; x.setAttribute('aria-label', 'Delete bar ' + (i + 1)); x.addEventListener('click', () => delBar(i)); w.append(x); }
+  // every bar is its own block, one under the other (Bennie 2026-11-15: "spit another, one would come under it"); the bar you
+  // touch is the current one and carries the ids fpText / fpSyl / fpGrid, so the rest of the code works on it as before
+  function blocks() {
+    const w = $f('fpBars');
+    while (w.children.length > S.list.length) w.lastElementChild.remove();
+    while (w.children.length < S.list.length) {
+      const i = w.children.length, b = h('div', 'fp-bar'), hd = h('div', 'fp-bh'), x = h('button', 'fp-bx', '×'), inp = h('input', 'fp-in');
+      x.type = 'button'; inp.type = 'text'; inp.spellcheck = false; inp.autocomplete = 'off';
+      hd.append(h('span', 'fp-bn', ''), x);
+      b.append(hd, inp, h('div', 'fp-syl'), Object.assign(h('div', 'fp-wrap'), {}));
+      b.querySelector('.fp-wrap').append(h('div', 'fp-grid'));
+      w.append(b);
+    }
+    [...w.children].forEach((b, i) => {
+      b.dataset.i = i; b.classList.toggle('cur', i === S.cur && S.list.length > 1);
+      b.querySelector('.fp-bn').textContent = 'Bar ' + (i + 1);
+      const x = b.querySelector('.fp-bx'); x.setAttribute('aria-label', 'Delete bar ' + (i + 1)); x.hidden = S.list.length < 2;
+      b.querySelector('.fp-bh').hidden = S.list.length < 2;
+      const inp = b.querySelector('.fp-in'), cur = i === S.cur;
+      inp.id = cur ? 'fpText' : ''; b.querySelector('.fp-syl').id = cur ? 'fpSyl' : ''; b.querySelector('.fp-grid').id = cur ? 'fpGrid' : '';
+      inp.placeholder = i ? 'Type bar ' + (i + 1) : 'Type one bar, e.g. Mic in my hand and I ride in the pocket';
+      inp.setAttribute('aria-label', 'Bar ' + (i + 1) + ' lyrics');
+      if (document.activeElement !== inp && inp.value !== S.list[i].text) inp.value = i === S.cur ? S.text : S.list[i].text;
+      b.querySelector('.fp-grid').setAttribute('role', 'group'); b.querySelector('.fp-grid').setAttribute('aria-label', 'Bar ' + (i + 1) + ': one button per slot');
     });
-    if (S.list.length < MAXB) { const a = h('button', 'fp-tab fp-add', '+ Add bar'); a.type = 'button'; a.addEventListener('click', addBar); w.append(a); }
+    $f('fpAdd').hidden = S.list.length >= MAXB;
   }
   function show(i, keepMsg) {
     if (i === S.cur || i < 0 || i >= S.list.length) return;   // S.cur = -1: the bar on screen is gone, don't save it
-    if (S.cur >= 0 && S.cur < S.list.length) save(); S.cur = i; Object.assign(S, S.list[i]); sel = null; $f('fpText').value = S.text; parse(); save();
+    if (S.cur >= 0 && S.cur < S.list.length) save(); S.cur = i; Object.assign(S, S.list[i]); sel = null; parse(); save();
     const m = $f('fpMsg').textContent; render(); recUi(); if (keepMsg) $f('fpMsg').textContent = m;
   }
   function addBar() { if (S.list.length >= MAXB) return; save(); S.list.push({ text: '', hits: [], sub: S.sub }); show(S.list.length - 1); $f('fpText').focus(); }
+  $f('fpAdd').addEventListener('click', addBar);
   function delBar(i) {
     if (S.list.length < 2) return; if (playing) halt();
     const gone = S.list[i]; S.list.splice(i, 1); S.cur = -1; show(Math.max(0, i - 1));
     if (typeof toast === 'function') toast('Bar ' + (i + 1) + ' deleted', { undo: () => { save(); S.list.splice(i, 0, gone); S.cur = -1; show(i); } });
   }
-  const label = s => { if (s < 0) return s === -2 ? '&' : 'a'; const j = s % S.sub; return j === 0 ? String(s / S.sub + 1) : S.sub === 4 ? ['', 'e', '&', 'a'][j] : ['', 'trip', 'let'][j]; };
-  function render() {
-    const g = $f('fpGrid'); g.replaceChildren(); g.dataset.sub = S.sub;
-    for (let s = -PK; s < G(); s++) {
-      const k = S.hits.indexOf(s), x = k >= 0 && k < syl.length ? syl[k] : null, j = s < 0 ? -1 : s % S.sub;
-      const c = h('button', 'fp-c' + (s < 0 ? ' pk' : '') + (j === 0 ? ' bt' : '') + (k >= 0 ? ' on' : '') + (k >= syl.length ? ' extra' : '') + (x && x.st ? ' st' : '') + (s === sel ? ' sel' : ''));
+  const label = (s, sub) => { if (s < 0) return s === -2 ? '&' : 'a'; const j = s % sub; return j === 0 ? String(s / sub + 1) : sub === 4 ? ['', 'e', '&', 'a'][j] : ['', 'trip', 'let'][j]; };
+  function drawBar(b, B, cur) {
+    const g = b.querySelector('.fp-grid'), sy = B.syl, hits = B.hits, sub = B.sub; g.replaceChildren(); g.dataset.sub = sub;
+    for (let s = -PK; s < 4 * sub; s++) {
+      const k = hits.indexOf(s), x = k >= 0 && k < sy.length ? sy[k] : null, j = s < 0 ? -1 : s % sub;
+      const c = h('button', 'fp-c' + (s < 0 ? ' pk' : '') + (j === 0 ? ' bt' : '') + (k >= 0 ? ' on' : '') + (k >= sy.length ? ' extra' : '') + (x && x.st ? ' st' : '') + (cur && s === sel ? ' sel' : ''));
       c.type = 'button'; c.dataset.s = s; c.setAttribute('aria-pressed', k >= 0);
-      c.setAttribute('aria-label', (s < 0 ? 'Pickup ' : 'Beat ' + (Math.floor(s / S.sub) + 1) + ' ') + label(s) + ': ' + (x ? x.t : k >= 0 ? 'extra dot' : 'empty'));
-      c.append(h('i', 'fp-l', label(s)), h('b', 'fp-t', x ? x.t : k >= 0 ? '·' : ''));
+      c.setAttribute('aria-label', (s < 0 ? 'Pickup ' : 'Beat ' + (Math.floor(s / sub) + 1) + ' ') + label(s, sub) + ': ' + (x ? x.t : k >= 0 ? 'extra dot' : 'empty'));
+      c.append(h('i', 'fp-l', label(s, sub)), h('b', 'fp-t', x ? x.t : k >= 0 ? '·' : ''));
       if (s === -PK) g.append(h('span', 'fp-pkl', 'pickup'));
       g.append(c);
     }
-    const ch = $f('fpSyl'); ch.replaceChildren();
-    syl.forEach((x, k) => ch.append(h('span', 'fp-s' + (x.st ? ' st' : '') + (k < S.hits.length ? ' on' : '') + (k === S.hits.length ? ' nx' : '') + (x.end ? ' we' : ''), x.t)));
+    const ch = b.querySelector('.fp-syl'); ch.replaceChildren();
+    sy.forEach((x, k) => ch.append(h('span', 'fp-s' + (x.st ? ' st' : '') + (k < hits.length ? ' on' : '') + (cur && k === hits.length ? ' nx' : '') + (x.end ? ' we' : ''), x.t)));
+  }
+  function render() {
+    blocks();
+    [...$f('fpBars').children].forEach((b, i) => drawBar(b, barData(i), i === S.cur));
     const n = syl.length, p = Math.min(n, S.hits.length);
     $f('fpMsg').textContent = !n ? 'Type a bar above. Then tap a slot for every syllable, in order. Bold syllables are the stressed ones: they usually sit best on a beat or an &.'
       : p < n ? `${p} of ${n} syllables placed. Tap the slot where “${syl[p].t}” goes.`
       : S.hits.length > n ? `${S.hits.length - n} dot${S.hits.length - n > 1 ? 's' : ''} too many: tap one to take it off.`
       : `All ${n} syllables are on the grid. Press Play and listen. To move a syllable, tap it and then its new slot (or drag it).`;
-    tabs(); $f('fpBpm').textContent = S.bpm; beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
+    $f('fpBpm').textContent = S.bpm; beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
     $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click;
   }
   function setHits(a) { S.hits = [...new Set(a)].filter(s => s >= -PK && s < G()).sort((x, y) => x - y); save(); render(); }
@@ -13482,9 +13507,9 @@ var FP = (function () {
   function frame() {
     if (!playing) return;
     const now = ctx.currentTime - lat(), e = starts.filter(x => x.t <= now + PK * unit()).pop();
-    if (e && e.bi !== S.cur && !tap && S.list[e.bi]) show(e.bi, true);   // the grid follows the bar that is playing
-    let cur = null; if (e) { const s = Math.floor((now - e.t) / unit()); if (s >= -PK && s < G()) cur = s; }
-    document.querySelectorAll('#fpGrid .fp-c').forEach(e => e.classList.toggle('now', +e.dataset.s === cur));
+    let cur = null, bi = -1;
+    if (e && S.list[e.bi]) { const sub = barData(e.bi).sub, u = barLen() / (4 * sub), s = Math.floor((now - e.t) / u); if (s >= -PK && s < 4 * sub) { cur = s; bi = e.bi; } }
+    [...$f('fpBars').children].forEach((b, i) => { b.classList.toggle('fp-live', i === bi); b.querySelectorAll('.fp-c').forEach(c => c.classList.toggle('now', i === bi && +c.dataset.s === cur)); });
     raf = requestAnimationFrame(frame);
   }
   function play(withTap) {
@@ -13517,7 +13542,7 @@ var FP = (function () {
     if (run) { try { run.src.stop(); } catch {} run = null; }
     playing = false; tap = null; clearInterval(tmr); cancelAnimationFrame(raf);
     if (out) { try { out.gain.setTargetAtTime(0, ctx.currentTime, 0.02); const o = out; setTimeout(() => o.disconnect(), 300); } catch {} out = null; }
-    document.querySelectorAll('#fpGrid .fp-c.now').forEach(e => e.classList.remove('now')); ui();
+    document.querySelectorAll('#fpBars .fp-c.now').forEach(e => e.classList.remove('now')); document.querySelectorAll('#fpBars .fp-live').forEach(e => e.classList.remove('fp-live')); ui();
   }
   function tapHit() {
     if (!tap) return false;
@@ -13609,11 +13634,17 @@ var FP = (function () {
   $('beatFile') && $('beatFile').addEventListener('change', () => { let n = 0; const w = setInterval(() => { if (hasBeat() || ++n > 60) { clearInterval(w); render(); } }, 250); });
   function ui() { recUi(); const b = $f('fpPlay'); b.textContent = playing ? 'Stop' : 'Play'; b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
-  $f('fpText').value = S.text;
-  $f('fpText').addEventListener('input', e => { S.text = e.target.value; sel = null; parse(); save(); render(); recUi(); });
+  const barOf = el => { const b = el && el.closest && el.closest('.fp-bar'); return b ? +b.dataset.i : -1; };
+  const take = el => { const i = barOf(el); if (i >= 0 && i !== S.cur) show(i); return i; };   // touching a bar makes it the current one
+  const W = $f('fpBars');
+  W.addEventListener('focusin', e => { if (e.target.classList.contains('fp-in')) take(e.target); });
+  W.addEventListener('input', e => { if (!e.target.classList.contains('fp-in')) return; take(e.target); S.text = e.target.value; sel = null; parse(); save(); render(); recUi(); });
+  W.addEventListener('click', e => { const x = e.target.closest('.fp-bx'); if (x) delBar(barOf(x)); });
   let drag = null;
-  $f('fpGrid').addEventListener('pointerdown', e => {
+  W.addEventListener('pointerdown', e => {
+    if (!e.target.closest('.fp-grid')) return;
     if (tap) { e.preventDefault(); tapHit(); return; }
+    const i = barOf(e.target); if (i !== S.cur) return;
     const c = e.target.closest('.fp-c'); if (c && c.classList.contains('on') && sel == null) drag = { from: +c.dataset.s, id: e.pointerId };
   });
   document.addEventListener('pointerup', e => {
@@ -13622,7 +13653,7 @@ var FP = (function () {
     if (t && +t.dataset.s !== d.from && !t.classList.contains('on')) { move(d.from, +t.dataset.s); dragged = true; }
   });
   let dragged = false;
-  $f('fpGrid').addEventListener('click', e => { const c = e.target.closest('.fp-c'); if (!c || tap) return; if (dragged) { dragged = false; return; } toggle(+c.dataset.s); });
+  W.addEventListener('click', e => { const c = e.target.closest('.fp-c'); if (!c || tap) return; if (dragged) { dragged = false; return; } const s = +c.dataset.s; take(c); toggle(s); });
   $f('fpPlay').addEventListener('click', () => (playing ? halt() : play(false)));
   $f('fpTap').addEventListener('click', () => { if (!syl.length) { $f('fpText').focus(); return; } play(true); });
   document.addEventListener('keydown', e => { if (tap && (e.code === 'Space' || e.key === 'Enter')) { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) tapHit(); } }, true);   // Space is the tap key here, not Start
@@ -13657,7 +13688,7 @@ var FP = (function () {
     L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
     if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, show, addBar, _take: useTake };
+  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, show, addBar, delBar, _take: useTake };
 })();
 </script>
 <script>
