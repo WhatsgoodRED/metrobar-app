@@ -1884,7 +1884,7 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
   --tge-dot1: color-mix(in srgb, var(--fg) 22%, transparent); --tge-shine: rgba(255,255,255,.55); }
 :root[data-theme="dark"] .tg-ebtn { --tge-bg: radial-gradient(120% 90% at 0% 0%, #2a2f2d 0%, #151817 60%, #0e100f 100%); --tge-edge: #000; --tge-hi: rgba(255,255,255,.08);
   --tge-base: #050606; --tge-sh: rgba(0,0,0,.55); --tge-dot: #2c312f; --tge-dot1: #3a403d; --tge-shine: rgba(255,255,255,.07); }
-.tg-ebtn { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "bk" "dots" "play"; justify-items: center; gap: 14px;
+.tg-ebtn { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "bk" "dots"; justify-items: center; gap: 14px;
   width: 100%; padding: 18px 18px 16px; text-align: center; cursor: pointer; color: var(--fg); overflow: hidden;
   background: var(--tge-bg); border: 1px solid var(--tge-edge); border-radius: 16px;
   box-shadow: inset 0 1px 0 var(--tge-hi), 0 6px 0 var(--tge-base), 0 14px 26px -10px var(--tge-sh);
@@ -1898,12 +1898,6 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 .tg-ebk { grid-area: bk; display: grid; justify-items: center; gap: 6px; min-width: 0; }
 .tg-ebt { font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.15rem, 6vw, 1.9rem); line-height: 1; text-transform: uppercase; letter-spacing: 0; white-space: nowrap; }
 .tg-ebs { font-family: var(--mono); font-size: .72rem; color: var(--muted); line-height: 1.35; }
-/* PLAY = the START button (Bennie 2026-11-14): same size (one menu tab), colour, face and shadow, always dead centre */
-.tg-eplay { grid-area: play; justify-self: center; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box;
-  width: var(--tab-w, 118px); height: var(--tab-h, 36px); padding: 0 8px; border-radius: 6px; white-space: nowrap;
-  background: var(--land); color: var(--on-accent); font-family: var(--display); font-weight: 900; font-size: 1.05rem; text-transform: uppercase; letter-spacing: .04em;
-  box-shadow: 0 10px 22px -10px color-mix(in srgb, var(--land) 70%, transparent), 0 2px 4px -1px rgb(0 0 0 / .18); transition: transform .12s ease-out; }
-.tg-ebtn:active .tg-eplay { transform: scale(.97); }
 .tg-edots { grid-area: dots; justify-self: center; display: grid; grid-template-columns: repeat(16, 1fr); gap: 5px; align-items: center; }
 .tg-edots i { height: 8px; border-radius: 4px; background: var(--tge-dot); }
 .tg-edots i:nth-child(4n+1) { background: var(--tge-dot1); }
@@ -1912,7 +1906,7 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 .tg-edots i.on:nth-child(4) { animation-delay: .3s; } .tg-edots i.on:nth-child(7) { animation-delay: .6s; } .tg-edots i.on:nth-child(9) { animation-delay: .9s; }
 .tg-edots i.on:nth-child(11) { animation-delay: 1.2s; } .tg-edots i.on:nth-child(13) { animation-delay: 1.5s; } .tg-edots i.on:nth-child(15) { animation-delay: 1.8s; }
 @keyframes tg-ehit { 0%, 100% { transform: scale(1); filter: none; } 6% { transform: scale(1.35); filter: brightness(1.5); } 16% { transform: scale(1); filter: none; } }
-@media (prefers-reduced-motion: reduce) { .tg-ebtn .tg-edots i.on { animation: none !important; } .tg-ebtn, .tg-ebtn::after, .tg-eplay { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .tg-ebtn .tg-edots i.on { animation: none !important; } .tg-ebtn, .tg-ebtn::after { transition: none; } }
 @media (hover: none) { .tg-ebtn:hover { transform: none; } }
 dialog.tg { --tg-perfect: #59b36b; --tg-good: #f2c94c; --tg-ok: #e07b39; width: min(1000px, calc(100vw - 24px)); height: min(960px, calc(100dvh - 24px)); max-width: none; max-height: none; padding: 0;
   border: 1px solid var(--line); border-radius: 14px; background: var(--bg); color: var(--fg); overflow: hidden; }
@@ -3605,7 +3599,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     </div></div>
   </section>
 
-  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-ebt">Flow game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span><span class="tg-eplay" aria-hidden="true">Play</span></button></section>
+  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-ebt">Flow game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
