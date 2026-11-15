@@ -5569,31 +5569,47 @@ function onsetTracker(sr) {
     },
   };
 }
-// Pocket Practice "my voice" (2026-11-15): cut one recorded bar into n syllable slices. Onsets from onsetTracker; too many =
-// drop the one closest to its neighbour, too few = split the longest slice. Each slice runs to the next onset (the last one to the
-// end of the speech: the last 10 ms block within 35 dB of the loudest). Returns [{ s, e }] in seconds, or [] for silence.
+// Pocket Practice "my voice" (2026-11-15, v2 after Bennie: "I can hear my breaths, just not the words"): cut one recorded bar into
+// n syllable slices. Every syllable has a vowel, the loudest part of it, so: a 10 ms loudness curve of the voice band (150 Hz-4 kHz,
+// breath hiss sits higher), peaks = vowels, and only peaks within 24 dB of the loudest count (breaths and room stay out). Peaks with
+// no real dip between them are one vowel. Too many = merge the pair with the shallowest dip; too few = split the longest slice at
+// its quietest point. A slice starts where the sound rises out of the dip before its vowel (minus 20 ms, so the consonant is in)
+// and ends where the next one starts (the last one: where the sound falls 30 dB under the loudest). Returns [{ s, e }] in seconds.
 function voiceSlices(data, sr, n) {
   if (!n || !data || !data.length) return [];
-  const tr = onsetTracker(sr), on = [];
-  for (let i = 0; i < data.length; i += 1024) on.push(...tr.push(data.subarray(i, i + 1024), i / sr));
-  const blk = Math.round(sr * 0.01), lv = [];
-  for (let i = 0; i + blk <= data.length; i += blk) { let a = 0; for (let k = i; k < i + blk; k++) a += data[k] * data[k]; lv.push(10 * Math.log10(a / blk + 1e-12)); }
-  const pk = Math.max(...lv); if (!on.length || pk < -50) return [];
-  let end = lv.length; while (end > 0 && lv[end - 1] < pk - 35) end--;
-  end = Math.min(data.length / sr, end * 0.01 + 0.03);
-  const o = on.filter(t => t < end - 0.04);
-  // too many: keep the n with the biggest jump in level (peak of the next 40 ms over the lowest of the 60 ms before); the first stays
-  const at = t => Math.max(0, Math.min(lv.length - 1, Math.round(t * 100)));
-  const rise = t => { let hi = -200, lo = 200; for (let i = at(t); i <= at(t + 0.04); i++) hi = Math.max(hi, lv[i]); for (let i = at(t - 0.06); i < at(t); i++) lo = Math.min(lo, lv[i]); return hi - (lo === 200 ? -120 : lo); };
-  if (o.length > n) { const keep = o.slice(1).map(t => [t, rise(t)]).sort((x, y) => y[1] - x[1]).slice(0, n - 1).map(x => x[0]); const f = o[0]; o.length = 0; o.push(f, ...keep.sort((x, y) => x - y)); }
-  // a syllable without a hard start (a vowel after a vowel) hides in the longest slice: cut that slice at its quietest dip
-  while (o.length < n) {
-    let b = 0, w = -1; o.forEach((t, i) => { const d = (i + 1 < o.length ? o[i + 1] : end) - t; if (d > w) { w = d; b = i; } });
-    const i0 = Math.ceil((o[b] + 0.07) * 100), i1 = Math.floor((o[b] + w - 0.07) * 100); let m = -1;
-    for (let i = i0; i <= i1 && i < lv.length; i++) if (m < 0 || lv[i] < lv[m]) m = i;
-    o.splice(b + 1, 0, m >= 0 ? m * 0.01 + 0.01 : o[b] + w / 2);
+  const hop = Math.round(sr * 0.01), aH = Math.exp(-2 * Math.PI * 150 / sr), aL = 1 - Math.exp(-2 * Math.PI * 4000 / sr), env = [];
+  let hp = 0, px = 0, lp = 0, acc = 0, k = 0;
+  for (let i = 0; i < data.length; i++) {
+    const x = data[i]; hp = aH * (hp + x - px); px = x; lp += aL * (hp - lp); acc += lp * lp;
+    if (++k === hop) { env.push(10 * Math.log10(acc / hop + 1e-12)); acc = 0; k = 0; }
   }
-  return o.map((t, i) => ({ s: Math.max(0, t - 0.015), e: i + 1 < o.length ? o[i + 1] - 0.015 : end }));
+  const N = env.length; if (N < 3) return [];
+  const E = env.map((v, i) => (env[Math.max(0, i - 1)] + v + env[Math.min(N - 1, i + 1)]) / 3);
+  const pk = Math.max(...E); if (pk < -55) return [];
+  const gate = pk - 24;
+  let P = [];
+  for (let i = 0; i < N; i++) { if (E[i] < gate) continue; let top = true; for (let j = Math.max(0, i - 4); j <= Math.min(N - 1, i + 4); j++) if (E[j] > E[i] || (E[j] === E[i] && j < i)) { top = false; break; } if (top) P.push(i); }
+  if (!P.length) return [];
+  const dip = (a, b) => { let m = a; for (let j = a; j <= b; j++) if (E[j] < E[m]) m = j; return m; };
+  const depth = i => Math.min(E[P[i]], E[P[i + 1]]) - E[dip(P[i], P[i + 1])];
+  const drop = i => { P.splice(E[P[i]] >= E[P[i + 1]] ? i + 1 : i, 1); };   // merge pair i, i+1: keep the louder vowel
+  for (let i = 0; i < P.length - 1;) { if (depth(i) < 3) drop(i); else i++; }
+  while (P.length > n) { let b = 0; for (let i = 1; i < P.length - 1; i++) if (depth(i) < depth(b)) b = i; drop(b); }
+  // slice edges: before each vowel the dip, then the rise out of it
+  // the rise is found on the unsmoothed curve (10 ms steps); slices start 15 ms before it and sayMine plays them 15 ms early
+  const startOf = (from, v) => { const m = dip(from, v); let j = m; while (j < v && env[j] < env[m] + 6) j++; return Math.max(from, j); };
+  let first = P[0]; { let j = P[0]; while (j > 0 && env[j - 1] > pk - 35 && P[0] - j < 40) j--; first = j; }
+  let last = P[P.length - 1]; while (last < N - 1 && E[last + 1] > pk - 30) last++;
+  let S = [first]; for (let i = 1; i < P.length; i++) S.push(startOf(P[i - 1], P[i]));
+  let seg = S.map((s, i) => [s, i + 1 < S.length ? S[i + 1] : last + 1]);
+  while (seg.length < n) {   // a vowel hid inside another (vowel after vowel): split the longest slice at its quietest point
+    let b = 0; seg.forEach((g, i) => { if (g[1] - g[0] > seg[b][1] - seg[b][0]) b = i; });
+    const [a, z] = seg[b]; if (z - a < 4) break;
+    let m = a + 2; for (let j = a + 2; j <= z - 2; j++) if (E[j] < E[m]) m = j;
+    seg.splice(b, 1, [a, m], [m, z]);
+  }
+  if (seg.length < n) return [];
+  return seg.map(([a, z]) => ({ s: Math.max(0, a * 0.01 - 0.015), e: z * 0.01 - 0.015 }));
 }
 </script>
 <script>
@@ -13612,6 +13628,7 @@ var FP = (function () {
     const c = ctx, x = take.sl[k];
     let tbuf = tbufs.get(take); if (!tbuf || tbuf.sampleRate !== take.sr) { tbuf = c.createBuffer(1, take.data.length, take.sr); tbuf.getChannelData(0).set(take.data); tbufs.set(take, tbuf); }
     const d = Math.max(0.05, Math.min(x.e - x.s, room + 0.04)), src = c.createBufferSource(), g = c.createGain(); src.buffer = tbuf;
+    t = Math.max(ctx.currentTime, t - 0.015);   // the slice opens 15 ms before the syllable's rise, so it lands on the slot
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.004); g.gain.setValueAtTime(1, t + d - 0.02); g.gain.linearRampToValueAtTime(0, t + d);
     src.connect(g); g.connect(out); src.start(t, x.s, d + 0.01);
   }
@@ -13647,14 +13664,17 @@ var FP = (function () {
     srcN.connect(an); srcN.connect(pr); pr.connect(mute); mute.connect(c.destination);
     let mr = null;
     if (window.MediaRecorder) try { mr = new MediaRecorder(st); mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; mr.start(); } catch { mr = null; }
-    const buf = new Float32Array(an.fftSize), t0 = performance.now(); let floor = -60, heard = 0, quietSince = 0;
+    const buf = new Float32Array(an.fftSize), t0 = performance.now(); let floor = -60, top = -100, heard = 0, voiced = 0, quietSince = 0;
     const tick = setInterval(() => {
       if (!rec) return; an.getFloatTimeDomainData(buf); let a = 0; for (let i = 0; i < buf.length; i++) a += buf[i] * buf[i];
       const db = 10 * Math.log10(a / buf.length + 1e-12), now = performance.now();
       floor = db < floor ? db : floor + 0.05;
       $f('fpRec').style.setProperty('--lv', Math.max(0, Math.min(100, (db + 60) * 2)) + '%');
-      if (db > floor + 15 && db > -55) { heard = heard || now; quietSince = 0; } else if (heard && !quietSince) quietSince = now;
-      if ((heard && quietSince && now - quietSince > 1200 && now - heard > 600) || now - t0 > 12000) recStop();
+      // a breath is short and soft: auto-stop arms only after half a second of real sound, and "quiet" = 25 dB under your loudest
+      if (db > floor + 15 && db > -55) { heard = heard || now; voiced += 50; top = Math.max(top, db); }
+      const quiet = db < Math.max(floor + 8, top - 25);
+      if (!quiet) quietSince = 0; else if (voiced >= 500 && !quietSince) quietSince = now;
+      if ((quietSince && now - quietSince > 1300) || now - t0 > 15000) recStop();
     }, 50);
     rec = { st, srcN, pr, mute, an, mr, chunks, parts, tick, sr: c.sampleRate, heard: () => heard };
     $f('fpMsg').textContent = `Recording bar ${S.cur + 1}${S.list.length > 1 ? '' : ''}: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause (or press Stop).`; recUi();
