@@ -3711,7 +3711,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <button class="fp-add" id="fpAdd" type="button">+ Add bar</button>
     <div class="fp-wave" id="fpWave" hidden>
       <div class="fp-wvh"><span class="fp-wvl" id="fpWvLab">Loop</span><span class="fp-wvn"><button class="fp-b fp-sq" id="fpWvPrev" type="button" aria-label="Earlier in the beat">‹</button><button class="fp-b fp-sq" id="fpWvNext" type="button" aria-label="Later in the beat">›</button></span></div>
-      <div class="fp-wvc"><canvas id="fpWv" aria-label="The beat: drag to pick the part to loop, drag the edges to fine-tune, Shift for no snapping"></canvas><i class="fp-wvp" id="fpWvHead" hidden></i></div>
+      <div class="fp-wvc"><canvas id="fpWv" aria-label="The beat: click where the loop should start (it lands on the nearest hit; Alt = exactly there, Shift = on the nearest beat), drag the edges for more or fewer bars"></canvas><i class="fp-wvp" id="fpWvHead" hidden></i></div>
     </div>
     <p class="fp-msg" id="fpMsg" role="status"></p>
     <div class="fp-ctl">
@@ -5610,6 +5610,33 @@ function voiceSlices(data, sr, n) {
   }
   if (seg.length < n) return [];
   return seg.map(([a, z]) => ({ s: Math.max(0, a * 0.01 - 0.015), e: z * 0.01 - 0.015 }));
+}
+// Pocket Practice loop picker (2026-11-15): the hit (kick, snare, hat) nearest t within ±w s, or t itself when nothing there
+// sounds like a hit. Loudness in 20 ms windows every 5 ms (long enough that an 808's low tail reads as one smooth decay); a hit =
+// loudness rising by at least 5% of the biggest rise around t AND 3 dB over the quietest of the 30 ms before it. The nearest one
+// wins; its start = the first sample at 30% of that hit's peak, minus 1 ms (so the loop starts on the attack, not after it).
+function beatHit(d, sr, t, w) {
+  const H = Math.max(16, Math.round(sr * 0.005)), W = 4 * H;
+  const a = Math.max(0, Math.floor((t - w) * sr) - 2 * W), z = Math.min(d.length - W, Math.ceil((t + w) * sr) + W);
+  if (z <= a) return t;
+  const env = [], at = [];
+  for (let i = a; i < z; i += H) { let e = 0; for (let j = i; j < i + W; j++) e += d[j] * d[j]; env.push(Math.sqrt(e / W)); at.push(i); }
+  const rise = env.map((e, k) => k < 2 ? 0 : Math.max(0, e - env[k - 2]));
+  let mx = 0, pk = 0; for (const e of env) pk = Math.max(pk, e); for (const r of rise) mx = Math.max(mx, r);
+  if (!mx || mx < pk * 0.2) return t;
+  let best = -1, bd = Infinity;
+  for (let k = 2; k < rise.length; k++) {
+    if (rise[k] < mx * 0.05 || rise[k] <= rise[k - 1] || rise[k] < (rise[k + 1] || 0)) continue;
+    let lo = Infinity; for (let m = Math.max(0, k - 6); m < k; m++) lo = Math.min(lo, env[m]);
+    if (env[k] < lo * 1.41) continue;
+    const dd = Math.abs((at[k] + W) / sr - 0.01 - t);   // the window's end has just taken in the attack
+    if (dd <= w && dd < bd) { bd = dd; best = k; }
+  }
+  if (best < 0) return t;
+  const c = at[best] + W, s0 = Math.max(0, c - Math.round(sr * 0.025)), s1 = Math.min(d.length, c + Math.round(sr * 0.015));
+  let P = 0; for (let j = s0; j < s1; j++) P = Math.max(P, Math.abs(d[j]));
+  for (let j = s0; j < s1; j++) if (Math.abs(d[j]) >= P * 0.3) return Math.max(0, j / sr - 0.001);
+  return c / sr;
 }
 </script>
 <script>
@@ -13737,14 +13764,26 @@ var FP = (function () {
     KN.title = on ? 'The beat\'s tempo. If the bar lines on the wave sit off the kicks, turn it until they line up.' : '';
     $f('fpWave').hidden = !on; if (on) { if (!LP) loopInit(); wvDraw(); }
   }
-  // ---- the loop picker: the beat's wave, 16 bars at a time, bar lines from the detected first beat. Drag on it = a new loop
-  // (snaps to beats; Shift = free), drag its edges to fine-tune, drag inside it to move it; ‹ › page through the beat.
+  // ---- the loop picker: the beat's wave, 16 bars at a time. Click anywhere = 8 bars from that point (Bennie 2026-11-15: beats
+  // often start mid-bar or on an off-beat, so the start is free): it lands on the hit nearest the click (Alt = exactly there,
+  // Shift = the nearest detected beat), and the bar lines move so that point is a bar line. Drag an edge = more or fewer bars,
+  // drag inside = move it by whole bars; ‹ › page through the beat.
   const WB = 16;
   const LOOPN = 8;
-  const barStart = k => bOff() + k * bar0(), barIdx = t => Math.floor((t - bOff()) / bar0() + 1e-6), kMin = () => Math.ceil(-bOff() / bar0() - 1e-6);
+  let PH = 0;   // the bar grid's shift from the detected first beat (s): the loop start is always on a bar line
+  const g0 = () => bOff() + PH, anchor = s => { const b = bar0(); PH = s - bOff() - Math.round((s - bOff()) / b) * b; };
+  const barStart = k => g0() + k * bar0(), barIdx = t => Math.floor((t - g0()) / bar0() + 1e-6), kMin = () => Math.ceil(-g0() / bar0() - 1e-6);
   function loopInit() {
-    const k = Math.max(kMin(), typeof beatSkip !== 'undefined' ? beatSkip : 0); loopAt(barStart(k), LOOPN); LV = Math.max(0, k - 2);
+    PH = 0; const k = Math.max(kMin(), typeof beatSkip !== 'undefined' ? beatSkip : 0); loopAt(barStart(k), LOOPN); LV = Math.max(0, k - 2);
   }
+  const hitNear = (t, w) => beatHit(beatBuf.getChannelData(0), beatBuf.sampleRate, t, w);   // core: the hit nearest the click
+  // where a click starts the loop: the nearest hit, Alt = the exact point, Shift = the nearest detected beat (quarter note)
+  function clickStart(t, ev, wpx) {
+    const q = bar0() / 4, D = beatBuf.duration;
+    let s = ev.altKey ? t : ev.shiftKey ? bOff() + Math.round((t - bOff()) / q) * q : hitNear(t, Math.min(0.35, wpx));
+    return Math.max(0, Math.min(s, Math.max(0, D - bar0())));
+  }
+  const loopFrom = s => { anchor(s); loopAt(s, LOOPN); };
   const wvT0 = () => bOff() + (LV - 0) * bar0(), wvSpan = () => WB * bar0();
   const wvX = t => (t - wvT0()) / wvSpan(), wvT = f => wvT0() + f * wvSpan();
   function wvDraw() {
@@ -13757,7 +13796,13 @@ var FP = (function () {
     g.fillStyle = ac; g.globalAlpha = 0.14; g.fillRect(lx, 0, rx - lx, H); g.globalAlpha = 1;
     // bar lines + numbers
     g.font = '600 10px ' + (cs.getPropertyValue('--mono').trim() || 'monospace'); g.textBaseline = 'top';
-    for (let k = 0; k <= WB; k++) { const x = Math.round(k / WB * W) + 0.5; g.strokeStyle = mu; g.globalAlpha = 0.35; g.beginPath(); g.moveTo(x, 0); g.lineTo(x, H); g.stroke(); g.globalAlpha = 0.8; g.fillStyle = mu; if (k < WB && LV + k >= 0) g.fillText(String(LV + k + 1), x + 3, 3); }
+    // bar lines (full height, numbered) and beat ticks (short, at the bottom) on the grid that starts at the loop
+    g.strokeStyle = mu; g.fillStyle = mu;
+    for (let k = barIdx(t0) - 1, kz = barIdx(t0 + sp) + 1; k <= kz; k++) for (let q = 0; q < 4; q++) {
+      const x = Math.round(wvX(barStart(k) + q * bar0() / 4) * W) + 0.5; if (x < 0 || x > W) continue;
+      g.globalAlpha = q ? 0.3 : 0.35; g.beginPath(); g.moveTo(x, q ? H - 7 : 0); g.lineTo(x, H); g.stroke();
+      if (!q && k >= 0 && x < W - 12) { g.globalAlpha = 0.8; g.fillText(String(k + 1), x + 3, 3); }
+    }
     g.globalAlpha = 1;
     // wave: peak per pixel column
     const mid = H / 2 + 6, amp = H / 2 - 10;
@@ -13768,29 +13813,30 @@ var FP = (function () {
       const hh = Math.max(1, pk * amp); g.fillRect(x, mid - hh, 1, hh * 2);
     }
     g.globalAlpha = 1; g.fillStyle = ac; [lx, rx].forEach(x => { if (x >= -2 && x <= W + 2) { g.fillRect(x - 1, 0, 2, H); g.fillRect(x - 4, 0, 8, 10); } });
-    const nb = loopBars(), k0 = Math.round((LP.s - bOff()) / bar0());
-    $f('fpWvLab').textContent = `Loop: bars ${k0 + 1}–${k0 + nb} (${nb} bar${nb > 1 ? 's' : ''}) · click a bar to loop 8 from there, drag an edge for more or less`;
+    const nb = loopBars(), m = Math.floor(LP.s / 60), sec = (LP.s - m * 60).toFixed(1).padStart(4, '0');
+    $f('fpWvLab').textContent = `Loop: ${nb} bar${nb > 1 ? 's' : ''} from ${m}:${sec} · click where it should start, drag an edge for more or less`;
     $f('fpWvPrev').disabled = LV <= 0; $f('fpWvNext').disabled = wvT0() + wvSpan() >= beatBuf.duration;
   }
   function wvHead(t) { const h = $f('fpWvHead'); if (t == null || !LP) { h.hidden = true; return; } const f = wvX(t); h.hidden = f < 0 || f > 1; h.style.left = (f * 100) + '%'; }
   let wd = null;
-  // click a bar = an 8-bar loop from that bar; drag an edge = more or fewer bars; drag inside = move it. Always whole bars.
+  // click anywhere = an 8-bar loop from that point (also inside the loop); drag an edge = more or fewer bars; drag inside = move it
   $f('fpWv').addEventListener('pointerdown', e => {
     if (!LP || !hasBeat()) return; e.preventDefault();
     const cv = $f('fpWv'), r = cv.getBoundingClientRect(), x = e.clientX - r.left, t = wvT(x / r.width), lx = wvX(LP.s) * r.width, rx = wvX(LP.e) * r.width;
+    const s = clickStart(t, e, 6 / r.width * wvSpan());
     cv.setPointerCapture(e.pointerId);
-    wd = Math.abs(x - lx) < 10 ? { m: 'l' } : Math.abs(x - rx) < 10 ? { m: 'r' } : x > lx && x < rx ? { m: 'mv', k: barIdx(t), s: LP.s, n: LP.n, moved: false } : { m: 'new' };
-    if (wd.m === 'new') { loopAt(barStart(Math.max(kMin(), barIdx(t))), LOOPN); wvDraw(); }
+    wd = Math.abs(x - lx) < 10 ? { m: 'l' } : Math.abs(x - rx) < 10 ? { m: 'r' } : x > lx && x < rx ? { m: 'mv', k: barIdx(t), s: LP.s, n: LP.n, moved: false, to: s } : { m: 'new' };
+    if (wd.m === 'new') { loopFrom(s); wvDraw(); }
   });
   $f('fpWv').addEventListener('pointermove', e => {
     if (!wd || wd.m === 'new') return; const r = $f('fpWv').getBoundingClientRect(), t = wvT((e.clientX - r.left) / r.width), b = bar0();
-    const kr = Math.round((t - bOff()) / b), ks = Math.round((LP.s - bOff()) / b), ke = ks + LP.n;
+    const kr = Math.round((t - g0()) / b), ks = Math.round((LP.s - g0()) / b), ke = ks + LP.n;
     if (wd.m === 'l') { const k = Math.max(kMin(), Math.min(kr, ke - 1)); loopAt(barStart(k), ke - k); }
     else if (wd.m === 'r') loopAt(LP.s, Math.max(1, kr - ks));
-    else { const dk = barIdx(t) - wd.k; if (dk) wd.moved = true; const k0 = Math.round((wd.s - bOff()) / b), k = Math.max(kMin(), Math.min(k0 + dk, Math.floor((beatBuf.duration - bOff()) / b) - wd.n)); loopAt(barStart(k), wd.n); }
+    else { const dk = barIdx(t) - wd.k; if (dk) wd.moved = true; const k0 = Math.round((wd.s - g0()) / b), k = Math.max(kMin(), Math.min(k0 + dk, Math.floor((beatBuf.duration - g0()) / b) - wd.n)); loopAt(barStart(k), wd.n); }
     wvDraw();
   });
-  const wvUp = () => { if (!wd) return; if (wd.m === 'mv' && !wd.moved) loopAt(barStart(Math.max(kMin(), wd.k)), LOOPN); wd = null; wvDraw(); if (playing && run) play(false); };   // a click inside the loop also starts 8 bars there
+  const wvUp = () => { if (!wd) return; if (wd.m === 'mv' && !wd.moved) loopFrom(wd.to); wd = null; wvDraw(); if (playing && run) play(false); };   // a click inside the loop also starts 8 bars there
   $f('fpWv').addEventListener('pointerup', wvUp); $f('fpWv').addEventListener('pointercancel', wvUp);
   $f('fpWvPrev').addEventListener('click', () => { LV = Math.max(0, LV - WB / 2); wvDraw(); });
   $f('fpWvNext').addEventListener('click', () => { LV += WB / 2; wvDraw(); });
@@ -13799,7 +13845,7 @@ var FP = (function () {
     if (playing) halt();
     if (!hasBeat()) { S.beat = true; save(); $f('fpMsg').textContent = 'Pick your beat: MetroBar finds its tempo, then Play runs your bar over it.'; const f = $('beatFile'); if (f) f.click(); return; }
     S.beat = !S.beat; save(); render();
-    if (S.beat) $f('fpMsg').textContent = `Beat on. Drag on the wave to pick the part you want to loop; Play gives a count-in, then loops it until you stop. Turn Voice off (More) to rap it yourself.`;
+    if (S.beat) $f('fpMsg').textContent = `Beat on. Click the wave where your loop should start; Play gives a count-in, then loops it until you stop. Turn Voice off (More) to rap it yourself.`;
   });
   // a new beat: forget the old correction, then show its tempo once the BPM detection is done (it runs after the file is read)
   $('beatFile') && $('beatFile').addEventListener('change', () => { LP = null; S.ft = 0; let n = 0; const w = setInterval(() => { const ok = typeof detected !== 'undefined' && detected; if (hasBeat()) render(); if ((hasBeat() && ok) || ++n > 160) clearInterval(w); }, 250); });
@@ -13842,7 +13888,7 @@ var FP = (function () {
   let knRe = 0;
   function knobSet(v) {
     v = Math.round(Math.max(50, Math.min(200, v))); if (v === knVal()) return;
-    if (beatMode()) { if (!LP) loopInit(); const k = Math.round((LP.s - bOff()) / bar0()); S.ft = v; loopAt(barStart(k), LP.n); wvDraw();   /* the loop keeps its bars; the bar lines move */ if (playing && run) { clearTimeout(knRe); knRe = setTimeout(() => { if (playing && run) play(false); }, 350); } } else { S.bpm = v; save(); }
+    if (beatMode()) { if (!LP) loopInit(); S.ft = v; anchor(LP.s); loopAt(LP.s, LP.n); wvDraw();   /* the loop keeps its start and its bar count; the bars get longer or shorter */ if (playing && run) { clearTimeout(knRe); knRe = setTimeout(() => { if (playing && run) play(false); }, 350); } } else { S.bpm = v; save(); }
     knobShow(beatMode() ? Math.round(beatTempo()) : v, beatMode());
   }
   let kd = null;
@@ -13899,7 +13945,7 @@ var FP = (function () {
     L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
     if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, show, addBar, delBar, _take: useTake };
+  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, get loop() { return LP && Object.assign({ ph: PH }, LP); }, show, addBar, delBar, _take: useTake };
 })();
 </script>
 <script>
