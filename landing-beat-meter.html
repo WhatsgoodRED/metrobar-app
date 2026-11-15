@@ -13620,14 +13620,23 @@ var FP = (function () {
     $f('fpRecDel').hidden = !takes[S.text];
   }
   async function recStart() {
-    if (!syl.length) { $f('fpText').focus(); return; }
+    if (!syl.length) { $f('fpText').focus(); $f('fpMsg').textContent = `Bar ${S.cur + 1} is empty: type its words first, then Record records you rapping that bar.`; return; }
     // acapella only (Bennie 2026-11-15): nothing of ours plays while the mic is open, so no beat or click bleeds into your take
     if (playing) halt();
     if (typeof running !== 'undefined' && running) try { stop(); } catch {}
     try { if (typeof BKB !== 'undefined' && BKB && BKB.pause) BKB.pause(); } catch {}
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $f('fpMsg').textContent = 'This browser can’t use the mic here (it needs https or localhost).'; return; }
+    $f('fpMsg').textContent = 'Asking for your microphone… allow it in the box at the top of the browser.';
     let st; try { st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
-    catch (e) { $f('fpMsg').textContent = 'No mic: allow the microphone for this page and try again.'; return; }
+    catch (e) {
+      const m = String(e && e.message || ''), n = e && e.name;
+      $f('fpMsg').textContent = /system/i.test(m) ? 'Your Mac blocks the mic for this browser: System Settings > Privacy & Security > Microphone, switch your browser on, then reload.'
+        : n === 'NotAllowedError' ? 'The mic is blocked for this page: click the icon left of the address, set Microphone to Allow, then reload.'
+        : n === 'NotFoundError' ? 'No microphone found. Plug one in (or pick one in your system sound settings) and try again.'
+        : n === 'NotReadableError' ? 'Another app is using the mic. Close it (or its call) and try again.'
+        : 'The mic didn’t start (' + (n || 'error') + '). Try again or reload.';
+      return;
+    }
     const c = ac(); try { await c.resume(); } catch {}
     // two recorders on the same mic: MediaRecorder (works everywhere, also iPhone) is the take; the raw blocks from the
     // ScriptProcessor are the fallback when MediaRecorder is missing or its file won't decode. An analyser drives the level
@@ -13648,7 +13657,7 @@ var FP = (function () {
       if ((heard && quietSince && now - quietSince > 1200 && now - heard > 600) || now - t0 > 12000) recStop();
     }, 50);
     rec = { st, srcN, pr, mute, an, mr, chunks, parts, tick, sr: c.sampleRate, heard: () => heard };
-    $f('fpMsg').textContent = `Recording: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause (or press Stop).`; recUi();
+    $f('fpMsg').textContent = `Recording bar ${S.cur + 1}${S.list.length > 1 ? '' : ''}: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause (or press Stop).`; recUi();
   }
   function recStop() {
     if (!rec) return; const r = rec; rec = null; clearInterval(r.tick); $f('fpRec').style.removeProperty('--lv');
