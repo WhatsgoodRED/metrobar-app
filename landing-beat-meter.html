@@ -3235,7 +3235,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-b { font: 600 .74rem/1 var(--body); padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 .fp-b:disabled { opacity: .5; cursor: default; }
 .fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
-.fp-rec.on { border-color: var(--accent); }
+.fp-rec.on { border-color: var(--accent); background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, var(--bg)) var(--lv, 0%), var(--bg) var(--lv, 0%)); }
 .fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
 .fp-grp { display: inline-flex; gap: 6px; align-items: center; justify-self: end; }
 .fp-bars { display: grid; gap: 14px; min-width: 0; }
@@ -13599,7 +13599,8 @@ var FP = (function () {
   // Takes stay on this device (IndexedDB metrobar-fpvoice, key 'takes' = { [bar text]: take }); change the words = the robot again.
   let takes = {}, rec = null;
   const tbufs = new WeakMap();
-  const mine = B => { const t = takes[B.text]; return t && B.syl.length && t.sl.length === B.syl.length ? t : null; };
+  // a take whose syllable count no longer matches (the dictionary loaded, a correction) is cut again from the same audio
+  const mine = B => { const t = takes[B.text]; if (!t || !B.syl.length) return null; if (t.sl.length !== B.syl.length) { const sl = voiceSlices(t.data, t.sr, B.syl.length); if (!sl.length) return null; t.sl = sl; vput(); } return t; };
   const vdb = () => new Promise((ok, no) => { const r = indexedDB.open('metrobar-fpvoice', 1); r.onupgradeneeded = () => r.result.createObjectStore('t'); r.onsuccess = () => ok(r.result); r.onerror = () => no(r.error); });
   const vput = () => { const keep = new Set(S.list.map(b => b.text)); Object.keys(takes).forEach(k => { if (!keep.has(k)) delete takes[k]; });
     return vdb().then(d => { const x = d.transaction('t', 'readwrite'); x.objectStore('t').put(takes, 'takes'); x.objectStore('t').delete('take'); }).catch(() => {}); };
@@ -13627,26 +13628,45 @@ var FP = (function () {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { $f('fpMsg').textContent = 'This browser can’t use the mic here (it needs https or localhost).'; return; }
     let st; try { st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } }); }
     catch (e) { $f('fpMsg').textContent = 'No mic: allow the microphone for this page and try again.'; return; }
-    const c = ac(); c.resume && c.resume();
-    const srcN = c.createMediaStreamSource(st), pr = c.createScriptProcessor(2048, 1, 1), mute = c.createGain(); mute.gain.value = 0;
-    const tr = onsetTracker(c.sampleRate), parts = []; let n = 0, heard = -1, quiet = 0;
-    rec = { st, srcN, pr, mute };
-    pr.onaudioprocess = e => {
-      if (!rec) return; const b = new Float32Array(e.inputBuffer.getChannelData(0)); parts.push(b);
-      const t0 = n / c.sampleRate; n += b.length; if (tr.push(b, t0).length && heard < 0) heard = t0;
-      quiet = tr.level < -46 ? quiet + b.length / c.sampleRate : 0;
-      if ((heard >= 0 && quiet > 1.1) || n / c.sampleRate > 10) recStop(parts, c.sampleRate);
-    };
-    srcN.connect(pr); pr.connect(mute); mute.connect(c.destination);
-    rec.parts = parts; rec.sr = c.sampleRate;
-    $f('fpMsg').textContent = `Recording: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause.`; recUi();
+    const c = ac(); try { await c.resume(); } catch {}
+    // two recorders on the same mic: MediaRecorder (works everywhere, also iPhone) is the take; the raw blocks from the
+    // ScriptProcessor are the fallback when MediaRecorder is missing or its file won't decode. An analyser drives the level
+    // on the button and the auto-stop (quiet for 1.2 s after you've started, or 12 s).
+    const srcN = c.createMediaStreamSource(st), an = c.createAnalyser(), pr = c.createScriptProcessor(2048, 1, 1), mute = c.createGain(); mute.gain.value = 0;
+    an.fftSize = 2048; const parts = [], chunks = [];
+    pr.onaudioprocess = e => { if (rec) parts.push(new Float32Array(e.inputBuffer.getChannelData(0))); };
+    srcN.connect(an); srcN.connect(pr); pr.connect(mute); mute.connect(c.destination);
+    let mr = null;
+    if (window.MediaRecorder) try { mr = new MediaRecorder(st); mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; mr.start(); } catch { mr = null; }
+    const buf = new Float32Array(an.fftSize), t0 = performance.now(); let floor = -60, heard = 0, quietSince = 0;
+    const tick = setInterval(() => {
+      if (!rec) return; an.getFloatTimeDomainData(buf); let a = 0; for (let i = 0; i < buf.length; i++) a += buf[i] * buf[i];
+      const db = 10 * Math.log10(a / buf.length + 1e-12), now = performance.now();
+      floor = db < floor ? db : floor + 0.05;
+      $f('fpRec').style.setProperty('--lv', Math.max(0, Math.min(100, (db + 60) * 2)) + '%');
+      if (db > floor + 15 && db > -55) { heard = heard || now; quietSince = 0; } else if (heard && !quietSince) quietSince = now;
+      if ((heard && quietSince && now - quietSince > 1200 && now - heard > 600) || now - t0 > 12000) recStop();
+    }, 50);
+    rec = { st, srcN, pr, mute, an, mr, chunks, parts, tick, sr: c.sampleRate, heard: () => heard };
+    $f('fpMsg').textContent = `Recording: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause (or press Stop).`; recUi();
   }
-  function recStop(parts, sr) {
-    if (!rec) return; const r = rec; rec = null;
-    try { r.pr.disconnect(); r.srcN.disconnect(); r.mute.disconnect(); r.st.getTracks().forEach(t => t.stop()); } catch {}
-    parts = parts || r.parts; sr = sr || r.sr;
-    const len = parts.reduce((a, b) => a + b.length, 0), data = new Float32Array(len); let o = 0; parts.forEach(b => { data.set(b, o); o += b.length; });
-    useTake(data, sr);
+  function recStop() {
+    if (!rec) return; const r = rec; rec = null; clearInterval(r.tick); $f('fpRec').style.removeProperty('--lv');
+    const close = () => { try { r.pr.disconnect(); r.srcN.disconnect(); r.mute.disconnect(); r.an.disconnect(); r.st.getTracks().forEach(t => t.stop()); } catch {} };
+    const raw = () => { const len = r.parts.reduce((a, b) => a + b.length, 0), data = new Float32Array(len); let o = 0; r.parts.forEach(b => { data.set(b, o); o += b.length; }); return data; };
+    const loud = d => { let pk = 0; for (let i = 0; i < d.length; i += 7) pk = Math.max(pk, Math.abs(d[i])); return pk > 0.003; };
+    const fall = () => { close(); const d = raw(); if (loud(d)) useTake(d, r.sr); else { $f('fpMsg').textContent = r.heard() ? 'The take came out empty. Try again, or another browser.' : 'Your mic gave no sound. Check that the right mic is chosen and allowed for this page, then try again.'; recUi(); } };
+    $f('fpMsg').textContent = 'Cutting your take into syllables…'; recUi();
+    if (!r.mr || r.mr.state === 'inactive') return fall();
+    r.mr.onstop = async () => {
+      close();
+      try {
+        const blob = new Blob(r.chunks, { type: r.mr.mimeType || 'audio/webm' }), ab = await blob.arrayBuffer(), dec = await ctx.decodeAudioData(ab);
+        const d = new Float32Array(dec.getChannelData(0)); if (loud(d)) return useTake(d, dec.sampleRate);
+      } catch {}
+      const d = raw(); if (loud(d)) useTake(d, r.sr); else { $f('fpMsg').textContent = r.heard() ? 'The take came out empty. Try again, or another browser.' : 'Your mic gave no sound. Check that the right mic is chosen and allowed for this page, then try again.'; recUi(); }
+    };
+    try { r.mr.stop(); } catch { fall(); }
   }
   function useTake(data, sr) {
     const len = data.length; let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(data[i])); if (pk > 0.001) for (let i = 0; i < len; i++) data[i] *= 0.9 / pk;
