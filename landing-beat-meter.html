@@ -13430,13 +13430,14 @@ var FP = (function () {
   let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null, seq = 0, sel = null;
   const G = () => 4 * S.sub, PK = 2, tempo = () => (S.beat && typeof beatBuf !== 'undefined' && beatBuf ? beatTempo() : S.bpm), unit = () => 60 / tempo() / S.sub, barLen = () => 240 / tempo();
   // the beat plays at its own speed. baseTempo = MetroBar's BPM when it is within 3 of what was detected (you typed 91, it heard 92:
-  // 91 wins), else the detected BPM; it only lays out the bar lines on the wave. Once you pick a loop, the tempo IS the loop:
-  // its bars / its length (Bennie 2026-11-15: "select what part to loop, like in Logic, that way the metronome can't be off").
+  // 91 wins), else the detected BPM. The knob can fine-tune it (S.ft, only when YOU turn it). Bars on the wave, the loop, the clicks
+  // and the grid all use that one tempo, so the loop is always whole bars and can't drift from the beat (Bennie 2026-11-15:
+  // "select what part to loop, like in Logic"; then "click a point = loop 8 bars, the dial shouldn't turn while I set the loop").
   const baseTempo = () => { const d = typeof detected !== 'undefined' && detected && detected.bpm, m = bpm(); return d ? (Math.abs(m - d) <= 3 ? m : d) : m; };
-  let LP = null, LV = 0;   // the loop { s, e } in seconds of the beat file; LV = first bar shown on the wave
-  const bOff = () => +$('beatOffset').value || 0, bar0 = () => 240 / baseTempo();
-  const loopBars = () => Math.max(1, Math.round((LP.e - LP.s) / bar0()));
-  const beatTempo = () => (LP ? loopBars() * 240 / (LP.e - LP.s) : baseTempo());
+  let LP = null, LV = 0;   // the loop { s, e, n } (seconds in the beat file, n bars); LV = first bar shown on the wave
+  const bOff = () => +$('beatOffset').value || 0, beatTempo = () => S.ft || baseTempo(), bar0 = () => 240 / beatTempo();
+  const loopBars = () => LP.n;
+  const loopAt = (s, n) => { const b = bar0(), D = beatBuf.duration; n = Math.max(1, Math.min(n, Math.floor((D - s) / b + 1e-6))); LP = { s, n, e: Math.min(D, s + n * b) }; };
   const save = () => { S.list[S.cur] = { text: S.text, hits: S.hits, sub: S.sub }; store.set('metrobar.fpad', { list: S.list, cur: S.cur, bpm: S.bpm, voice: S.voice, click: S.click, beat: S.beat }); };
   const fixes = () => (typeof fix !== 'undefined' && fix) || {};
   const SYC = new Map();
@@ -13624,13 +13625,31 @@ var FP = (function () {
     r.onsuccess = () => { if (r.result) Object.assign(takes, r.result); recUi(); };
     o.onsuccess = () => { if (o.result && o.result.text && !takes[o.result.text]) { takes[o.result.text] = o.result; recUi(); } };   // the one take from v132
   }).catch(() => {});
+  // a syllable plays whole. When you rapped it longer than the room its slot gives it, it is squeezed to fit (core timeStretch,
+  // pitch kept; at most 2x) instead of being cut off (Bennie 2026-11-15: "it cuts my vocals off, doesn't pronounce the word fully").
+  const sqz = new WeakMap();
+  function squeezed(take, k, ratio) {
+    let m = sqz.get(take); if (!m) sqz.set(take, (m = new Map()));
+    const key = k + '@' + ratio.toFixed(2); if (m.has(key)) return m.get(key);
+    const x = take.sl[k], a = Math.floor(x.s * take.sr), z = Math.min(take.data.length, Math.ceil(x.e * take.sr)), seg = take.data.slice(a, z);
+    let y;
+    if (seg.length > 4096) { y = timeStretch([seg], take.sr, ratio)[0].subarray(0, Math.floor(seg.length / ratio)); }
+    else { y = new Float32Array(Math.floor(seg.length / ratio)); for (let i = 0; i < y.length; i++) { const p = i * ratio, j = Math.floor(p), f = p - j; y[i] = (seg[j] || 0) * (1 - f) + (seg[j + 1] || 0) * f; } }   // too short for WSOLA: plain resample
+    const b = ctx.createBuffer(1, Math.max(1, y.length), take.sr); b.getChannelData(0).set(y); m.set(key, b); return b;
+  }
   function sayMine(take, k, t, room) {
-    const c = ctx, x = take.sl[k];
-    let tbuf = tbufs.get(take); if (!tbuf || tbuf.sampleRate !== take.sr) { tbuf = c.createBuffer(1, take.data.length, take.sr); tbuf.getChannelData(0).set(take.data); tbufs.set(take, tbuf); }
-    const d = Math.max(0.05, Math.min(x.e - x.s, room + 0.04)), src = c.createBufferSource(), g = c.createGain(); src.buffer = tbuf;
+    const c = ctx, x = take.sl[k], len = x.e - x.s, fit = room + 0.03, src = c.createBufferSource(), g = c.createGain();
+    let d, off = 0;
+    if (len <= fit) {
+      let tbuf = tbufs.get(take); if (!tbuf || tbuf.sampleRate !== take.sr) { tbuf = c.createBuffer(1, take.data.length, take.sr); tbuf.getChannelData(0).set(take.data); tbufs.set(take, tbuf); }
+      src.buffer = tbuf; off = x.s; d = len;
+    } else {
+      const ratio = Math.min(2, Math.round(len / fit * 20) / 20); src.buffer = squeezed(take, k, ratio); d = src.buffer.duration;
+    }
+    d = Math.max(0.05, d);
     t = Math.max(ctx.currentTime, t - 0.015);   // the slice opens 15 ms before the syllable's rise, so it lands on the slot
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.004); g.gain.setValueAtTime(1, t + d - 0.02); g.gain.linearRampToValueAtTime(0, t + d);
-    src.connect(g); g.connect(out); src.start(t, x.s, d + 0.01);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.004); g.gain.setValueAtTime(1, t + d - 0.015); g.gain.linearRampToValueAtTime(0, t + d);
+    src.connect(g); g.connect(out); src.start(t, off, d + 0.01);
   }
   function recUi() {
     const b = $f('fpRec'); b.textContent = rec ? 'Stop' : mine(barData(S.cur)) ? 'Record again' : 'Record my voice'; b.setAttribute('aria-pressed', !!rec); b.classList.toggle('on', !!rec);
@@ -13715,19 +13734,19 @@ var FP = (function () {
     const on = S.beat && hasBeat(), b = $f('fpBeat');
     b.setAttribute('aria-pressed', on); b.classList.toggle('on', on); b.textContent = on ? 'Beat on' : 'Beat';
     knobShow(on ? Math.round(beatTempo()) : S.bpm, on);
-    KN.title = on ? 'The loop\'s tempo. Turning it moves the loop\'s end, so the grid fits the beat again.' : '';
+    KN.title = on ? 'The beat\'s tempo. If the bar lines on the wave sit off the kicks, turn it until they line up.' : '';
     $f('fpWave').hidden = !on; if (on) { if (!LP) loopInit(); wvDraw(); }
   }
   // ---- the loop picker: the beat's wave, 16 bars at a time, bar lines from the detected first beat. Drag on it = a new loop
   // (snaps to beats; Shift = free), drag its edges to fine-tune, drag inside it to move it; ‹ › page through the beat.
   const WB = 16;
+  const LOOPN = 8;
+  const barStart = k => bOff() + k * bar0(), barIdx = t => Math.floor((t - bOff()) / bar0() + 1e-6), kMin = () => Math.ceil(-bOff() / bar0() - 1e-6);
   function loopInit() {
-    const b = bar0(), b1 = bOff() + (typeof beatSkip !== 'undefined' ? beatSkip : 0) * b, n = S.list.length <= 1 ? 1 : S.list.length <= 2 ? 2 : 4;
-    LP = { s: Math.max(0, b1), e: Math.min(beatBuf.duration, Math.max(0, b1) + n * b) }; LV = Math.max(0, Math.round((LP.s - bOff()) / b) - 2);
+    const k = Math.max(kMin(), typeof beatSkip !== 'undefined' ? beatSkip : 0); loopAt(barStart(k), LOOPN); LV = Math.max(0, k - 2);
   }
   const wvT0 = () => bOff() + (LV - 0) * bar0(), wvSpan = () => WB * bar0();
   const wvX = t => (t - wvT0()) / wvSpan(), wvT = f => wvT0() + f * wvSpan();
-  const snapT = t => { const q = bar0() / 4, o = bOff(); return Math.max(0, Math.min(beatBuf.duration, o + Math.round((t - o) / q) * q)); };
   function wvDraw() {
     const cv = $f('fpWv'), W = Math.max(1, cv.clientWidth), H = cv.clientHeight || 64, dpr = window.devicePixelRatio || 1;
     cv.width = W * dpr; cv.height = H * dpr; const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
@@ -13749,28 +13768,29 @@ var FP = (function () {
       const hh = Math.max(1, pk * amp); g.fillRect(x, mid - hh, 1, hh * 2);
     }
     g.globalAlpha = 1; g.fillStyle = ac; [lx, rx].forEach(x => { if (x >= -2 && x <= W + 2) { g.fillRect(x - 1, 0, 2, H); g.fillRect(x - 4, 0, 8, 10); } });
-    const nb = loopBars(), bpmX = beatTempo();
-    $f('fpWvLab').textContent = `Loop: ${nb} bar${nb > 1 ? 's' : ''} (bar ${Math.round((LP.s - bOff()) / bar0()) + 1}–${Math.round((LP.e - bOff()) / bar0())}) · ${bpmX.toFixed(1)} BPM`;
+    const nb = loopBars(), k0 = Math.round((LP.s - bOff()) / bar0());
+    $f('fpWvLab').textContent = `Loop: bars ${k0 + 1}–${k0 + nb} (${nb} bar${nb > 1 ? 's' : ''}) · click a bar to loop 8 from there, drag an edge for more or less`;
     $f('fpWvPrev').disabled = LV <= 0; $f('fpWvNext').disabled = wvT0() + wvSpan() >= beatBuf.duration;
   }
   function wvHead(t) { const h = $f('fpWvHead'); if (t == null || !LP) { h.hidden = true; return; } const f = wvX(t); h.hidden = f < 0 || f > 1; h.style.left = (f * 100) + '%'; }
   let wd = null;
+  // click a bar = an 8-bar loop from that bar; drag an edge = more or fewer bars; drag inside = move it. Always whole bars.
   $f('fpWv').addEventListener('pointerdown', e => {
     if (!LP || !hasBeat()) return; e.preventDefault();
     const cv = $f('fpWv'), r = cv.getBoundingClientRect(), x = e.clientX - r.left, t = wvT(x / r.width), lx = wvX(LP.s) * r.width, rx = wvX(LP.e) * r.width;
     cv.setPointerCapture(e.pointerId);
-    wd = Math.abs(x - lx) < 9 ? { m: 'l' } : Math.abs(x - rx) < 9 ? { m: 'r' } : x > lx && x < rx ? { m: 'mv', t, s: LP.s, e: LP.e } : { m: 'new', a: e.shiftKey ? t : snapT(t) };
-    if (wd.m === 'new') { LP = { s: wd.a, e: wd.a + bar0() / 4 }; wvDraw(); }
+    wd = Math.abs(x - lx) < 10 ? { m: 'l' } : Math.abs(x - rx) < 10 ? { m: 'r' } : x > lx && x < rx ? { m: 'mv', k: barIdx(t), s: LP.s, n: LP.n, moved: false } : { m: 'new' };
+    if (wd.m === 'new') { loopAt(barStart(Math.max(kMin(), barIdx(t))), LOOPN); wvDraw(); }
   });
   $f('fpWv').addEventListener('pointermove', e => {
-    if (!wd) return; const r = $f('fpWv').getBoundingClientRect(), raw = wvT((e.clientX - r.left) / r.width), t = e.shiftKey ? raw : snapT(raw), q = bar0() / 4, D = beatBuf.duration;
-    if (wd.m === 'l') LP.s = Math.min(t, LP.e - q);
-    else if (wd.m === 'r') LP.e = Math.max(t, LP.s + q);
-    else if (wd.m === 'mv') { let dt = raw - wd.t; if (!e.shiftKey) dt = Math.round(dt / q) * q; const len = wd.e - wd.s; LP.s = Math.max(0, Math.min(D - len, wd.s + dt)); LP.e = LP.s + len; }
-    else { LP.s = Math.min(wd.a, t); LP.e = Math.max(wd.a, t); if (LP.e - LP.s < q) LP.e = LP.s + q; }
-    LP.s = Math.max(0, LP.s); LP.e = Math.min(D, LP.e); wvDraw(); knobShow(Math.round(beatTempo()), true);
+    if (!wd || wd.m === 'new') return; const r = $f('fpWv').getBoundingClientRect(), t = wvT((e.clientX - r.left) / r.width), b = bar0();
+    const kr = Math.round((t - bOff()) / b), ks = Math.round((LP.s - bOff()) / b), ke = ks + LP.n;
+    if (wd.m === 'l') { const k = Math.max(kMin(), Math.min(kr, ke - 1)); loopAt(barStart(k), ke - k); }
+    else if (wd.m === 'r') loopAt(LP.s, Math.max(1, kr - ks));
+    else { const dk = barIdx(t) - wd.k; if (dk) wd.moved = true; const k0 = Math.round((wd.s - bOff()) / b), k = Math.max(kMin(), Math.min(k0 + dk, Math.floor((beatBuf.duration - bOff()) / b) - wd.n)); loopAt(barStart(k), wd.n); }
+    wvDraw();
   });
-  const wvUp = () => { if (!wd) return; wd = null; wvDraw(); knobShow(Math.round(beatTempo()), true); if (playing && run) play(false); };
+  const wvUp = () => { if (!wd) return; if (wd.m === 'mv' && !wd.moved) loopAt(barStart(Math.max(kMin(), wd.k)), LOOPN); wd = null; wvDraw(); if (playing && run) play(false); };   // a click inside the loop also starts 8 bars there
   $f('fpWv').addEventListener('pointerup', wvUp); $f('fpWv').addEventListener('pointercancel', wvUp);
   $f('fpWvPrev').addEventListener('click', () => { LV = Math.max(0, LV - WB / 2); wvDraw(); });
   $f('fpWvNext').addEventListener('click', () => { LV += WB / 2; wvDraw(); });
@@ -13782,8 +13802,8 @@ var FP = (function () {
     if (S.beat) $f('fpMsg').textContent = `Beat on. Drag on the wave to pick the part you want to loop; Play gives a count-in, then loops it until you stop. Turn Voice off (More) to rap it yourself.`;
   });
   // a new beat: forget the old correction, then show its tempo once the BPM detection is done (it runs after the file is read)
-  $('beatFile') && $('beatFile').addEventListener('change', () => { LP = null; let n = 0; const w = setInterval(() => { const ok = typeof detected !== 'undefined' && detected; if (hasBeat()) render(); if ((hasBeat() && ok) || ++n > 160) clearInterval(w); }, 250); });
-  ['bpm', 'useDet', 'halfDet', 'dblDet'].forEach(id => { const el = $(id); if (el) el.addEventListener(id === 'bpm' ? 'change' : 'click', () => setTimeout(() => { if (S.beat && hasBeat()) { LP = null; render(); } }, 0)); });
+  $('beatFile') && $('beatFile').addEventListener('change', () => { LP = null; S.ft = 0; let n = 0; const w = setInterval(() => { const ok = typeof detected !== 'undefined' && detected; if (hasBeat()) render(); if ((hasBeat() && ok) || ++n > 160) clearInterval(w); }, 250); });
+  ['bpm', 'useDet', 'halfDet', 'dblDet'].forEach(id => { const el = $(id); if (el) el.addEventListener(id === 'bpm' ? 'change' : 'click', () => setTimeout(() => { if (S.beat && hasBeat()) { LP = null; S.ft = 0; render(); } }, 0)); });
   const ICP = '<svg class="ic ic-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>', ICS = '<svg class="ic ic-stop" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="currentColor"/></svg>';
   function ui() { recUi(); const b = $f('fpPlay'); b.innerHTML = playing ? ICS : ICP; b.setAttribute('aria-label', playing ? 'Stop' : 'Play'); b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
@@ -13822,7 +13842,7 @@ var FP = (function () {
   let knRe = 0;
   function knobSet(v) {
     v = Math.round(Math.max(50, Math.min(200, v))); if (v === knVal()) return;
-    if (beatMode()) { if (!LP) loopInit(); LP.e = Math.min(beatBuf.duration, LP.s + loopBars() * 240 / v); wvDraw(); if (playing && run) { clearTimeout(knRe); knRe = setTimeout(() => { if (playing && run) play(false); }, 350); } } else { S.bpm = v; save(); }
+    if (beatMode()) { if (!LP) loopInit(); const k = Math.round((LP.s - bOff()) / bar0()); S.ft = v; loopAt(barStart(k), LP.n); wvDraw();   /* the loop keeps its bars; the bar lines move */ if (playing && run) { clearTimeout(knRe); knRe = setTimeout(() => { if (playing && run) play(false); }, 350); } } else { S.bpm = v; save(); }
     knobShow(beatMode() ? Math.round(beatTempo()) : v, beatMode());
   }
   let kd = null;
