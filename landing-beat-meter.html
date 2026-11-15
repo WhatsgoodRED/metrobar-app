@@ -3235,6 +3235,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-sp { flex: 1; }
 .fp-b { font: 600 .74rem/1 var(--body); padding: 7px 9px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; }
 .fp-b:disabled { opacity: .5; cursor: default; }
+.fp-b.lock { opacity: .6; border-style: dashed; }
 .fp-rec::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .45em; border-radius: 50%; background: var(--accent); vertical-align: .05em; }
 .fp-rec.on { border-color: var(--accent); background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 22%, var(--bg)) var(--lv, 0%), var(--bg) var(--lv, 0%)); }
 .fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
@@ -3726,7 +3727,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       </span>
       <span class="fp-mid">
       <button class="fp-b" id="fpEven" type="button" title="MetroBar puts the syllables down for you as a starting point; then move them yourself">Start me off</button>
-      <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap the bar once into the mic: Pocket Practice cuts it into syllables and plays your own voice on the slots">Record my voice</button>
+      <button class="fp-b fp-rec" id="fpRec" type="button" aria-pressed="false" title="Rap your bars over the beat: Pocket Practice places every syllable where you rapped it and plays your own voice on those slots">Record my voice</button>
       <button class="fp-b fp-beat" id="fpBeat" type="button" aria-pressed="false" title="Practise over your beat (the one loaded on MetroBar): up to 4 bars, then the beat rings on a bar so you never get cut off">Beat</button>
       <button class="fp-b" id="fpTap" type="button" title="Plays a count-in bar, then taps (Space, or tap the grid) during the next bar become the syllables' places">Tap it in</button>
       </span>
@@ -5638,6 +5639,74 @@ function beatHit(d, sr, t, w) {
   let P = 0; for (let j = s0; j < s1; j++) P = Math.max(P, Math.abs(d[j]));
   for (let j = s0; j < s1; j++) if (Math.abs(d[j]) >= P * 0.3) return Math.max(0, j / sr - 0.001);
   return c / sr;
+}
+// Pocket Practice auto-place (Bennie 2026-11-15: "I record acapella, you place the words where you think it should be").
+// takeSlots: the onset times (s) of one bar's syllables, measured from that bar's downbeat, onto the grid. n = syllables the
+// typed bar has; more onsets = merge the closest pair (the earlier one is the syllable's start), fewer = split the widest gap.
+// 16ths or triplets: triplets only when they fit clearly better (as quantizeOnsets). Each syllable goes on its nearest slot
+// (pickups -pk..-1 allowed); two on one slot = the later one moves on (back from the bar end when it runs out).
+// Returns { hits, sub, ok, why, dev (mean ms off the slots), fixed (onsets merged/added), moved (syllables pushed off their slot) };
+// ok = false (why 'empty' | 'counts' | 'crowded' | 'loose') means the take doesn't line up: place the bar another way.
+function takeSlots(ts, n, bl, o = {}) {
+  const pk = o.pk == null ? 2 : o.pk, bad = why => ({ hits: [], sub: 4, ok: false, why, dev: 0, fixed: 0, moved: 0 });
+  let t = ts.filter(x => isFinite(x)).sort((a, b) => a - b);
+  if (!n || !t.length) return bad('empty');
+  const fixed = Math.abs(t.length - n);
+  while (t.length > n) { let b = 0; for (let i = 1; i < t.length - 1; i++) if (t[i + 1] - t[i] < t[b + 1] - t[b]) b = i; t.splice(b + 1, 1); }
+  while (t.length < n) {
+    let b = -1, w = 0; for (let i = 0; i < t.length; i++) { const g = (i + 1 < t.length ? t[i + 1] : bl) - t[i]; if (g > w) { w = g; b = i; } }
+    if (b < 0 || w < bl / 32) break; t.splice(b + 1, 0, t[b] + w / 2);
+  }
+  if (t.length < n) return Object.assign(bad('counts'), { fixed });
+  const fit = sub => { const d = bl / (4 * sub); return t.reduce((a, x) => a + Math.abs(x / d - Math.round(x / d)), 0) / n; };
+  const sub = n >= 3 && fit(3) < fit(4) * 0.6 ? 3 : 4, G = 4 * sub, d = bl / G;
+  const raw = t.map(x => Math.max(-pk, Math.min(G - 1, Math.round(x / d)))), k = raw.slice();
+  for (let i = 1; i < n; i++) k[i] = Math.max(k[i], k[i - 1] + 1);
+  for (let i = n - 1; i >= 0; i--) if (k[i] > G - 1 - (n - 1 - i)) k[i] = G - 1 - (n - 1 - i);
+  for (let i = n - 2; i >= 0; i--) k[i] = Math.min(k[i], k[i + 1] - 1);
+  if (k[0] < -pk) return Object.assign(bad('crowded'), { fixed });
+  const moved = k.filter((v, i) => v !== Math.round(t[i] / d)).length;
+  const dev = Math.round(t.reduce((a, x, i) => a + Math.abs(x - k[i] * d), 0) / n * 1000);
+  const why = fixed > Math.max(1, Math.round(n * 0.25)) ? 'counts' : moved > Math.max(1, Math.floor(n / 4)) ? 'crowded' : dev > d * 0.35 * 1000 ? 'loose' : '';
+  return { hits: k, sub, ok: !why, why, dev, fixed, moved };
+}
+// takePlace: a take rapped over the beat, in bars. data/sr = the mic, off = where data[0] sits from bar 1's downbeat (s, latency
+// already taken off), bl = bar length, counts = syllables per typed bar (0 = an empty bar). The whole take from just before bar 1's
+// pickups to just after the last bar is cut into one slice per syllable (core voiceSlices), the slices go to the bars in order, and
+// each bar's onsets go on its grid (takeSlots). No slices (too quiet) = the vowel onsets (vocalOnsets) by time, counts fixed per bar.
+// Returns { bars: [{ ...takeSlots, a, z (samples of data for this bar's clip), sl (its slices, s from a) } | null], placed }.
+function takePlace(data, sr, off, bl, counts, o = {}) {
+  const pk = o.pk == null ? 2 : o.pk, u = bl / 16, out = { bars: counts.map(() => null), placed: 0 };
+  // only bars you actually rapped count: the loudest 10 ms of the bar within 20 dB of the take's loudest (typed 3 bars, rapped 1 = 1)
+  const rms = (a, z) => { a = Math.max(0, a); z = Math.min(data.length, z); const w = Math.max(1, Math.round(sr * 0.01)); let m = 0;
+    for (let i = a; i + w <= z; i += w) { let e = 0; for (let j = i; j < i + w; j++) e += data[j] * data[j]; m = Math.max(m, e / w); } return Math.sqrt(m); };
+  const lvl = counts.map((c, b) => c ? rms(Math.round(((b ? b * bl - u / 2 : -(pk + 0.5) * u) - off) * sr), Math.round(((b + 1) * bl - u / 2 - off) * sr)) : 0), top = Math.max(0, ...lvl);
+  if (top < 0.002) return out;
+  counts = counts.map((c, b) => (lvl[b] >= top * 0.1 ? c : 0));
+  let N = counts.length; while (N && !counts[N - 1]) N--;
+  const tot = counts.reduce((a, c) => a + c, 0);
+  const i0 = Math.max(0, Math.round((-(pk + 0.5) * u - 0.06 - off) * sr)), i1 = Math.min(data.length, Math.round((N * bl + 0.35 - off) * sr));
+  if (!tot || i1 - i0 < sr * 0.1) return out;
+  const seg = data.subarray(i0, i1), so = off + i0 / sr;
+  const sl = voiceSlices(seg, sr, tot);
+  if (sl.length === tot) {
+    let j = 0;
+    counts.forEach((c, b) => {
+      if (!c) return; const my = sl.slice(j, j + c); j += c;
+      const r = takeSlots(my.map(x => so + x.s + 0.015 - b * bl), c, bl, { pk });
+      const a = i0 + Math.max(0, Math.floor((my[0].s - 0.01) * sr)), z = i0 + Math.min(seg.length, Math.ceil((my[c - 1].e + 0.05) * sr));
+      out.bars[b] = Object.assign(r, { a, z, sl: my.map(x => ({ s: x.s - (a - i0) / sr, e: x.e - (a - i0) / sr })) });
+      if (r.ok) out.placed += c;
+    });
+    return out;
+  }
+  const ons = vocalOnsets([seg], sr).map(x => so + x.t);
+  counts.forEach((c, b) => {
+    if (!c) return; const lo = b ? b * bl - u / 2 : -(pk + 0.5) * u, hi = (b + 1) * bl - u / 2;
+    const r = takeSlots(ons.filter(t => t >= lo && t < hi).map(t => t - b * bl), c, bl, { pk });
+    out.bars[b] = Object.assign(r, { a: 0, z: 0, sl: null }); if (r.ok) out.placed += c;
+  });
+  return out;
 }
 </script>
 <script>
@@ -13455,14 +13524,14 @@ var FP = (function () {
   const MAXB = 4;
   if (!Array.isArray(S.list) || !S.list.length) S.list = [{ text: S.text, hits: S.hits, sub: S.sub }];
   S.cur = Math.max(0, Math.min(S.cur || 0, S.list.length - 1)); Object.assign(S, S.list[S.cur]); delete S.bars;
-  let syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null, seq = 0, sel = null;
+  let recPlay = false, syl = [], playing = false, tmr = 0, raf = 0, nextBar = 0, starts = [], out = null, tap = null, run = null, seq = 0, sel = null;
   const G = () => 4 * S.sub, PK = 2, tempo = () => (S.beat && typeof beatBuf !== 'undefined' && beatBuf ? beatTempo() : S.bpm), unit = () => 60 / tempo() / S.sub, barLen = () => 240 / tempo();
   // the beat plays at its own speed. baseTempo = MetroBar's BPM when it is within 3 of what was detected (you typed 91, it heard 92:
   // 91 wins), else the detected BPM. The knob can fine-tune it (S.ft, only when YOU turn it). Bars on the wave, the loop, the clicks
   // and the grid all use that one tempo, so the loop is always whole bars and can't drift from the beat (Bennie 2026-11-15:
   // "select what part to loop, like in Logic"; then "click a point = loop 8 bars, the dial shouldn't turn while I set the loop").
   const baseTempo = () => { const d = typeof detected !== 'undefined' && detected && detected.bpm, m = bpm(); return d ? (Math.abs(m - d) <= 3 ? m : d) : m; };
-  let LP = null, LV = 0;   // the loop { s, e, n } (seconds in the beat file, n bars); LV = first bar shown on the wave
+  let LP = null, LV = 0, LPU = false;   // the loop { s, e, n } (seconds in the beat file, n bars); LV = first bar shown on the wave; LPU = you picked it on the wave (Record needs that)
   const bOff = () => +$('beatOffset').value || 0, beatTempo = () => S.ft || baseTempo(), bar0 = () => 240 / beatTempo();
   const loopBars = () => LP.n;
   const loopAt = (s, n) => { const b = bar0(), D = beatBuf.duration; n = Math.max(1, Math.min(n, Math.floor((D - s) / b + 1e-6))); LP = { s, n, e: Math.min(D, s + n * b) }; };
@@ -13546,7 +13615,7 @@ var FP = (function () {
       : S.hits.length > n ? `${S.hits.length - n} dot${S.hits.length - n > 1 ? 's' : ''} too many: tap one to take it off.`
       : `All ${n} syllables are on the grid. Press Play and listen. To move a syllable, tap it and then its new slot (or drag it).`;
     knobShow(S.bpm, false); beatUi(); $f('fpGridB').textContent = S.sub === 4 ? 'Triplets' : '16ths';
-    $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click;
+    $f('fpVoice').checked = S.voice; $f('fpClick').checked = S.click; recUi();
   }
   function setHits(a) { S.hits = [...new Set(a)].filter(s => s >= -PK && s < G()).sort((x, y) => x - y); save(); render(); }
   // tap an empty slot = the next syllable goes there; tap a placed one = pick it up, then tap where it should go (tap it again = take it off).
@@ -13570,8 +13639,8 @@ var FP = (function () {
     o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.05);
   }
   function scheduleBar(t, count, bi) {
-    if (S.click || count) for (let b = 0; b < 4; b++) click(t + b * barLen() / 4, b === 0);
-    if (count || tap || !S.voice) return;
+    if ((S.click && !recPlay) || count) for (let b = 0; b < 4; b++) click(t + b * barLen() / 4, b === 0);
+    if (count || tap || !S.voice || recPlay) return;
     const B = barData(bi), sy = B.syl, u = barLen() / (4 * B.sub), g = 4 * B.sub, hs = B.hits.slice(0, sy.length), tk = mine(B);
     if (tk) { hs.forEach((s, k) => { const nx = k + 1 < hs.length ? hs[k + 1] : g + PK; sayMine(tk, k, t + s * u, (nx - s) * u); }); return; }
     hs.forEach((s, k) => {
@@ -13584,7 +13653,10 @@ var FP = (function () {
     if (typeof running !== 'undefined' && running) { halt(); return; }   // the main metronome took over
     if (tap && ctx.currentTime - lat() >= tap.end) endTap();
     const nb = S.list.length;
-    if (run) { const k = Math.floor((ctx.currentTime - lat() - run.first) / barLen()); if (k >= 0 && k !== run.shown) { run.shown = k; $f('fpMsg').textContent = `Looping${nb > 1 ? ' · your bar ' + (k % nb + 1) : ''}. Press stop when you're done.`; } }
+    if (recPlay && rec) { const k = Math.floor((ctx.currentTime - lat() - run.first) / barLen());
+      if (k >= rec.nb) { if (ctx.currentTime - lat() > run.first + rec.nb * barLen() + 0.4) recStop(); }
+      else if (k >= 0 && k !== run.shown) { run.shown = k; $f('fpMsg').textContent = `Recording · rap bar ${k + 1}${rec.nb > 1 ? ' of ' + rec.nb : ''}: “${(k === S.cur ? S.text : S.list[k].text).trim() || '(empty, skip it)'}”`; } }
+    else if (run) { const k = Math.floor((ctx.currentTime - lat() - run.first) / barLen()); if (k >= 0 && k !== run.shown) { run.shown = k; $f('fpMsg').textContent = `Looping${nb > 1 ? ' · your bar ' + (k % nb + 1) : ''}. Press stop when you're done.`; } }
     while (nextBar < ctx.currentTime + 0.6) {
       const bi = tap ? S.cur : seq % nb; seq++;
       scheduleBar(nextBar, false, bi); starts.push({ t: nextBar, bi }); if (starts.length > 6) starts.shift(); nextBar += barLen();
@@ -13600,9 +13672,10 @@ var FP = (function () {
     [...$f('fpBars').children].forEach((b, i) => { b.classList.toggle('fp-live', i === bi); b.querySelectorAll('.fp-c').forEach(c => c.classList.toggle('now', i === bi && +c.dataset.s === cur)); });
     raf = requestAnimationFrame(frame);
   }
-  function play(withTap) {
-    if (rec) recStop();
+  function play(withTap, recRun) {
+    if (rec && !recRun) recStop();
     if (playing) halt();
+    recPlay = !!recRun;
     if (typeof running !== 'undefined' && running) try { stop(); } catch {}
     const c = ac(); c.resume && c.resume();
     out = c.createGain(); out.gain.value = 0.8; out.connect(c.destination);
@@ -13625,7 +13698,7 @@ var FP = (function () {
   }
   function halt() {
     if (run) { try { run.src.stop(); } catch {} run = null; }
-    playing = false; tap = null; clearInterval(tmr); cancelAnimationFrame(raf);
+    playing = false; recPlay = false; tap = null; clearInterval(tmr); cancelAnimationFrame(raf);
     if (out) { try { out.gain.setTargetAtTime(0, ctx.currentTime, 0.02); const o = out; setTimeout(() => o.disconnect(), 300); } catch {} out = null; }
     wvHead(null); document.querySelectorAll('#fpBars .fp-c.now').forEach(e => e.classList.remove('now')); document.querySelectorAll('#fpBars .fp-live').forEach(e => e.classList.remove('fp-live')); ui();
   }
@@ -13679,13 +13752,46 @@ var FP = (function () {
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(1, t + 0.004); g.gain.setValueAtTime(1, t + d - 0.015); g.gain.linearRampToValueAtTime(0, t + d);
     src.connect(g); g.connect(out); src.start(t, off, d + 0.01);
   }
+  // Record over the beat (Bennie 2026-11-15: "I record acapella, you place the words where you think it should be. One can only
+  // record after the beat is uploaded and the bar is selected"). Locked until a beat is loaded and you picked the loop on its wave.
+  const lockWhy = () => !hasBeat() ? 'Load a beat first' : !(S.beat && LP && LPU) ? 'Pick the bar on the beat first' : '';
+  const anyTake = () => S.list.some((b, i) => mine(barData(i)));
   function recUi() {
-    const b = $f('fpRec'); b.textContent = rec ? 'Stop' : mine(barData(S.cur)) ? 'Record again' : 'Record my voice'; b.setAttribute('aria-pressed', !!rec); b.classList.toggle('on', !!rec);
+    const b = $f('fpRec'), why = rec ? '' : lockWhy();
+    b.textContent = rec ? 'Stop' : why || (anyTake() ? 'Record again' : 'Record my voice'); b.setAttribute('aria-pressed', !!rec); b.classList.toggle('on', !!rec);
+    b.setAttribute('aria-disabled', why ? 'true' : 'false'); b.classList.toggle('lock', !!why);
     $f('fpRecDel').hidden = !takes[S.text];
   }
+  // the mic into the graph: an AudioWorklet hands over raw PCM with the exact frame it started on (ScriptProcessor as a fallback)
+  const WK = `class FpCap extends AudioWorkletProcessor {
+  constructor() { super(); this.q = []; this.n = 0; this.first = -1; this.on = true; this.port.onmessage = e => { if (e.data === 'stop') { this.on = false; this.flush(); this.port.postMessage({ end: true }); } }; }
+  flush() { if (!this.n) return; const a = new Float32Array(this.n); let o = 0; for (const b of this.q) { a.set(b, o); o += b.length; } this.q = []; this.n = 0; this.port.postMessage({ pcm: a }, [a.buffer]); }
+  process(inputs) { if (!this.on) return true; const c = inputs[0] && inputs[0][0];
+    if (this.first < 0) { this.first = currentFrame; this.port.postMessage({ first: currentFrame }); }
+    const b = c ? c.slice(0) : new Float32Array(128); this.q.push(b); this.n += b.length; if (this.n >= 16384) this.flush(); return true; } }
+registerProcessor('fp-cap', FpCap);`;
+  let wkReady = null;
+  async function capNode(c, srcN) {
+    const parts = []; let first = null, endRes = null; const ended = new Promise(r => { endRes = r; });
+    let node = null, mode = 'sp';
+    if (c.audioWorklet && window.AudioWorkletNode) try {
+      if (!wkReady) wkReady = c.audioWorklet.addModule(URL.createObjectURL(new Blob([WK], { type: 'text/javascript' })));
+      await wkReady; node = new AudioWorkletNode(c, 'fp-cap', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit' }); mode = 'wk';
+      node.port.onmessage = e => { const d = e.data; if (d.first != null) first = d.first / c.sampleRate; if (d.pcm) parts.push(d.pcm); if (d.end) endRes(); };
+    } catch { node = null; wkReady = null; }
+    if (!node) { node = c.createScriptProcessor(2048, 1, 1); node.onaudioprocess = e => { const a = e.inputBuffer.getChannelData(0); if (first == null) first = e.playbackTime - 2 * a.length / c.sampleRate; parts.push(a.slice(0)); }; }
+    const mute = c.createGain(); mute.gain.value = 0; srcN.connect(node); node.connect(mute); mute.connect(c.destination);
+    return { mode, made: c.currentTime, async stop() {
+      if (mode === 'wk') { node.port.postMessage('stop'); await Promise.race([ended, new Promise(r => setTimeout(r, 1500))]); } else node.onaudioprocess = null;
+      try { node.disconnect(); mute.disconnect(); } catch {}
+      let n = 0; for (const p of parts) n += p.length; const pcm = new Float32Array(n); let o = 0; for (const p of parts) { pcm.set(p, o); o += p.length; }
+      return { pcm, first };
+    } };
+  }
   async function recStart() {
-    if (!syl.length) { $f('fpText').focus(); $f('fpMsg').textContent = `Bar ${S.cur + 1} is empty: type its words first, then Record records you rapping that bar.`; return; }
-    // acapella only (Bennie 2026-11-15): nothing of ours plays while the mic is open, so no beat or click bleeds into your take
+    const nb = S.list.reduce((m, b, i) => (sylOf(i === S.cur ? S.text : b.text).length ? i + 1 : m), 0);
+    if (!nb) { $f('fpText').focus(); $f('fpMsg').textContent = 'Type your bar first, then Record records you rapping it over the beat.'; return; }
+    if (lockWhy()) return recLocked();
     if (playing) halt();
     if (typeof running !== 'undefined' && running) try { stop(); } catch {}
     try { if (typeof BKB !== 'undefined' && BKB && BKB.pause) BKB.pause(); } catch {}
@@ -13702,47 +13808,65 @@ var FP = (function () {
       return;
     }
     const c = ac(); try { await c.resume(); } catch {}
-    // two recorders on the same mic: MediaRecorder (works everywhere, also iPhone) is the take; the raw blocks from the
-    // ScriptProcessor are the fallback when MediaRecorder is missing or its file won't decode. An analyser drives the level
-    // on the button and the auto-stop (quiet for 1.2 s after you've started, or 12 s).
-    const srcN = c.createMediaStreamSource(st), an = c.createAnalyser(), pr = c.createScriptProcessor(2048, 1, 1), mute = c.createGain(); mute.gain.value = 0;
-    an.fftSize = 2048; const parts = [], chunks = [];
-    pr.onaudioprocess = e => { if (rec) parts.push(new Float32Array(e.inputBuffer.getChannelData(0))); };
-    srcN.connect(an); srcN.connect(pr); pr.connect(mute); mute.connect(c.destination);
-    let mr = null;
-    if (window.MediaRecorder) try { mr = new MediaRecorder(st); mr.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); }; mr.start(); } catch { mr = null; }
-    const buf = new Float32Array(an.fftSize), t0 = performance.now(); let floor = -60, top = -100, heard = 0, voiced = 0, quietSince = 0;
-    const tick = setInterval(() => {
-      if (!rec) return; an.getFloatTimeDomainData(buf); let a = 0; for (let i = 0; i < buf.length; i++) a += buf[i] * buf[i];
-      const db = 10 * Math.log10(a / buf.length + 1e-12), now = performance.now();
-      floor = db < floor ? db : floor + 0.05;
-      $f('fpRec').style.setProperty('--lv', Math.max(0, Math.min(100, (db + 60) * 2)) + '%');
-      // a breath is short and soft: auto-stop arms only after half a second of real sound, and "quiet" = 25 dB under your loudest
-      if (db > floor + 15 && db > -55) { heard = heard || now; voiced += 50; top = Math.max(top, db); }
-      const quiet = db < Math.max(floor + 8, top - 25);
-      if (!quiet) quietSince = 0; else if (voiced >= 500 && !quietSince) quietSince = now;
-      if ((quietSince && now - quietSince > 1300) || now - t0 > 15000) recStop();
-    }, 50);
-    rec = { st, srcN, pr, mute, an, mr, chunks, parts, tick, sr: c.sampleRate, heard: () => heard };
-    $f('fpMsg').textContent = `Recording bar ${S.cur + 1}${S.list.length > 1 ? '' : ''}: rap “${S.text.trim()}” once, clearly, at your own pace. It stops when you pause (or press Stop).`; recUi();
+    const srcN = c.createMediaStreamSource(st), an = c.createAnalyser(); an.fftSize = 2048; srcN.connect(an);
+    let cap; try { cap = await capNode(c, srcN); } catch { st.getTracks().forEach(t => t.stop()); $f('fpMsg').textContent = 'The mic didn’t start. Try again or reload.'; return; }
+    // latency: what we schedule at t is heard at t + output latency; your voice reaches the graph input latency later still
+    let inLat = 0; try { const ss = st.getAudioTracks()[0].getSettings(); if (ss && ss.latency) inLat = ss.latency; } catch {}
+    const manual = (+store.get('metrobar.studioLat', 0) || 0) / 1000;
+    const buf = new Float32Array(an.fftSize);
+    const tick = setInterval(() => { if (!rec) return; an.getFloatTimeDomainData(buf); let a = 0; for (let i = 0; i < buf.length; i++) a += buf[i] * buf[i];
+      $f('fpRec').style.setProperty('--lv', Math.max(0, Math.min(100, (10 * Math.log10(a / buf.length + 1e-12) + 60) * 2)) + '%'); }, 50);
+    rec = { st, srcN, an, cap, tick, nb, inLat, manual, sr: c.sampleRate };
+    play(false, true);
+    if (!run) { recStop(true); return; }
+    Object.assign(rec, { first: run.first, bl: barLen(), lat: lat() });
+    $f('fpMsg').textContent = `Count-in… then rap ${nb > 1 ? 'your ' + nb + ' bars, one after the other,' : 'your bar'} over the beat. Headphones on, so the beat stays out of your take.`;
+    recUi();
   }
-  function recStop() {
+  function recStop(drop) {
     if (!rec) return; const r = rec; rec = null; clearInterval(r.tick); $f('fpRec').style.removeProperty('--lv');
-    const close = () => { try { r.pr.disconnect(); r.srcN.disconnect(); r.mute.disconnect(); r.an.disconnect(); r.st.getTracks().forEach(t => t.stop()); } catch {} };
-    const raw = () => { const len = r.parts.reduce((a, b) => a + b.length, 0), data = new Float32Array(len); let o = 0; r.parts.forEach(b => { data.set(b, o); o += b.length; }); return data; };
-    const loud = d => { let pk = 0; for (let i = 0; i < d.length; i += 7) pk = Math.max(pk, Math.abs(d[i])); return pk > 0.003; };
-    const fall = () => { close(); const d = raw(); if (loud(d)) useTake(d, r.sr); else { $f('fpMsg').textContent = r.heard() ? 'The take came out empty. Try again, or another browser.' : 'Your mic gave no sound. Check that the right mic is chosen and allowed for this page, then try again.'; recUi(); } };
-    $f('fpMsg').textContent = 'Cutting your take into syllables…'; recUi();
-    if (!r.mr || r.mr.state === 'inactive') return fall();
-    r.mr.onstop = async () => {
-      close();
-      try {
-        const blob = new Blob(r.chunks, { type: r.mr.mimeType || 'audio/webm' }), ab = await blob.arrayBuffer(), dec = await ctx.decodeAudioData(ab);
-        const d = new Float32Array(dec.getChannelData(0)); if (loud(d)) return useTake(d, dec.sampleRate);
-      } catch {}
-      const d = raw(); if (loud(d)) useTake(d, r.sr); else { $f('fpMsg').textContent = r.heard() ? 'The take came out empty. Try again, or another browser.' : 'Your mic gave no sound. Check that the right mic is chosen and allowed for this page, then try again.'; recUi(); }
-    };
-    try { r.mr.stop(); } catch { fall(); }
+    if (playing) halt();
+    $f('fpMsg').textContent = drop ? '' : 'Placing your syllables…'; recUi();
+    r.cap.stop().then(({ pcm, first }) => {
+      try { r.srcN.disconnect(); r.an.disconnect(); r.st.getTracks().forEach(t => t.stop()); } catch {}
+      if (drop || first == null || r.first == null) return;
+      placeTake(pcm, r.sr, first - r.first - r.lat - r.inLat - r.manual, r.bl);
+      if (lastTake) Object.assign(lastTake, { mode: r.cap.mode, made: r.cap.made, first, runFirst: r.first, inLat: r.inLat, manual: r.manual });
+    });
+  }
+  // what Start me off gives a bar (analyseLine), as { hits, sub }: the fallback when the take doesn't line up
+  function evenOf(text) {
+    const sy = sylOf(text); if (!sy.length) return null; const L = analyseLine(text, fixes());
+    if (L.lay.sub === 5 || !(L.lay.den === 4 && L.lay.nb === 4)) { const step = sy.length <= 8 ? 2 : 1; return { sub: 4, hits: sy.map((_, k) => Math.min(k * step, 16 - sy.length + k)) }; }
+    const pk = Math.min(PK, L.pickup || 0), a = []; for (let i = 0; i < pk; i++) a.push(i - pk);
+    L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); return { sub: L.lay.sub === 3 ? 3 : 4, hits: a.slice(0, sy.length) };
+  }
+  // the take over the beat -> every typed bar gets its syllables where you rapped them (core takePlace) and its own voice clip
+  let lastTake = null;   // the last placement, for console checks (FP.lastTake)
+  function placeTake(data, sr, off, bl) {
+    save();
+    let pk = 0; for (let i = 0; i < data.length; i++) pk = Math.max(pk, Math.abs(data[i])); if (pk > 0.001) for (let i = 0; i < data.length; i++) data[i] *= 0.9 / pk;
+    const counts = S.list.map(b => sylOf(b.text).length), R = takePlace(data, sr, off, bl, counts, { pk: PK });
+    lastTake = { off, bl, len: data.length, sr, counts, bars: R.bars.map(b => b && { hits: b.hits, ok: b.ok, why: b.why, dev: b.dev, sub: b.sub }) };
+    if (!R.bars.some(Boolean) || R.bars.every(b => !b || (!b.ok && !b.sl))) { $f('fpMsg').textContent = 'I didn’t hear you over the beat. Get closer to the mic (headphones on) and try again.'; recUi(); return; }
+    const before = S.list.map(b => Object.assign({}, b, { hits: b.hits.slice() })), fb = [];
+    R.bars.forEach((r, i) => {
+      if (!r) return; const b = S.list[i];
+      if (r.ok) { b.hits = r.hits; b.sub = r.sub; } else { const e = evenOf(b.text); if (e) Object.assign(b, e); fb.push(i + 1); }
+      if (r.sl && r.sl.length === counts[i]) takes[b.text] = { text: b.text, sr, data: data.slice(r.a, r.z), sl: r.sl };
+    });
+    Object.assign(S, S.list[S.cur]); sel = null; parse(); save(); vput(); render();
+    const n = R.placed, many = S.list.length > 1;
+    const msg = (n ? `Placed ${n} syllable${n > 1 ? 's' : ''} from your take` : 'Your take didn’t line up with the grid') + (fb.length ? `; ${many ? 'bar ' + fb.join(' and ') : 'the bar'} ${fb.length > 1 ? 'are' : 'is'} placed the standard way (Start me off)` : '') + '.';
+    $f('fpMsg').textContent = msg + ' Press Play to hear your voice on the beat; drag a dot to move a syllable.';
+    if (typeof toast === 'function') toast(msg, { undo: () => { if (playing) halt(); S.list = before; Object.assign(S, S.list[S.cur]); parse(); save(); render(); } });
+    return R;
+  }
+  function recLocked() {
+    if (!hasBeat()) { S.beat = true; save(); $f('fpMsg').textContent = 'Load your beat first: MetroBar finds its tempo, then click the wave where your bar starts.'; const f = $('beatFile'); if (f) f.click(); return; }
+    if (!S.beat) { S.beat = true; save(); render(); }
+    $f('fpMsg').textContent = 'Click the beat’s wave where your bar starts (the loop picker). Then Record plays the beat and you rap over it.';
+    $f('fpWave').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   function useTake(data, sr) {
     const len = data.length; let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(data[i])); if (pk > 0.001) for (let i = 0; i < len; i++) data[i] *= 0.9 / pk;
@@ -13754,7 +13878,7 @@ var FP = (function () {
     $f('fpMsg').textContent = `Got it: ${sl.length} syllables in your voice. Press Play; move the dots and your voice moves with them.`;
     if (S.hits.length) play(false);
   }
-  $f('fpRec').addEventListener('click', () => (rec ? recStop() : recStart()));
+  $f('fpRec').addEventListener('click', () => (rec ? recStop() : lockWhy() ? recLocked() : recStart()));
   $f('fpRecDel').addEventListener('click', () => { delete takes[S.text]; vput(); recUi(); $f('fpMsg').textContent = 'Back to the robot voice.'; });
   // ---- the beat under it (2026-11-15): the beat loaded on MetroBar, at its own tempo, 1-4 bars, then it rings on
   const hasBeat = () => typeof beatBuf !== 'undefined' && !!beatBuf;
@@ -13827,7 +13951,8 @@ var FP = (function () {
     const s = clickStart(t, e, 6 / r.width * wvSpan());
     cv.setPointerCapture(e.pointerId);
     wd = Math.abs(x - lx) < 10 ? { m: 'l' } : Math.abs(x - rx) < 10 ? { m: 'r' } : x > lx && x < rx ? { m: 'mv', k: barIdx(t), s: LP.s, n: LP.n, moved: false, to: s } : { m: 'new' };
-    if (wd.m === 'new') { loopFrom(s); wvDraw(); }
+    LPU = true; if (wd.m === 'new') { loopFrom(s); wvDraw(); }
+    recUi();
   });
   $f('fpWv').addEventListener('pointermove', e => {
     if (!wd || wd.m === 'new') return; const r = $f('fpWv').getBoundingClientRect(), t = wvT((e.clientX - r.left) / r.width), b = bar0();
@@ -13849,8 +13974,8 @@ var FP = (function () {
     if (S.beat) $f('fpMsg').textContent = `Beat on. Click the wave where your loop should start; Play gives a count-in, then loops it until you stop. Turn Voice off (More) to rap it yourself.`;
   });
   // a new beat: forget the old correction, then show its tempo once the BPM detection is done (it runs after the file is read)
-  $('beatFile') && $('beatFile').addEventListener('change', () => { LP = null; S.ft = 0; let n = 0; const w = setInterval(() => { const ok = typeof detected !== 'undefined' && detected; if (hasBeat()) render(); if ((hasBeat() && ok) || ++n > 160) clearInterval(w); }, 250); });
-  ['bpm', 'useDet', 'halfDet', 'dblDet'].forEach(id => { const el = $(id); if (el) el.addEventListener(id === 'bpm' ? 'change' : 'click', () => setTimeout(() => { if (S.beat && hasBeat()) { LP = null; S.ft = 0; render(); } }, 0)); });
+  $('beatFile') && $('beatFile').addEventListener('change', () => { LP = null; LPU = false; S.ft = 0; let n = 0; const w = setInterval(() => { const ok = typeof detected !== 'undefined' && detected; if (hasBeat()) render(); if ((hasBeat() && ok) || ++n > 160) clearInterval(w); }, 250); });
+  ['bpm', 'useDet', 'halfDet', 'dblDet'].forEach(id => { const el = $(id); if (el) el.addEventListener(id === 'bpm' ? 'change' : 'click', () => setTimeout(() => { if (S.beat && hasBeat()) { LP = null; LPU = false; S.ft = 0; render(); } }, 0)); });
   const ICP = '<svg class="ic ic-play" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/></svg>', ICS = '<svg class="ic ic-stop" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5" fill="currentColor"/></svg>';
   function ui() { recUi(); const b = $f('fpPlay'); b.innerHTML = playing ? ICS : ICP; b.setAttribute('aria-label', playing ? 'Stop' : 'Play'); b.setAttribute('aria-pressed', playing); $f('fpTap').disabled = !!tap; }
   // ---- controls
@@ -13946,7 +14071,7 @@ var FP = (function () {
     L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
     if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, get loop() { return LP && Object.assign({ ph: PH }, LP); }, show, addBar, delBar, _take: useTake };
+  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, get loop() { return LP && Object.assign({ ph: PH }, LP); }, show, addBar, delBar, _take: useTake, _beatTake: (data, sr, off) => placeTake(data, sr, off, barLen()), get locked() { return lockWhy(); }, get lastTake() { return lastTake; }, get _run() { return run && { first: run.first, bl: barLen(), lat: lat() }; } };
 })();
 </script>
 <script>
