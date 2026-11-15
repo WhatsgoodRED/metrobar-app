@@ -1900,10 +1900,11 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 .tg-edots i { height: 12px; border-radius: 6px; background: var(--tge-dot); }
 .tg-edots i:nth-child(4n+1) { background: var(--tge-dot1); }
 .tg-edots i.on { height: 20px; border-radius: 10px; background: var(--accent); box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent); }
-.tg-ebtn:is(:hover, :focus-visible) .tg-edots i.on { animation-name: tg-ehit; animation-duration: 2.4s; animation-iteration-count: infinite; }   /* longhands: the shorthand would reset the per-dot delays and every dot would hit at once */   /* the panel only moves while you hover it (Bennie 2026-11-14) */
+.tg-edots i.on { animation-name: tg-ehit; animation-duration: 2.4s; animation-iteration-count: infinite; }   /* longhands: the shorthand would reset the per-dot delays and every dot would hit at once */   /* always plays, not only on hover (Bennie 2026-11-15); Motion Off and reduced motion keep it still */
 .tg-edots i.on:nth-child(4) { animation-delay: .3s; } .tg-edots i.on:nth-child(7) { animation-delay: .6s; } .tg-edots i.on:nth-child(9) { animation-delay: .9s; }
 .tg-edots i.on:nth-child(11) { animation-delay: 1.2s; } .tg-edots i.on:nth-child(13) { animation-delay: 1.5s; } .tg-edots i.on:nth-child(15) { animation-delay: 1.8s; }
 @keyframes tg-ehit { 0%, 100% { transform: scale(1); filter: none; } 6% { transform: scale(1.35); filter: brightness(1.5); } 16% { transform: scale(1); filter: none; } }
+html.mo-off .tg-ebtn .tg-edots i.on { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tg-ebtn .tg-edots i.on { animation: none !important; } .tg-ebtn, .tg-ebtn::after { transition: none; } }
 @media (hover: none) { .tg-ebtn:hover { transform: none; } }
 @media (max-width: 560px) { .tg-ebtn { padding-inline: 10px; } .tg-edots { gap: 5px; } }   /* same inset as the tile box on phones */
