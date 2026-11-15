@@ -1884,11 +1884,12 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 .tg-ebtn:hover { border-color: color-mix(in srgb, var(--accent) 60%, var(--line)); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent), 0 14px 40px -18px var(--tg-glow); }
 .tg-ebtn:active { transform: scale(.985); }
 .tg-ebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
-.tg-ebk { display: grid; justify-items: center; gap: 8px; min-width: 0; }
-.tg-etag { font-family: 'Panchang', var(--display); font-weight: 700; font-size: .66rem; letter-spacing: .04em; text-transform: uppercase; line-height: 1; padding: 5px 8px; background: var(--accent); color: var(--on-accent); border-radius: 3px; }
-.tg-ebt { font-family: 'Panchang', var(--display); font-weight: 700; font-size: clamp(1.1rem, 5.4vw, 1.75rem); line-height: 1.02; text-transform: uppercase; letter-spacing: -.01em; }
-.tg-ebt em { font-style: normal; color: var(--accent); }
-:root[data-theme="dark"] .tg-ebt em { color: color-mix(in srgb, var(--accent) 50%, #ff3d3d); }
+.tg-ebk { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; min-width: 0; }
+.tg-ebk .tg-ebs { flex-basis: 100%; }
+/* Bennie 2026-11-15: "Flow Game" big and centred on its red pane, the tagline small beside it, sleek display face (not the logo's Panchang) */
+.tg-etag { font-family: var(--display); font-weight: 800; font-size: clamp(1.9rem, 8vw, 2.9rem); letter-spacing: .02em; text-transform: uppercase; line-height: 1; padding: 6px 14px 5px; background: var(--accent); color: var(--on-accent); border-radius: 5px; }
+.tg-ebt { font-family: var(--display); font-weight: 700; font-size: .95rem; line-height: 1.1; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); max-width: 11ch; text-align: left; }
+@media (max-width: 420px) { .tg-ebt { max-width: none; text-align: center; } }
 .tg-ebs { font-size: .8rem; color: var(--muted); line-height: 1.4; }
 .tg-edots { width: 100%; max-width: 40rem; display: grid; grid-template-columns: repeat(16, 1fr); gap: 8px; align-items: center; min-height: 22px; }
 .tg-edots i { height: 10px; width: 10px; justify-self: center; border-radius: 50%; background: color-mix(in srgb, var(--fg) 14%, transparent); }
@@ -1904,7 +1905,7 @@ html.mo-off .tg-ebtn .tg-edots i.on { animation: none !important; }
 
 /* the dialog: MetroBar's own page background (light by day, black only in dark mode) */
 dialog.tg { --tg-perfect: #2f8a43; --tg-good: #1f66c9; --tg-ok: #b9531a; --tg-miss: var(--accent); --tg-card: color-mix(in srgb, var(--panel) 70%, var(--bg)); --tg-ink: #fff;
-  --tg-h: 'Panchang', var(--display); --tg-at: var(--accent); color-scheme: light;
+  --tg-h: var(--display); --tg-at: var(--accent); color-scheme: light;
   width: min(1040px, calc(100vw - 24px)); height: min(980px, calc(100dvh - 24px)); max-width: none; max-height: none; padding: 0;
   border: 1px solid var(--line); border-radius: 18px; background: var(--bg); color: var(--fg); overflow: hidden; box-shadow: 0 30px 80px -30px rgb(0 0 0 / .5); }
 :root[data-theme="dark"] dialog.tg { --tg-perfect: #59b36b; --tg-good: #4f9cf0; --tg-ok: #e07b39; --tg-miss: #ff5a52; --tg-card: #0d0f0e; --tg-at: color-mix(in srgb, var(--accent) 50%, #ff3d3d); color-scheme: dark; background: #050606; border-color: #1d2120; }
@@ -1950,7 +1951,12 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .66); }
 
 /* home: hero */
 .tg-hero { display: grid; gap: 18px; padding: 8px 0 4px; }
-.tg-cta { display: flex; flex-wrap: wrap; gap: 10px; }
+.tg-hero-t { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; }
+.tg-big.tg-name { padding: 8px 20px 6px; background: var(--accent); color: var(--on-accent); border-radius: 6px; font-weight: 800; font-size: clamp(2.8rem, 11vw, 6.4rem); letter-spacing: .01em; line-height: .95; }
+.tg-tagl { font-family: var(--tg-h); font-weight: 700; font-size: clamp(.95rem, 2vw, 1.2rem); letter-spacing: .06em; text-transform: uppercase; line-height: 1.1; color: var(--muted); max-width: 11ch; }
+.tg-hero .tg-lead, .tg-hero .tg-cta { justify-self: center; text-align: center; }
+dialog.tg:has(#tgHome:not([hidden])) .tg-hd h2 { visibility: hidden; }   /* the hero carries the name on the home screen */
+.tg-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .tg-card { position: relative; padding: clamp(10px, 2.4vw, 22px); background: var(--tg-card); border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
 .tg-demo .bd svg, .tg-mini .bd svg { margin-inline: auto; display: block; }
 .tg-how { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; counter-reset: tgh; }
@@ -3454,7 +3460,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="tg-body">
       <div class="tg-home" id="tgHome">
         <section class="tg-hero">
-          <h3 class="tg-big">Tap the dots into <em>your pocket.</em></h3>
+          <div class="tg-hero-t"><h3 class="tg-big tg-name">Flow Game</h3><span class="tg-tagl">Tap the dots into your pocket</span></div>
           <p class="tg-lead" id="tgLead">Hear one bar of clicks, then tap or rap every dot of the bar, twice. Land the big dots and hit the red box on the last word.</p>
           <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Start level 1</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button></div>
           <div class="tg-card tg-demo" id="tgDemo"></div>
@@ -3468,7 +3474,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
         <h3 class="tg-h">This week on the Zone</h3>
         <div class="tg-zone" id="tgZone"></div>
-        <h3 class="tg-h" id="tgLvH">12 levels <span class="tg-acc">×</span> 3 bars<small>Each level opens at 6 of the 9 stars on the one before it.</small></h3>
+        <h3 class="tg-h" id="tgLvH">18 levels <span class="tg-acc">×</span> 3 bars<small>Each level opens at 6 of the 9 stars on the one before it.</small></h3>
         <ol class="tg-lvs" id="tgLvs"></ol>
         <h3 class="tg-h">Your bars</h3>
         <div class="tg-mine" id="tgMine"></div>
@@ -3857,7 +3863,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       </div></details></span>
     </div>
   </section>
-  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow game</span><span class="tg-ebt">Tap the dots into <em>your pocket.</em></span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 12 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
+  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebt">Tap the dots into your pocket</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
@@ -5623,11 +5629,39 @@ const LADDER = [
     bars: ['One two one two one two three', { t: 'Seven steps and then it turns', flow: '8ths' }, 'Short short long is how it goes'] },
   { id: 'quint', name: 'Quintuplets', flow: 'quint', bpm: 60, tip: 'Five syllables per beat. Lock the first of every five and let the rest roll.',
     bars: ['Syllable after syllable after syllable after syllable and done', 'Listen to it now, listen to it here, listen to it loud, listen to it clear', 'Rolling it over, rolling it under, rolling it faster, rolling it back home'] },
+  // Triplet pack (Bennie 2026-11-15, the levels of his second Lovable design): each bar sits on fixed slots of the 12-slot triplet grid
+  // (`slots`, one per syllable, hyphens split the syllables) with the stresses on `acc`.
+  { id: 'tstraight', name: 'Straight triplets', flow: 'trip', bpm: 80, slots: [0,1,2,3,4,5,6,7,8,9], acc: [0,3,6,9], tip: "Ten syllables, one on every triplet slot. Lean on every third: those land right on 1, 2, 3 and 4.",
+    bars: ["One's where to start and then end on the four", "Trip-lets on ev-e-ry beat we per-form", "Ev-ery three syl-la-bles we un-der-score"] },
+  { id: 'themiola', name: 'Hemiola', flow: 'trip', bpm: 80, slots: [0,1,2,3,4,5,6,7,8], acc: [0,2,4,6,8], tip: "Nine syllables, a stress on every second one: twos against the threes. The stress drifts off the beat and comes back.",
+    bars: ["One to start, then end be-fore the four", "All the trip-lets, hem-i-o-la form", "Ev-ery pair, we stress a lit-tle more"] },
+  { id: 'tshift', name: 'Shifting stress', flow: 'trip', bpm: 80, slots: [0,1,2,3,4,5,6,7,8,9], acc: [0,3,5,7,9], tip: "The same ten triplet slots, grouped 3 + 2 + 2 + 2. The rhythm stays, only the stress moves.",
+    bars: ["One to be-gin, then end up-on the four", "Trip-lets on ev-ery beat that we per-form", "Em-pha-sis chang-es what we did be-fore"] },
+  { id: 'tlong', name: 'Long groups', flow: 'trip', bpm: 80, slots: [0,1,2,3,4,5,6,7,8,9], acc: [0,4,9], tip: "Ten syllables as a four and a five, only three stresses. Don't rush the long stretches.",
+    bars: ["One to start and then we end on the four", "Trip-lets ev-ery beat is how we per-form", "Stress-in' chang-es how we did it be-fore"] },
+  { id: 'tskip', name: 'Skip the drop', flow: 'trip', bpm: 80, slots: [1,2,3,4,5,6,7,8,9,10,11], acc: [3,6,9], tip: "Rest on the 1, then three groups of three. Come in on the second triplet and land on beat 4.",
+    bars: ["Skip the drop, but still end on the four trip-let", "Still we rap-pin' in threes and a-dor-in' it", "Stress the syl-la-bles, keep up the core rhy-thm"] },
+  { id: 'tafter', name: 'After the drop', flow: 'trip', bpm: 80, slots: [2,3,4,5,6,7,8,9,10], acc: [2,5,7,9], tip: "Start on the third triplet slot, then 3 + 2 + 2 + 2. The 1 is felt, not said.",
+    bars: ["Af-ter the drop, we end on four trip", "Trip-lets on beats that we per-form-in'", "Syl-la-bles stress-es keep on morph-in'"] },
 ];
 function ladderBar(lv, i) {
   const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b;
+  if (V.slots) return slotBar(o.t, V.slots, V.acc);
   const L = analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, V.meter || '4/4');
   return o.ant || V.ant ? anticipate(L, o.ant || V.ant) : L;
+}
+// A bar on fixed slots of the triplet grid: hyphens mark the syllables ("Trip-lets"), `slots` = one slot per syllable, `acc` = the stressed slots.
+function slotBar(text, at, acc) {
+  const fix = {}; text.replace(/[’‘]/g, "'").split(/\s+/).forEach(w => { const k = cleanKey(w.replace(/-/g, '')); if (k) fix[k] = w.split('-').filter(Boolean).length; });
+  const L = analyseLine(text.replace(/-/g, ''), fix, 0, 'trip'), lay = L.lay;
+  if (L.syl.length !== at.length) return L;
+  const slots = new Array(lay.G).fill(-1); at.forEach((s, k) => { slots[s] = k; });
+  const syl = L.syl.map((x, k) => { const st = acc.includes(at[k]); return Object.assign({}, x, { st, v: st ? vowelClass(x.key, x.si) : null }); });
+  let landSlot = -1; for (let s = slots.length - 1; s >= 0; s--) if (slots[s] >= 0 && syl[slots[s]].st) { landSlot = s; break; }
+  const endSlot = at[at.length - 1];
+  let on = 0, off = 0; at.forEach((s, k) => { if (!syl[k].st) return; if (s - lay.starts[lay.beatOf[s]] === 0) on++; else off++; });
+  return Object.assign({}, L, { syl, slots, slotWord: slots.map(v => (v >= 0 ? syl[v].w : -1)), landSlot, landBeat: lay.beatOf[landSlot] + 1, endSlot, endBeat: lay.beatOf[endSlot] + 1,
+    pickup: 0, anticipated: 0, landOff: lay.beatOf[landSlot] + 1 < lay.starts.length - 1, sync: on + off ? off / (on + off) : 0 });
 }
 // Anticipation: the rhyme word moves `by` slots earlier (when they are free), so the landing comes just before the beat.
 function anticipate(L, by = 1) {
@@ -12317,7 +12351,7 @@ const TG = (() => {
     const rec = S.best[S.mode][key]; if (rec) m.append(h('span', '', rec + ' BPM'));
     if (no) b.append(h('span', 'tg-bno', no)); b.append(h('span', 'tg-bt', text), m); return b;
   }
-  const barText = b => typeof b === 'string' ? b : b.t;
+  const barText = b => (typeof b === 'string' ? b : b.t).replace(/(\w)-(\w)/g, '$1$2');   // triplet pack bars mark syllables with hyphens
   // the next bar to play: the first open level bar without 3 stars
   function nextUp() { for (let lv = 0; lv < LADDER.length && lvOpen(lv); lv++) for (let i = 0; i < 3; i++) if (starsOf(lvKey(lv, i)) < 3) return [lv, i]; return [0, 0]; }
   function mini(L) { const pad = Math.min(3, L.pickup || 0), w = breakdownSvg(L, 0, pad, {}), g = w.firstChild; if (g && g.viewBox) g.style.maxWidth = Math.round(g.viewBox.baseVal.width * 1.4) + 'px'; return w; }
