@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>In The Pocket · Advanced Flow Game</title>
+<meta name="description" content="A rhythm game for rappers: tap every syllable of 24 triplet flows onto the beat and land the stresses.">
+<meta name="theme-color" content="#eceeea">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="fonts/jost.css">
+<!--
+  Flow game > Advanced (Bennie 2026-11-16): own vanilla port of his Lovable app "Pocket Rhythm Wordsmith" (In The Pocket):
+  same layout, look and functions. Routes in the hash: #/ home, #/flow/<p-v>, #/studio, #/studio/<id>, #/calibrate.
+  Storage: metrobar.advBest, metrobar.advSettings, metrobar.advFlows. No React, no Tailwind, no Google requests (Jost is self-hosted).
+  Flow Studio: the user's own AI key from MetroBar (metrobar.ai) when there is one, else the built-in mapper (works offline).
+-->
+<style>
+:root {
+  --radius: .5rem;
+  --background: oklch(94.7% .004 130);
+  --foreground: oklch(15% .01 130);
+  --card: oklch(91.2% .005 130);
+  --primary: oklch(15% .01 130);
+  --primary-foreground: oklch(98% 0 0);
+  --secondary: oklch(87.5% .006 130);
+  --muted: oklch(87.5% .006 130);
+  --muted-foreground: oklch(42% .01 130);
+  --accent: oklch(50.7% .203 29);
+  --accent-foreground: oklch(98% 0 0);
+  --destructive: oklch(50.7% .203 29);
+  --border: oklch(0% 0 0 / .12);
+  --input: oklch(0% 0 0 / .16);
+  --ring: oklch(50.7% .203 29);
+  --rest: oklch(36.5% .238 264);
+  --lyric: oklch(15% .01 130);
+  --lyric-foreground: oklch(98% 0 0);
+  --grade-pocket: oklch(15% .01 130);
+  --grade-great: oklch(50.7% .203 29);
+  --grade-good: oklch(60% .14 160);
+  --grade-miss: oklch(45% .15 29);
+  --gradient-stage: linear-gradient(110deg, oklch(93% .004 130) 0%, oklch(94.7% .004 130) 45%, oklch(96.5% .003 130) 100%);
+  --shadow-glow: 0 0 0 1px color-mix(in oklab, var(--primary) 40%, transparent), 0 12px 40px -12px color-mix(in oklab, var(--primary) 55%, transparent);
+  --shadow-dot: 0 0 24px color-mix(in oklab, var(--accent) 55%, transparent);
+  --font: "Jost", ui-sans-serif, system-ui, sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; border: 0 solid var(--border); }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; min-height: 100vh; background: var(--background); background-image: var(--gradient-stage); background-attachment: fixed; color: var(--foreground); font-family: var(--font); line-height: 1.5; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; background: none; cursor: pointer; padding: 0; }
+h1, h2, h3, p, ol, dl, dd { margin: 0; padding: 0; }
+ol { list-style: none; }
+svg.i { width: 1rem; height: 1rem; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+svg.i.fill { fill: currentColor; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.fd { font-family: var(--font); font-weight: 800; text-transform: uppercase; letter-spacing: -.01em; }
+.mut { color: var(--muted-foreground); }
+.pri { color: var(--primary); }
+.acc { color: var(--accent); }
+.fg-c { color: var(--foreground); }
+.kick { font-size: .875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-foreground); }
+.badge { background: var(--primary); color: var(--primary-foreground); padding: .25rem .75rem; }
+.badge.sm { font-size: .875rem; }
+
+main { min-height: 100vh; }
+.wrap { margin: 0 auto; max-width: 72rem; padding: 0 1rem; }
+.page { padding: 1.5rem 1rem; }
+.col5 { margin: 0 auto; max-width: 64rem; }
+.col3 { margin: 0 auto; max-width: 48rem; }
+@media (min-width: 768px) { .wrap { padding: 0 2rem; } .page { padding: 2.5rem 2rem; } }
+
+/* buttons */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; white-space: nowrap; border-radius: .375rem; font-size: .875rem; font-weight: 500; transition: color .15s, background-color .15s, border-color .15s, transform .15s; height: 2.25rem; padding: 0 1rem; }
+.btn svg.i { pointer-events: none; }
+.btn:disabled { pointer-events: none; opacity: .5; cursor: not-allowed; }
+.btn.hero { background: var(--primary); color: var(--primary-foreground); font-family: var(--font); font-weight: 800; text-transform: uppercase; letter-spacing: -.01em; font-size: 1rem; box-shadow: var(--shadow-glow); }
+.btn.hero:hover { background: color-mix(in oklab, var(--primary) 90%, transparent); }
+.btn.hero:active { transform: scale(.98); }
+.btn.stage { border: 1px solid var(--border); background: color-mix(in oklab, var(--secondary) 60%, transparent); color: var(--foreground); }
+.btn.stage:hover { background: var(--secondary); border-color: color-mix(in oklab, var(--primary) 50%, transparent); }
+.btn.ghost:hover { background: var(--accent); color: var(--accent-foreground); }
+.btn.sm { height: 2rem; padding: 0 .75rem; font-size: .75rem; }
+.btn.lg { height: 2.5rem; padding: 0 2rem; }
+.btn.xl { height: 3.5rem; padding: 0 2.5rem; font-size: 1.125rem; border-radius: .5rem; }
+.btn.icon { width: 2.25rem; padding: 0; }
+.btn.hero.xl, .btn.hero.lg { font-size: 1.125rem; }
+.btn.hero.lg { font-size: 1rem; }
+
+.card { border-radius: .75rem; border: 1px solid var(--border); background: color-mix(in oklab, var(--card) 60%, transparent); }
+.card40 { border-radius: .75rem; border: 1px solid var(--border); background: color-mix(in oklab, var(--card) 40%, transparent); }
+.card50 { border-radius: .75rem; border: 1px solid var(--border); background: color-mix(in oklab, var(--card) 50%, transparent); }
+.glow { border-radius: .75rem; border: 1px solid color-mix(in oklab, var(--primary) 40%, transparent); background: var(--card); box-shadow: var(--shadow-glow); }
+.pop { animation: .45s cubic-bezier(.2, 1.4, .4, 1) both pop; }
+@keyframes pop { 0% { opacity: 0; transform: translateY(6px) scale(.7); } 60% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes beat-pulse { 0% { transform: scale(1.35); } 100% { transform: scale(1); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }
+
+/* home */
+.top { display: flex; align-items: center; justify-content: space-between; padding-top: 1.5rem; padding-bottom: 1.5rem; gap: 1rem; }
+.nav { display: flex; align-items: center; gap: 1.25rem; font-size: .875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-foreground); }
+.nav a:hover, .back:hover { color: var(--primary); }
+.hero-s { padding-top: 1.5rem; padding-bottom: 4rem; }
+.demo { margin-top: 3.5rem; padding: 1.5rem .75rem; }
+.hero-h { max-width: 56rem; font-size: 3rem; line-height: .95; }
+.hero-p { margin-top: 1.25rem; max-width: 36rem; font-size: 1.125rem; color: var(--muted-foreground); }
+.row { display: flex; flex-wrap: wrap; gap: .75rem; }
+.steps { margin-top: 2.5rem; display: grid; gap: 1.5rem; }
+.steps .n { font-size: .875rem; color: var(--primary); }
+.steps .t { margin-top: .25rem; font-size: 1.125rem; }
+.steps p { margin-top: .25rem; font-size: .875rem; color: var(--muted-foreground); }
+.lv-grid { margin-top: 2rem; display: grid; gap: 1.25rem; }
+.lv { padding: 1.25rem; }
+.lv-hd { display: flex; align-items: baseline; justify-content: space-between; gap: .75rem; }
+.lv-hd h3 { font-size: 1.5rem; line-height: 1.2; }
+.lv-hd .grp { flex-shrink: 0; font-size: .875rem; font-weight: 600; color: var(--accent); }
+.vars { margin-top: 1.25rem; display: grid; grid-template-columns: repeat(2, 1fr); gap: .5rem; }
+.var { border-radius: .5rem; border: 1px solid var(--border); background: color-mix(in oklab, var(--secondary) 50%, transparent); padding: .625rem .75rem; transition: border-color .15s, background-color .15s; }
+.var:hover { border-color: color-mix(in oklab, var(--primary) 60%, transparent); background: var(--secondary); }
+.var .k { font-size: 1.125rem; line-height: 1.4; }
+.var:hover .k { color: var(--primary); }
+.var .s { font-size: .75rem; color: var(--muted-foreground); }
+.stars { margin-top: .375rem; display: flex; gap: .125rem; }
+.star { width: .875rem; height: .875rem; fill: none; stroke: var(--muted); stroke-width: 2; stroke-linejoin: round; }
+.star.on { fill: var(--primary); stroke: var(--primary); }
+.foot { border-top: 1px solid var(--border); }
+.foot .wrap { padding-top: 2rem; padding-bottom: 2rem; font-size: .875rem; color: var(--muted-foreground); }
+@media (min-width: 640px) { .steps { grid-template-columns: repeat(2, 1fr); } .vars { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 768px) { .hero-s { padding-top: 3rem; } .demo { padding: 2rem 2.5rem; } .hero-h { font-size: 4.5rem; } .hero-p { font-size: 1.25rem; } .lv-grid { grid-template-columns: repeat(2, 1fr); } .lv { padding: 1.5rem; } }
+@media (min-width: 1024px) { .steps { grid-template-columns: repeat(4, 1fr); } }
+
+/* flow grid */
+.fg { position: relative; width: 100%; user-select: none; -webkit-user-select: none; }
+.g12 { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); }
+.fg-br { position: relative; height: 2.25rem; }
+.fg.sm .fg-br { height: 1.5rem; }
+.fg-br > div { position: relative; }
+.fg-br .b { position: absolute; bottom: 0; height: .5rem; border-radius: 2px 2px 0 0; border: 2px solid var(--primary); border-bottom: 0; }
+.fg-br span { position: absolute; left: 50%; transform: translateX(-50%); bottom: .625rem; font-size: .875rem; font-weight: 700; color: var(--primary); line-height: 1.25rem; }
+.fg.sm .fg-br span { bottom: .5rem; font-size: 10px; line-height: 1rem; }
+.fg-tri { height: 1.5rem; }
+.fg.sm .fg-tri { height: 1rem; }
+.fg-tri > div { display: flex; align-items: flex-end; justify-content: center; }
+.fg-tri svg { width: 1rem; height: 1rem; color: var(--accent); }
+.fg.sm .fg-tri svg { width: .625rem; height: .625rem; }
+.fg-mid { position: relative; }
+.fg-dots { height: 5rem; }
+.fg.sm .fg-dots { height: 3rem; }
+.fg-dots > div { position: relative; display: flex; align-items: center; justify-content: center; }
+.fg-dots .bl { position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%); }
+.fg-dots .bl.one { width: 2px; background: var(--foreground); }
+.fg-dots .bl.dot { border-left: 2px dotted color-mix(in oklab, var(--muted-foreground) 40%, transparent); }
+.fg-dots .d { position: relative; border-radius: 9999px; transition: background-color .15s; width: clamp(14px, 4.2vw, 44px); height: clamp(14px, 4.2vw, 44px); }
+.fg.sm .fg-dots .d { width: clamp(10px, 2.4vw, 22px); height: clamp(10px, 2.4vw, 22px); }
+.d.rest { background: var(--rest); }
+.d.rap { background: var(--accent); }
+.d.g-pocket { background: var(--grade-pocket); }
+.d.g-great { background: var(--grade-great); }
+.d.g-good { background: var(--grade-good); }
+.d.g-miss { background: color-mix(in oklab, var(--grade-miss) 70%, transparent); }
+.d.act { animation: .25s ease-out both beat-pulse; box-shadow: var(--shadow-dot); }
+.fg-lyr { border-radius: 3px; background: var(--lyric); color: var(--lyric-foreground); height: 2.75rem; }
+.fg.sm .fg-lyr { height: 1.75rem; }
+.fg-lyr > div { display: flex; align-items: center; justify-content: center; overflow: visible; white-space: nowrap; font-weight: 500; line-height: 1; font-size: clamp(10px, 1.9vw, 20px); }
+.fg.sm .fg-lyr > div { font-size: clamp(8px, 1.1vw, 12px); }
+.fg-lyr > div.act { font-weight: 800; }
+.fg-head { pointer-events: none; position: absolute; top: -.25rem; bottom: 0; width: 2px; transform: translateX(-50%); background: color-mix(in oklab, var(--primary) 80%, transparent); }
+.fg-cnt { margin-top: .5rem; height: 2rem; }
+.fg.sm .fg-cnt { margin-top: .25rem; height: 1.25rem; }
+.fg-cnt > div { display: flex; align-items: center; justify-content: center; font-weight: 700; color: color-mix(in oklab, var(--foreground) 80%, transparent); font-size: .875rem; }
+.fg-cnt > div.beat { color: var(--primary); font-size: 1.5rem; }
+.fg.sm .fg-cnt > div { font-size: 9px; }
+.fg.sm .fg-cnt > div.beat { font-size: .875rem; }
+
+/* player */
+.ph { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; }
+.ph h1 { margin-top: .25rem; font-size: 2.25rem; line-height: 1.1; }
+.ph h1 .sub { font-size: 1.5rem; color: var(--muted-foreground); }
+.stats { display: flex; align-items: center; gap: 1.5rem; text-align: right; }
+.stat .l { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-foreground); }
+.stat .v { font-size: 1.5rem; line-height: 2rem; }
+.stagec { position: relative; margin-top: 1.5rem; padding: 1rem .75rem 1.25rem; }
+.flash { pointer-events: none; position: absolute; left: 0; right: 0; top: .75rem; z-index: 10; display: flex; height: 2.5rem; justify-content: center; }
+.flash .c { font-size: 2.25rem; color: var(--primary); line-height: 2.5rem; }
+.flash .g { font-size: 1.875rem; line-height: 2.5rem; }
+.flash .ms { margin-left: .5rem; vertical-align: middle; font-size: .875rem; font-weight: 600; text-transform: none; color: var(--muted-foreground); letter-spacing: 0; }
+.t-pocket { color: var(--grade-pocket); } .t-great { color: var(--grade-great); } .t-good { color: var(--grade-good); } .t-miss { color: var(--grade-miss); } .t-extra { color: var(--muted-foreground); }
+.sheet { margin-top: 1.25rem; display: grid; gap: .375rem; }
+.sheet li { border-radius: .375rem; padding: .5rem .75rem; font-size: 1.125rem; font-weight: 500; font-style: italic; transition: background-color .15s, color .15s; color: color-mix(in oklab, var(--primary) 80%, transparent); }
+.sheet.live li { color: color-mix(in oklab, var(--foreground) 45%, transparent); }
+.sheet li.cur { background: var(--secondary); }
+.sheet .ni { font-style: normal; }
+.sheet .s { font-style: italic; }
+.sheet .s.st { font-weight: 800; }
+.ctl { margin-top: 1.5rem; }
+.pads { display: grid; gap: .75rem; }
+.pads.two { grid-template-columns: 1fr 1fr; }
+.pad { display: flex; height: 8rem; flex-direction: column; align-items: center; justify-content: center; border-radius: .75rem; border: 2px solid color-mix(in oklab, var(--primary) 50%, transparent); background: color-mix(in oklab, var(--primary) 10%, transparent); color: var(--primary); touch-action: manipulation; user-select: none; -webkit-user-select: none; transition: transform 75ms; }
+.pad:active, .pad.down { transform: scale(.97); background: var(--primary); color: var(--primary-foreground); }
+.pad.ac { border-color: color-mix(in oklab, var(--accent) 60%, transparent); background: color-mix(in oklab, var(--accent) 15%, transparent); color: var(--accent); }
+.pad.ac:active, .pad.ac.down { background: var(--accent); color: var(--accent-foreground); }
+.pad .l { font-size: 2.25rem; line-height: 2.5rem; }
+.pad .h { margin-top: .25rem; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; opacity: .7; }
+.stack { display: flex; flex-direction: column; gap: .75rem; }
+.stopb { align-self: center; color: var(--muted-foreground); }
+.listen { display: flex; align-items: center; justify-content: center; gap: 1rem; padding: 1.5rem 0; flex-wrap: wrap; }
+.listen .i { width: 1.25rem; height: 1.25rem; color: var(--accent); }
+.listen span { font-size: 1.125rem; color: var(--muted-foreground); }
+.setc { display: grid; gap: 1.5rem; padding: 1.25rem; }
+.setc.mt { margin-top: 1.25rem; }
+.setg { display: grid; gap: 1.25rem; }
+.tempo-h { display: flex; align-items: center; justify-content: space-between; }
+.lbl { font-size: .875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); }
+.bpm { font-size: 1.25rem; color: var(--primary); }
+.tip { font-size: .875rem; color: var(--muted-foreground); }
+.cal-l { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.cal-l:hover { text-decoration: underline; }
+.playc { display: flex; flex-direction: column; justify-content: center; gap: .75rem; }
+.hint { text-align: center; font-size: .75rem; color: var(--muted-foreground); }
+.res { padding: 1.5rem; }
+.res-t { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1.5rem; }
+.res .bigstars { display: flex; gap: .25rem; }
+.res .bigstars .star { width: 2rem; height: 2rem; }
+.res .acc-n { margin-top: .5rem; font-size: 3.75rem; line-height: 1; }
+.res .nb { font-size: .875rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--primary); }
+.res .pk { font-size: 1.5rem; line-height: 2rem; color: var(--accent); }
+.res .pkd { margin-top: .25rem; max-width: 20rem; font-size: .875rem; color: var(--muted-foreground); }
+.res dl { display: grid; grid-template-columns: repeat(3, auto); gap: .5rem 1.5rem; font-size: .875rem; }
+.res dt { font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+.res dd { font-size: 1.25rem; line-height: 1.75rem; }
+.res .acts { margin-top: 1.5rem; display: flex; flex-wrap: wrap; gap: .75rem; }
+
+/* switch + slider */
+.tg { display: flex; align-items: flex-start; gap: .75rem; cursor: pointer; }
+.sw { position: relative; margin-top: .125rem; flex-shrink: 0; width: 2rem; height: 1.15rem; border-radius: 9999px; background: var(--input); transition: background-color .15s; }
+.sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: calc(1.15rem - 4px); height: calc(1.15rem - 4px); border-radius: 9999px; background: var(--background); box-shadow: 0 1px 2px rgb(0 0 0 / .2); transition: transform .15s; }
+.tg input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.tg input:checked + .sw { background: var(--primary); }
+.tg input:checked + .sw::after { transform: translateX(.85rem); }
+.tg input:focus-visible + .sw { outline: 2px solid var(--ring); outline-offset: 2px; }
+.tg b { display: block; font-weight: 600; font-size: .875rem; color: var(--foreground); }
+.tg small { margin-top: .125rem; display: block; font-size: .75rem; color: var(--muted-foreground); }
+.rng { --p: 50%; margin-top: .75rem; width: 100%; height: 1rem; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; display: block; }
+.rng::-webkit-slider-runnable-track { height: .375rem; border-radius: 9999px; background: linear-gradient(to right, var(--primary) var(--p), color-mix(in oklab, var(--primary) 20%, transparent) var(--p)); }
+.rng::-moz-range-track { height: .375rem; border-radius: 9999px; background: color-mix(in oklab, var(--primary) 20%, transparent); }
+.rng::-moz-range-progress { height: .375rem; border-radius: 9999px; background: var(--primary); }
+.rng::-webkit-slider-thumb { -webkit-appearance: none; margin-top: -.3125rem; width: 1rem; height: 1rem; border-radius: 9999px; border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent); background: var(--background); box-shadow: 0 1px 2px rgb(0 0 0 / .15); }
+.rng::-moz-range-thumb { width: 1rem; height: 1rem; border-radius: 9999px; border: 1px solid color-mix(in oklab, var(--primary) 50%, transparent); background: var(--background); }
+.rng:focus-visible { outline: none; }
+.rng:focus-visible::-webkit-slider-thumb { box-shadow: 0 0 0 4px color-mix(in oklab, var(--ring) 50%, transparent); }
+
+/* studio */
+.st-h { font-size: 3rem; line-height: .95; }
+.lead { margin-top: .75rem; max-width: 42rem; font-size: 1.125rem; color: var(--muted-foreground); }
+.form { margin-top: 2rem; padding: 1.25rem; }
+.ta { margin-top: .75rem; display: block; width: 100%; min-height: 9rem; resize: vertical; border-radius: .375rem; border: 1px solid var(--input); background: color-mix(in oklab, var(--background) 60%, transparent); padding: .5rem .75rem; font: italic 1.125rem/1.5 var(--font); color: var(--foreground); box-shadow: 0 1px 2px rgb(0 0 0 / .05); }
+.ta::placeholder { color: var(--muted-foreground); }
+.ta:focus-visible { outline: none; box-shadow: 0 0 0 1px var(--ring); }
+.fmeta { margin-top: .75rem; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; }
+.fmeta p { font-size: .875rem; color: var(--muted-foreground); }
+.fmeta p.bad { color: var(--destructive); }
+.lnk { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--accent); }
+.lnk:hover { text-decoration: underline; }
+.err { margin-top: .75rem; border-radius: .375rem; border: 1px solid color-mix(in oklab, var(--destructive) 50%, transparent); background: color-mix(in oklab, var(--destructive) 10%, transparent); padding: .5rem .75rem; font-size: .875rem; }
+.sug { margin-top: 2rem; padding: 1.25rem; }
+.sug-t { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.sug h2 { margin-top: .25rem; font-size: 1.875rem; line-height: 1.2; color: var(--primary); }
+.sug .tipp { margin-top: .5rem; max-width: 42rem; color: var(--muted-foreground); }
+.sug .warn { margin-top: .5rem; font-size: .875rem; color: var(--accent); }
+.bars { margin-top: 1.5rem; display: grid; gap: 1.5rem; }
+.bar-l { font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-foreground); }
+.mine { margin-top: 1.25rem; display: grid; gap: .75rem; }
+.fc { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem; }
+.fc a { min-width: 0; flex: 1; }
+.fc .t { font-size: 1.125rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fc a:hover .t { color: var(--primary); }
+.fc .m { font-size: .875rem; color: var(--muted-foreground); }
+@media (min-width: 768px) {
+  .ph h1 { font-size: 3rem; } .ph h1 .sub { font-size: 1.875rem; }
+  .stagec { padding: 1rem 2rem 2rem; }
+  .sheet { grid-template-columns: 1fr 1fr; } .sheet li { font-size: 1.25rem; }
+  .pad { height: 10rem; }
+  .setc { grid-template-columns: 1fr auto; } .playc { width: 14rem; }
+  .res { padding: 2rem; }
+  .st-h { font-size: 3.75rem; }
+  .form, .sug { padding: 1.5rem; }
+  .mine { grid-template-columns: 1fr 1fr; }
+  .calc { padding: 2rem; }
+}
+@media (min-width: 640px) { .setg { grid-template-columns: repeat(3, 1fr); } .setg .full { grid-column: span 3; } }
+
+/* calibrate */
+.calc { margin-top: 2rem; padding: 1.25rem; }
+.cal-top { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.cal-top .v { font-size: 1.875rem; line-height: 2.25rem; }
+.cal-top .u { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--muted-foreground); }
+.cal-top .u svg { color: var(--accent); }
+.metro { margin-top: 2rem; display: flex; flex-direction: column; align-items: center; }
+.ring { display: flex; width: 7rem; height: 7rem; align-items: center; justify-content: center; border-radius: 9999px; border: 2px solid var(--border); background: color-mix(in oklab, var(--secondary) 40%, transparent); color: var(--muted-foreground); transition: background-color 75ms, color 75ms, border-color 75ms; }
+.ring.on { border-color: var(--primary); background: var(--primary); color: var(--primary-foreground); }
+.ring span { font-size: 2.25rem; }
+.metro .s { margin-top: .75rem; height: 1.25rem; font-size: .875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-foreground); }
+.strip { margin-top: 1.5rem; }
+.strip .bar { position: relative; height: 2.5rem; border-radius: .375rem; background: color-mix(in oklab, var(--secondary) 50%, transparent); }
+.strip .mid { position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); background: color-mix(in oklab, var(--foreground) 70%, transparent); }
+.strip .tk { position: absolute; top: 50%; width: 4px; height: 1.5rem; transform: translate(-50%, -50%); border-radius: 9999px; background: var(--accent); }
+.strip .lg { margin-top: .25rem; display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; color: var(--muted-foreground); }
+.calpad { margin-top: 1.5rem; width: 100%; height: 8rem; }
+.calpad:active, .calpad.down { transform: scale(.98); }
+.calgo { margin-top: 1.5rem; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
+.calres { margin-top: 1.5rem; padding: 1.25rem; }
+.calres .big { font-size: 3rem; line-height: 1; }
+.fine { margin-top: 1.5rem; padding: 1.25rem; }
+.fine .r { margin-top: .75rem; display: flex; align-items: center; justify-content: space-between; gap: .75rem; }
+.fine p { font-size: .75rem; color: var(--muted-foreground); }
+.nf { padding: 5rem 0; text-align: center; }
+.nf h1 { font-size: 2.25rem; color: var(--primary); }
+.nf a { margin-top: 1rem; display: inline-block; text-decoration: underline; }
+.back { display: inline-flex; align-items: center; gap: .5rem; font-size: .875rem; font-weight: 600; text-transform: uppercase; letter-spacing: .1em; color: var(--muted-foreground); }
+.bk-row { margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.bk-row.b8 { margin-bottom: 2rem; }
+.mb-l { display: inline-flex; align-items: center; gap: .375rem; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (prefers-reduced-motion: reduce) { .pop, .d.act, .spin { animation: none; } * { transition: none !important; } }
+html.mo-off .pop, html.mo-off .d.act { animation: none; }
+</style>
+<script src="zone-config.js"></script>
+</head>
+<body>
+<script>
+/* Maintenance curtain, same as landing-beat-meter.html and studio.html (#mxGate). Client-side curtain, not a lock. */
+(function () {
+  try { if (localStorage.getItem('metrobar.motion') === 'off') document.documentElement.classList.add('mo-off'); } catch (e) {}
+  var C = window.ZONE_CONFIG || {}; if (!C.maintenance) return;
+  var de = document.documentElement; de.classList.add('mx');
+  var st = document.createElement('style');
+  st.textContent = 'html.mx:not(.mx-ok), html.mx:not(.mx-ok) body { overflow: hidden !important; }' +
+    '#mxGate { position: fixed; inset: 0; z-index: 2147483000; display: grid; place-items: center; padding: 24px; background: #eef0ec; color: #15171a; font: 400 16px/1.5 system-ui, sans-serif; text-align: center; }' +
+    '#mxGate .in { display: grid; gap: 14px; justify-items: center; max-width: 26rem; }' +
+    '#mxGate .wm { font-weight: 800; font-size: clamp(1.6rem, 8vw, 2.6rem); text-transform: uppercase; }' +
+    '#mxGate .t { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 18rem; } #mxGate .t i { height: 8px; border-radius: 4px; background: #d3d6d1; } #mxGate .t i:last-child { background: #af0000; }' +
+    '#mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
+    '#mxGate a { margin-top: 10px; color: #5d636a; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; }' +
+    'html.mx-ok #mxGate { display: none; }';
+  document.head.appendChild(st);
+  var g = document.createElement('div'); g.id = 'mxGate'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'MetroBar is under maintenance');
+  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><a href="landing-beat-meter.html">Owner sign in</a></div>';
+  document.body.appendChild(g);
+  var uid = function () { try { var j = JSON.parse(localStorage.getItem('metrobar.zoneAuth') || 'null'); return j && (j.user ? j.user.id : j.currentSession && j.currentSession.user && j.currentSession.user.id) || ''; } catch (e) { return ''; } };
+  var open = function () { de.classList.add('mx-ok'); };
+  var check = function () {
+    var id = uid(); if (!id) { de.classList.remove('mx-ok'); return; } if (!C.url || !C.key) return;
+    try { if (sessionStorage.getItem('metrobar.mxOk') === id) open(); } catch (e) {}
+    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
+      .then(function (r) { return r.ok ? r.json() : []; })
+      .then(function (rows) { if (rows && rows.length) { open(); try { sessionStorage.setItem('metrobar.mxOk', id); } catch (e) {} } else { de.classList.remove('mx-ok'); try { sessionStorage.removeItem('metrobar.mxOk'); } catch (e) {} } })
+      .catch(function () {});
+  };
+  check();
+  window.addEventListener('focus', check);
+  window.addEventListener('storage', function (e) { if (e.key === 'metrobar.zoneAuth') check(); });
+})();
+</script>
+<div id="app"></div>
+
+<script id="advcore">
+/* ---------- flows: 6 triplet patterns x 4 starts, on a 12-slot window (4 beats x "1 trip let").
+   slots = the subdivisions we rap, accents = stressed slots (triangles), groups = numbered brackets.
+   Lyrics: spaces split words, hyphens split syllables inside a word. ---------- */
+const range = (a, b) => Array.from({ length: b - a + 1 }, (_, i) => a + i);
+const v = (pattern, index, lines) => ({ id: `${pattern}-${index}`, pattern, index, lines: lines.map(raw => ({ raw })) });
+const PATTERNS = [
+  { id: 1, name: 'Straight Triplets', grouping: '3 + 3 + 3', summary: 'Ten syllables, one on every subdivision. Stress every third.',
+    tip: 'Lock the stress onto each beat — the triangles sit right on 1, 2, 3 and 4.', slots: range(0, 9), accents: [0, 3, 6, 9],
+    groups: [{ start: 0, size: 3 }, { start: 3, size: 3 }, { start: 6, size: 3 }],
+    variations: [
+      v(1, 1, ["One's where to start and then end on the four", 'Trip-lets on ev-e-ry beat we per-form', 'Ev-ery three syl-la-bles we un-der-score', "Pick-in' the words so we keep up the form"]),
+      v(1, 2, ["Two's where to start and then end on the one", 'Trip-lets on ev-e-ry beat that we run', 'Ev-ery three syl-la-bles, give it a bump', "Flow on re-peat, so we get-tin' it done"]),
+      v(1, 3, ["Three's where to start and then end on the two", 'Trip-lets on ev-e-ry beat that we do', "Stress-in' the syl-la-bles, three in the group", 'Flow on re-peat, so we stay in the groove']),
+      v(1, 4, ["Four's where to start and then end on the three", "We rap-pin' trip-lets on ev-e-ry beat", "Stress-in' the syl-la-bles, ev-e-ry three", 'Stay in the groove with the flow on re-peat']) ] },
+  { id: 2, name: 'Hemiola', grouping: '2 + 2 + 2 + 2', summary: 'Nine syllables, stress every second one — twos against threes.',
+    tip: 'The stress drifts off the beat and back on. Feel the pairs, keep the triplet grid.', slots: range(0, 8), accents: [0, 2, 4, 6, 8],
+    groups: [{ start: 0, size: 2 }, { start: 2, size: 2 }, { start: 4, size: 2 }, { start: 6, size: 2 }],
+    variations: [
+      v(2, 1, ['One to start, then end be-fore the four', 'All the trip-lets, hem-i-o-la form', 'Ev-ery pair, we stress a lit-tle more', "Flow re-peat-in' like a spin-nin' door"]),
+      v(2, 2, ['Two to start, then end be-fore the one', 'Hem-i-o-la trip-lets, like a drum', 'Ev-ery sec-ond syl-la-ble is bumped', "Flow re-peat-in' til we get it done"]),
+      v(2, 3, ['Three to start, then end be-fore the two', 'Hem-i-o-la trip-lets, what we do', 'Ev-ery sec-ond syl-la-ble re-duced', 'Keep the flow and stay with-in the groove']),
+      v(2, 4, ['Four to start, then end be-fore the three', "Hem-i-o-la trip-lets feel-in' sweet", 'Ev-ery sec-ond syl-la-ble de-creased', "Stead-y groov-in', make the flow re-peat"]) ] },
+  { id: 3, name: 'Shifting Stress', grouping: '3 + 2 + 2 + 2', summary: 'Same ten syllables as level 1 — but one group of three, then pairs.',
+    tip: 'Identical rhythm to Straight Triplets. Only the emphasis moves.', slots: range(0, 9), accents: [0, 3, 5, 7, 9],
+    groups: [{ start: 0, size: 3 }, { start: 3, size: 2 }, { start: 5, size: 2 }, { start: 7, size: 2 }],
+    variations: [
+      v(3, 1, ['One to be-gin, then end up-on the four', 'Trip-lets on ev-ery beat that we per-form', 'Em-pha-sis chang-es what we did be-fore', "Switch-in' the flow, but keep-in' up the form"]),
+      v(3, 2, ['Two to be-gin, then end up-on the one', 'Trip-lets on ev-ery beat that we get done', 'Em-pha-sis chang-es what the flow be-comes', "Switch-in' the rhy-thm, play it like a drum"]),
+      v(3, 3, ['Three to be-gin, then end up-on the two', 'Trip-lets on ev-ery beat we ev-er do', 'Em-pha-sis chang-es how the rhy-thm grooves', "Switch-in' the flow and stay-in' on the move"]),
+      v(3, 4, ['Four to be-gin, then end up-on the three', "Rap-pin' in trip-lets, ev-ery sin-gle beat", "Chang-in' the stress-es, make the flow e-lite", 'Stay in the pock-et, let the flow re-peat']) ] },
+  { id: 4, name: 'Long Groups', grouping: '4 + 5', summary: 'Ten syllables split into a four and a five. Only three stresses.',
+    tip: "Fewer stresses, longer stretches. Don't let the gaps between triangles rush you.", slots: range(0, 9), accents: [0, 4, 9],
+    groups: [{ start: 0, size: 4 }, { start: 4, size: 5 }],
+    variations: [
+      v(4, 1, ['One to start and then we end on the four', 'Trip-lets ev-ery beat is how we per-form', "Stress-in' chang-es how we did it be-fore", "Switch-in' flow, but al-ways keep-in' the form"]),
+      v(4, 2, ['Two to start and then we end on the one', 'Trip-lets ev-ery beat is what we get done', "Stress-in' chang-es what the rhy-thm be-comes", "Switch-in' flow and play it like it's a drum"]),
+      v(4, 3, ['Three to start and then we end on the two', 'Trip-lets ev-ery beat that we ev-er do', "Stress-in' chang-es how the rhy-thm will groove", "Switch-in' flow and al-ways stay on the move"]),
+      v(4, 4, ['Four to start and then we end on the three', "Rap-pin' trip-lets, do it on ev-ery beat", "Chang-in' stress-es, make the flow sound e-lite", 'Keep the pock-et, put the flow on re-peat']) ] },
+  { id: 5, name: 'Skip the Drop', grouping: 'rest + 3 + 3 + 3', summary: 'Leave the downbeat empty, come in on the trip, run eleven syllables.',
+    tip: "Rest on the beat — your first word lands on 'trip'. Stresses still hit the beats.", slots: range(1, 11), accents: [3, 6, 9],
+    groups: [{ start: 3, size: 3 }, { start: 6, size: 3 }, { start: 9, size: 3 }],
+    variations: [
+      v(5, 1, ['Skip the drop, but still end on the four trip-let', "Still we rap-pin' in threes and a-dor-in' it", 'Stress the syl-la-bles, keep up the core rhy-thm', "Watch the em-pha-sis, don't be ig-nor-in' it"]),
+      v(5, 2, ['Skip the sec-ond, then end on the one trip-let', "Still we rap-pin' in threes, we ain't done with it", "Stress the syl-la-bles, like we are drum-min' it", "Get the em-pha-sis right and don't fum-ble it"]),
+      v(5, 3, ['Skip the third, then we land on the two trip-let', "Still we rap-pin' in threes, we ain't through with it", "Stress-in' syl-la-bles, put-tin' some groove in it", 'Switch the em-pha-sis, keep it in-tu-i-tive']),
+      v(5, 4, ['Jump a-head of the first, end on three trip-let', "Still we rap-pin' in threes and re-peat-in' it", "Stress-in' syl-la-bles, put-tin' some heat in it", 'Switch the em-pha-sis, that is the key to it']) ] },
+  { id: 6, name: 'After the Drop', grouping: '3 + 2 + 2 + 2 on the let', summary: "Rest through 'one trip', enter on the let, then shifting stress.",
+    tip: 'Two rests, then go. Your first stress lands just before the beat.', slots: range(2, 10), accents: [2, 5, 7, 9],
+    groups: [{ start: 2, size: 3 }, { start: 5, size: 2 }, { start: 7, size: 2 }, { start: 9, size: 2 }],
+    variations: [
+      v(6, 1, ['Af-ter the drop, we end on four trip', "Trip-lets on beats that we per-form-in'", "Syl-la-bles stress-es keep on morph-in'", "So ma-ny rhy-thms we ex-plor-in'"]),
+      v(6, 2, ['Af-ter the sec-ond, end on one trip', "Trip-lets on beats that we be run-nin'", "Switch up the flow, to keep it stun-nin'", "Rap-pin' the rhy-thms like we drum-min'"]),
+      v(6, 3, ['Af-ter the third, we end on two trip', "Trip-lets on beats, that's how we do it", "Switch up the flow, to keep it mov-in'", "So ma-ny rhy-thms that we groov-in'"]),
+      v(6, 4, ["Drop-in' in ear-ly, end on three trip", "Trip-lets on beats, that's how we keep it", "Switch up the flow, it ain't a se-cret", 'Spit-tin\' these rhy-thms as we see it']) ] },
+];
+const ALL_VARIATIONS = PATTERNS.flatMap(p => p.variations);
+const getPattern = id => PATTERNS.find(p => p.id === id);
+const getVariation = id => ALL_VARIATIONS.find(x => x.id === id);
+const nextVariation = id => { const i = ALL_VARIATIONS.findIndex(x => x.id === id); return i >= 0 ? ALL_VARIATIONS[i + 1] : undefined; };
+/** Brackets from stresses: each stress opens a group that runs to the next one (or the last syllable). */
+function deriveGroups(slots, accents) {
+  const acc = [...accents].sort((a, b) => a - b), end = (slots[slots.length - 1] ?? 0) + 1, groups = [];
+  acc.forEach((a, i) => { const size = (acc[i + 1] ?? end) - a; if (size >= 2) groups.push({ start: a, size }); });
+  return groups;
+}
+/** The pattern one bar plays with: its own slots/stresses when it has them. */
+function linePattern(base, line) {
+  if (!line.slots) return base;
+  const accents = line.accents || [];
+  return Object.assign({}, base, { slots: line.slots, accents, groups: deriveGroups(line.slots, accents) });
+}
+/** "be-fore" -> ["be-", "fore"] */
+const syllables = line => line.raw.split(/\s+/).filter(Boolean).flatMap(w => { const p = w.split('-'); return p.map((x, i) => i < p.length - 1 ? x + '-' : x); });
+const lineText = line => line.raw.replace(/-/g, '');
+const variationLabel = index => index === 4 ? 'Pickup on 4' : `Start on ${index}`;
+
+/* ---------- rhythm ---------- */
+const SLOTS_PER_BAR = 12, COUNT_IN_BARS = 1;
+const WINDOWS = { pocket: 0.045, great: 0.09, good: 0.14 };
+const POINTS = { pocket: 100, great: 75, good: 40, miss: 0 };
+const MAX_OFFSET_MS = 400;
+const variationOffset = index => index === 4 ? -3 : (index - 1) * 3;
+function buildChart(variation, bpm, base) {
+  const pattern = base || getPattern(variation.pattern);
+  const slotDur = 60 / bpm / 3, barDur = slotDur * SLOTS_PER_BAR, offset = variationOffset(variation.index);
+  const notes = [], windowStarts = []; let id = 0;
+  variation.lines.forEach((line, li) => {
+    const start = COUNT_IN_BARS * barDur + (offset + li * SLOTS_PER_BAR) * slotDur; windowStarts.push(start);
+    const lp = linePattern(pattern, line);
+    syllables(line).forEach((text, si) => { const slot = lp.slots[si] ?? si; notes.push({ id: id++, line: li, syllable: si, slot, time: start + slot * slotDur, accent: lp.accents.includes(slot), text }); });
+  });
+  const lastNote = notes.length ? notes[notes.length - 1].time : 0;
+  return { bpm, slotDur, barDur, notes, windowStarts, endTime: lastNote + slotDur * 3 + 0.25 };
+}
+/** Positive offset = this setup registers taps late, so pull them earlier before judging. */
+const correctedTapTime = (t, offsetMs) => t - Math.max(-MAX_OFFSET_MS, Math.min(MAX_OFFSET_MS, offsetMs)) / 1000;
+function gradeFor(delta) { const d = Math.abs(delta); return d <= WINDOWS.pocket ? 'pocket' : d <= WINDOWS.great ? 'great' : d <= WINDOWS.good ? 'good' : null; }
+function findTarget(notes, judged, t) {
+  let best, bestD = Infinity;
+  for (const n of notes) { if (judged.has(n.id)) continue; const d = Math.abs(n.time - t); if (d <= WINDOWS.good && d < bestD) { best = n; bestD = d; } }
+  return best;
+}
+const pointsFor = (grade, ok = true) => ok ? POINTS[grade] : Math.round(POINTS[grade] / 2);
+const accuracy = (points, n) => n === 0 ? 0 : Math.round(points / (n * POINTS.pocket) * 100);
+const starsFor = acc => acc >= 90 ? 3 : acc >= 75 ? 2 : acc >= 50 ? 1 : 0;
+const fmtMs = ms => ms === 0 ? '±0ms' : `${ms > 0 ? '+' : '−'}${Math.abs(ms)}ms`;
+function pocketReading(offs) {
+  if (!offs.length) return { label: 'No hits', detail: 'Tap along with each syllable.', meanMs: 0 };
+  const meanMs = Math.round(offs.reduce((a, b) => a + b, 0) / offs.length * 1000);
+  if (Math.abs(meanMs) <= 15) return { label: 'Dead in the pocket', detail: `Average ${fmtMs(meanMs)}`, meanMs };
+  if (meanMs < 0) return { label: 'Rushing', detail: `You're landing ${Math.abs(meanMs)}ms early — lay back.`, meanMs };
+  return { label: 'Dragging', detail: `You're landing ${meanMs}ms late — push a little.`, meanMs };
+}
+function slotLabel(startBeat, k) { const beat = ((startBeat - 1 + Math.floor(k / 3)) % 4) + 1, sub = k % 3; return { text: sub === 0 ? String(beat) : sub === 1 ? 'trip' : 'let', isBeat: sub === 0, beat }; }
+
+/* ---------- calibration ---------- */
+const CALIBRATION = { bpm: 90, countIn: 4, clicks: 16, minTaps: 8 }, CAL_MAX_DEVIATION = 0.25;
+const median = xs => { const s = [...xs].sort((a, b) => a - b), m = Math.floor(s.length / 2); return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+function nearestDelta(tap, clicks) { let best = Infinity; for (const c of clicks) if (Math.abs(tap - c) < Math.abs(best)) best = tap - c; return best; }
+function measureOffset(taps, clicks) {
+  const deltas = taps.map(t => nearestDelta(t, clicks)).filter(d => Math.abs(d) <= CAL_MAX_DEVIATION);
+  if (deltas.length < CALIBRATION.minTaps) return null;
+  const mid = median(deltas), spread = median(deltas.map(d => Math.abs(d - mid)));
+  return { offsetMs: Math.max(-MAX_OFFSET_MS, Math.min(MAX_OFFSET_MS, Math.round(mid * 1000))), spreadMs: Math.round(spread * 1000), used: deltas.length };
+}
+
+/* ---------- custom flows (Flow Studio) ---------- */
+const MAX_LYRIC_LINES = 8, MAX_LINE_CHARS = 140, MAX_BARS = 12;
+const letters = s => s.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+/** Validates a suggestion { technique, start_beat, tip, bars: [{ syllables: [{ text, word_end, slot, stress }] }] } into a playable flow. */
+function suggestionToFlow(raw, lyrics, id, now = Date.now()) {
+  if (![1, 2, 3, 4].includes(raw.start_beat)) throw new Error('Suggestion picked an invalid start beat.');
+  const bars = (raw.bars || []).filter(b => b.syllables && b.syllables.length > 0);
+  if (!bars.length) throw new Error('Suggestion had no bars.');
+  if (bars.length > MAX_BARS) throw new Error('Suggestion had too many bars.');
+  const lines = bars.map((bar, bi) => {
+    const syl = bar.syllables.map(s => Object.assign({}, s, { text: String(s.text).replace(/[\s-]+/g, '') })).filter(s => s.text.length > 0);
+    if (syl.length > 12) throw new Error(`Bar ${bi + 1} has more than 12 syllables.`);
+    syl.forEach((s, i) => {
+      if (!Number.isInteger(s.slot) || s.slot < 0 || s.slot > 11) throw new Error(`Bar ${bi + 1} uses a slot off the grid.`);
+      if (i && s.slot <= syl[i - 1].slot) throw new Error(`Bar ${bi + 1} has two syllables on one slot.`);
+    });
+    return { raw: syl.map((s, i) => s.text + (i === syl.length - 1 ? '' : s.word_end ? ' ' : '-')).join(''), slots: syl.map(s => s.slot), accents: syl.filter(s => s.stress).map(s => s.slot) };
+  });
+  const firstWords = (lyrics[0] || '').trim().split(/\s+/).slice(0, 6).join(' ') || 'My flow';
+  return { id, title: firstWords.length > 48 ? firstWords.slice(0, 47) + '…' : firstWords, technique: String(raw.technique || '').trim().slice(0, 60) || 'Custom flow',
+    startBeat: raw.start_beat, tip: String(raw.tip || '').trim().slice(0, 280), lines,
+    edited: letters(lyrics.join(' ')) !== letters(lines.map(l => l.raw).join(' ')), createdAt: now };
+}
+function groupingLabel(line) { const sizes = deriveGroups(line.slots, line.accents).map(g => g.size); return sizes.length ? ((line.slots[0] || 0) > 0 ? 'rest + ' : '') + sizes.join(' + ') : 'free'; }
+function toPlayable(flow) {
+  const first = flow.lines[0];
+  const pattern = { id: 0, name: flow.technique, grouping: groupingLabel(first), summary: '', tip: flow.tip, slots: first.slots, accents: first.accents, groups: deriveGroups(first.slots, first.accents), variations: [] };
+  return { variation: { id: flow.id, pattern: 0, index: flow.startBeat, lines: flow.lines }, pattern };
+}
+
+/* Built-in mapper (no AI, works offline): spoken syllables by spelling rules, then one triplet pattern for the whole verse. */
+const DIG = ['th', 'ch', 'sh', 'ph', 'wh', 'gh', 'ck', 'ng', 'qu'];
+function splitWord(w) {
+  const lo = w.toLowerCase(), isV = (c, i) => /[aeiou]/.test(c) || (c === 'y' && i > 0 && !/[aeiou]/.test(lo[i - 1] || ''));
+  const groups = []; let i = 0;
+  while (i < lo.length) { if (/[a-z]/.test(lo[i]) && isV(lo[i], i)) { const s = i; while (i < lo.length && /[a-z]/.test(lo[i]) && isV(lo[i], i)) i++; groups.push([s, i]); } else i++; }
+  // silent final e (not "-le"), silent -es / -ed after most consonants
+  const last = groups[groups.length - 1];
+  if (groups.length > 1 && last) {
+    const tail = lo.slice(last[0]).replace(/[^a-z]/g, '');
+    if (tail === 'e' && !/[^aeiou]le$/.test(lo.replace(/[^a-z]/g, ''))) groups.pop();
+    else if ((tail === 'es' && !/(s|z|x|ch|sh|ce|ge)es$/.test(lo)) || (tail === 'ed' && !/[td]ed$/.test(lo))) groups.pop();
+  }
+  if (groups.length < 2) return [w];
+  const cuts = [];
+  for (let g = 0; g < groups.length - 1; g++) {
+    const a = groups[g][1], b = groups[g + 1][0], cons = lo.slice(a, b);
+    let cut;
+    if (cons.length <= 1) cut = a;
+    else if (cons.length === 2 && DIG.includes(cons)) cut = a;
+    else if (cons.length >= 2 && DIG.includes(cons.slice(-2)) && cons.slice(-2) !== 'ck' && cons.slice(-2) !== 'ng') cut = b - 2;
+    else if (cons.slice(-2) === 'le' ) cut = b - 1;
+    else cut = a + (DIG.includes(cons.slice(0, 2)) ? 2 : 1);
+    cuts.push(cut);
+  }
+  const out = []; let p = 0; cuts.forEach(c => { if (c > p && c < w.length) { out.push(w.slice(p, c)); p = c; } }); out.push(w.slice(p));
+  return out.filter(Boolean);
+}
+const PLAN = n => n >= 12 ? { p: 1, s0: 0, acc: k => k % 3 === 0 } : n === 11 ? { p: 5, s0: 1, acc: k => k % 3 === 0 && k >= 3 } : n === 9 ? { p: 2, s0: 0, acc: k => k % 2 === 0 } : { p: 1, s0: 0, acc: k => k % 3 === 0 };
+function localSuggest(lyrics) {
+  const barsWords = [];
+  lyrics.forEach(line => {
+    const words = line.trim().split(/\s+/).filter(Boolean).map(w => ({ w, syl: splitWord(w) }));
+    const n = words.reduce((a, x) => a + x.syl.length, 0), parts = Math.max(1, Math.ceil(n / 12)), per = n / parts;
+    let cur = [], cnt = 0;
+    words.forEach(x => { if (cur.length && cnt + x.syl.length > Math.min(12, Math.ceil(per) + 1)) { barsWords.push(cur); cur = []; cnt = 0; } cur.push(x); cnt += x.syl.length; });
+    if (cur.length) barsWords.push(cur);
+  });
+  const counts = barsWords.map(b => b.reduce((a, x) => a + x.syl.length, 0)), med = Math.round(median(counts));
+  const plan = PLAN(med), pat = getPattern(plan.p);
+  const bars = barsWords.slice(0, MAX_BARS).map(b => {
+    const syl = b.flatMap(x => x.syl.map((t, i) => ({ text: t, word_end: i === x.syl.length - 1 }))).slice(0, 12);
+    const s0 = Math.min(plan.s0, 12 - syl.length);
+    return { syllables: syl.map((s, i) => { const slot = s0 + i; return Object.assign(s, { slot, stress: plan.acc(slot) || i === syl.length - 1 }); }) };
+  });
+  return { technique: pat.name, start_beat: 1, tip: pat.tip, bars };
+}
+
+/* AI suggester: the user's own key from MetroBar's AI settings (metrobar.ai), sent straight to their provider. */
+const AI_DEF = { gemini: 'gemini-3.5-flash-lite', openai: 'gpt-5-mini', anthropic: 'claude-haiku-5-5', openrouter: 'openrouter/auto', ollama: 'gemma4' };
+function aiConf() { try { const a = JSON.parse(localStorage.getItem('metrobar.ai') || 'null'); if (!a || !AI_DEF[a.prov]) return null; if (a.prov !== 'ollama' && !(a.keys && a.keys[a.prov])) return null; return a; } catch (e) { return null; } }
+const AI_INSTR = () => `You are a rap flow coach who teaches triplet flows.
+THE GRID: one bar = 4 beats, each beat split into a triplet "1 trip let". That is 12 slots per bar, numbered 0-11:
+slot 0 = beat-1 "1", 1 = "trip", 2 = "let", 3 = beat-2 "2", 4, 5, 6 = beat-3 "3", 7, 8, 9 = beat-4 "4", 10, 11.
+Each syllable sits on exactly one slot. Empty slots are rests.
+PATTERNS (slot 0 is where the bar starts):
+${PATTERNS.map(p => `- "${p.name}" (${p.grouping}): ${p.summary} slots [${p.slots}], stressed slots [${p.accents}]. Example: "${p.variations[0].lines[0].raw}"`).join('\n')}
+Start-beat displacement: the same pattern can start on beat 1, 2 or 3, or be picked up early on beat 4 (start_beat 4 = the bar begins one beat before the downbeat).
+YOUR TASK: map the rapper's lyrics syllable by syllable onto this grid.
+Rules:
+1. Keep the rapper's words exactly, in order. Never add, drop, reorder or rewrite words.
+2. Split each word into its spoken syllables. Contractions stay one syllable when spoken that way.
+3. Each lyric line becomes one bar when it has 12 or fewer syllables. Split longer lines into several bars at natural word boundaries; never split a word across bars. Never merge two lines into one bar.
+4. Within a bar, slots must strictly increase (one syllable per slot, 0-11).
+5. Prefer one pattern (or a close variant) for the whole verse so it is learnable; adapt slots only where a bar's syllable count differs.
+6. Stress natural word stress and rhyme words, placed like the chosen pattern.
+7. "word_end" is true on the last syllable of every word.
+8. "technique" names the pattern you used (e.g. "Hemiola" or "Straight Triplets, start on 2"). "tip" is one or two short sentences coaching how to rap it.
+Reply with JSON only, no markdown: {"technique": string, "start_beat": 1|2|3|4, "tip": string, "bars": [{"syllables": [{"text": string, "word_end": boolean, "slot": 0-11, "stress": boolean}]}]}`;
+async function aiSuggest(lines, A) {
+  const P = A.prov, key = (A.keys || {})[P], model = (A.models || {})[P] || AI_DEF[P], sys = AI_INSTR();
+  const user = 'Lyrics (one line per row):\n' + lines.map((l, i) => `${i + 1}. ${l}`).join('\n');
+  const ac = new AbortController(), tm = setTimeout(() => ac.abort(), 45000); let r, d, txt;
+  try {
+    if (P === 'gemini') {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`, { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: JSON.stringify({ systemInstruction: { parts: [{ text: sys }] }, contents: [{ role: 'user', parts: [{ text: user }] }], generationConfig: { temperature: 0.4, responseMimeType: 'application/json' } }) });
+      d = await r.json().catch(() => ({})); const c = d.candidates && d.candidates[0]; txt = c && c.content ? c.content.parts.map(x => x.text || '').join('') : '';
+    } else if (P === 'anthropic') {
+      r = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', signal: ac.signal, headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify({ model, max_tokens: 4000, temperature: 0.4, system: sys, messages: [{ role: 'user', content: user }] }) });
+      d = await r.json().catch(() => ({})); txt = (d.content || []).map(x => x.text || '').join('');
+    } else if (P === 'ollama') {
+      r = await fetch((A.url || 'http://localhost:11434').replace(/\/$/, '') + '/api/chat', { method: 'POST', signal: ac.signal, body: JSON.stringify({ model, stream: false, format: 'json', messages: [{ role: 'system', content: sys }, { role: 'user', content: user }] }) });
+      d = await r.json().catch(() => ({})); txt = d.message && d.message.content;
+    } else {
+      r = await fetch(P === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://openrouter.ai/api/v1/chat/completions', { method: 'POST', signal: ac.signal,
+        headers: Object.assign({ 'Content-Type': 'application/json', Authorization: 'Bearer ' + key }, P === 'openrouter' ? { 'X-Title': 'MetroBar' } : {}),
+        body: JSON.stringify({ model, messages: [{ role: 'system', content: sys }, { role: 'user', content: user }], response_format: { type: 'json_object' } }) });
+      d = await r.json().catch(() => ({})); txt = d.choices && d.choices[0] && d.choices[0].message && d.choices[0].message.content;
+    }
+  } finally { clearTimeout(tm); }
+  if (!r.ok || !txt) throw new Error('The AI did not answer');
+  const m = String(txt).match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : txt);
+}
+</script>
+
+<script>
+/* ---------- UI ---------- */
+(function () {
+  const app = document.getElementById('app');
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const st = { get(k, d) { try { const x = localStorage.getItem(k); return x == null ? d : Object.assign(Array.isArray(d) ? [] : {}, d, JSON.parse(x)); } catch (e) { return d; } }, set(k, x) { try { localStorage.setItem(k, JSON.stringify(x)); } catch (e) {} } };
+  const K_BEST = 'metrobar.advBest', K_SET = 'metrobar.advSettings', K_FLOWS = 'metrobar.advFlows';
+  const DEFAULTS = { bpm: 80, stress: false, guide: false, offsetMs: 0 };
+  const settings = () => st.get(K_SET, DEFAULTS);
+  const setSettings = patch => st.set(K_SET, Object.assign(settings(), patch));
+  const bestAll = () => st.get(K_BEST, {});
+  function saveBest(id, b) { const all = bestAll(), prev = all[id]; if (!prev || b.acc > prev.acc) { all[id] = b; st.set(K_BEST, all); return true; } return false; }
+  const flowsAll = () => { try { const l = JSON.parse(localStorage.getItem(K_FLOWS) || '[]'); return Array.isArray(l) ? l : []; } catch (e) { return []; } };
+  const flowsWrite = l => { try { localStorage.setItem(K_FLOWS, JSON.stringify(l)); } catch (e) {} };
+  const reduced = () => matchMedia('(prefers-reduced-motion: reduce)').matches || document.documentElement.classList.contains('mo-off');
+
+  /* icons (Lucide paths) */
+  const P = {
+    play: '<polygon points="6 3 20 12 6 21 6 3"/>', sparkles: '<path d="M9.94 14.06 8 20l-1.94-5.94L0 12l6.06-1.94L8 4l1.94 6.06L16 12z" transform="translate(4 -1) scale(.85)"/><path d="M20 3v4M22 5h-4M4 17v2M5 18H3"/>',
+    star: '<polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>', left: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    phones: '<path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/>',
+    again: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>', stop: '<rect width="18" height="18" x="3" y="3" rx="2"/>',
+    load: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>', trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+    save: '<path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/>'
+  };
+  const ic = (n, cls = '') => `<svg class="i ${cls}" viewBox="0 0 24 24" aria-hidden="true">${P[n]}</svg>`;
+  const stars = (n, cls = 'star') => [1, 2, 3].map(i => `<svg class="${cls}${n >= i ? ' on' : ''}" viewBox="0 0 24 24" aria-hidden="true">${P.star}</svg>`).join('');
+  const brand = (sm) => `<span class="fd badge${sm ? ' sm' : ''}">In The Pocket</span>`;
+  const backRow = (href, label, cls = '') => `<div class="bk-row ${cls}"><a class="back" href="${href}">${ic('left')} ${label}</a>${brand(true)}</div>`;
+
+  /* ---------- audio engine: Web Audio drum machine + guide sounds ---------- */
+  let E = null;
+  function engine() {
+    if (E) return E;
+    const ctx = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
+    const master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
+    const noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate), nd = noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    let run = null; const out = () => run ? run.bus : master;
+    const osc = (type, f, t, g0, dur, dst) => { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(g0, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur); o.connect(g).connect(dst || out()); o.start(t); o.stop(t + dur + 0.01); return o; };
+    const nz = (t, hp, g0, dur) => { const n = ctx.createBufferSource(); n.buffer = noise; const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = hp; const g = ctx.createGain(); g.gain.setValueAtTime(g0, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur); n.connect(f).connect(g).connect(out()); n.start(t); n.stop(t + dur + 0.02); };
+    E = {
+      ctx,
+      async resume() { if (ctx.state !== 'running') await ctx.resume(); },
+      latency() { return (ctx.outputLatency || 0) + (ctx.baseLatency || 0); },
+      startRun() { this.stopRun(); const bus = ctx.createGain(); bus.connect(master); run = { bus }; return run; },
+      stopRun() { if (!run) return; const { bus } = run, t = ctx.currentTime; bus.gain.setValueAtTime(bus.gain.value, t); bus.gain.linearRampToValueAtTime(0, t + 0.05); setTimeout(() => bus.disconnect(), 120); run = null; },
+      kick(t) { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.18); g.gain.setValueAtTime(1, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35); o.connect(g).connect(out()); o.start(t); o.stop(t + 0.36); },
+      snare(t) { nz(t, 1400, 0.55, 0.18); osc('sine', 190, t, 0.35, 0.1); },
+      hat(t, vel = 0.12) { nz(t, 7500, vel, 0.045); },
+      click(t, strong) { osc('square', strong ? 1760 : 1320, t, 0.18, 0.05); },
+      blip(t, accent) { const o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'triangle'; o.frequency.value = accent ? 880 : 587; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(accent ? 0.5 : 0.22, t + 0.005); g.gain.exponentialRampToValueAtTime(0.001, t + 0.12); o.connect(g).connect(out()); o.start(t); o.stop(t + 0.13); },
+      tap(accent) { osc('sine', accent ? 520 : 360, ctx.currentTime, 0.12, 0.06, master); },
+      scheduleBeat(t0, barDur, countIn, bars) {
+        const slot = barDur / 12;
+        for (let b = 0; b < countIn; b++) for (let beat = 0; beat < 4; beat++) this.click(t0 + b * barDur + beat * slot * 3, beat === 0);
+        for (let b = countIn; b < bars; b++) {
+          const bar = t0 + b * barDur;
+          this.kick(bar); this.kick(bar + slot * 5); this.kick(bar + slot * 6); this.snare(bar + slot * 3); this.snare(bar + slot * 9);
+          for (let s = 0; s < 12; s++) this.hat(bar + s * slot, s % 3 === 0 ? 0.16 : 0.07);
+        }
+      }
+    };
+    return E;
+  }
+
+  /* ---------- flow grid ---------- */
+  function grid(o) {
+    const lg = o.size !== 'sm', ks = range(0, 11), sylAt = {};
+    o.pattern.slots.forEach((s, i) => sylAt[s] = (o.syllables[i] ?? ''));
+    const el = document.createElement('div'); el.className = 'fg ' + (lg ? 'lg' : 'sm') + (o.cls ? ' ' + o.cls : '');
+    el.innerHTML = (o.showEmphasis === false ? '' :
+      `<div class="fg-br g12">${o.pattern.groups.map(g => `<div style="grid-column:${g.start + 1} / span ${g.size}"><div class="b" style="left:${50 / g.size}%;right:${50 / g.size}%"></div><span>${g.size}</span></div>`).join('')}</div>` +
+      `<div class="fg-tri g12">${ks.map(k => `<div>${o.pattern.accents.includes(k) ? '<svg viewBox="0 0 10 9" role="img" aria-label="stress"><polygon points="0,0 10,0 5,9" fill="currentColor"/></svg>' : ''}</div>`).join('')}</div>`) +
+      `<div class="fg-mid"><div class="fg-dots g12">${ks.map(k => { const l = slotLabel(o.startBeat, k); return `<div>${l.isBeat ? `<div class="bl ${l.beat === 1 ? 'one' : 'dot'}"></div>` : ''}<div class="d ${k in sylAt ? 'rap' : 'rest'}"></div></div>`; }).join('')}</div>` +
+      `<div class="fg-lyr g12">${ks.map(k => `<div>${esc(sylAt[k] ?? '')}</div>`).join('')}</div><div class="fg-head" hidden></div></div>` +
+      `<div class="fg-cnt g12">${ks.map(k => { const l = slotLabel(o.startBeat, k); return `<div class="${l.isBeat ? 'beat' : ''}">${l.text}</div>`; }).join('')}</div>`;
+    const dots = [...el.querySelectorAll('.d')], lyr = [...el.querySelectorAll('.fg-lyr > div')], head = el.querySelector('.fg-head');
+    let lastAct = -2;
+    el.update = (playhead, states) => {
+      states = states || {};
+      const active = playhead == null ? -1 : Math.floor(playhead + 0.5);
+      ks.forEach(k => {
+        const rapped = k in sylAt, s = states[k], d = dots[k];
+        d.className = 'd ' + (!rapped ? 'rest' : s ? 'g-' + s : 'rap') + (rapped && k === active && (k === lastAct || active !== lastAct) ? ' act' : '');
+        lyr[k].classList.toggle('act', k === active);
+      });
+      lastAct = active;
+      const show = playhead != null && playhead > -0.5 && playhead < 11.5;
+      head.hidden = !show; if (show) head.style.left = ((playhead + 0.5) / 12 * 100) + '%';
+    };
+    if (o.playhead != null || o.states) el.update(o.playhead ?? null, o.states);
+    return el;
+  }
+
+  /* ---------- views ---------- */
+  let cleanup = null;
+  const STEPS = [['01', 'Count the grid', 'Every beat splits into three: 1 trip let, 2 trip let…'], ['02', 'Red = rap it', 'Red dots are syllables. Blue dots are rests.'],
+    ['03', 'Triangles = stress', 'Hit those syllables harder. Stress mode puts them on their own pad.'], ['04', 'Brackets = feel', 'Groups of 3, 2, 4 or 5 — how the stresses cluster.']];
+
+  function viewHome() {
+    document.title = 'In The Pocket · Advanced Flow Game';
+    const best = bestAll();
+    app.innerHTML = `<main>
+<header class="wrap top">${brand()}<nav class="nav"><a href="landing-beat-meter.html?game" class="mb-l">${ic('left')} Flow game</a><a href="#/studio">Flow Studio</a><a href="#/calibrate">Tap delay</a></nav></header>
+<section class="wrap hero-s">
+  <h1 class="fd hero-h">Tap the words into <span class="pri">your pocket.</span></h1>
+  <p class="hero-p">24 triplet rap flows. Hear the beat, tap every syllable, land every stress.</p>
+  <div class="row" style="margin-top:2rem">
+    <a class="btn hero xl" href="#/flow/1-1">${ic('play', 'fill')} Start level 1</a>
+    <a class="btn stage xl" href="#levels" data-jump="levels">Pick a flow</a>
+    <a class="btn stage xl" href="#/studio">${ic('sparkles')} Map your own lyrics</a>
+  </div>
+  <div class="card50 demo" id="demo"></div>
+  <div class="steps">${STEPS.map(s => `<div><div class="fd n">${s[0]}</div><div class="fd t">${s[1]}</div><p>${s[2]}</p></div>`).join('')}</div>
+</section>
+<section id="levels" class="wrap" style="padding-bottom:5rem;scroll-margin-top:1.5rem">
+  <h2 class="fd" style="font-size:clamp(1.875rem,4vw,2.25rem);line-height:1.15">6 patterns <span class="mut">×</span> 4 starts</h2>
+  <p class="mut" style="margin-top:.5rem;max-width:42rem">Each pattern is displaced to start on beat 1, 2, 3 — then picked up early on 4. Same rhythm, totally new feel.</p>
+  <div class="lv-grid">${PATTERNS.map(p => `<article class="card lv"><div class="lv-hd"><h3 class="fd"><span class="pri">Level ${p.id}</span> ${p.name}</h3><span class="grp">${p.grouping}</span></div>
+    <p class="mut" style="margin-top:.25rem;font-size:.875rem">${p.summary}</p><div data-mini="${p.id}" style="margin-top:1rem"></div>
+    <div class="vars">${p.variations.map(x => `<a class="var" href="#/flow/${x.id}"><div class="fd k">${p.id}.${x.index}</div><div class="s">${variationLabel(x.index)}</div><div class="stars">${stars(best[x.id] ? best[x.id].stars : 0)}</div></a>`).join('')}</div></article>`).join('')}</div>
+</section>
+<footer class="foot"><div class="wrap">Flows and notation from <span class="fg-c">The Triplet Flow Guide Book</span>. Part of <a class="fg-c" href="landing-beat-meter.html">MetroBar</a>.</div></footer>
+</main>`;
+    app.querySelectorAll('[data-mini]').forEach(m => { const p = getPattern(+m.dataset.mini); m.replaceWith(Object.assign(grid({ pattern: p, startBeat: 1, syllables: syllables(p.variations[0].lines[0]), size: 'sm', cls: '' }), { style: 'margin-top:1rem' })); });
+    app.querySelector('[data-jump]').addEventListener('click', e => { e.preventDefault(); document.getElementById('levels').scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth' }); });
+    // hero demo: silent looping playhead over flow 1.1 so the grid reads like the game
+    const p1 = getPattern(1), demo = grid({ pattern: p1, startBeat: 1, syllables: syllables(p1.variations[0].lines[0]) });
+    app.querySelector('#demo').append(demo);
+    if (reduced()) { demo.update(null, {}); return; }
+    let id = 0; const slotMs = 60000 / 80 / 3, t0 = performance.now();
+    const loop = t => { const ph = ((t - t0) / slotMs) % 14 - 1, states = {}; p1.slots.forEach(s => { if (ph > s + 0.5) states[s] = 'pocket'; }); demo.update(ph, states); id = requestAnimationFrame(loop); };
+    id = requestAnimationFrame(loop);
+    cleanup = () => cancelAnimationFrame(id);
+  }
+
+  /* ---------- player ---------- */
+  const LABELS = { pocket: 'Pocket!', great: 'Great', good: 'Good', miss: 'Miss' }, EXTRA_PENALTY = 25;
+  function player(variation, patternProp, custom) {
+    const pattern = patternProp || getPattern(variation.pattern), next = custom ? undefined : nextVariation(variation.id);
+    const lines = variation.lines.map(syllables);
+    let S = settings(), phase = 'ready', result = null, run = null, raf = null, gridEl = null, gridLine = -1, lastFlashKey = null, sheetSig = '';
+    const root = document.createElement('div'); root.className = 'col5';
+    root.innerHTML = `<div class="ph"><div><div class="kick">${custom ? 'Your flow' : 'Level ' + pattern.id} · ${esc(pattern.name)} · ${esc(pattern.grouping)}</div>
+      <h1 class="fd">${custom ? `<span class="pri">${esc(custom.title)}</span> <span class="sub">${variationLabel(variation.index)}</span>` : `<span class="pri">${pattern.id}.${variation.index}</span> ${variationLabel(variation.index)}`}</h1></div>
+      <div class="stats"><div class="stat"><div class="l">Combo</div><div class="fd v" data-s="combo">–</div></div><div class="stat"><div class="l">Accuracy</div><div class="fd v" data-s="acc">–</div></div><div class="stat"><div class="l">Best</div><div class="fd v" data-s="best">–</div></div></div></div>
+      <div class="card stagec"><div class="flash" aria-live="polite"></div><div class="gridslot" style="margin-top:2rem"></div></div>
+      <ol class="sheet"></ol><div class="ctl"></div>`;
+    const $ = s => root.querySelector(s), flash = $('.flash'), sheet = $('.sheet'), ctl = $('.ctl');
+    const stopLoop = () => { if (raf != null) cancelAnimationFrame(raf); raf = null; };
+
+    function finish() {
+      const r = run; stopLoop(); engine().stopRun(); if (!r) return;
+      if (r.mode === 'listen') { run = null; phase = 'ready'; return draw(true); }
+      const counts = { pocket: 0, great: 0, good: 0, miss: 0 }; r.hits.forEach(h => counts[h.grade]++);
+      const acc = accuracy(Math.max(0, r.points - r.extras * EXTRA_PENALTY), r.chart.notes.length), stars = starsFor(acc);
+      result = { acc, stars, maxCombo: r.maxCombo, counts, extras: r.extras, pocket: pocketReading(r.offsets), newBest: saveBest(variation.id, { acc, stars }) };
+      phase = 'done'; draw(true);
+    }
+    function tick() {
+      const r = run; if (!r) return;
+      r.now = engine().ctx.currentTime - r.t0 - r.latency;
+      if (r.mode === 'play') for (const n of r.chart.notes) if (!r.hits.has(n.id) && r.now > n.time + WINDOWS.good) { r.hits.set(n.id, { grade: 'miss', delta: 0, stressOk: false }); r.combo = 0; r.last = { label: LABELS.miss, grade: 'miss', key: n.id + 10000 }; }
+      draw(false);
+      if (r.now > r.chart.endTime) return finish();
+      raf = requestAnimationFrame(tick);
+    }
+    async function start(mode) {
+      const e = engine(); await e.resume(); stopLoop(); e.startRun(); S = settings();
+      const chart = buildChart(variation, S.bpm, pattern), t0 = e.ctx.currentTime + 0.2;
+      e.scheduleBeat(t0, chart.barDur, COUNT_IN_BARS, COUNT_IN_BARS + variation.lines.length + 1);
+      if (mode === 'listen' || S.guide) chart.notes.forEach(n => e.blip(t0 + n.time, n.accent));
+      run = { mode, stress: S.stress, t0, latency: e.latency(), offsetMs: S.offsetMs, chart, hits: new Map(), points: 0, extras: 0, combo: 0, maxCombo: 0, offsets: [], last: null, now: -0.2 };
+      result = null; phase = 'running'; draw(true); raf = requestAnimationFrame(tick);
+    }
+    function stop() { stopLoop(); engine().stopRun(); run = null; phase = 'ready'; draw(true); }
+    function tap(kind, ts) {
+      const r = run; if (!r || r.mode !== 'play') return;
+      const e = engine(), ago = Math.max(0, (performance.now() - ts) / 1000);
+      const t = correctedTapTime(e.ctx.currentTime - ago - r.t0 - r.latency, r.offsetMs);
+      e.tap(kind === 'stress');
+      const target = findTarget(r.chart.notes, new Set(r.hits.keys()), t);
+      if (!target) { if (t > -0.1) { r.extras++; r.combo = 0; r.last = { label: 'Extra', grade: 'extra', key: Math.random() }; } return; }
+      const delta = t - target.time, grade = gradeFor(delta), stressOk = !r.stress || (kind === 'stress') === target.accent;
+      r.hits.set(target.id, { grade, delta, stressOk }); r.points += pointsFor(grade, stressOk); r.offsets.push(delta);
+      r.combo++; r.maxCombo = Math.max(r.maxCombo, r.combo); r.last = { label: stressOk ? LABELS[grade] : 'Wrong stress', grade, delta, key: target.id };
+    }
+    const onKey = e => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      if (k === 'escape' && phase === 'running') return stop();
+      if (![' ', 'f', 'd', 'j', 'k', 'enter'].includes(k)) return;
+      const tag = e.target && e.target.tagName; if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+      e.preventDefault();
+      if (phase !== 'running') { if (k === ' ' || k === 'enter') start('play'); return; }
+      tap(S.stress && (k === 'j' || k === 'k') ? 'stress' : 'tap', e.timeStamp);
+    };
+    window.addEventListener('keydown', onKey);
+
+    function controlsHtml() {
+      const s = settings(), pct = (s.bpm - 55) / (110 - 55) * 100;
+      return `<div class="card40 setc${phase === 'done' ? ' mt' : ''}"><div class="setg">
+        <div class="full"><div class="tempo-h"><label class="lbl" for="bpmR">Tempo</label><span class="fd bpm" data-bpm>${s.bpm} BPM</span></div>
+        <input class="rng" id="bpmR" type="range" min="55" max="110" step="1" value="${s.bpm}" style="--p:${pct}%" aria-label="Tempo"></div>
+        <label class="tg"><input type="checkbox" data-set="stress"${s.stress ? ' checked' : ''}><span class="sw"></span><span><b>Stress mode</b><small>Stressed syllables go on the second pad (J)</small></span></label>
+        <label class="tg"><input type="checkbox" data-set="guide"${s.guide ? ' checked' : ''}><span class="sw"></span><span><b>Guide blips</b><small>Hear every syllable while you play</small></span></label>
+        <div style="display:flex;flex-direction:column;gap:.5rem"><p class="tip">${esc(pattern.tip)}</p><a class="cal-l" href="#/calibrate">${s.offsetMs === 0 ? 'Calibrate tap delay →' : `Tap delay ${fmtMs(s.offsetMs)} · recalibrate →`}</a></div></div>
+        <div class="playc"><button class="btn hero xl" type="button" data-go="play">${ic('play', 'fill')} ${phase === 'done' ? 'Play again' : 'Play'}</button>
+        <button class="btn stage lg" type="button" data-go="listen">${ic('phones')} Listen first</button><p class="hint">Space to start · tap every syllable</p></div></div>`;
+    }
+    function resultsHtml(r) {
+      return `<div class="glow res pop"><div class="res-t"><div><div class="bigstars">${stars(r.stars)}</div><div class="fd acc-n">${r.acc}%</div>${r.newBest ? '<div class="nb">New best</div>' : ''}</div>
+        <div><div class="fd pk">${r.pocket.label}</div><p class="pkd">${esc(r.pocket.detail)}</p></div>
+        <dl>${['pocket', 'great', 'good', 'miss'].map(g => `<div><dt class="t-${g}">${LABELS[g].replace('!', '')}</dt><dd class="fd">${r.counts[g]}</dd></div>`).join('')}
+        <div><dt class="mut">Extra</dt><dd class="fd">${r.extras}</dd></div><div><dt class="mut">Combo</dt><dd class="fd">${r.maxCombo}</dd></div></dl></div>
+        <div class="acts"><button class="btn stage" type="button" data-go="play">${ic('again')} Again</button>
+        ${next ? `<a class="btn hero" href="#/flow/${next.id}">Next flow · ${next.id.replace('-', '.')}</a>` : ''}
+        <a class="btn ghost" href="${custom ? '#/studio' : '#/'}">${custom ? 'Back to Flow Studio' : 'All flows'}</a></div></div>`;
+    }
+    function draw(full) {
+      const r = run, running = phase === 'running' && r;
+      let lineIdx = 0, playhead = null, countIn = null;
+      if (running) {
+        const ws = r.chart.windowStarts, first = ws[0] || 0, now = r.now;
+        ws.forEach((w, i) => { if (now >= w) lineIdx = i; });
+        if (now < first) { const bd = r.chart.slotDur * 3; countIn = now < 0 ? null : Math.floor(now / bd) + 1; }
+        const ph = (now - (ws[lineIdx] ?? first)) / r.chart.slotDur; playhead = now >= first - r.chart.slotDur * 0.5 ? ph : null;
+      }
+      if (gridLine !== lineIdx || !gridEl) {
+        gridLine = lineIdx; const g = grid({ pattern: linePattern(pattern, variation.lines[lineIdx] || variation.lines[0]), startBeat: variation.index, syllables: lines[lineIdx] || [] });
+        $('.gridslot').replaceChildren(g); gridEl = g;
+      }
+      const states = {};
+      if (r) r.chart.notes.filter(n => n.line === lineIdx).forEach(n => { const h = r.hits.get(n.id); if (h) states[n.slot] = h.grade; else if (r.mode === 'listen' && playhead != null && playhead > n.slot + 0.5) states[n.slot] = 'pocket'; });
+      gridEl.update(playhead, states);
+      // stats
+      const liveAcc = r && r.mode === 'play' && r.hits.size > 0 ? accuracy(Math.max(0, r.points - r.extras * EXTRA_PENALTY), r.hits.size) : null, b = bestAll()[variation.id];
+      $('[data-s=combo]').textContent = r && r.mode === 'play' ? String(r.combo) : '–';
+      $('[data-s=acc]').textContent = liveAcc != null ? liveAcc + '%' : '–';
+      $('[data-s=best]').textContent = b ? b.acc + '%' : '–';
+      // flash: count-in number, then the last judgement
+      const fk = countIn != null ? 'c' + countIn : running && r.last && r.mode === 'play' ? 'l' + r.last.key : null;
+      if (fk !== lastFlashKey) {
+        lastFlashKey = fk;
+        flash.innerHTML = countIn != null ? `<span class="fd c pop">${countIn}</span>` : fk ? `<span class="fd g pop t-${r.last.grade}">${esc(r.last.label)}${r.last.delta != null ? `<span class="ms">${fmtMs(Math.round(r.last.delta * 1000))}</span>` : ''}</span>` : '';
+      }
+      // lyric sheet
+      const sig = (r ? 'r' + r.hits.size : 'n') + ':' + (running ? lineIdx : -1);
+      if (sig !== sheetSig || full) {
+        sheetSig = sig; sheet.classList.toggle('live', !!r);
+        sheet.innerHTML = variation.lines.map((line, i) => `<li class="${running && i === lineIdx ? 'cur' : ''}">${r ? `<span class="ni">${(lines[i] || []).map((s, si) => {
+          const note = r.chart.notes.find(n => n.line === i && n.syllable === si), h = note ? r.hits.get(note.id) : undefined;
+          return `<span><span class="s${note && note.accent ? ' st' : ''}${h ? ' t-' + h.grade : ''}">${esc(s.replace(/-$/, ''))}</span>${s.endsWith('-') ? '' : ' '}</span>`; }).join('')}</span>` : esc(lineText(line))}</li>`).join('');
+      }
+      if (!full) return;
+      // controls / pads / results
+      let h = '';
+      if (phase === 'running' && r.mode === 'play') h = `<div class="stack"><div class="pads${S.stress ? ' two' : ''}"><button class="pad" type="button" data-pad="tap"><span class="fd l">Tap</span><span class="h">${S.stress ? 'F · Space' : 'Space · F · J'}</span></button>${S.stress ? '<button class="pad ac" type="button" data-pad="stress"><span class="fd l">Stress ▼</span><span class="h">J</span></button>' : ''}</div><button class="btn ghost sm stopb" type="button" data-go="stop">${ic('stop')} Stop (Esc)</button></div>`;
+      else if (phase === 'running') h = `<div class="listen">${ic('phones')}<span>Listening — high blips are the stressed syllables.</span><button class="btn stage sm" type="button" data-go="stop">${ic('stop')} Stop</button></div>`;
+      if (phase === 'done' && result) h += resultsHtml(result);
+      if (phase !== 'running') h += controlsHtml();
+      ctl.innerHTML = h;
+      ctl.querySelectorAll('[data-pad]').forEach(p => p.addEventListener('pointerdown', e => { e.preventDefault(); p.classList.add('down'); setTimeout(() => p.classList.remove('down'), 90); tap(p.dataset.pad, e.timeStamp); }));
+      const rng = ctl.querySelector('#bpmR');
+      if (rng) rng.addEventListener('input', () => { const v = +rng.value; setSettings({ bpm: v }); rng.style.setProperty('--p', (v - 55) / 55 * 100 + '%'); ctl.querySelector('[data-bpm]').textContent = v + ' BPM'; });
+      ctl.querySelectorAll('[data-set]').forEach(c => c.addEventListener('change', () => { setSettings({ [c.dataset.set]: c.checked }); S = settings(); }));
+    }
+    ctl.addEventListener('click', e => { const b = e.target.closest('[data-go]'); if (!b) return; const g = b.dataset.go; if (g === 'stop') stop(); else start(g); });
+    draw(true);
+    return { el: root, destroy() { window.removeEventListener('keydown', onKey); stopLoop(); try { if (E) E.stopRun(); } catch (e) {} } };
+  }
+
+  function viewFlow(id) {
+    const variation = getVariation(id);
+    if (!variation) { app.innerHTML = `<main style="display:flex;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;gap:1rem;text-align:center"><h1 class="fd pri" style="font-size:2.25rem">Flow not found</h1><a href="#/" style="text-decoration:underline">Back to all flows</a></main>`; return; }
+    const p = getPattern(variation.pattern); document.title = `${p.id}.${variation.index} ${p.name} — ${variationLabel(variation.index)} | In The Pocket`;
+    app.innerHTML = `<main class="page"><div class="col5">${backRow('#/', 'All flows')}</div></main>`;
+    const pl = player(variation); app.querySelector('main').append(pl.el); cleanup = pl.destroy;
+  }
+
+  function viewCustom(id) {
+    document.title = 'Your Flow | In The Pocket Flow Studio';
+    const flow = flowsAll().find(f => f.id === id);
+    app.innerHTML = `<main class="page"><div class="col5">${backRow('#/studio', 'Flow Studio')}</div></main>`;
+    const m = app.querySelector('main');
+    if (!flow) { m.insertAdjacentHTML('beforeend', `<div class="col5 nf"><h1 class="fd">Flow not found</h1><p class="mut" style="margin-top:.5rem">Your flows are saved on the device you made them on.</p><a href="#/studio">Back to Flow Studio</a></div>`); return; }
+    const pl = toPlayable(flow), p = player(pl.variation, pl.pattern, { title: flow.title }); m.append(p.el); cleanup = p.destroy;
+  }
+
+  /* ---------- Flow Studio ---------- */
+  const EXAMPLE = ['I been on the grind every night and day', 'Counting up my blessings while they go away', 'Never really sleeping, got a lot to say', "Pocket full of triplets and I'm here to stay"].join('\n');
+  let latestId = null, draft = '';
+  function viewStudio() {
+    document.title = 'Flow Studio — Map Your Lyrics Onto Triplets | In The Pocket';
+    const ai = aiConf();
+    app.innerHTML = `<main class="page"><div class="col5">
+      <div class="bk-row b8"><a class="back" href="#/">${ic('left')} All flows</a>${brand(true)}</div>
+      <h1 class="fd st-h">Flow <span class="pri">Studio</span></h1>
+      <p class="lead">Write your bars — one per line. ${ai ? 'The AI' : 'The flow mapper'} splits every word into syllables, places them on the "1 trip let" grid using the triplet patterns, and marks where to stress. Then you tap it in.</p>
+      <form class="card form" novalidate><div style="display:flex;align-items:baseline;justify-content:space-between;gap:.75rem"><label for="lyrics" class="fd" style="font-size:1.125rem">Your lyrics</label><button type="button" class="lnk" data-ex>Use example bars</button></div>
+        <textarea id="lyrics" class="ta" rows="5" placeholder="One bar per line…&#10;Aim for about 8–12 syllables per bar."></textarea>
+        <div class="fmeta"><p data-meta></p><button type="submit" class="btn hero lg" data-sub>${ic('sparkles')} Suggest a flow</button></div>
+        <p class="mut" data-busy hidden style="margin-top:.75rem;font-size:.875rem">This takes around 20 seconds.</p><p role="alert" class="err" data-err hidden></p>
+        <p class="mut" style="margin-top:.75rem;font-size:.75rem">${ai ? `Uses your own ${esc(ai.prov === 'anthropic' ? 'Claude' : ai.prov[0].toUpperCase() + ai.prov.slice(1))} key from MetroBar's AI settings; only these lines are sent.` : 'Runs on this device. Add your own AI key in MetroBar (Barbook › AI) for smarter syllable placement.'}</p></form>
+      <div data-latest></div>
+      <section style="margin-top:3rem"><h2 class="fd" style="font-size:1.875rem">Your flows</h2><p class="mut" data-empty style="margin-top:.5rem" hidden>Flows you create are saved on this device.</p><div class="mine" data-mine></div></section></div></main>`;
+    const $ = s => app.querySelector(s), ta = $('#lyrics'), meta = $('[data-meta]'), sub = $('[data-sub]');
+    ta.value = draft;
+    const lns = () => ta.value.split('\n').map(l => l.trim()).filter(Boolean);
+    const sync = () => {
+      draft = ta.value; const l = lns(), tooMany = l.length > MAX_LYRIC_LINES, tooLong = l.some(x => x.length > MAX_LINE_CHARS);
+      meta.className = tooMany || tooLong ? 'bad' : ''; meta.textContent = tooMany ? `Up to ${MAX_LYRIC_LINES} lines at a time.` : tooLong ? `Keep each line under ${MAX_LINE_CHARS} characters.` : `${l.length}/${MAX_LYRIC_LINES} lines · long lines get split across bars`;
+      sub.disabled = busy || !l.length || tooMany || tooLong;
+    };
+    let busy = false;
+    ta.addEventListener('input', sync); $('[data-ex]').addEventListener('click', () => { ta.value = EXAMPLE; sync(); });
+    const mine = () => {
+      const fl = flowsAll(), best = bestAll(); $('[data-empty]').hidden = fl.length > 0;
+      $('[data-mine]').innerHTML = fl.map(f => `<article class="card fc"><a href="#/studio/${encodeURIComponent(f.id)}"><div class="fd t">${esc(f.title)}</div><div class="m">${esc(f.technique)} · ${f.lines.length} bars</div><div class="stars">${stars(best[f.id] ? best[f.id].stars : 0)}</div></a><button class="btn ghost icon" type="button" data-del="${esc(f.id)}" aria-label="Delete ${esc(f.title)}">${ic('trash')}</button></article>`).join('');
+    };
+    const latest = () => {
+      const f = flowsAll().find(x => x.id === latestId), box = $('[data-latest]'); if (!f) { box.replaceChildren(); return; }
+      const { pattern } = toPlayable(f);
+      box.innerHTML = `<section class="glow sug pop"><div class="sug-t"><div><div class="kick">Suggested flow · ${variationLabel(f.startBeat)} · ${esc(pattern.grouping)}</div><h2 class="fd">${esc(f.technique)}</h2><p class="tipp">${esc(f.tip)}</p>${f.edited ? `<p class="warn">Heads up: the syllables don't spell your lines exactly — check the bars below.</p>` : ''}</div>
+        <a class="btn hero xl" href="#/studio/${encodeURIComponent(f.id)}">${ic('play', 'fill')} Play this flow</a></div><div class="bars"></div></section>`;
+      const bars = box.querySelector('.bars');
+      f.lines.forEach((line, i) => { const d = document.createElement('div'); d.innerHTML = `<div class="bar-l">Bar ${i + 1}</div>`; d.append(grid({ pattern: linePattern(pattern, line), startBeat: f.startBeat, syllables: syllables(line), size: 'sm', cls: '' })); d.lastChild.style.marginTop = '.25rem'; bars.append(d); });
+    };
+    $('[data-mine]').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (!b) return; flowsWrite(flowsAll().filter(f => f.id !== b.dataset.del)); if (latestId === b.dataset.del) { latestId = null; latest(); } mine(); });
+    $('form').addEventListener('submit', async e => {
+      e.preventDefault(); const l = lns(); if (busy || !l.length || l.length > MAX_LYRIC_LINES || l.some(x => x.length > MAX_LINE_CHARS)) return;
+      const err = $('[data-err]'); err.hidden = true; busy = true; sync();
+      const A = aiConf(); sub.innerHTML = `${ic('load', 'spin')} Finding your flow…`; $('[data-busy]').hidden = !A;
+      const id = (crypto.randomUUID && crypto.randomUUID()) || String(Date.now()) + Math.random().toString(36).slice(2);
+      let flow = null, note = '';
+      if (A) { try { flow = suggestionToFlow(await aiSuggest(l, A), l, id); } catch (x) { note = 'The AI could not map these lines, so the built-in mapper did. '; } }
+      if (!flow) { try { flow = suggestionToFlow(localSuggest(l), l, id); } catch (x) { err.textContent = (x && x.message ? x.message : "The suggestion didn't fit the grid.") + ' Try again.'; err.hidden = false; } }
+      busy = false; sub.innerHTML = `${ic('sparkles')} Suggest a flow`; $('[data-busy]').hidden = true; sync();
+      if (!flow) return;
+      if (note) { err.textContent = note; err.hidden = false; }
+      flowsWrite([flow].concat(flowsAll().filter(f => f.id !== flow.id))); latestId = flow.id; latest(); mine();
+    });
+    sync(); latest(); mine();
+  }
+
+  /* ---------- tap delay calibration ---------- */
+  function viewCalibrate() {
+    document.title = 'Calibrate Tap Delay | In The Pocket';
+    app.innerHTML = `<main class="page"><div class="col3">${backRow('#/', 'All flows', 'b8')}
+      <h1 class="fd st-h">Tap <span class="pri">delay</span></h1>
+      <p class="lead" style="max-width:none">Every phone, laptop and pair of headphones adds its own delay — Bluetooth adds a lot. Tap along to ${CALIBRATION.clicks} clicks with the headphones you play with, and we'll shift scoring so your on-beat taps count as on-beat.</p>
+      <div class="card calc"><div class="cal-top"><div><div class="stat"><div class="l">Current setting</div></div><div class="fd v" data-cur></div></div><div class="u">${ic('phones')} Use your playing setup</div></div>
+        <div class="metro"><div class="ring" data-ring><span class="fd" data-rn>♩</span></div><div class="s" data-rs>${CALIBRATION.bpm} BPM</div></div>
+        <div class="strip"><div class="bar" data-strip><div class="mid"></div></div><div class="lg"><span>early 250ms</span><span>on the click</span><span>late 250ms</span></div></div>
+        <div data-act></div><div data-res></div></div>
+      <div class="card40 fine"><div class="tempo-h"><span class="lbl">Fine-tune by hand</span><span class="fd bpm" data-fine></span></div>
+        <input class="rng" type="range" min="${-MAX_OFFSET_MS}" max="${MAX_OFFSET_MS}" step="5" aria-label="Tap delay correction" data-rng>
+        <div class="r"><p>Still reading "Dragging" when you feel on-beat? Nudge right. "Rushing"? Nudge left.</p><button class="btn ghost sm" type="button" data-reset>Reset</button></div></div></div></main>`;
+    const $ = s => app.querySelector(s), STRIP = 250;
+    let phase = 'idle', result = null, saved = false, cal = null, raf = null;
+    const showSet = () => { const o = settings().offsetMs, r = $('[data-rng]'); $('[data-cur]').textContent = fmtMs(o); $('[data-fine]').textContent = fmtMs(o); r.value = o; r.style.setProperty('--p', (o + MAX_OFFSET_MS) / (2 * MAX_OFFSET_MS) * 100 + '%'); $('[data-reset]').disabled = o === 0; };
+    $('[data-rng]').addEventListener('input', e => { setSettings({ offsetMs: +e.target.value }); showSet(); drawRes(); });
+    $('[data-reset]').addEventListener('click', () => { setSettings({ offsetMs: 0 }); showSet(); drawRes(); });
+    const stopLoop = () => { if (raf != null) cancelAnimationFrame(raf); raf = null; };
+    function finish() { stopLoop(); engine().stopRun(); result = cal ? measureOffset(cal.taps, cal.clicks) : null; phase = 'done'; draw(); drawAct(); drawRes(); }
+    function tick() { const c = cal; if (!c) return; c.now = engine().ctx.currentTime - c.t0 - c.latency; draw(); if (c.now > c.clicks[c.clicks.length - 1] + c.beat * 0.75) return finish(); raf = requestAnimationFrame(tick); }
+    async function start() {
+      const e = engine(); await e.resume(); stopLoop(); e.startRun();
+      const beat = 60 / CALIBRATION.bpm, t0 = e.ctx.currentTime + 0.3, total = CALIBRATION.countIn + CALIBRATION.clicks;
+      for (let i = 0; i < total; i++) { const counting = i < CALIBRATION.countIn; e.click(t0 + i * beat, counting || (i - CALIBRATION.countIn) % 4 === 0); }
+      cal = { t0, latency: e.latency(), beat, clicks: Array.from({ length: CALIBRATION.clicks }, (_, j) => (CALIBRATION.countIn + j) * beat), taps: [], now: -0.3 };
+      result = null; saved = false; phase = 'running'; drawAct(); drawRes(); raf = requestAnimationFrame(tick);
+    }
+    function tap(ts) {
+      const c = cal; if (!c || phase !== 'running') return;
+      const e = engine(), t = e.ctx.currentTime - Math.max(0, (performance.now() - ts) / 1000) - c.t0 - c.latency; e.tap(false);
+      if (t < (CALIBRATION.countIn - 0.5) * c.beat) return; c.taps.push(t); drawStrip();
+    }
+    function drawStrip() {
+      const c = cal, bar = $('[data-strip]'); bar.querySelectorAll('.tk').forEach(x => x.remove()); if (!c) return;
+      const ds = c.taps.map(t => nearestDelta(t, c.clicks));
+      ds.filter(d => Math.abs(d) * 1000 <= STRIP).forEach((d, i) => { const k = document.createElement('div'); k.className = 'tk'; k.style.left = (50 + d * 1000 * 50 / STRIP) + '%'; k.style.opacity = 0.4 + 0.6 * (i + 1) / ds.length; bar.append(k); });
+    }
+    function draw() {
+      const c = cal, run = c && phase === 'running', bi = run ? Math.floor(c.now / c.beat + 0.02) : -1, counting = bi >= 0 && bi < CALIBRATION.countIn, measured = bi - CALIBRATION.countIn;
+      const pulse = run && c.now >= 0 && c.now - Math.max(0, bi) * c.beat < 0.12;
+      $('[data-ring]').classList.toggle('on', !!pulse);
+      $('[data-rn]').textContent = !run ? '♩' : counting ? bi + 1 : measured >= 0 ? Math.min(measured + 1, CALIBRATION.clicks) : '';
+      $('[data-rs]').textContent = run ? (counting ? 'Get ready…' : 'Tap on every click') : phase === 'done' ? 'Done' : CALIBRATION.bpm + ' BPM';
+    }
+    function drawAct() {
+      const a = $('[data-act]');
+      if (phase === 'running') { a.innerHTML = `<button type="button" class="pad calpad"><span class="fd l">Tap</span><span class="h">Space · F · J</span></button>`; const p = a.firstChild; p.addEventListener('pointerdown', e => { e.preventDefault(); p.classList.add('down'); setTimeout(() => p.classList.remove('down'), 90); tap(e.timeStamp); }); }
+      else { a.innerHTML = `<div class="calgo"><button class="btn hero xl" type="button">${phase === 'done' ? ic('again') : ic('play', 'fill')} ${phase === 'done' ? 'Run it again' : 'Start calibration'}</button><p class="mut" style="font-size:.75rem">Tip: close your eyes and tap to the sound, not the circle.</p></div>`; a.querySelector('button').addEventListener('click', start); }
+    }
+    function drawRes() {
+      const box = $('[data-res]'); if (phase !== 'done') { box.replaceChildren(); return; }
+      const cur = settings().offsetMs;
+      box.innerHTML = `<div class="glow calres pop">${result ? `<div class="fd big">${fmtMs(result.offsetMs)}</div><p class="mut" style="margin-top:.5rem">${result.offsetMs === 0 ? 'Your taps land right on the click — no correction needed.' : `Your taps register ${Math.abs(result.offsetMs)}ms ${result.offsetMs > 0 ? 'late' : 'early'} on this setup. Saving shifts scoring by that much.`} Based on ${result.used} taps, consistent within ±${result.spreadMs}ms.</p>
+        ${result.spreadMs > 40 ? '<p class="acc" style="margin-top:.5rem;font-size:.875rem">Your taps were uneven — run it again for a steadier reading.</p>' : ''}
+        <div class="row" style="margin-top:1rem"><button class="btn hero" type="button" data-save${saved && cur === result.offsetMs ? ' disabled' : ''}>${ic('save')} ${saved && cur === result.offsetMs ? 'Saved' : 'Save this delay'}</button></div>`
+        : `<p class="fg-c">Not enough taps landed near the clicks (need ${CALIBRATION.minTaps}). Run it again and tap on every click.</p>`}</div>`;
+      const s = box.querySelector('[data-save]'); if (s) s.addEventListener('click', () => { setSettings({ offsetMs: result.offsetMs }); saved = true; showSet(); drawRes(); });
+    }
+    const onKey = e => {
+      if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase(); if (![' ', 'f', 'j', 'enter'].includes(k)) return;
+      const tag = e.target && e.target.tagName; if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') return;
+      e.preventDefault(); if (phase === 'running') tap(e.timeStamp); else if (k === ' ' || k === 'enter') start();
+    };
+    window.addEventListener('keydown', onKey);
+    showSet(); draw(); drawAct();
+    cleanup = () => { window.removeEventListener('keydown', onKey); stopLoop(); try { if (E) E.stopRun(); } catch (e) {} };
+  }
+
+  /* ---------- router ---------- */
+  function route() {
+    if (cleanup) { try { cleanup(); } catch (e) {} cleanup = null; }
+    const h = location.hash.replace(/^#/, '');
+    let m;
+    if (h === 'levels') { viewHome(); document.getElementById('levels').scrollIntoView(); return; }
+    if ((m = /^\/flow\/([\w-]+)$/.exec(h))) viewFlow(m[1]);
+    else if ((m = /^\/studio\/(.+)$/.exec(h))) viewCustom(decodeURIComponent(m[1]));
+    else if (h === '/studio' || h === '/studio/') viewStudio();
+    else if (h === '/calibrate') viewCalibrate();
+    else viewHome();
+    if (h !== 'levels') window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', route);
+  route();
+  window.ADV = { engine, PATTERNS, localSuggest, splitWord, route };
+})();
+</script>
+</body>
+</html>

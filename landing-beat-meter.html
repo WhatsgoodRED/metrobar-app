@@ -1942,6 +1942,7 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .66); }
 .tg-b:hover:not(:disabled) { border-color: var(--muted); }
 .tg-b:active:not(:disabled) { transform: scale(.97); }
 .tg-b:disabled { opacity: .45; cursor: not-allowed; }
+a.tg-b { text-decoration: none; }
 .tg-b.tg-pri { background: var(--accent); border-color: var(--accent); color: var(--on-accent); box-shadow: 0 8px 26px -12px color-mix(in srgb, var(--accent) 80%, transparent); }
 .tg-b.tg-pri:hover:not(:disabled) { border-color: var(--accent); filter: brightness(1.08); }
 .tg-b.tg-xl { min-height: 54px; padding: 0 26px; font-size: 1rem; text-transform: uppercase; letter-spacing: .02em; border-radius: 10px; }
@@ -3461,7 +3462,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <section class="tg-hero">
           <div class="tg-hero-t"><h3 class="tg-big tg-name">Flow Game</h3><span class="tg-tagl">Tap the dots into your pocket</span></div>
           <p class="tg-lead" id="tgLead">Hear one bar of clicks, then tap or rap every dot of the bar, twice. Land the big dots and hit the red box on the last word.</p>
-          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Start level 1</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button></div>
+          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Start level 1</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><a class="tg-b tg-xl" id="tgAdv" href="flow-advanced.html">Advanced</a></div>
           <div class="tg-card tg-demo" id="tgDemo"></div>
           <ol class="tg-how">
             <li><b>Count the grid</b>Every beat splits in four (1 e + a), or in three on the triplet levels.</li>
@@ -12593,6 +12594,8 @@ const TG = (() => {
   function open() { if (running) stop(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); if (!dlg.open) dlg.showModal(); modeUi(); home(); }
   function openFit(i) { open(); playFit(i); }
   $('tgOpen').addEventListener('click', open);
+  // flow-advanced.html links back with ?game: open the Flow game once and drop the query
+  if (/[?&]game\b/.test(location.search)) { history.replaceState(null, '', location.pathname + location.hash); setTimeout(open, 400); }
   $('tgClose').addEventListener('click', () => dlg.close());
   $('tgBack').addEventListener('click', home);
   $('tgTap').addEventListener('click', () => setMode('tap'));
