@@ -1886,11 +1886,10 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 .tg-ebtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 .tg-ebk { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px; min-width: 0; }
 .tg-ebk .tg-ebs { flex-basis: 100%; }
-/* Bennie 2026-11-15: "Flow Game" big and centred on its red pane, the tagline small beside it, sleek display face (not the logo's Panchang) */
-.tg-etag { font-family: var(--display); font-weight: 800; font-size: clamp(1.9rem, 8vw, 2.9rem); letter-spacing: .02em; text-transform: uppercase; line-height: 1; padding: 6px 14px 5px; background: var(--accent); color: var(--on-accent); border-radius: 5px; }
-.tg-ebt { font-family: var(--display); font-weight: 700; font-size: .95rem; line-height: 1.1; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); max-width: 11ch; text-align: left; }
-@media (max-width: 420px) { .tg-ebt { max-width: none; text-align: center; } }
-.tg-ebs { font-size: .8rem; color: var(--muted); line-height: 1.4; }
+/* Bennie 2026-11-16: "Flow Game" in the same face, size and colour as the Pocket Practice title, centred; the tagline is one line under it (word-per-line stacking read badly) */
+.tg-etag { margin: 0; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.15rem, 6vw, 1.9rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; color: var(--fg); text-align: center; flex-basis: 100%; }
+.tg-ebk { gap: 4px 14px; }
+.tg-ebs { font-size: .92rem; color: var(--muted); line-height: 1.4; }
 .tg-edots { width: 100%; max-width: 40rem; display: grid; grid-template-columns: repeat(16, 1fr); gap: 8px; align-items: center; min-height: 22px; }
 .tg-edots i { height: 10px; width: 10px; justify-self: center; border-radius: 50%; background: color-mix(in srgb, var(--fg) 14%, transparent); }
 .tg-edots i:nth-child(4n+1) { background: color-mix(in srgb, var(--fg) 26%, transparent); }
@@ -1953,7 +1952,7 @@ dialog.tg::backdrop { background: rgb(0 0 0 / .66); }
 .tg-hero { display: grid; gap: 18px; padding: 8px 0 4px; }
 .tg-hero-t { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 18px; }
 .tg-big.tg-name { padding: 8px 20px 6px; background: var(--accent); color: var(--on-accent); border-radius: 6px; font-weight: 800; font-size: clamp(2.8rem, 11vw, 6.4rem); letter-spacing: .01em; line-height: .95; }
-.tg-tagl { font-family: var(--tg-h); font-weight: 700; font-size: clamp(.95rem, 2vw, 1.2rem); letter-spacing: .06em; text-transform: uppercase; line-height: 1.1; color: var(--muted); max-width: 11ch; }
+.tg-tagl { font-family: var(--tg-h); font-weight: 700; font-size: clamp(.95rem, 2vw, 1.2rem); letter-spacing: .06em; text-transform: uppercase; line-height: 1.1; color: var(--muted); flex-basis: 100%; text-align: center; }
 .tg-hero .tg-lead, .tg-hero .tg-cta { justify-self: center; text-align: center; }
 dialog.tg:has(#tgHome:not([hidden])) .tg-hd h2 { visibility: hidden; }   /* the hero carries the name on the home screen */
 .tg-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
@@ -3863,7 +3862,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       </div></details></span>
     </div>
   </section>
-  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebt">Tap the dots into your pocket</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots of a bar. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
+  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots into your pocket. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
@@ -12285,7 +12284,7 @@ const TG = (() => {
     return s;
   }
   function rankLine() { const t = total(), rk = gameRank(t); return { t, rk, text: `${t} of ${LADDER.length * 9} stars by ${by()}` + (rk.next ? ` · ${rk.need} more for ${rk.next}` : ' · top rank') }; }
-  function entry() { const e = $('tgOpenS'); if (e) { const r = rankLine(); e.textContent = `Tap or rap the dots of a bar. ${LADDER.length} levels · ${r.rk.name}, ${r.t} stars`; } }
+  function entry() { const e = $('tgOpenS'); if (e) { const r = rankLine(); e.textContent = `Tap or rap the dots into your pocket. ${LADDER.length} levels · ${r.rk.name}, ${r.t} stars`; } }
 
   // ---- the Zone: one bar of the week for everyone, a weekly board with S to D tiers, level on the profile.
   // Nothing is loaded or sent unless you are signed in to the Zone, or press Show the board.
