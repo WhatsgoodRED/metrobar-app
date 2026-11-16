@@ -1955,7 +1955,17 @@ a.tg-b { text-decoration: none; }
 .tg-big.tg-name { padding: 8px 20px 6px; background: var(--accent); color: var(--on-accent); border-radius: 6px; font-weight: 800; font-size: clamp(2.8rem, 11vw, 6.4rem); letter-spacing: .01em; line-height: .95; }
 .tg-tagl { font-family: var(--tg-h); font-weight: 700; font-size: clamp(.95rem, 2vw, 1.2rem); letter-spacing: .06em; text-transform: uppercase; line-height: 1.1; color: var(--muted); flex-basis: 100%; text-align: center; }
 .tg-hero .tg-lead, .tg-hero .tg-cta { justify-self: center; text-align: center; }
-dialog.tg:has(#tgHome:not([hidden])) .tg-hd h2 { visibility: hidden; }   /* the hero carries the name on the home screen */
+dialog.tg:has(#tgHome:not([hidden])) .tg-hd h2, dialog.tg.tg-adv .tg-hd h2 { display: none; }   /* the hero carries the name on the home screen */
+/* Flow game | ADVANCED tabs (Bennie 2026-11-17): ADVANCED = Lovable's "In The Pocket" built into flow-advanced.html, in an iframe */
+.tg-tabs { display: inline-flex; flex: none; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.tg-tabs button { border: 0; background: transparent; color: var(--muted); font: 700 .8rem var(--tg-h); letter-spacing: .06em; text-transform: uppercase; padding: 6px 14px; min-height: 30px; border-radius: 7px; cursor: pointer; }
+.tg-tabs button:hover { color: var(--fg); }
+.tg-tabs button[aria-selected="true"] { background: var(--accent); color: var(--on-accent); }
+.tg-tabs button:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
+dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
+.tg-advp { min-height: 0; border-top: 1px solid var(--line); background: #eceeea; }
+.tg-advp[hidden] { display: none; }
+.tg-advp iframe { display: block; width: 100%; height: 100%; border: 0; }
 .tg-cta { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .tg-card { position: relative; padding: clamp(10px, 2.4vw, 22px); background: var(--tg-card); border: 1px solid var(--line); border-radius: 16px; min-width: 0; }
 .tg-demo .bd svg, .tg-mini .bd svg { margin-inline: auto; display: block; }
@@ -2123,6 +2133,8 @@ dialog.tg:has(#tgHome:not([hidden])) .tg-hd h2 { visibility: hidden; }   /* the 
   .tg-hd { padding: 10px 12px; gap: 8px; }
   .tg-ib > span { display: none; }
   .tg-hd h2 { font-size: .7rem; padding: 6px 8px; }
+  .tg-tabs button { font-size: .7rem; padding-inline: 9px; }
+  dialog.tg:has(#tgPlay:not([hidden])) .tg-hd h2 { display: none; }
   .tg-body { padding: 4px 12px 22px; }
   .tg-seg button { padding-inline: 10px; }
   .tg-top { align-items: flex-start; }
@@ -3451,18 +3463,19 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="tg-hd">
       <button class="tg-ib" id="tgBack" type="button" aria-label="Back to the levels" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>All levels</span></button>
       <h2 id="tgTitle">Flow game</h2>
+      <div class="tg-tabs" role="tablist" aria-label="Flow game pages"><button type="button" role="tab" id="tgTabGame" aria-selected="true" aria-controls="tgBodyP">Flow Game</button><button type="button" role="tab" id="tgTabAdv" aria-selected="false" aria-controls="tgAdvP">Advanced</button></div>
       <span class="tg-sp"></span>
       <div class="tg-seg" role="group" aria-label="Play by">
         <button type="button" id="tgTap" aria-pressed="true">Tap</button><button type="button" id="tgVoice" aria-pressed="false">Voice</button>
       </div>
       <button class="tg-ib tg-x" id="tgClose" type="button" aria-label="Close the flow game">×</button>
     </div>
-    <div class="tg-body">
+    <div class="tg-body" id="tgBodyP" role="tabpanel" aria-labelledby="tgTabGame">
       <div class="tg-home" id="tgHome">
         <section class="tg-hero">
           <div class="tg-hero-t"><h3 class="tg-big tg-name">Flow Game</h3><span class="tg-tagl">Tap the dots into your pocket</span></div>
           <p class="tg-lead" id="tgLead">Hear one bar of clicks, then tap or rap every dot of the bar, twice. Land the big dots and hit the red box on the last word.</p>
-          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Start level 1</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><a class="tg-b tg-xl" id="tgAdv" href="flow-advanced.html">Advanced</a></div>
+          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Start level 1</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><button class="tg-b tg-xl" id="tgAdv" type="button">Advanced</button></div>
           <div class="tg-card tg-demo" id="tgDemo"></div>
           <ol class="tg-how">
             <li><b>Count the grid</b>Every beat splits in four (1 e + a), or in three on the triplet levels.</li>
@@ -3515,6 +3528,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <p class="tg-msg" id="tgMsg" role="status" hidden></p>
       </div>
     </div>
+    <div class="tg-advp" id="tgAdvP" role="tabpanel" aria-labelledby="tgTabAdv" hidden></div>
   </dialog>
   <dialog class="info" id="infoDlg" aria-labelledby="infoTitle">
     <div class="info-h"><h2 id="infoTitle">How MetroBar works</h2><button class="ibtn x" id="infoClose" aria-label="Close">×</button></div>
@@ -10828,7 +10842,7 @@ void main(){
 
   // every row of options in the app gets the bubble: main tabs, rack/technique segments, The Zone feeds, Flow game "Play by", the beat
   // source tabs, sign in / join, and the Highlight Zone's view tabs, rhyme mode, compare mode, paper and cards/list
-  const NAVS = [['.views', 'aria-current', 'a'], ['.seg', 'aria-pressed', 'button'], ['.zn-seg', 'aria-selected', 'button'], ['.tg-seg', 'aria-pressed', 'button'],
+  const NAVS = [['.views', 'aria-current', 'a'], ['.seg', 'aria-pressed', 'button'], ['.zn-seg', 'aria-selected', 'button'], ['.tg-seg', 'aria-pressed', 'button'], ['.tg-tabs', 'aria-selected', 'button'],
     ['.bk-tabs', 'aria-pressed', 'button'], ['.acct-tabs', 'aria-selected', 'button'], ['.rb-views', 'aria-selected', 'button'], ['.rb-seg', 'aria-pressed', 'button'],
     ['.bs-seg', 'aria-pressed', 'button'], ['.bs-paper', 'aria-pressed', 'button'], ['.bs-pair', 'aria-pressed', 'button']];
   const POPS = '#go, #tapBtn, #beatBtn, #micBtn, .cbtn.pri, .btn.pri';
@@ -12591,7 +12605,24 @@ const TG = (() => {
     $('tgLag').value = S.lag[S.mode]; lagShow();
   }
   function lagShow() { $('tgLag').value = S.lag[S.mode]; $('tgLagOut').textContent = S.lag[S.mode] + ' ms'; lagFill(); }
-  function open() { if (running) stop(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); if (!dlg.open) dlg.showModal(); modeUi(); home(); }
+  function open() { if (running) stop(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); if (!dlg.open) dlg.showModal(); advTab(false); modeUi(); home(); }
+  // ADVANCED tab: flow-advanced.html (Lovable's In The Pocket, built by tools/flow-advanced) in an iframe, loaded on first use
+  function advPause() { const f = $('tgAdvP').querySelector('iframe'); try { if (f && f.contentWindow) f.contentWindow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); } catch (e) {} }
+  function advTab(on) {
+    dlg.classList.toggle('tg-adv', on);
+    $('tgTabGame').setAttribute('aria-selected', String(!on)); $('tgTabAdv').setAttribute('aria-selected', String(on));
+    $('tgBodyP').hidden = on; $('tgAdvP').hidden = !on;
+    if (!on) { advPause(); return; }
+    stopRound();
+    let f = $('tgAdvP').querySelector('iframe');
+    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Advanced flow game'; f.allow = 'autoplay'; $('tgAdvP').appendChild(f); }
+    setTimeout(() => { try { f.focus(); } catch (e) {} }, 0);
+  }
+  $('tgTabGame').addEventListener('click', () => advTab(false));
+  $('tgTabAdv').addEventListener('click', () => advTab(true));
+  $('tgAdv').addEventListener('click', () => advTab(true));
+  $('tgDlg').querySelector('.tg-tabs').addEventListener('keydown', e => { if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { const on = !dlg.classList.contains('tg-adv'); advTab(on); $(on ? 'tgTabAdv' : 'tgTabGame').focus(); e.preventDefault(); } });
+  dlg.addEventListener('close', advPause);
   function openFit(i) { open(); playFit(i); }
   $('tgOpen').addEventListener('click', open);
   // flow-advanced.html links back with ?game: open the Flow game once and drop the query
