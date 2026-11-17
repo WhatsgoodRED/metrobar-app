@@ -6335,6 +6335,8 @@ const GAME = { tap: { perfect: 40, good: 85, stray: 0.25 }, voice: { perfect: 55
 function gameGrade(absMs, mode) { const g = GAME[mode] || GAME.tap; return absMs <= g.perfect ? 'perfect' : absMs <= g.good ? 'good' : 'ok'; }
 function gameAcc(pts, strays, n, mode) { return n ? Math.max(0, Math.round(100 * (pts - (GAME[mode] || GAME.tap).stray * strays) / n)) : 0; }
 function gameStars(acc) { return GAME.stars.filter(v => acc >= v).length; }
+// overtime (after the level's score has locked): each clean hit adds points, perfect 2, good 1; a way-off hit ends overtime, so it adds none
+function gameBonus(offs, mode) { return (offs || []).reduce((a, o) => { const g = gameGrade(Math.abs(o), mode); return a + (g === 'perfect' ? 2 : g === 'good' ? 1 : 0); }, 0); }
 function gameFeel(offs) {
   if (offs.length < 4) return { avg: 0, feel: '' };
   const avg = Math.round(offs.reduce((a, b) => a + b, 0) / offs.length);
@@ -10847,8 +10849,16 @@ function znSupabase(cfg) {
     async report(postId, commentId, reason) { chk(await sb.from('reports').insert({ post_id: postId || null, comment_id: commentId || null, reason })); },
     async setFeatured(id, on) { chk(await sb.rpc('zone_set_featured', { p: id, on_: on })); },
     // flow game (zone/flow-game.sql): the database scores the raw timing itself; nothing here can write a score directly
-    async gameSubmit(r) { const d = chk(await sb.rpc('zone_game_submit', { p_mode: r.mode, p_bar: r.bar, p_bpm: r.bpm, p_offs: r.offs, p_strays: r.strays })); return Array.isArray(d) ? d[0] : d; },
-    async gameBoard(mode, bar, week) { return chk(await sb.from('game_board').select('id,user_id,username,badge,bpm,acc,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100)); },
+    async gameSubmit(r) {
+      const a = { p_mode: r.mode, p_bar: r.bar, p_bpm: r.bpm, p_offs: r.offs, p_strays: r.strays };
+      let q = await sb.rpc('zone_game_submit', Object.assign({ p_bonus: r.bonus || [] }, a));
+      if (q.error && /p_bonus|function|schema cache/i.test(q.error.message || '')) q = await sb.rpc('zone_game_submit', a);   // overtime SQL not run yet
+      const d = chk(q); return Array.isArray(d) ? d[0] : d;
+    },
+    async gameBoard(mode, bar, week) {
+      const q = () => sb.from('game_board').select('id,user_id,username,badge,bpm,acc,bonus,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100);
+      const r = await q(); if (!r.error || !/bonus/.test(r.error.message || '')) return chk(r);
+      return chk(await sb.from('game_board').select('id,user_id,username,badge,bpm,acc,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100)); },
     async gameOf(id) { const r = await sb.from('profiles').select('game_stars,game_level').eq('id', id).maybeSingle(); return r.error ? null : r.data; },
     async gameHide(id, on) { chk(await sb.rpc('zone_game_hide', { p: id, on_: on })); },
     async gameReport(id, reason) { chk(await sb.from('reports').insert({ score_id: id, reason })); },
@@ -10913,11 +10923,11 @@ function znDemo() {
     async setFeatured(id, on) { posts.find(x => x.id === id).featured = on; },
     async gameSubmit(r) {
       const g = GAME[r.mode], n = 2 * gameTargets(ladderBar(...r.bar.split(':').slice(1).map((v, k) => k ? +v : LADDER.findIndex(V => V.id === v)))).length;
-      const acc = gameAcc(r.offs.reduce((a, o) => a + GAME.pts[gameGrade(Math.abs(o), r.mode)], 0), r.strays, n, r.mode), points = Math.round(acc * r.bpm / 10), k = r.mode + r.bar;
+      const acc = gameAcc(r.offs.reduce((a, o) => a + GAME.pts[gameGrade(Math.abs(o), r.mode)], 0), r.strays, n, r.mode), bonus = gameBonus(r.bonus || [], r.mode), points = Math.round((acc + bonus) * r.bpm / 10), k = r.mode + r.bar;
       const old = game[k].find(x => x.user_id === 'me'), best = !old || points > old.points;
-      if (best) { game[k] = game[k].filter(x => x.user_id !== 'me'); game[k].push({ id: 99, user_id: 'me', username: U('me').username, badge: '', bpm: r.bpm, acc, stars: gameStars(acc), points }); }
+      if (best) { game[k] = game[k].filter(x => x.user_id !== 'me'); game[k].push({ id: 99, user_id: 'me', username: U('me').username, badge: '', bpm: r.bpm, acc, bonus, stars: gameStars(acc), points }); }
       const rows = await this.gameBoard(r.mode, r.bar), mine = rows.find(x => x.user_id === 'me');
-      return { points, acc, stars: gameStars(acc), best, weekly: true, place: mine.place, tier: mine.tier, players: rows.length };
+      return { points, acc, bonus, stars: gameStars(acc), best, weekly: true, place: mine.place, tier: mine.tier, players: rows.length };
     },
     async gameBoard(mode, bar) {
       const k = mode + bar; if (!game[k]) game[k] = users.filter(u => u.id !== 'me').map((u, i) => ({ id: i + 1, user_id: u.id, username: u.username, badge: u.badge || '', bpm: 120 - 10 * i, acc: 96 - 7 * i, stars: i < 2 ? 3 : 2, points: Math.round((96 - 7 * i) * (120 - 10 * i) / 10) }));
@@ -12972,7 +12982,7 @@ void main(){
 const TG = (() => {
   const dlg = $('tgDlg'), STAR = 'M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z';
   const raw = store.get('metrobar.game', {}) || {}, two = o => ({ tap: Object.assign({}, o && o.tap), voice: Object.assign({}, o && o.voice) });
-  const S = { stars: two(raw.stars), best: two(raw.best), lag: Object.assign({ tap: 0, voice: 30 }, raw.lag), guide: raw.guide !== false, mode: raw.mode === 'voice' ? 'voice' : 'tap' };
+  const S = { stars: two(raw.stars), best: two(raw.best), top: two(raw.top), lag: Object.assign({ tap: 0, voice: 30 }, raw.lag), guide: raw.guide !== false, mode: raw.mode === 'voice' ? 'voice' : 'tap' };
   const keep = () => store.set('metrobar.game', S);
   let cur = null, tempo = 90, state = 'idle', R = null, raf = 0, fails = 0, rows = [], ac = null, mic = null, last = null;
   const playing = () => state === 'count' || state === 'play';
@@ -13031,14 +13041,14 @@ const TG = (() => {
     let me = null, rows = [], admin = false;
     try { me = await api.session(); rows = await api.gameBoard(S.mode, w.bar, w.date); admin = me ? await api.isAdmin() : false; } catch (e) { if (tok === zTok) note.textContent = 'The board could not be loaded. ' + zHint(e); return; }
     if (tok !== zTok) return;
-    note.textContent = (rows.length ? `${rows.length} ${rows.length === 1 ? 'rhymer' : 'rhymers'} on the ${by()} board this week. Points = accuracy × tempo, so a clean run at a faster tempo wins.` : `Nobody is on the ${by()} board yet this week. The first clean run takes S.`)
+    note.textContent = (rows.length ? `${rows.length} ${rows.length === 1 ? 'rhymer' : 'rhymers'} on the ${by()} board this week. Points = (accuracy + overtime) × tempo: keep going clean after the level ends to climb.` : `Nobody is on the ${by()} board yet this week. The first clean run takes S.`)
       + (me ? '' : ' Sign in to the Zone to post your own runs.') + (api.demo ? ' Demo: made-up scores that live only in this tab.' : '');
     if (!me) { const a = h('div', 'tg-acts'); a.append(goZone()); box.append(a); }
     if (!rows.length) return;
     const ol = h('ol', 'tg-board'), mine = me ? rows.findIndex(r => r.user_id === me.id) : -1, show = rows.slice(0, 10); if (mine >= 10) show.push(rows[mine]);
     show.forEach(r => {
       const li = h('li', me && r.user_id === me.id ? 'tg-me' : ''), tier = h('span', 'tg-tier', r.tier), pts = h('span', 'tg-pts'), ra = h('span', 'tg-ra'); tier.dataset.t = r.tier; tier.title = 'Tier ' + r.tier;
-      pts.append(h('b', '', String(r.points)), ` · ${r.bpm} BPM · ${r.acc}%`);
+      pts.append(h('b', '', String(r.points)), ` · ${r.bpm} BPM · ${r.acc}%${r.bonus ? ' +' + r.bonus : ''}`);
       const mk = (label, fn) => { const x = h('button', 'tg-b', label); x.type = 'button'; x.addEventListener('click', fn); ra.append(x); };
       if (!me || r.user_id !== me.id) mk('Beat it', () => { playLadder(w.lv, w.i); setTempo(r.bpm); });
       if (me && r.user_id !== me.id && !admin) mk('Report', async () => { const why = prompt('What is wrong with this score?', ''); if (why == null) return; try { await api.gameReport(r.id, why.slice(0, 300)); toast('Reported. An admin will look at it.'); } catch (e) { toast(zHint(e)); } });
@@ -13147,20 +13157,25 @@ const TG = (() => {
     // Bennie 2026-11-17: no tap badges; the only numbers are the count, 1 2 3 4 the first time and 5 6 7 8 the second (one 8-count, no gap).
     // On a touch screen you tap the pill's own spot: each target owns its stretch of the row, from its slot to the next target's
     const zs = tg.map((x, k) => [x.slot - 0.5, k + 1 < tg.length ? tg[k + 1].slot : L.grid + 0.5]);
-    for (let p = 0; p < 2; p++) {
-      const wrap = breakdownSvg(L, 0, pad, { beatOff: p * L.lay.nb }), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, row = h('div', 'tg-row');
-      svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p ? 'Second' : 'First'} time: ${L.text}`);
+    for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push(rowDraw(row, p, { L, cw, pad, padL, tg, zs })); }
+  }
+  // one pass of the bar in its row; pass 2, 3 ... (overtime) reuse rows 0 / 1 with the count running on (9 10 11 12, 13 ...)
+  function rowDraw(row, p, o) {
+    const { L, cw, pad, padL, tg, zs } = o;
+    {
+      const wrap = breakdownSvg(L, 0, pad, { beatOff: p * L.lay.nb }), svg = wrap.firstChild, W = svg.viewBox.baseVal.width;
+      svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p === 0 ? 'First' : p === 1 ? 'Second' : 'Overtime'} time: ${L.text}`);
       const dots = tg.map(x => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy: 38, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
         g.append(c, tick); svg.append(g); return { c, tick, g, cx, r, cw };
       });
       const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
-      row.append(h('span', 'tg-pass', p ? '2nd time' : '1st time'), wrap); box.append(row);
-      rows.push({ row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs });
+      row.replaceChildren(h('span', 'tg-pass', p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`), wrap); row.classList.toggle('tg-ot', p > 1);
+      return { row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs, o, pass: p };
     }
   }
-  function resetRows() { rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  function resetRows() { rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
@@ -13187,7 +13202,7 @@ const TG = (() => {
   function msg(t) { const m = $('tgMsg'); m.textContent = t || ''; m.hidden = !t; }
   function hud() {
     $('tgCombo').textContent = String(R.combo);
-    $('tgLive').textContent = (R.judged ? gameAcc(R.score, R.strays, R.judged, S.mode) : 100) + '%';
+    $('tgLive').textContent = R.lock != null ? `${R.lock}%${R.bonus ? ' +' + R.bonus : ''}` : (R.judged ? gameAcc(R.score, R.strays, R.judged, S.mode) : 100) + '%';
   }
 
   // ---- sound and the microphone
@@ -13399,13 +13414,17 @@ const TG = (() => {
     resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
     const t0 = at != null ? at : ac.currentTime + 0.15, tPlay = t0 + barDur;
     const tg = gameTargets(L), targets = [];
-    for (let p = 0; p < 2; p++) tg.forEach((x, k) => targets.push({ t: tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000, p, k, land: x.land, done: false }));
+    for (let p = 0; p < 2; p++) tg.forEach((x, k) => targets.push({ t: tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000, p, k, pass: p, land: x.land, done: false }));
     targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
+    const wins = tg.map((x, k) => targets[tg.length + k].win);   // overtime passes use the 2nd pass's windows
     for (let b = 0; b < (lk ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
     if (S.guide && !voice && !cur.calib) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
     const out = ac.outputLatency || ac.baseLatency || 0;
     R = { t0, tPlay, barDur, spq, slot: lay.unit * spq, targets, maxWin, end: tPlay + 2 * barDur + (voice ? 0.4 : 0.25), perf0: performance.now(), ctx0: ac.currentTime, out, lat: out + (voice ? 0 : S.lag.tap / 1000),
-      grace: voice ? 0.12 : 0, beats: lay.starts.map(s => s * lay.unit * spq), combo: 0, maxCombo: 0, strays: 0, score: 0, offs: [], perfect: 0, judged: 0 };
+      grace: voice ? 0.12 : 0, beats: lay.starts.map(s => s * lay.unit * spq), combo: 0, maxCombo: 0, strays: 0, score: 0, offs: [], perfect: 0, judged: 0,
+      // overtime (Bennie 2026-11-17): the level's score locks at the end as before; the bar keeps looping and every clean hit after that adds
+      // bonus points (perfect 2, good 1) until the first mistake: a miss, a way-off hit, or a tap with no dot / on the wrong spot
+      n: targets.length, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
     state = 'count';
     $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = voice ? 'Rap it' : 'Tap'; $('tgPadS').textContent = voice ? 'One syllable per dot' : 'Space · F · J';
     $('tgPlay').classList.add('tg-going'); $('tgTempo').disabled = true;
@@ -13423,16 +13442,35 @@ const TG = (() => {
       else { let q = -1; R.beats.forEach((b, i) => { if (now - R.t0 >= b) q = i; }); if (q >= 0 && $('tgVerdict').textContent !== String(q + 1)) say(String(q + 1), 'miss'); }
     }
     if (state === 'play') {
-      const p = (now - R.tPlay) / R.barDur, b = Math.min(1, Math.max(0, Math.floor(p)));
-      rows.forEach((r, i) => { const on = i === b && p < 2; r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
-        if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - b)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
-      for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) { x.done = true; R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud(); }
-      if (now >= R.end) return finish();
+      const p = (now - R.tPlay) / R.barDur, pass = Math.max(0, Math.floor(p)), over = R.passes > 2 && pass >= 2, b = over ? pass % 2 : Math.min(1, pass);
+      if (over && R.ot) rowOf(pass);
+      rows.forEach((r, i) => { const on = i === b && (over ? R.ot : p < 2); r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
+        if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - pass)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+      while (R.ot && R.passes < 66 && now > R.tPlay + (R.passes - 1) * R.barDur - 0.1) addPass(R.passes++);
+      for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) {
+        x.done = true; if (x.pass >= 2) { if (R.ot) { mark(x, 'miss', 0); otOver('Missed'); } continue; }
+        R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud();
+      }
+      if (now >= R.end && !R.lock) { R.lock = gameAcc(R.score, R.strays, R.n, S.mode); if (R.ot) { say(`${R.lock}% locked · keep going`, 'good'); hud(); } }
+      if (R.lock != null && !R.ot) return finish();
     }
     raf = requestAnimationFrame(frame);
   }
+  // overtime: one more pass of the bar (targets, clicks without a beat, guide ticks) and the row it is drawn in
+  function addPass(p) {
+    const L = cur.L, lay = L.lay, t0 = R.tPlay + p * R.barDur;
+    R.tg.forEach((x, k) => R.targets.push({ t: t0 + x.q * R.spq + (x.ms || 0) / 1000, p: p % 2, k, pass: p, land: x.land, done: false, win: R.wins[k] }));
+    if (R.clicks) lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * R.spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06));
+    if (R.guide) R.tg.forEach(x => blip(t0 + x.q * R.spq + (x.ms || 0) / 1000, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
+  }
+  function rowOf(pass) { const i = pass % 2; if (rows[i].pass !== pass) rows[i] = rowDraw(rows[i].row, pass, rows[i].o); return rows[i]; }
+  const otWhy = w => !w || w === 'Stopped' ? 'Stop' : w === 'Missed' ? 'a missed dot' : w === 'No dot there' ? 'a tap with no dot' : w === 'Wrong spot' ? 'a tap on the wrong spot' : 'a hit ' + w;
+  function otOver(why) {
+    if (!R || !R.ot) return; R.ot = false; R.otEnd = why;
+    say(R.bonus ? `${why} · overtime +${R.bonus}` : why, 'miss'); hud();
+  }
   function mark(x, grade, off) {
-    const d = rows[x.p].dots[x.k], col = grade === 'miss' ? 'var(--muted)' : `var(--tg-${grade})`;
+    const d = (x.pass >= 2 ? rowOf(x.pass) : rows[x.p]).dots[x.k], col = grade === 'miss' ? 'var(--muted)' : `var(--tg-${grade})`;
     if (grade === 'miss') { d.c.setAttribute('fill', 'var(--panel)'); d.c.setAttribute('stroke', col); d.c.setAttribute('stroke-width', 1.5); d.c.setAttribute('stroke-dasharray', '2 2'); d.c.setAttribute('opacity', 1); return; }
     d.c.setAttribute('fill', col); d.c.removeAttribute('stroke'); d.c.removeAttribute('stroke-dasharray'); d.c.setAttribute('opacity', 1);
     d.c.classList.remove('tg-pop'); void d.c.getBoundingClientRect(); d.c.classList.add('tg-pop');
@@ -13445,6 +13483,17 @@ const TG = (() => {
     if (!voice) { const pad = $('tgPad'); pad.classList.remove('tg-hit'); void pad.offsetWidth; pad.classList.add('tg-hit'); }
     if (t < Math.min(R.tPlay, R.targets.length ? R.targets[0].t : R.tPlay) - R.maxWin) return;   // joining in with the count-in is free (pickup dots excepted)
     let best = null; for (const x of R.targets) if (!x.done && Math.abs(x.t - t) <= x.win && (!best || Math.abs(x.t - t) < Math.abs(best.t - t))) best = x;
+    if (best && best.pass >= 2 && !R.ot) return;   // overtime is over: the rest of the bar plays out unscored
+    if (!best && t >= R.otT - 0.02) { if (R.ot && !voice) { blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); otOver('No dot there'); } return; }
+    if (best && best.pass >= 2) {   // overtime: clean hits add bonus points, the first mistake ends it
+      if (spot && (spot.p !== best.p || spot.k !== best.k)) { blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); otOver('Wrong spot'); return; }
+      const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode); best.done = true; mark(best, grade, off);
+      if (grade === 'ok') { otOver(Math.round(a) + ' ms off'); return; }
+      R.bonus += grade === 'perfect' ? 2 : 1; R.bOffs.push(Math.round(off)); if (grade === 'perfect') R.bPerf++;
+      R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo);
+      if (!voice) blip(ac.currentTime, grade === 'perfect' ? (best.land ? 1760 : 1320) : 990, grade === 'perfect' ? 0.3 : 0.22, 0.07, 'triangle');
+      say(`+${grade === 'perfect' ? 2 : 1} · overtime +${R.bonus}`, grade); hud(); return;
+    }
     if (best && spot && (spot.p !== best.p || spot.k !== best.k)) { R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('Wrong spot', 'miss'); hud(); return; }
     if (!best) { if (voice) return; R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('No dot there', 'miss'); hud(); return; }
     const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode);
@@ -13460,14 +13509,15 @@ const TG = (() => {
     R = null; state = 'idle'; if (was) { resetRows(); idleUi('Start'); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–'; }
   }
   function finish() {
-    const Q = R, n = Q.targets.length, acc = gameAcc(Q.score, Q.strays, n, S.mode), stars = gameStars(acc), f = gameFeel(Q.offs), news = $('tgNews'), main = $('tgMain'), alt = $('tgAlt'), nx = $('tgNext');
+    const Q = R, n = Q.n, acc = gameAcc(Q.score, Q.strays, n, S.mode), bonus = Q.bonus, stars = gameStars(acc), f = gameFeel(Q.offs), news = $('tgNews'), main = $('tgMain'), alt = $('tgAlt'), nx = $('tgNext');
     cancelAnimationFrame(raf); state = 'done'; R = null; rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); });
+    if (Q.passes > 2 && ac) { ac.close(); ac = null; if (mic) { mic.stream.getTracks().forEach(t => t.stop()); mic = null; } }   // drops the overtime clicks still scheduled
     news.replaceChildren(); alt.hidden = true; nx.hidden = true; main.dataset.d = 0; $('tgStop').hidden = true; $('tgMeter').hidden = true;
     const add = (t, up) => news.append(h('li', up ? 'tg-up' : '', t));
-    $('tgAcc').textContent = acc + '%'; $('tgPerf').textContent = Q.perfect + ' of ' + n; $('tgStreak').textContent = Q.maxCombo; $('tgNew').textContent = '';
+    $('tgAcc').textContent = acc + '%' + (bonus ? ' +' + bonus : ''); $('tgPerf').textContent = Q.perfect + ' of ' + n; $('tgStreak').textContent = Q.maxCombo; $('tgNew').textContent = '';
     $('tgMiss').textContent = (n - Q.offs.length) + (Q.strays ? ` + ${Q.strays} extra` : ''); $('tgLive').textContent = acc + '%';
     $('tgAvg').textContent = Q.offs.length ? f.avg === 0 ? 'on time' : Math.abs(f.avg) + ' ms ' + (f.avg > 0 ? 'late' : 'early') : 'no hits';
-    last = { acc, stars, avg: f.avg, perfect: Q.perfect, strays: Q.strays, maxCombo: Q.maxCombo, hits: Q.offs.length, n, mode: S.mode, tempo };
+    last = { acc, bonus, score: acc + bonus, ot: Q.otEnd, avg: f.avg, perfect: Q.perfect, strays: Q.strays, maxCombo: Q.maxCombo, hits: Q.offs.length, n, mode: S.mode, tempo };
     if (cur.calib) {
       const o = Q.offs.slice().sort((a, b) => a - b), med = o.length ? o[o.length >> 1] : 0, okc = o.length >= 5;
       if (okc) { S.lag[S.mode] = Math.min(300, Math.max(-50, Math.round(S.lag[S.mode] + med))); keep(); lagShow(); }
@@ -13479,6 +13529,9 @@ const TG = (() => {
       if (stars > was) S.stars[S.mode][cur.key] = stars;
       const rec = stars === 3 && tempo > wasRec; if (rec) S.best[S.mode][cur.key] = tempo;
       if (stars > was || rec) keep();
+      const top = S.top[S.mode][cur.key] || 0, topNew = acc + bonus > top; if (topNew) { S.top[S.mode][cur.key] = acc + bonus; keep(); }
+      if (Q.passes > 2) add(bonus ? `Overtime +${bonus}: ${Q.bOffs.length} clean ${Q.bOffs.length === 1 ? 'hit' : 'hits'} after the level, ended by ${otWhy(Q.otEnd)}. Board score ${acc + bonus}${topNew && top ? ' (new best)' : ''}.`
+        : `No overtime points: ${otWhy(Q.otEnd)} right after the level. Keep going clean after the end to add to ${acc}.`, bonus > 0 && topNew);
       if (stars > was) $('tgNew').textContent = 'New best'; else if (rec) $('tgNew').textContent = 'New record'; bestShow();
       $('tgResT').textContent = !Q.offs.length ? 'Nothing landed' : stars === 3 ? f.feel === 'Locked in' || !f.feel ? 'Locked in' : f.feel + ', and clean' : f.feel || 'Keep going';
       starEl(stars, $('tgResStars')).hidden = false;
@@ -13497,7 +13550,7 @@ const TG = (() => {
       else main.textContent = 'Again';
       const to = nextItem(); if (to && stars > 0) { nx.hidden = false; nx.textContent = to.label; }
       showRec(rec); entry();
-      if (cur.lv != null) zSend({ mode: S.mode, bar: cur.key, bpm: tempo, offs: Q.offs.map(o => Math.round(o)), strays: Q.strays, tag: last }, add);
+      if (cur.lv != null) zSend({ mode: S.mode, bar: cur.key, bpm: tempo, offs: Q.offs.map(o => Math.round(o)), strays: Q.strays, bonus: Q.bOffs, tag: last }, add);
     }
     say(cur.calib ? 'Done' : stars === 3 ? 'Clean' : stars ? 'Done' : 'Again?', stars === 3 && !cur.calib ? 'perfect' : ''); idleUi('Again');
     $('tgRes').hidden = false; $('tgPad').hidden = true; $('tgRes').scrollIntoView({ block: 'nearest', behavior: calmQ.matches ? 'auto' : 'smooth' });
@@ -13554,7 +13607,7 @@ const TG = (() => {
   $('tgSlow').addEventListener('click', () => { if (!playing() && !gbFixed()) setTempo(tempo - 5); });
   $('tgFast').addEventListener('click', () => { if (!playing() && !gbFixed()) setTempo(tempo + 5); });
   $('tgSong').addEventListener('click', () => { if (!playing()) setTempo(bpm()); });
-  $('tgStop').addEventListener('click', stopRound);
+  $('tgStop').addEventListener('click', () => { if (R && R.lock != null && R.ot) { otOver('Stopped'); return; } stopRound(); });
   $('tgTempo').addEventListener('input', () => { if (!playing() && !gbFixed()) setTempo(+$('tgTempo').value); });
   $('tgPrevLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
   $('tgNextLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
