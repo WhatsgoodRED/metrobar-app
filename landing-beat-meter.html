@@ -3511,7 +3511,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="tg-hd">
       <button class="tg-ib" id="tgBack" type="button" aria-label="Back to the levels" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>All levels</span></button>
       <h2 id="tgTitle">Flow game</h2>
-      <div class="tg-tabs" role="tablist" aria-label="Flow game pages"><button type="button" role="tab" id="tgTabGame" aria-selected="true" aria-controls="tgBodyP">Flow Game</button><button type="button" role="tab" id="tgTabAdv" aria-selected="false" aria-controls="tgAdvP">Advanced</button></div>
+      <div class="tg-tabs" role="tablist" aria-label="Flow game pages"><button type="button" role="tab" id="tgTabGame" aria-selected="true" aria-controls="tgBodyP">Flow Game</button><button type="button" role="tab" id="tgTabAdv" aria-selected="false" aria-controls="tgAdvP">Pocket Finder</button></div>
       <span class="tg-sp"></span>
       <div class="tg-seg" role="group" aria-label="Play by">
         <button type="button" id="tgTap" aria-pressed="true">Tap</button><button type="button" id="tgVoice" aria-pressed="false">Voice</button>
@@ -3523,7 +3523,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <section class="tg-hero">
           <div class="tg-hero-t"><h3 class="tg-big tg-name">Flow Game</h3><span class="tg-tagl">Tap the dots into your pocket</span></div>
           <p class="tg-lead" id="tgLead">Hear one bar of clicks, then tap or rap every dot of the bar, twice. Land the big dots and hit the red box on the last word.</p>
-          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Start level 1</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><button class="tg-b tg-xl" id="tgAdv" type="button">Advanced</button></div>
+          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Play</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><button class="tg-b tg-xl" id="tgAdv" type="button">Pocket Finder</button></div>
           <div class="tg-card tg-demo" id="tgDemo"></div>
           <ol class="tg-how">
             <li><b>Count the grid</b>Every beat splits in four (1 e + a), or in three on the triplet levels.</li>
@@ -10581,6 +10581,7 @@ function ckRoot() {
   add('Actions', 'Set tempo', null, { page: 'tempo', kw: 'bpm speed' });
   add('Actions', advBody.hidden ? 'Open Advanced' : 'Close Advanced', () => { goView(false); advBody.hidden ? advOpen(null) : advClose(); }, { kw: 'settings options fit polymeter sound' });
   add('Actions', 'Play the flow game', () => TG.open(), { kw: 'game tap voice rap levels stars rank practice breakdown' });
+  add('Actions', 'Open Pocket Finder', () => TG.finder(), { kw: 'flow game advanced in the pocket triplet flows grid levels studio tap delay' });
   add('Actions', 'How MetroBar works', () => $('infoBtn').click(), { kw: 'info help' });
   add('Actions', 'Keyboard shortcuts', () => keysOpen(), { key: '?', kw: 'keys help' });
   document.querySelectorAll('#advBody .rack').forEach(r => { const hd = r.querySelector('.rackbar h2'), sub = r.querySelector('.rk-sub'), name = hd ? hd.textContent.trim() : r.getAttribute('aria-label') || '';
@@ -13080,7 +13081,7 @@ const TG = (() => {
     const r = rankLine(), lo = GAME_RANKS[r.rk.tier][0], hi = r.rk.next ? lo + (r.t - lo) + r.rk.need : lo;
     $('tgRankL').textContent = S.mode === 'voice' ? 'Voice rank' : 'Tap rank'; $('tgRank').textContent = r.rk.name; $('tgRankS').textContent = r.text;
     $('tgProg').style.width = (hi > lo ? Math.round(100 * (r.t - lo) / (hi - lo)) : 100) + '%';
-    const [nl, ni] = nextUp(); $('tgGo').lastChild.textContent = total() ? `Play ${lvNo(nl)}.${ni + 1}` : 'Start level 1-1'; $('tgGo').onclick = () => playLadder(nl, ni);
+    const [nl, ni] = nextUp(); $('tgGo').lastChild.textContent = 'Play'; $('tgGo').title = `Play level ${lvNo(nl)}.${ni + 1}`; $('tgGo').onclick = () => playLadder(nl, ni);   // Bennie 2026-11-17: just "Play"
     try { $('tgDemo').replaceChildren(mini(ladderBar(nl, ni))); } catch (e) { $('tgDemo').hidden = true; }
     $('tgLvH').firstChild.textContent = `${LADDER.length} levels in ${CHS.length} chapters `;
     if (chSel == null) chSel = POS[nl] ? POS[nl].c : 0;
@@ -13508,7 +13509,7 @@ const TG = (() => {
     if (!on) { advPause(); return; }
     stopRound();
     let f = $('tgAdvP').querySelector('iframe');
-    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Advanced flow game'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
+    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Pocket Finder'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
     setTimeout(() => { try { f.focus(); } catch (e) {} }, 0);
   }
   $('tgTabGame').addEventListener('click', () => advTab(false));
@@ -13565,7 +13566,7 @@ const TG = (() => {
   dlg.addEventListener('close', () => { stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
-  return { open, openFit, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
+  return { open, openFit, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
     week, tap: t => hit(t, false), heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
