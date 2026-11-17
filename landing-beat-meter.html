@@ -4471,7 +4471,7 @@ function parseMeter(str) {
 function meterLayout(meter = '4/4', sub = 4) {
   const M = typeof meter === 'object' && meter ? meter : parseMeter(meter) || parseMeter('4/4');
   let lens, unit;
-  if (M.den === 4) { if (![3, 4, 5].includes(sub)) sub = 4; lens = new Array(M.num).fill(sub); unit = 1 / sub; }
+  if (M.den === 4) { if (![3, 4, 5, 6].includes(sub)) sub = 4; lens = new Array(M.num).fill(sub); unit = 1 / sub; }
   else { sub = 4; lens = M.groups.map(g => g * 2); unit = 1 / 4; }
   const starts = [], beatOf = []; let G = 0;
   lens.forEach((l, b) => { starts.push(G); for (let i = 0; i < l; i++) beatOf.push(b); G += l; });
@@ -4484,7 +4484,7 @@ function countLabel(lay, s) {
   const b = lay.beatOf[s], i = s - lay.starts[b];
   if (lay.den === 8) return i % 2 ? '&' : String(i / 2 + 1);
   if (!i) return String(b + 1);
-  return (lay.sub === 3 ? ['', 'trip', 'let'] : lay.sub === 5 ? ['', 'ka', 'di', 'mi', 'ti'] : ['', 'e', '+', 'a'])[i];
+  return (lay.sub === 3 ? ['', 'trip', 'let'] : lay.sub === 5 ? ['', 'ka', 'di', 'mi', 'ti'] : lay.sub === 6 ? ['', 'la', 'li', '+', 'la', 'li'] : ['', 'e', '+', 'a'])[i];
 }
 const range = n => Array.from({ length: n }, (_, i) => i);
 const sub16 = lay => lay.sub === 4;
@@ -5930,6 +5930,107 @@ const LADDER = [
     bars: ["Picture every word in a box on the floor", "Ticking like a clock that was built in a lab", "Every syllable sits where the drummer can count it"] },
   { id: "b4mts", name: "Straight on the grid", flow: "16ths", bpm: 86, tip: "A straight flow: every syllable sits exactly on a 16th line. Tap with the hats and do not drift.",
     bars: ["Ev-ery sin-gle sound is sit-ting square up-on the line", "Like a ru-ler mea-sured out, no drift-ing, all in time", "Tick for tick I match the hats, I nev-er slip be-hind"] },
+  // Round 2, chunk 1 (2026-11-17): Mazbouq levels that needed engine work (see levels/mazbouq/ENGINE-GAPS.md)
+  { id: "b1heel3", name: "Heel on 3", flow: "16ths", sub: 4, bpm: 90, slots: [0,2,4,6,8], acc: [0,4,8], tip: "The bar heel is where the focus rhyme sits. Move it from 4 to 3: land the rhyme on beat 3 and leave beat 4 empty.",
+    bars: ["Plant it on the three", "Ear-ly land-ing, hold", "Stop it short of four"] },
+  { id: "b1heelmv", name: "Move the heel", flow: "16ths", sub: 4, bpm: 90, tip: "A four-bar cadence where the rhyme moves: beat 4, then 3, then 2. Same rhyme sound, a new landing every bar.",
+    bars: [{ t: "Keep it stead-y, land on four", slots: [0,2,4,6,8,10,12], acc: [0,4,8,12] }, { t: "Pull it back to three", slots: [0,2,4,6,8], acc: [0,4,8] }, { t: "Then back on two", slots: [0,2,3,4], acc: [0,4] }] },
+  { id: "b4preset", name: "Reset every bar", flow: "16ths", sub: 4, bpm: 80, slots: [0,2,3,5,6,8,10], acc: [0,6,10], tip: "A three-beat rhythm, then one beat of rest. The rest resets the phase, so every bar starts fresh on the 1.",
+    bars: ["Run it, then I stop, re-set", "Three beats on, then gap, and breathe", "Back on one, the slate is clean"] },
+  { id: "stopgo", name: "Calm, then burst", flow: "16ths", sub: 4, bpm: 83, tip: "Two beats of easy 8ths, then 16ths rush into the landing on 4. The speed-up is the drama.",
+    bars: [{ t: "Calm and stead-y, sprint-ing to the blast", slots: [0,2,4,6,8,9,10,11,12], acc: [0,4,8,12] }, { t: "Hold the scene now, sud-den-ly take flight", slots: [0,2,4,6,8,9,10,11,12], acc: [0,4,8,12] }, { t: "Big screen mo-ment, cap-ture it in light", slots: [0,2,4,6,8,9,10,11,12], acc: [0,4,8,12] }] },
+  { id: "growcell", name: "Add a cell", flow: "16ths", sub: 4, bpm: 100, tip: "Four quick syllables, a gap, then a pair. Every bar the pattern grows by one more pair, and the gaps keep it readable.",
+    bars: [{ t: "Seeds are sleep-ing, wak-ing", slots: [0,1,2,3,5,6], acc: [0,5] }, { t: "Roots are grow-ing, deep-er, strong-er", slots: [0,1,2,3,5,6,8,9], acc: [0,5,8] }, { t: "Stems are ris-ing, green-er, tall-er, bloom-ing", slots: [0,1,2,3,5,6,8,9,11,12], acc: [0,5,8,11] }] },
+  { id: "rollland", name: "Three-syllable landing", flow: "16ths", sub: 4, bpm: 98, slots: [0,2,4,6,8,10,12,13,14], acc: [0,4,8,12], tip: "Steady 8ths for three beats, then a quick three-syllable rhyme on beat 4. Sit a little back on the snare.",
+    bars: ["All the judg-es up there, hold-ing it", "Rules they nev-er fol-lowed, fold-ing it", "Built the house with bare hands, own-ing it"] },
+  { id: "vsheel", name: "Verse switch: land early", flow: "16ths", sub: 4, bpm: 108, slots: [0,1,2,3,4,5,7,8,14,15], acc: [0,3,8], tip: "Bring the gap back, but end the line earlier: land on beat 3, hold it, stay quiet, and slip in two pickup words for the next line.",
+    bars: ["Cut-ting the line be-fore the four, and now", "Leav-ing a gap be-hind the three, so then", "Fin-ish-ing ear-ly on the three, and we"] },
+  { id: "dsp1", name: "Across the bar line", flow: "16ths", sub: 4, bpm: 85, land: 4, tip: "The phrase starts on beat 3 and runs over the bar line, landing on beat 2. Read the bar from the middle: the second half starts the sentence, the first half finishes it.",
+    bars: [{ t: "o-ver to the two. Start it on the three and roll it", slots: [0,1,2,3,4,8,9,10,11,12,13,14,15], acc: [0,4,8,12,14] }, { t: "a-cross the bar line. Wait a beat and then I car-ry", slots: [0,1,2,3,4,8,9,10,11,12,13,14,15], acc: [1,4,8,10,14] }, { t: "in-to the new bar. Half a bar a-head I'm stretch-ing", slots: [0,1,2,3,4,8,9,10,11,12,13,14,15], acc: [0,4,8,10,12,14] }] },
+  { id: "flowtif", name: "Flow motif", flow: "16ths", sub: 4, bpm: 88, slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [1,4,7,9,12,15], tip: "A short rhythm idea, stresses 2 + 3 + 3 apart, said twice in every bar. Same shape, new words: that's a motif.",
+    bars: ["The drum-mer is play-ing it slow and ev-ery-one fol-lows the flow", "A mo-tif we're car-ry-ing home, the pat-tern is set-ting in stone", "We stamp it a-gain on the floor, we stamp it a lit-tle bit more"] },
+  { id: "flowtifans", name: "Motif and answer", flow: "16ths", sub: 4, bpm: 88, tip: "The first half of every bar is the motif. The second half answers it differently each time, but the end always lands the same way.",
+    bars: [{ t: "The clock is a-live in the room and the hands are turn-ing to noon", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [1,4,7,10,12,15] }, { t: "A can-dle is flick-er-ing on the side of the ta-ble a-lone", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [1,4,12,15] }, { t: "The shad-ow is danc-ing a-round, big, bold, bright, then fades to the ground", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [1,4,8,9,10,12,15] }] },
+  { id: "halfbar", name: "Half-bar rhymes", flow: "16ths", sub: 4, bpm: 115, slots: [0,1,2,3,4,5,6,8,9,10,11,12,13,14], acc: [0,2,4,6,8,10,12,14], tip: "Two short lines in one bar, seven syllables each, and both end on the same sound. Rhyme every two beats, breathe in the gap.",
+    bars: ["Dust the han-dle, find the print, cir-cle round the miss-ing hint", "Ev-ery foot-step leaves a trace, ev-ery shad-ow has a face", "Pull the file and check the time, line it up a-gainst the crime"] },
+  { id: "clave", name: "Clave pocket", flow: "16ths", sub: 4, bpm: 128, tip: "Five words on the clave: three spread over beats 1 and 2, two on beats 3 and 4. The last bar flips it: two first, then three.",
+    bars: [{ t: "Feet move, hips sway, drop", slots: [0,3,6,10,12], acc: [0,3,6,10,12] }, { t: "Three then two, keep time", slots: [0,3,6,10,12], acc: [0,3,6,10,12] }, { t: "Now flip, two then three", slots: [2,4,8,11,14], acc: [2,4,8,11,14] }] },
+  { id: "b7estart", name: "Start on the e", flow: "16ths", sub: 4, bpm: 85, slots: [1,2,3,4,9,10,11,12], acc: [1,4,9,12], tip: "Rest on the beat, come in on the e: strong, weak, weak, then a long strong word on the next beat. Both strong words share a vowel.",
+    bars: ["Take it a-way, make it to stay", "Hold it a-lone, fold it and go", "Light it on fire, write it up high"] },
+  { id: "b6swing", name: "Swing dial", flow: "16ths", sub: 4, bpm: 88, acc: [0,4,8,12], tip: "Same 8 words three times: first the second of each pair rushes in early, then it sits straight, then it drags late. Feel the dial turn.",
+    bars: [{ t: "Push it up and rush it in quick", slots: [0,1,4,5,8,9,12,13] }, { t: "Lev-el out and keep it e-ven", slots: [0,2,4,6,8,10,12,14] }, { t: "Lay it back and make it lag now", slots: [0,3,4,7,8,11,12,15] }] },
+  { id: "snap", name: "Short-long snap", flow: "16ths", sub: 4, bpm: 97, slots: [0,1,4,5,8,9,12,13], acc: [0,4,8,12], tip: "A short hit on the beat, then a long one right after it: snap, hold. The same shape on every beat.",
+    bars: ["Snap it, crack it, flip it, stack it", "Clip-ping words and hold-ing vow-els", "Nev-er rush-ing, al-ways land-ing"] },
+  { id: "offsing", name: "Sing it off the beat", flow: "16ths", sub: 4, bpm: 88, slots: [1,4,6,8,10,11,12,13,15], acc: [1,6,10,13], tip: "A sung hook that leans on the in-between spots: the strong syllables sit on the e and the and, never on the 1. Float over the drums.",
+    bars: ["Drive through mid-night streets with the win-dow", "Fade in slow like sun on the wa-ter", "Hum it soft till ev-ery-thing's fine now"] },
+  { id: "drillpk", name: "Drill pocket", flow: "16ths", sub: 4, bpm: 72, tip: "Drill at half time: punchy 8ths with quick 16th pairs, a gap before the line ends. Hit the hard words, rush the small ones.",
+    bars: [{ t: "Slide through the back gate, hoods up, eyes down in the cold town", slots: [0,2,3,4,5,7,8,9,10,11,12,14,15], acc: [0,5,7,8,9,10,14,15] }, { t: "Cold wind bites, stay low, keep it mov-ing, go", slots: [0,2,3,5,6,8,10,11,12,15], acc: [0,3,6,8,11,15] }, { t: "Back to the base, no trace, we're out the door", slots: [0,2,4,5,6,8,10,12,13,15], acc: [0,5,8,12,15] }] },
+  { id: "drillsync", name: "Drill syncopation", flow: "16ths", sub: 4, bpm: 73, slots: [0,2,3,4,5,6,7,8,9,10,14], acc: [0,3,6,9,10], tip: "Pack the words up to beat 3 and stop there. The last little word on the and of 4 is the pickup into the next line.",
+    bars: ["Low and slow through the back of the old yard, then", "Mask on, head down, and rain on the wind-shield, so", "Lights out, clock reads two, still we are out-side, then"] },
+  { id: "offeas", name: "Only the e and the a", flow: "16ths", sub: 4, bpm: 104, slots: [1,3,5,7,9,11,13,15], acc: [1,3,5,7,9,11,13,15], tip: "Every syllable on a 16th off-beat: the e and the a, never the beat, never the and. Feel the beat, then step around it.",
+    bars: ["Skip past, slip through, dip low, gone now", "Tip-toe in-side past ev-ery guard", "Ghost notes, soft steps, no one hears us"] },
+  { id: "frm0", name: "Short-long threes", flow: "16ths", sub: 4, bpm: 85, slots: [0,1,3,4,6,7,9,10,12,13], acc: [1,4,7,10,13], tip: "A short and a long, over and over: the cell is three 16ths, so it slides against the four beats. Lean on every long one.",
+    bars: ["I keep the beat a-live in-side my chest", "The mor-ning train is late a-gain to-day", "You hear the click and then you feel the step"] },
+  { id: "frm2", name: "Start on the e", flow: "16ths", sub: 4, bpm: 85, slots: [1,2,4,5,7,8,10,11,13,14], acc: [2,5,8,11,14], tip: "The third way in: rest on the 1, the cell starts on the e. Three bars, three starting points, one rhythm.",
+    bars: ["A-round the block the ci-ty hums a song", "Be-neath the bridge the ri-ver keeps its pace", "My pen is fast, my pa-per near-ly full"] },
+  { id: "offghost", name: "Off-beats with a ghost", flow: "16ths", sub: 4, bpm: 104, tip: "Still all off-beats, but one small word slips onto the in-between spot. Keep it light; the strong words stay on the e and the a.",
+    bars: [{ t: "Stay low, move quick, and slide through back gates", slots: [1,3,5,7,8,9,11,13,15], acc: [1,3,5,7,9,11,13,15] }, { t: "Cold hands, warm heart, eyes up, stay calm", slots: [1,3,5,7,9,10,11,13], acc: [1,3,5,7,9,11,13] }, { t: "Each step, each breath, and each move stays off", slots: [1,3,5,7,8,9,11,13,15], acc: [1,3,5,7,9,11,13,15] }] },
+  { id: "frm1", name: "Start on the long", flow: "16ths", sub: 4, bpm: 85, slots: [0,2,3,5,6,8,9,11,12,14,15], acc: [0,3,6,9,12,15], tip: "Same three-16th cell, but this bar starts in the middle of it: the 1 gets the long note. Feel how the cell no longer lines up with the bar.",
+    bars: ["Hold the line and keep it mov-ing, nev-er stop", "Sun-day mor-ning, cof-fee black and pa-per thin", "Count the sha-dows, step a-round them, keep the time"] },
+  { id: "b1gal1", name: "Gallop", flow: "16ths", sub: 4, bpm: 85, slots: [0,1,2,4,5,6,8,9,10,12,13,14], acc: [0,4,8,12], tip: "Three 16ths and a gap in every beat: da-da-da, da-da-da. Stress the first of each three, on the beat.",
+    bars: ["Hor-ses are run-ning and no-bod-y's catch-ing them", "Thun-der-ing o-ver the val-ley and in-to it", "Rat-tle the win-dows and shake up the neigh-bour-hood"] },
+  { id: "b1gal2", name: "Gallop, gap inside", flow: "16ths", sub: 4, bpm: 85, slots: [0,1,3,4,5,7,8,9,11,12,13,15], acc: [0,4,8,12], tip: "Move the gap inside the beat: 1 e, skip, a. The three-syllable words now gallop with a hitch.",
+    bars: ["Rid-ing the wave till the crest of it breaks on me", "Chas-ing the sound of the drum through the cor-ri-dor", "Kick-ing up dust as we race to the fin-ish line"] },
+  { id: "b1gal3", name: "Gallop off the one", flow: "16ths", sub: 4, bpm: 85, slots: [1,2,3,5,6,7,9,10,11,13,14,15], acc: [1,5,9,13], tip: "Now the gap sits on the beat: rest on every 1, 2, 3 and 4 and gallop on e + a. Feel the beat you never say.",
+    bars: ["Wan-der-ing out in the mid-dle of ev-ery-thing", "Sprint-ing a-head of the rest of the pack a-gain", "Head-ing for home on the back of a hur-ri-cane"] },
+  { id: "b4meta1", name: "Same rhythm, new weight", flow: "16ths", sub: 4, bpm: 80, tip: "Twelve 16ths and a long word on 4, every bar the same rhythm. Only the stress moves: on the beats, then the off-beats, then just 2 and 4.",
+    bars: [{ t: "Mov-ing ev-ery stress a-round the bar to make it new", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12], acc: [0,4,8,12] }, { t: "So I bend it in be-tween and hit the off-beat side", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12], acc: [2,6,10] }, { t: "Then I let the snare de-cide where all the weight should fall", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12], acc: [4,12] }] },
+  { id: "b4meta2", name: "Meta-rhythm remix", flow: "16ths", sub: 4, bpm: 80, tip: "Same 16ths again, new accent shapes: 1, the and of 2, 4; then only the and of 1 and 3; then every third 16th rolling over the beat.",
+    bars: [{ t: "Same old rhy-thm, but the em-pha-sis is chang-ing shape", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12], acc: [0,6,12] }, { t: "In the gaps I find the space to make the pat-tern breathe", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12], acc: [2,10] }, { t: "Shift-ing it, lift-ing it, mov-ing it, prov-ing it, now", slots: [0,1,2,3,4,5,6,7,8,9,10,11,12], acc: [0,3,6,9,12] }] },
+  { id: "b4obg", name: "Implied rhythm", flow: "16ths", sub: 4, bpm: 130, tip: "Start on the e of 2 and fill the 16ths up to the end of the bar, tight on the grid. This is the rhythm the ear expects.",
+    bars: [{ t: "Calm, and stead-y right on the grid", slots: [5,7,9,10,11,13,14,15], acc: [5,9,15] }, { t: "Sit, and let the drums pass me by", slots: [5,7,9,10,11,13,14,15], acc: [5,9,13] }, { t: "Tight, I nev-er stray from the line", slots: [5,7,9,10,11,13,14,15], acc: [5,9,11,15] }] },
+  { id: "pull16", name: "Pull it a 16th early", flow: "16ths", sub: 4, bpm: 119, slots: [0,2,3,5,7,9,10,12,14], acc: [0,3,7,12,14], tip: "The straight version would sit on 8ths. Pull three of the words a 16th early and the bar starts to bounce; the rhyme still lands on the and of 4.",
+    bars: ["Tip-toe in-to space and then glide down", "Sneak a-round the beat and then slide in", "Step a-head and shave off the top clean"] },
+  { id: "b7bartres", name: "Bar-long 3-3-2", flow: "16ths", sub: 4, bpm: 85, slots: [0,2,3,4,5,6,8,9,10,11,12,14,15], acc: [0,6,12], tip: "Stretch the tresillo over the whole bar: three long \"oh\" words on 1, the and of 2, and 4, with quick 16ths in between.",
+    bars: ["Roll-ing it o-ver, slow-ing it un-der, go-ing on", "Hold-ing the mo-ment, lone-ly and fro-zen, sol-i-tude", "Glow-ing like em-bers, old as the o-cean, cold and slow"] },
+  { id: "dispcell", name: "Cell on the beat", flow: "16ths", sub: 4, bpm: 95, slots: [0,2,3,4,6,7,8,10,11,12,14,15], acc: [0,4,8,12], tip: "One strong syllable, then two quick ones: long, short-short. Four cells, every strong word right on the beat.",
+    bars: ["Bounce with the kick and the snare in the mid-dle now", "Walk-ing a line with a weight on my back a-gain", "Down in the base-ment we build-ing it up from scratch"] },
+  { id: "disp8", name: "Shift it an 8th", flow: "16ths", sub: 4, bpm: 95, slots: [0,1,2,4,5,6,8,9,10,12,13,14], acc: [2,6,10,14], tip: "The same cell started an 8th late: two quick ones, then the strong word on the and. Every stress lands between the beats.",
+    bars: ["With a step, then a skip, then a hop, then a drop", "Off the one, on the and, ev-ery stress in the gap", "Let it lean, let it lag, let it lurch, let it land"] },
+  { id: "disp16", name: "Shift it a dotted 8th", flow: "16ths", sub: 4, bpm: 95, slots: [1,2,3,5,6,7,9,10,11,13,14,15], acc: [3,7,11,15], tip: "Start three 16ths late: rest on the beat, two quick ones, then the strong word on the a, right before the next beat. It pulls against the drums.",
+    bars: ["And a drum, and a hum, then a run, then it's done", "From the side, take a ride, let it slide, then ar-rive", "Ev-ery hit, com-ing late, ev-ery stress, on the wait"] },
+  { id: "dhswitch", name: "Straight then syncopated", flow: "16ths", sub: 4, bpm: 103, slots: [0,1,2,3,4,5,6,7,8,9,11,12], acc: [0,4,9,12], tip: "Two beats of even 16ths, then break the stream: short, long, short, long. Hold the last word and let the bar breathe.",
+    bars: ["Pat-ter-ing a-round the drum-kit, then stop, then go", "Rac-ing ev-ery six-teenth note and then break it down", "Fin-gers flick-er on the hi-hat, so lean, so low"] },
+  { id: "b6s7x", name: "Seven across the bar line", flow: "trip", bpm: 70, slots: [0,1,2,3,4,5,6,7,8,9,10,11], acc: [0,3,7,10], tip: "The 3 + 4 cycle keeps going over the bar line, so every bar starts its accents somewhere else. Trust the count of 7, not the 1.",
+    bars: [{ t: "Start on the one and then I move in a cir-cle", acc: [0,3,7,10] }, { t: "and the drum is a door and I can walk through it", acc: [2,5,9] }, { t: "Sev-en is a wheel and it turns in a long loop", acc: [0,4,7,11] }] },
+  { id: "b7tfive", name: "Fives across the bar", flow: "trip", bpm: 75, tip: "Stress every fifth triplet and keep counting over the bar line. The stress drifts through the bar and only lines up again after five bars.",
+    bars: [{ t: "Beau-ti-ful-ly it trav-els a-cross the bar-line", slots: [0,1,2,3,4,5,6,7,8,9,10,11], acc: [0,5,10] }, { t: "Now it goes drift-ing a-way and cir-cles a-round", slots: [0,1,2,3,4,5,6,7,8,9,10,11], acc: [3,8] }, { t: "A-gain it re-turns to home at the end of time", slots: [0,1,2,3,4,5,6,7,8,9,10,11], acc: [1,6,11] }] },
+  { id: "quint2", name: "Five in the time of two", flow: "quint", sub: 5, bpm: 70, tip: "Five even syllables across two beats, so only the first of each five meets the beat. Slower than the 5-per-beat level and harder to feel.",
+    bars: [{ t: "Float-ing a-bove it, drift-ing be-low it", slots: [0,2,4,6,8,10,12,14,16,18], acc: [0,10] }, { t: "Five o-ver two now, smooth as the o-cean", slots: [0,2,4,6,8,10,12,14,16,18], acc: [0,10] }, { t: "Glid-ing a-cross it, land-ing it gent-ly", slots: [0,2,4,6,8,10,12,14,16,18], acc: [0,10] }] },
+  { id: "b1six4", name: "Fours over sixes", flow: "16ths", sub: 6, bpm: 70, slots: [0,1,4,5,8,9,12,13,16,17,20,21], acc: [0,4,8,12,16,20], tip: "Split every beat into six and group them in fours: short, long, short, long. Six stresses against four beats.",
+    bars: ["Mov-ing side-ways, nev-er land-ing where you're look-ing", "Float-ing o-ver ev-ery bar line, nev-er stop-ping", "Split-ting ev-ery beat in six-es, count-ing fours now"] },
+  { id: "b1six5", name: "Group five twist", flow: "16ths", sub: 6, bpm: 70, slots: [0,1,4,5,8,9,12,13,16,17,20,21], acc: [0,4,8,12,17,20], tip: "Same fours over sixes, but the fifth group puts its stress on the second syllable. One twist and the pattern wakes up.",
+    bars: ["Break-ing pat-terns, twist-ing time-lines, re-wound, roll-ing", "Tak-ing cor-ners, hold-ing bal-ance, a-lone, drift-ing", "Shift-ing all the gears and pres-sure, ar-rived, strong-er"] },
+  { id: "gal1", name: "Gallops", flow: "16ths", sub: 6, bpm: 80, slots: [0,1,2,3,6,9,12,13,14,15,18], acc: [0,6,12,18], tip: "Straight 8ths with a gallop thrown in: three quick syllables squeezed into one 8th (ta-ka-ta), on beat 1 and beat 3.",
+    bars: ["Gal-lop-ing a-cross it, thun-der-ing a-long", "Hur-ri-cane is com-ing, ca-ra-vans are gone", "Hol-i-day is o-ver, ev-ery-bo-dy home"] },
+  { id: "gal2", name: "Gallop into the beat", flow: "16ths", sub: 6, bpm: 80, slots: [0,3,4,5,6,9,10,11,12,15,18], acc: [0,6,12,18], tip: "Now the gallop sits on the and and runs into the next beat: three light syllables, then a hard one on the beat.",
+    bars: ["Up and then I land and then I hit the ground", "Breathe and let it go and let it fly a-way", "Run it to the edge and then it's time to shine"] },
+  { id: "b4odd2", name: "Double the gap", flow: "16ths", sub: 6, bpm: 70, slots: [0,1,2,4,6,8,9,10,12,14,16,17,18,20,22], acc: [0,8,16], tip: "Fill the missing triplet with two double-time syllables instead. Five syllables per group, the first two quick, three groups per bar.",
+    bars: ["Fill-ing up the space, ev-ery hole I left, dou-ble time it, yeah", "Ra-pid-ly I fill an-y gap I see, quick-er than a blink", "Two in-to a slot, then I let it ride, lock-ing in the threes"] },
+  { id: "b1five16", name: "Fives against four", flow: "16ths", sub: 4, bpm: 70, slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [0,5,10,15], tip: "Every 16th filled, grouped in fives: the stress moves one 16th later every group, and the last one lands on the a of 4.",
+    bars: ["Cal-cu-lat-ing it, nev-er giv-ing up, dec-o-rat-ing it, done", "Hid-den in the code, nev-er read a-loud, on-ly in the dark, now", "Scram-ble ev-ery line, shuf-fle ev-ery word, read it if you can, go"] },
+  { id: "b6five", name: "Fives over four", flow: "16ths", sub: 4, bpm: 70, slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [0,5,10,15], tip: "Every 16th has a syllable, but the accent comes every five: on the 1, the \"e\" of 2, the \"+\" of 3 and the \"a\" of 4.",
+    bars: ["Clap on the first of ev-ery five and the beat is gon-na slide off", "Count-ing it in a dif-fer-ent kind of cir-cle that I can turn", "Five is a lit-tle long-er than the four, wait for it to come round"] },
+  { id: "b6fivex", name: "Fives across the bar line", flow: "16ths", sub: 4, bpm: 70, slots: [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], acc: [0,5,10,15], tip: "The groups of five keep going over the bar line, bar 2 starts its accents on beat 2, bar 3 on the \"a\" of 1. It takes five bars to come home.",
+    bars: [{ t: "Fives are a lit-tle crook-ed and I like that a lot be-cause they", acc: [0,5,10,15] }, { t: "nev-er land on one and they keep on go-ing round the whole bar line", acc: [4,9,14] }, { t: "if you can count it out it takes five bars and then it fits a-gain", acc: [3,8,13] }] },
+  { id: "b6vow6", name: "Vowels on sextuplets", flow: "16ths", sub: 6, bpm: 65, slots: [0,1,2,4,5,6,8,9,10,12,13,14,16,17,18,20,21,22], acc: [2,6,10,14,18,22], tip: "Six slots a beat, grouped in fours: two quick syllables, then the rhyme vowel held for two slots. The groups of 4 run 3 against every 2 beats.",
+    bars: ["in the town, on the road, all a-round, as I go, to the sound, of the flow", "from the base to the beat in the night at the gate on the street with the light", "and the ground is a stone that I found on my own in the crowd all a-lone"] },
+  { id: "b1five", name: "Five-eight cell", flow: "16ths", meter: "5/8", sub: 4, bpm: 90, slots: [0,3,6,8], acc: [0,6], tip: "A bar of five 8ths: long, long-tied, short, short (3 + 3 + 2 + 2 sixteenths). Four syllables, nothing on the beat you expect.",
+    bars: ["Push it off line", "Count to five now", "Stay on the edge"] },
+  { id: "ct3", name: "Threes in nine", flow: "16ths", meter: "9/8", sub: 4, bpm: 120, slots: [0,2,4,6,8,10,12,14,16], acc: [0,6,12], tip: "Nine 8ths in three groups of three. One syllable on every 8th, lean on the first of each three.",
+    bars: ["Cir-cle a-round in the ci-ty light", "Look-ing a-way from the way-ward wind", "Count-ing to nine in a waltz-ing time"] },
+  { id: "ct4", name: "Swung fours, then threes", flow: "16ths", meter: "9/8", sub: 4, bpm: 120, slots: [0,2,3,5,6,8,9,11,12,14,16], acc: [0,6,12], tip: "Four syllables in the space of three for two beats (long-short, long-short), then back to plain threes for the last beat. Switch without losing the 1.",
+    bars: ["Pick it up and take it to the cor-ner block", "Mov-ing through the ci-ty in the ear-ly hours", "Fold-ing up the pa-per in a pock-et square"] },
 ];
 // The game home groups the levels into chapters, easy to hard. Nothing is ever locked (Bennie 2026-11-17: "dont restrict me or anyone"):
 // every level and chapter is open from the first visit; a level counts as cleared at GAME.clear of its 9 stars. LADDER order stays fixed
@@ -5938,36 +6039,41 @@ const GAME_CHAPTERS = [
   { id: "found", name: "Foundations", blurb: "On the beat, 8ths, 16ths and space. Land the rhyme on 4 every time.",
     ids: ["beat", "8ths", "space", "b4crowd", "b6chant", "stomp", "b6riff", "b1stab", "b7ondr", "iso1", "b4story", "b1voice", "b7stjump", "lfc1", "lcw1", "b4dunk", "b7strun", "b6chest", "b4lofi", "16ths", "b6tank", "b6talk", "b4met2", "b1dense", "frs1", "lbd1", "longw", "run16"] },
   { id: "phrase", name: "Phrasing and rhyme placement", blurb: "Where the rhymes sit: on 2 and 4, inside the bar, echoed, chained, and verses that build.",
-    ids: ["punch4", "b8echo", "mono4", "b6dbl", "b1two4", "b8ramp", "b8answer", "b4spill", "b8runon", "b8chug", "irh2", "b7multi", "b6build", "b7echo", "b8mid", "cad4", "irh1", "vsintro", "b6mono", "vsramp"] },
+    ids: ["punch4", "b8echo", "mono4", "b6dbl", "b1two4", "b8ramp", "b8answer", "b4spill", "b8runon", "b8chug", "irh2", "b7multi", "b6build", "b7echo", "b8mid", "cad4", "irh1", "vsintro", "b6mono", "vsramp", "b1heel3", "b1heelmv", "b4preset", "stopgo", "growcell", "rollland", "vsheel", "dsp1", "flowtif", "flowtifans", "halfbar"] },
   { id: "sync", name: "Syncopation and displacement", blurb: "Off the beat on purpose: shifted 8ths, early landings, 3-3-2 and words between the drums.",
-    ids: ["drill332", "tres", "b6tres", "late", "early", "b7offdr", "b1offg", "dh332", "b7pepper", "slick332"] },
+    ids: ["drill332", "tres", "b6tres", "late", "early", "b7offdr", "b1offg", "dh332", "b7pepper", "slick332", "clave", "b7estart", "b6swing", "snap", "offsing", "drillpk", "drillsync", "offeas", "frm0", "frm2", "offghost", "frm1", "b1gal1", "b1gal2", "b1gal3", "b4meta1", "b4meta2", "b4obg", "pull16", "b7bartres", "dispcell", "disp8", "disp16", "dhswitch"] },
   { id: "trip", name: "Triplets and compound feel", blurb: "Three to a beat: rolls, shuffles, 12/8 sway and switching between straight and triplets.",
     ids: ["trip", "drumsw", "b1shuf", "afrohat", "drumshuf", "b1bell", "b8phase", "b8phase2", "gcl1", "b1chug", "b1roll", "afrotrip", "b8walkroll", "b6tswing", "drilltrip", "b7tlate", "tstraight", "iso2", "b6trip", "b4met1", "b4lock", "gridsw"] },
   { id: "accent", name: "Triplet accents", blurb: "The same triplet grid, grouped in twos, fours, fives and mixes. The stress fights the beat.",
-    ids: ["pair4", "qtrip", "b4odd", "b4oddsh", "themiola", "tafter", "b1cnt4", "g33222", "tshift", "tlong", "b1twos", "hm2b", "b6s34", "tskip", "b8tfive", "b7tfour", "b7tsix", "b7t345", "b7t32", "b7t24", "b1four", "b1mix", "hm2a", "b8tgrow", "b6four", "b6four3", "trip2s", "tripin2", "tripin4"] },
+    ids: ["pair4", "qtrip", "b4odd", "b4oddsh", "themiola", "tafter", "b1cnt4", "g33222", "tshift", "tlong", "b1twos", "hm2b", "b6s34", "tskip", "b8tfive", "b7tfour", "b7tsix", "b7t345", "b7t32", "b7t24", "b1four", "b1mix", "hm2a", "b8tgrow", "b6four", "b6four3", "trip2s", "tripin2", "tripin4", "b6s7x", "b7tfive"] },
   { id: "poly", name: "Polyrhythm", blurb: "Groups of three over four on the 16ths, dotted 8ths across the bar line, quintuplets.",
-    ids: ["b6dotx", "b6dot", "b1code3", "b6vow3", "hem", "quint"] },
+    ids: ["b6dotx", "b6dot", "b1code3", "b6vow3", "hem", "quint", "quint2", "b1six4", "b1six5", "gal1", "gal2", "b4odd2", "b1five16", "b6five", "b6fivex", "b6vow6"] },
   { id: "odd", name: "Odd meters", blurb: "Bars of 3, 5, 6, 7 and 9: count the groups, land early, go again.",
-    ids: ["b6w8", "b1cnt3", "b7five8", "seven", "b7nine", "b7six8", "b7sev43", "b8five", "b1waltz3", "b1sev3", "n128", "odd74", "sw78", "n98a", "b1waltz", "b6w16", "b1sev16", "dt78"] },
+    ids: ["b6w8", "b1cnt3", "b7five8", "seven", "b7nine", "b7six8", "b7sev43", "b8five", "b1waltz3", "b1sev3", "n128", "odd74", "sw78", "n98a", "b1waltz", "b6w16", "b1sev16", "dt78", "b1five", "ct3", "ct4"] },
   { id: "feel", name: "Feel and microtiming", blurb: "Lock dead on the grid, every syllable exactly on its slot: the base for laying back or pushing ahead.",
     ids: ["b7grid", "b4mts"] },
 ];
 function ladderBar(lv, i) {
-  const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b;
-  if (V.slots) return slotBar(o.t, V.slots, V.acc);
-  const L = analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, V.meter || '4/4');
+  const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b, slots = o.slots || V.slots, meter = o.meter || V.meter || '4/4';
+  if (slots) return slotBar(o.t, slots, o.acc || V.acc || [], o.sub || V.sub || 3, meter, o.land != null ? o.land : V.land);   // fixed slots, per bar or for the level
+  const L = analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, meter);
   return o.ant || V.ant ? anticipate(L, o.ant || V.ant) : L;
 }
-// A bar on fixed slots of the triplet grid: hyphens mark the syllables ("Trip-lets"), `slots` = one slot per syllable, `acc` = the stressed slots.
-function slotBar(text, at, acc) {
+// A bar on fixed slots: hyphens mark the syllables ("Trip-lets"), `at` = one slot per syllable, `acc` = the stressed slots.
+// sub = slots per beat: 3 triplets (the triplet pack), 4 16ths (also x/8 meters), 5 quintuplets, 6 sextuplets (16th triplets; 4/4 only).
+// land = the landing slot when it is not the last stressed one (round 2, 2026-11-17).
+function slotBar(text, at, acc, sub = 3, meter = '4/4', land = null) {
   const fix = {}; text.replace(/[’‘]/g, "'").split(/\s+/).forEach(w => { const k = cleanKey(w.replace(/-/g, '')); if (k) fix[k] = w.split('-').filter(Boolean).length; });
-  const L = analyseLine(text.replace(/-/g, ''), fix, 0, 'trip'), lay = L.lay;
+  const force = sub === 3 ? 'trip' : sub === 5 ? 'quint' : '16ths';
+  const L0 = analyseLine(text.replace(/-/g, ''), fix, 0, force, sub === 6 ? '4/4' : meter), lay = sub === 6 ? meterLayout(meter, 6) : L0.lay;
+  const L = Object.assign({}, L0, { lay, grid: lay.G, overflow: 0 });
   if (L.syl.length !== at.length) return L;
   const slots = new Array(lay.G).fill(-1); at.forEach((s, k) => { slots[s] = k; });
   const syl = L.syl.map((x, k) => { const st = acc.includes(at[k]); return Object.assign({}, x, { st, v: st ? vowelClass(x.key, x.si) : null }); });
   let landSlot = -1; for (let s = slots.length - 1; s >= 0; s--) if (slots[s] >= 0 && syl[slots[s]].st) { landSlot = s; break; }
+  if (land != null && slots[land] >= 0) landSlot = land;
   const endSlot = at[at.length - 1];
-  let on = 0, off = 0; at.forEach((s, k) => { if (!syl[k].st) return; if (s - lay.starts[lay.beatOf[s]] === 0) on++; else off++; });
+  let on = 0, off = 0; at.forEach((s, k) => { if (!syl[k].st) return; const i = s - lay.starts[lay.beatOf[s]]; if (lay.sub === 4 ? i % 2 === 0 : i === 0) on++; else off++; });
   return Object.assign({}, L, { syl, slots, slotWord: slots.map(v => (v >= 0 ? syl[v].w : -1)), landSlot, landBeat: lay.beatOf[landSlot] + 1, endSlot, endBeat: lay.beatOf[endSlot] + 1,
     pickup: 0, pickupSyl: [], anticipated: 0, landOff: lay.beatOf[landSlot] + 1 < lay.starts.length - 1, sync: on + off ? off / (on + off) : 0 });
 }
@@ -6965,7 +7071,7 @@ const SVGNS = 'http://www.w3.org/2000/svg';
 function sv(tag, at, txt) { const e = document.createElementNS(SVGNS, tag); for (const k in at) e.setAttribute(k, at[k]); if (txt != null) e.textContent = txt; return e; }
 // One bar in the Breakdown view: flow brackets, rap lane (dot = syllable, pill = held, red = landing,
 // dim = rest), beat lane, yellow lyric strip, counting, dashed focus box on the landing.
-function bdCw(lay) { return lay.sub === 3 ? 28 : lay.sub === 5 ? 17 : 21; }
+function bdCw(lay) { return lay.sub === 3 ? 28 : lay.sub === 5 ? 17 : lay.sub === 6 ? 15 : 21; }
 function bdWidth(L, padSlots = 0) { const lay = L.lay, cw = bdCw(lay); return 6 + padSlots * cw + Math.max(L.grid, L.ghostTo || 0) * cw + 16; }
 // opts.refW: width of the longest bar in the list, so a 7/8 row is drawn 14/16 as long as a 4/4 row (the bar line moves left)
 function breakdownSvg(L, li, padSlots = 0, opts = {}) {
