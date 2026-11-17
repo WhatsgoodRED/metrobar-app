@@ -4506,7 +4506,7 @@ function parseMeter(str) {
 function meterLayout(meter = '4/4', sub = 4) {
   const M = typeof meter === 'object' && meter ? meter : parseMeter(meter) || parseMeter('4/4');
   let lens, unit;
-  if (M.den === 4) { if (![3, 4, 5, 6].includes(sub)) sub = 4; lens = new Array(M.num).fill(sub); unit = 1 / sub; }
+  if (M.den === 4) { if (![3, 4, 5, 6, 12, 20].includes(sub)) sub = 4; lens = new Array(M.num).fill(sub); unit = 1 / sub; }
   else { sub = 4; lens = M.den === 16 ? M.groups.slice() : M.groups.map(g => g * 2); unit = 1 / 4; }
   const starts = [], beatOf = []; let G = 0;
   lens.forEach((l, b) => { starts.push(G); for (let i = 0; i < l; i++) beatOf.push(b); G += l; });
@@ -4520,6 +4520,8 @@ function countLabel(lay, s) {
   if (lay.den === 8) return i % 2 ? '&' : String(i / 2 + 1);
   if (lay.den === 16) return String(i + 1);   // x/16: count every 16th, restarting each group (1 2 3 4 5 1 2 3 4 5 ...)
   if (!i) return String(b + 1);
+  if (lay.sub === 12 || lay.sub === 20) { const q = lay.sub / 4, t = 4;   // mixed grids: name the 16ths, else the triplet / quintuplet steps
+    return i % q === 0 ? ['', 'e', '+', 'a'][i / q] : i % t === 0 ? (lay.sub === 12 ? ['', 'trip', 'let'] : ['', 'ka', 'di', 'mi', 'ti'])[i / t] : ''; }
   return (lay.sub === 3 ? ['', 'trip', 'let'] : lay.sub === 5 ? ['', 'ka', 'di', 'mi', 'ti'] : lay.sub === 6 ? ['', 'la', 'li', '+', 'la', 'li'] : ['', 'e', '+', 'a'])[i];
 }
 const range = n => Array.from({ length: n }, (_, i) => i);
@@ -6143,6 +6145,19 @@ const LADDER = [
     bars: ["Rocking in the playground on a swing that never stops", "Every little offbeat gets to wait a little bit", "Push it on the downbeat and it pulls it on the way"] },
   { id: "b7swh", name: "Hard swing", flow: "16ths", bpm: 88, swing: 0.667, tip: "Full swing: each pair of 16ths becomes long-short like a shuffle (2 to 1). Bounce it, do not run it.",
     bars: ["Skipping like a record with a scratch upon the side", "Bouncing on a trampoline and floating on the fall", "Shuffle in the hallway with the slippers on the floor"] },
+  // Round 2 chunk 4 (2026-11-17): Mazbouq levels that needed engine work (see levels/mazbouq/ENGINE-GAPS.md)
+  { id: "quintmix", name: "Fives into 16ths", flow: "16ths", sub: 20, bpm: 70, tip: "Five across beats 1 and 2, then straight 16ths on 3 and 4. Switch from floating to locked without rushing the change.",
+    bars: [{ t: "Lean-ing back slow-ly, then I'm pick-ing up the tem-po", slots: [0,8,16,24,32,40,45,50,55,60,65,70,75], acc: [0,16,24,50,70] }, { t: "Hang-ing in the air, now the six-teenths are com-ing in", slots: [0,8,16,24,32,40,45,50,55,60,65,70,75], acc: [0,32,40,50,65] }, { t: "Fives float a-cross two, then we split it four to a beat", slots: [0,8,16,24,32,40,45,50,55,60,65,70,75], acc: [0,8,24,32,50,60,75] }] },
+  { id: "b8gridsw", name: "Straight into triplets", flow: "16ths", sub: 12, bpm: 80, slots: [0,6,12,16,20,24,28,32,36,40,44], acc: [0,12,24,36], tip: "Beat 1 is two straight 8ths, then the grid flips: beats 2, 3 and 4 are triplets. Switch without slowing down.",
+    bars: ["Stead-y, rol-ling it o-ver and un-der it", "E-ven, gal-lop-ing, ham-mer-ing, bat-ter-ing", "Sim-ple, sud-den-ly ev-ery-thing tum-bles in"] },
+  { id: "b7trestrip", name: "Tresillo, then 3 over 2", flow: "16ths", sub: 12, bpm: 80, slots: [0,3,6,9,12,15,18,21,24,28,32,36,40,44], acc: [0,9,18,24,32,40], tip: "Beats 1-2: tresillo in 16ths, 3-3-2. Beats 3-4: switch to triplets and stress every second one. Two ways to fit three hits in two beats.",
+    bars: ["Count-ing it up in the base-ment, mov-ing slow-ly side-ways", "Pick-ing it out of the pock-et, fold-ing, roll-ing, toss-ing", "Tak-ing a step to the cor-ner, turn-ing, twist-ing, fall-ing"] },
+  { id: "b7triptres", name: "3 over 2, then tresillo", flow: "16ths", sub: 12, bpm: 80, slots: [0,4,8,12,16,20,24,27,30,33,36,39,42,45], acc: [0,8,16,24,33,42], tip: "Flip it: triplets with every second one stressed first, then snap into the 3-3-2 tresillo for the landing.",
+    bars: ["Fold-ing, bend-ing, break-ing, pick-ing it up off the pave-ment", "Rais-ing, lift-ing, climb-ing, stand-ing a-lone on the sum-mit", "Sway-ing, lean-ing, glid-ing, cut-ting a-cross to the bor-der"] },
+  { id: "b8early", name: "Switch a beat early", flow: "8ths", bpm: 90, pickups: true, tip: "Same flow, but every line starts on beat 4 of the bar before and ends on beat 3. Moving the whole line one beat earlier changes how it feels.",
+    bars: [{ t: "Change the feeling, start a beat ahead", heel: -4 }, { t: "Move the line and watch it turn", heel: -4 }, { t: "Flip the verse and come in early", heel: -4 }] },
+  { id: "jb1", name: "Jump the one", flow: "16ths", sub: 4, bpm: 90, slots: [-1,1,2,3,4,5,6,7,8,9,10], acc: [-1,2,4,6,8,10], pickups: true, tip: "The first word comes a 16th early, on the a before the 1, and holds over the downbeat. Then the 16ths run from the e.",
+    bars: ["Up and get your bo-dy mov-ing, hit the drum", "Jump and let the rhy-thm lift you off the ground", "Now we turn the cor-ner dan-cing through the night"] },
 ];
 // The game home groups the levels into chapters, easy to hard. Nothing is ever locked (Bennie 2026-11-17: "dont restrict me or anyone"):
 // every level and chapter is open from the first visit; a level counts as cleared at GAME.clear of its 9 stars. LADDER order stays fixed
@@ -6153,13 +6168,13 @@ const GAME_CHAPTERS = [
   { id: "phrase", name: "Phrasing and rhyme placement", blurb: "Where the rhymes sit: on 2 and 4, inside the bar, echoed, chained, and verses that build.",
     ids: ["punch4", "b8echo", "mono4", "b6dbl", "b1two4", "b8ramp", "b8answer", "b4spill", "b8runon", "b8chug", "irh2", "b7multi", "b6build", "b7echo", "b8mid", "cad4", "irh1", "vsintro", "b6mono", "vsramp", "b1heel3", "b1heelmv", "b4preset", "stopgo", "growcell", "rollland", "vsheel", "dsp1", "flowtif", "flowtifans", "halfbar", "b4n234", "b4n2", "cad3364", "evolve4"] },
   { id: "sync", name: "Syncopation and displacement", blurb: "Off the beat on purpose: shifted 8ths, early landings, 3-3-2 and words between the drums.",
-    ids: ["drill332", "tres", "b6tres", "late", "early", "b7offdr", "b1offg", "dh332", "b7pepper", "slick332", "clave", "b7estart", "b6swing", "snap", "offsing", "drillpk", "drillsync", "offeas", "frm0", "frm2", "offghost", "frm1", "b1gal1", "b1gal2", "b1gal3", "b4meta1", "b4meta2", "b4obg", "pull16", "b7bartres", "dispcell", "disp8", "disp16", "dhswitch"] },
+    ids: ["drill332", "tres", "b6tres", "late", "early", "b7offdr", "b1offg", "dh332", "b7pepper", "slick332", "clave", "b7estart", "b6swing", "snap", "offsing", "drillpk", "drillsync", "offeas", "frm0", "frm2", "offghost", "frm1", "b1gal1", "b1gal2", "b1gal3", "b4meta1", "b4meta2", "b4obg", "pull16", "b7bartres", "dispcell", "disp8", "disp16", "dhswitch", "b8early", "jb1"] },
   { id: "trip", name: "Triplets and compound feel", blurb: "Three to a beat: rolls, shuffles, 12/8 sway and switching between straight and triplets.",
-    ids: ["trip", "drumsw", "b1shuf", "afrohat", "drumshuf", "b1bell", "b8phase", "b8phase2", "gcl1", "b1chug", "b1roll", "afrotrip", "b8walkroll", "b6tswing", "drilltrip", "b7tlate", "tstraight", "iso2", "b6trip", "b4met1", "b4lock", "gridsw", "b7tbeat2", "b8feels", "b8sw16", "b7sw", "b7swh"] },
+    ids: ["trip", "drumsw", "b1shuf", "afrohat", "drumshuf", "b1bell", "b8phase", "b8phase2", "gcl1", "b1chug", "b1roll", "afrotrip", "b8walkroll", "b6tswing", "drilltrip", "b7tlate", "tstraight", "iso2", "b6trip", "b4met1", "b4lock", "gridsw", "b7tbeat2", "b8feels", "b8sw16", "b7sw", "b7swh", "b8gridsw", "b7trestrip", "b7triptres"] },
   { id: "accent", name: "Triplet accents", blurb: "The same triplet grid, grouped in twos, fours, fives and mixes. The stress fights the beat.",
     ids: ["pair4", "qtrip", "b4odd", "b4oddsh", "themiola", "tafter", "b1cnt4", "g33222", "tshift", "tlong", "b1twos", "hm2b", "b6s34", "tskip", "b8tfive", "b7tfour", "b7tsix", "b7t345", "b7t32", "b7t24", "b1four", "b1mix", "hm2a", "b8tgrow", "b6four", "b6four3", "trip2s", "tripin2", "tripin4", "b6s7x", "b7tfive", "b4cntup", "b4cntdn"] },
   { id: "poly", name: "Polyrhythm", blurb: "Groups of three over four on the 16ths, dotted 8ths across the bar line, quintuplets.",
-    ids: ["b6dotx", "b6dot", "b1code3", "b6vow3", "hem", "quint", "quint2", "b1six4", "b1six5", "gal1", "gal2", "b4odd2", "b1five16", "b6five", "b6fivex", "b6vow6", "b4kdq", "sev12", "reset7", "b1five4", "glt1", "flow5", "b4prun", "b4kick", "sev16", "five16", "b4poly", "b7rolltres"] },
+    ids: ["b6dotx", "b6dot", "b1code3", "b6vow3", "hem", "quint", "quint2", "b1six4", "b1six5", "gal1", "gal2", "b4odd2", "b1five16", "b6five", "b6fivex", "b6vow6", "b4kdq", "sev12", "reset7", "b1five4", "glt1", "flow5", "b4prun", "b4kick", "sev16", "five16", "b4poly", "b7rolltres", "quintmix"] },
   { id: "odd", name: "Odd meters", blurb: "Bars of 3, 5, 6, 7 and 9: count the groups, land early, go again.",
     ids: ["b6w8", "b1cnt3", "b7five8", "seven", "b7nine", "b7six8", "b7sev43", "b8five", "b1waltz3", "b1sev3", "n128", "odd74", "sw78", "n98a", "b1waltz", "b6w16", "b1sev16", "dt78", "b1five", "ct3", "ct4", "b7sixflip", "b7oddhome", "four7", "b8suite", "meterflip", "s17a", "s17b", "sev78"] },
   { id: "feel", name: "Feel and microtiming", blurb: "Lock dead on the grid, every syllable exactly on its slot: the base for laying back or pushing ahead.",
@@ -6168,7 +6183,7 @@ const GAME_CHAPTERS = [
 function ladderBar(lv, i) {
   const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b, slots = o.slots || V.slots, meter = o.meter || V.meter || '4/4';
   const pick = k => o[k] != null ? o[k] : V[k], drift = o.drift || (V.drift && V.drift[i]);
-  const feel = L => { const F = { late: pick('late') || 0, swing: pick('swing') || 0, swing8: pick('swing8') || 0, drift: drift || null }; if (F.late || F.swing || F.swing8 || F.drift) L.feel = F; return L; };
+  const feel = L => { if (pick('pickups')) L.pickTargets = true; const F = { late: pick('late') || 0, swing: pick('swing') || 0, swing8: pick('swing8') || 0, drift: drift || null }; if (F.late || F.swing || F.swing8 || F.drift) L.feel = F; return L; };
   if (slots) return feel(slotBar(o.t, slots, o.acc || V.acc || [], o.sub || V.sub || 3, meter, o.land != null ? o.land : V.land));   // fixed slots, per bar or for the level
   const L = analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, meter);
   return feel(o.ant || V.ant ? anticipate(L, o.ant || V.ant) : L);
@@ -6179,18 +6194,19 @@ function ladderBar(lv, i) {
 function slotBar(text, at, acc, sub = 3, meter = '4/4', land = null) {
   const fix = {}; text.replace(/[’‘]/g, "'").split(/\s+/).forEach(w => { const k = cleanKey(w.replace(/-/g, '')); if (k) fix[k] = w.split('-').filter(Boolean).length; });
   const force = sub === 3 ? 'trip' : sub === 5 ? 'quint' : '16ths';
-  const own = sub === 6 || /\/\s*16/.test(String(meter));   // sextuplets and x/16: split the syllables in 4/4, then lay them on their own grid
-  const L0 = analyseLine(text.replace(/-/g, ''), fix, 0, force, own ? '4/4' : meter), lay = own ? meterLayout(meter, sub === 6 ? 6 : 4) : L0.lay;
+  const own = sub === 6 || sub === 12 || sub === 20 || /\/\s*16/.test(String(meter));   // sextuplets and x/16: split the syllables in 4/4, then lay them on their own grid
+  const L0 = analyseLine(text.replace(/-/g, ''), fix, 0, force, own ? '4/4' : meter), lay = own ? meterLayout(meter, sub === 6 || sub === 12 || sub === 20 ? sub : 4) : L0.lay;
   const L = Object.assign({}, L0, { lay, grid: lay.G, overflow: 0 });
   if (L.syl.length !== at.length) return L;
-  const slots = new Array(lay.G).fill(-1); at.forEach((s, k) => { slots[s] = k; });
+  const slots = new Array(lay.G).fill(-1); at.forEach((s, k) => { if (s >= 0) slots[s] = k; });
+  const pkAt = at.filter(s => s < 0);
   const syl = L.syl.map((x, k) => { const st = acc.includes(at[k]); return Object.assign({}, x, { st, v: st ? vowelClass(x.key, x.si) : null }); });
   let landSlot = -1; for (let s = slots.length - 1; s >= 0; s--) if (slots[s] >= 0 && syl[slots[s]].st) { landSlot = s; break; }
   if (land != null && slots[land] >= 0) landSlot = land;
   const endSlot = at[at.length - 1];
-  let on = 0, off = 0; at.forEach((s, k) => { if (!syl[k].st) return; const i = s - lay.starts[lay.beatOf[s]]; if (lay.sub === 4 ? i % 2 === 0 : i === 0) on++; else off++; });
+  let on = 0, off = 0; at.forEach((s, k) => { if (!syl[k].st || s < 0) return; const i = s - lay.starts[lay.beatOf[s]]; if (lay.sub === 4 ? i % 2 === 0 : i === 0) on++; else off++; });
   return Object.assign({}, L, { syl, slots, slotWord: slots.map(v => (v >= 0 ? syl[v].w : -1)), landSlot, landBeat: lay.beatOf[landSlot] + 1, endSlot, endBeat: lay.beatOf[endSlot] + 1,
-    pickup: 0, pickupSyl: [], anticipated: 0, landOff: lay.beatOf[landSlot] + 1 < lay.starts.length - 1, sync: on + off ? off / (on + off) : 0 });
+    pickup: pkAt.length, pickupSyl: syl.slice(0, pkAt.length).map(x => x.t), pkAt, anticipated: 0, landOff: lay.beatOf[landSlot] + 1 < lay.starts.length - 1, sync: on + off ? off / (on + off) : 0 });
 }
 // Anticipation: the rhyme word moves `by` slots earlier (when they are free), so the landing comes just before the beat.
 function anticipate(L, by = 1) {
@@ -6218,6 +6234,11 @@ function gameTargets(L) {
     if (F.drift) q += (F.drift[k] || 0) * 0.25;
     out.push({ slot: s, q, ms: F.late || 0, st: !!L.syl[v].st, land: s === L.landSlot }); k++;
   });
+  // pickups as targets (level flag pickups): they sound in the last beat of the count-in, and before pass 2 at the end of pass 1
+  if (L.pickTargets && L.pickupSyl && L.pickupSyl.length) {
+    const n = L.pickupSyl.length, at = L.pkAt || L.pickupSyl.map((_, j) => j - n);
+    out.unshift(...at.map((s, j) => ({ slot: s, q: s * lay.unit, ms: F.late || 0, st: !!L.syl[j].st, land: false, pick: true })));
+  }
   return out;
 }
 // Tap: within 40 ms perfect, 85 good. Voice is judged wider: an onset detector hears where a syllable starts getting loud, not where you feel it.
@@ -7222,7 +7243,7 @@ function breakdownSvg(L, li, padSlots = 0, opts = {}) {
     hs.forEach((a, k) => { const b = k + 1 < hs.length ? hs[k + 1] : (L.flow.id === 'tres' ? G : a + 3), n = b - a; if (n >= 2) bracket(a, b, n, `var(${L.flow.color})`); });
   } else if (L.flow.id === 'stomp') {
     for (let c = 0; c < lay.nb / 2; c++) bracket(lay.starts[2 * c], lay.starts[2 * c] + 2 * lay.lens[0], 'cell ' + (c + 1), `var(${L.flow.color})`);
-  } else if (lay.sub !== 4) lay.starts.forEach((a, b) => bracket(a, a + lay.lens[b], lay.sub, `var(${L.flow.color})`));
+  } else if (lay.sub !== 4 && lay.sub !== 12 && lay.sub !== 20) lay.starts.forEach((a, b) => bracket(a, a + lay.lens[b], lay.sub, `var(${L.flow.color})`));   // mixed grids (12, 20) get no tuplet number
   else if (lay.den !== 4) lay.starts.forEach((a, b) => bracket(a, a + lay.lens[b], lay.groups[b], 'var(--bd-num)'));
   // beat lines (dotted) and bar lines (solid)
   for (let b = 0; b <= lay.nb; b++) {
@@ -12977,7 +12998,7 @@ const TG = (() => {
         : 'Tap on every click, eight times. MetroBar measures how late your taps arrive (Bluetooth headphones add delay) and sets the sound delay for tap.' });
   }
   function drawRows() {
-    const box = $('tgRows'), L = cur.L, cw = bdCw(L.lay), pad = Math.min(3, L.pickup || 0), padL = 6 + pad * cw, tg = gameTargets(L); box.replaceChildren(); rows = [];
+    const box = $('tgRows'), L = cur.L, cw = bdCw(L.lay), pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), padL = 6 + pad * cw, tg = gameTargets(L); box.replaceChildren(); rows = [];
     for (let p = 0; p < 2; p++) {
       const wrap = breakdownSvg(L, 0, pad, {}), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, row = h('div', 'tg-row');
       svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p ? 'Second' : 'First'} time: ${L.text}`);
@@ -13263,7 +13284,7 @@ const TG = (() => {
   function hit(t, voice) {
     if (!R || !playing() || voice !== (S.mode === 'voice')) return;
     if (!voice) { const pad = $('tgPad'); pad.classList.remove('tg-hit'); void pad.offsetWidth; pad.classList.add('tg-hit'); }
-    if (t < R.tPlay - R.maxWin) return;   // joining in with the count-in is free
+    if (t < Math.min(R.tPlay, R.targets.length ? R.targets[0].t : R.tPlay) - R.maxWin) return;   // joining in with the count-in is free (pickup dots excepted)
     let best = null; for (const x of R.targets) if (!x.done && Math.abs(x.t - t) <= x.win && (!best || Math.abs(x.t - t) < Math.abs(best.t - t))) best = x;
     if (!best) { if (voice) return; R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('No dot there', 'miss'); hud(); return; }
     const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode);
