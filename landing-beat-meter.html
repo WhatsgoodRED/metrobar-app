@@ -2067,12 +2067,6 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-mark { transform-box: fill-box; transform-origin: center; }
 .tg-mark.tg-pop { animation: tg-pop .22s ease-out; }
 /* tap numbers on the pills (Bennie 2026-11-17): blue count on, red landings count on their own, the next one is ringed */
-.tg-num circle { fill: var(--bd-syl); }
-.tg-num.tg-num-r circle { fill: var(--land); }
-.tg-num text { font: 700 11px var(--body); fill: #fff; }
-.tg-num .tg-nring { fill: none; stroke: var(--fg); stroke-width: 1.8; opacity: 0; }
-.tg-num.tg-nx .tg-nring { opacity: 1; }
-.tg-num.tg-ndone { opacity: .28; }
 .tg-ring { fill: none; transform-box: fill-box; transform-origin: center; animation: tg-ring .45s ease-out forwards; pointer-events: none; }
 @keyframes tg-pop { 0% { transform: scale(1.7); } 100% { transform: scale(1); } }
 @keyframes tg-ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
@@ -7443,7 +7437,8 @@ function breakdownSvg(L, li, padSlots = 0, opts = {}) {
   for (let s = 0; s < G; s++) {
     const beat = lay.starts.includes(s), eighth = lay.den === 8 && !beat && (s - lay.starts[lay.beatOf[s]]) % 2 === 0;
     svg.append(sv('circle', { cx: X(s), cy: yBeat, r: beat ? 3.5 : eighth ? 2.8 : 2, fill: beat ? 'var(--bd-num)' : eighth ? 'var(--fg)' : 'var(--muted)', opacity: beat ? 1 : .6 }));
-    svg.append(sv('text', { x: X(s), y: yC, 'text-anchor': 'middle', 'font-size': beat ? 13 : eighth ? 12 : lay.sub === 5 ? 9 : 10.5, 'font-weight': beat || eighth ? 700 : 400, fill: beat ? 'var(--bd-num)' : eighth ? 'var(--fg)' : 'var(--muted)' }, countLabel(lay, s)));
+    const cl = countLabel(lay, s), cn = opts.beatOff && lay.den === 4 && s === lay.starts[lay.beatOf[s]] ? String(+cl + opts.beatOff) : cl;   // Flow game 2nd time: 5 6 7 8
+    svg.append(sv('text', { x: X(s), y: yC, 'text-anchor': 'middle', 'font-size': beat ? 13 : eighth ? 12 : lay.sub === 5 ? 9 : 10.5, 'font-weight': beat || eighth ? 700 : 400, fill: beat ? 'var(--bd-num)' : eighth ? 'var(--fg)' : 'var(--muted)' }, cn));
   }
   pk.forEach((t, k) => { const d = pk.length - k; svg.append(sv('text', { x: padL - (d - 0.5) * cw, y: yC, 'text-anchor': 'middle', 'font-size': 9.5, fill: 'var(--muted)' }, G - d >= 0 ? countLabel(lay, G - d) : '')); });
   if (L.landSlot >= 0) svg.append(sv('rect', { x: X(L.landSlot) - cw / 2 + 1, y: 25, width: cw - 2, height: yS + 24 - 25 + 2, rx: 3, fill: 'none', stroke: 'var(--land)', 'stroke-width': 1.5, 'stroke-dasharray': '4 3' }));
@@ -13149,29 +13144,31 @@ const TG = (() => {
   }
   function drawRows() {
     const box = $('tgRows'), L = cur.L, cw = bdCw(L.lay), pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), padL = 6 + pad * cw, tg = gameTargets(L); box.replaceChildren(); rows = [];
-    // Bennie 2026-11-17 ("blue 1, blue 2, blue 3, red 1 · blue 4, 5, 6, red 2"): every pill carries its tap number, blue ones counting on
-    // across both passes, the red landing ones counting on their own; the next one to tap wears a ring (set in frame)
-    let nBlue = 0, nRed = 0;
+    // Bennie 2026-11-17: no tap badges; the only numbers are the count, 1 2 3 4 the first time and 5 6 7 8 the second (one 8-count, no gap).
+    // On a touch screen you tap the pill's own spot: each target owns its stretch of the row, from its slot to the next target's
+    const zs = tg.map((x, k) => [x.slot - 0.5, k + 1 < tg.length ? tg[k + 1].slot : L.grid + 0.5]);
     for (let p = 0; p < 2; p++) {
-      const wrap = breakdownSvg(L, 0, pad, {}), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, row = h('div', 'tg-row');
+      const wrap = breakdownSvg(L, 0, pad, { beatOff: p * L.lay.nb }), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, row = h('div', 'tg-row');
       svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p ? 'Second' : 'First'} time: ${L.text}`);
       const dots = tg.map(x => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy: 38, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
-        const n = x.land ? ++nRed : ++nBlue, num = sv('g', { class: 'tg-num' + (x.land ? ' tg-num-r' : '') });
-        num.append(sv('circle', { class: 'tg-nring', cx, cy: 23.5, r: 9.8 }), sv('circle', { cx, cy: 23.5, r: 7.6 }), sv('text', { x: cx, y: 27.3, 'text-anchor': 'middle' }, String(n)));
-        g.append(c, num, tick); svg.append(g); return { c, tick, g, num, cx, r, cw };
+        g.append(c, tick); svg.append(g); return { c, tick, g, cx, r, cw };
       });
       const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
       row.append(h('span', 'tg-pass', p ? '2nd time' : '1st time'), wrap); box.append(row);
-      rows.push({ row, dots, head, x0: padL, w: L.grid * cw });
+      rows.push({ row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs });
     }
   }
-  function resetRows() { rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.num.classList.remove('tg-nx', 'tg-ndone'); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
-  // the pill to tap next wears a ring; tapped or missed ones fade their number
-  function nextShow() {
-    if (!R) return; const nx = R.targets.find(x => !x.done);
-    R.targets.forEach(x => { const d = rows[x.p] && rows[x.p].dots[x.k]; if (!d) return; d.num.classList.toggle('tg-nx', x === nx); d.num.classList.toggle('tg-ndone', x.done); });
+  function resetRows() { rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
+  function spotAt(e) {
+    for (let p = 0; p < rows.length; p++) {
+      const r = rows[p], b = r.svg.getBoundingClientRect(); if (e.clientY < b.top - 8 || e.clientY > b.bottom + 8) continue;
+      const s = ((e.clientX - b.left) * r.W / b.width - r.x0) / r.cw, k = r.zs.findIndex(z => s >= z[0] && s < z[1]);
+      return { p, k };
+    }
+    return null;
   }
   function bpmShow() { $('tgBpm').replaceChildren(h('b', '', String(tempo)), ' BPM'); const r = $('tgTempo'); r.value = tempo; r.style.setProperty('--p', ((tempo - 40) / 160 * 100).toFixed(1) + '%'); }
   function bestShow() { const b = $('tgBest'); if (!cur || cur.calib) { b.textContent = '–'; return; } const n = starsOf(cur.key); if (n) b.replaceChildren(starEl(n)); else b.textContent = '–'; }
@@ -13336,8 +13333,8 @@ const TG = (() => {
     const p = gbPick(), lk = gbLock(), b = gbTempo(), id = gbLv();
     $('tgBeatName').textContent = `${p.label}${b ? ' · ' + Math.round(b) + ' BPM' : ''} · ${p.kind === 'sc' ? 'SoundCloud' : 'YouTube'}`;
     $('tgBeatSt').textContent = !GBS.on ? 'Off: you play to the clicks, at any tempo.' : state === 'lock' ? 'Tap along with the beat.'
-      : lk ? 'Tapped in. Every round starts on the beat’s next bar; the beat sets the tempo.' : 'Press Play, then tap along with the beat to lock in. MetroBar remembers it.';
-    $('tgBeatTap').hidden = !lk || !GBS.on; $('tgBeatOwn').hidden = !GBS.pick[id] || !GB_LIST[id];
+      : lk ? 'Tapped in. Every round starts on the beat’s next bar; the beat sets the tempo.' : 'Every round starts on the beat’s next bar. Off the grid? Tap it in.';
+    $('tgBeatTap').hidden = !GBS.on; $('tgBeatTap').textContent = lk ? 'Tap it in again' : 'Tap it in'; $('tgBeatOwn').hidden = !GBS.pick[id] || !GB_LIST[id];
     const fx = gbFixed(); if (!playing() && state !== 'lock') ['tgTempo', 'tgSlow', 'tgFast'].forEach(i => { $(i).disabled = fx; });
   }
   async function gbAnother() {
@@ -13392,8 +13389,10 @@ const TG = (() => {
       const ok = await gbLoad(true) && await gbReady(); state = 'idle';
       if (!cur || !dlg.open) return;
       if (!ok) { idleUi('Start'); msg('The beat didn’t start. Press play on the video once, or turn Beat off.'); return; }
-      lk = gbLock(); if (!lk) { $('tgRes').hidden = true; $('tgPad').hidden = false; lockBegin(); return; }
-      bx = lk.bpm; tempo = Math.round(bx); bpmShow();
+      // Bennie 2026-11-17: Play never asks for tap-in taps. Tapped in = that grid; else the title's BPM from the video's start; else clicks over the beat
+      lk = gbLock(); if (!lk && GB.wantLock) { GB.wantLock = false; $('tgRes').hidden = true; $('tgPad').hidden = false; lockBegin(); return; }
+      if (!lk && gbTempo()) lk = { v0: 0, bpm: gbTempo(), guess: true };
+      if (lk) { bx = lk.bpm; tempo = Math.round(bx); bpmShow(); }
     }
     const L = cur.L, lay = L.lay, spq = 60 / bx, barDur = lay.quarters * spq, voice = S.mode === 'voice', maxWin = voice ? 0.16 : 0.14;
     if (lk) { state = 'wait'; at = await gbBar(lk, 3 * barDur + 0.4); state = 'idle'; if (!cur || !dlg.open || !ac) return; if (at == null) { idleUi('Start'); msg('Lost the beat. Press Play again.'); return; } }
@@ -13430,7 +13429,6 @@ const TG = (() => {
       for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) { x.done = true; R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud(); }
       if (now >= R.end) return finish();
     }
-    if (state === 'count' || state === 'play') nextShow();
     raf = requestAnimationFrame(frame);
   }
   function mark(x, grade, off) {
@@ -13442,11 +13440,12 @@ const TG = (() => {
     if (grade !== 'ok' && !calmQ.matches) { const ring = sv('circle', { class: 'tg-ring', cx: d.cx, cy: 38, r: d.r, stroke: col, 'stroke-width': 2 }); d.g.append(ring); setTimeout(() => ring.remove(), 500); }
   }
   // t = the moment of the tap or the syllable, already brought back to the click's own clock
-  function hit(t, voice) {
+  function hit(t, voice, spot) {
     if (!R || !playing() || voice !== (S.mode === 'voice')) return;
     if (!voice) { const pad = $('tgPad'); pad.classList.remove('tg-hit'); void pad.offsetWidth; pad.classList.add('tg-hit'); }
     if (t < Math.min(R.tPlay, R.targets.length ? R.targets[0].t : R.tPlay) - R.maxWin) return;   // joining in with the count-in is free (pickup dots excepted)
     let best = null; for (const x of R.targets) if (!x.done && Math.abs(x.t - t) <= x.win && (!best || Math.abs(x.t - t) < Math.abs(best.t - t))) best = x;
+    if (best && spot && (spot.p !== best.p || spot.k !== best.k)) { R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('Wrong spot', 'miss'); hud(); return; }
     if (!best) { if (voice) return; R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('No dot there', 'miss'); hud(); return; }
     const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode);
     best.done = true; R.judged++; R.offs.push(off); R.score += GAME.pts[grade]; if (grade === 'perfect') R.perfect++;
@@ -13565,7 +13564,7 @@ const TG = (() => {
   $('tgBeatOn').addEventListener('change', () => { GBS.on = $('tgBeatOn').checked; gbKeep(); stopRound(); if (!GBS.on) gbPause(); else if (GB.yt || GB.sc) gbLoad(false); gbTempoSync(); });
   $('tgBeatNew').addEventListener('click', () => { if (!playing()) gbAnother(); });
   $('tgBeatOwn').addEventListener('click', () => { const id = gbLv(); if (!id || playing()) return; delete GBS.pick[id]; gbKeep(); gbSwitch(); });
-  $('tgBeatTap').addEventListener('click', () => { if (playing()) return; delete GBS.lock[gbKey(gbPick())]; gbKeep(); gbTempoSync(); start(); });
+  $('tgBeatTap').addEventListener('click', () => { if (playing()) return; delete GBS.lock[gbKey(gbPick())]; gbKeep(); gbTempoSync(); GB.wantLock = true; start(); });
   $('tgBeatLink').addEventListener('submit', e => {
     e.preventDefault(); const id = gbLv(), v = $('tgBeatUrl').value.trim(); if (!id || playing()) return;
     const y = ytParse(v), sc = !y && scParse(v); if (!y && !sc) { msg('That isn’t a YouTube or SoundCloud link.'); return; }
@@ -13580,7 +13579,7 @@ const TG = (() => {
   $('tgNext').addEventListener('click', () => { const to = nextItem(); if (to) to.go(); });
   $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'lock') lockTap(e.timeStamp); else if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false); } else primary(); });
   $('tgPad').addEventListener('click', e => { if (e.detail === 0 && !playing()) primary(); });   // Enter on the pad, or a screen reader's press
-  $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false); } });
+  $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false, spotAt(e) || { p: -1, k: -1 }); } });
   document.addEventListener('keydown', e => {   // on the document: focus falls to the page when the focused button hides
     if (!dlg.open || e.repeat || e.metaKey || e.ctrlKey || e.altKey || $('tgPlay').hidden) return;
     const k = e.key.toLowerCase(), on = playing();
@@ -13594,7 +13593,7 @@ const TG = (() => {
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
   return { open, openFit, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
-    week, tap: t => hit(t, false), heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
+    week, tap: t => hit(t, false), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
 <script>
