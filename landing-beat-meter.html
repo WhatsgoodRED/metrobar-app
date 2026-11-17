@@ -3511,7 +3511,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="tg-hd">
       <button class="tg-ib" id="tgBack" type="button" aria-label="Back to the levels" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>All levels</span></button>
       <h2 id="tgTitle">Flow game</h2>
-      <div class="tg-tabs" role="tablist" aria-label="Flow game pages"><button type="button" role="tab" id="tgTabGame" aria-selected="true" aria-controls="tgBodyP">Flow Game</button><button type="button" role="tab" id="tgTabAdv" aria-selected="false" aria-controls="tgAdvP">Pocket Finder</button></div>
+      <div class="tg-tabs" role="tablist" aria-label="Flow game pages"><button type="button" role="tab" id="tgTabGame" aria-selected="true" aria-controls="tgBodyP">Flow Game</button><button type="button" role="tab" id="tgTabAdv" aria-selected="false" aria-controls="tgAdvP">Pocket Aim</button></div>
       <span class="tg-sp"></span>
       <div class="tg-seg" role="group" aria-label="Play by">
         <button type="button" id="tgTap" aria-pressed="true">Tap</button><button type="button" id="tgVoice" aria-pressed="false">Voice</button>
@@ -3523,7 +3523,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <section class="tg-hero">
           <div class="tg-hero-t"><h3 class="tg-big tg-name">Flow Game</h3><span class="tg-tagl">Tap the dots into your pocket</span></div>
           <p class="tg-lead" id="tgLead">Hear one bar of clicks, then tap or rap every dot of the bar, twice. Land the big dots and hit the red box on the last word.</p>
-          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Play</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><button class="tg-b tg-xl" id="tgAdv" type="button">Pocket Finder</button></div>
+          <div class="tg-cta"><button class="tg-b tg-pri tg-xl" id="tgGo" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Play</span></button><button class="tg-b tg-xl" id="tgPick" type="button">Pick a level</button><button class="tg-b tg-xl" id="tgAdv" type="button">Pocket Aim</button></div>
           <div class="tg-card tg-demo" id="tgDemo"></div>
           <ol class="tg-how">
             <li><b>Count the grid</b>Every beat splits in four (1 e + a), or in three on the triplet levels.</li>
@@ -10581,7 +10581,7 @@ function ckRoot() {
   add('Actions', 'Set tempo', null, { page: 'tempo', kw: 'bpm speed' });
   add('Actions', advBody.hidden ? 'Open Advanced' : 'Close Advanced', () => { goView(false); advBody.hidden ? advOpen(null) : advClose(); }, { kw: 'settings options fit polymeter sound' });
   add('Actions', 'Play the flow game', () => TG.open(), { kw: 'game tap voice rap levels stars rank practice breakdown' });
-  add('Actions', 'Open Pocket Finder', () => TG.finder(), { kw: 'flow game advanced in the pocket triplet flows grid levels studio tap delay' });
+  add('Actions', 'Open Pocket Aim', () => TG.finder(), { kw: 'flow game advanced pocket finder in the pocket triplet flows grid levels studio tap delay' });
   add('Actions', 'How MetroBar works', () => $('infoBtn').click(), { kw: 'info help' });
   add('Actions', 'Keyboard shortcuts', () => keysOpen(), { key: '?', kw: 'keys help' });
   document.querySelectorAll('#advBody .rack').forEach(r => { const hd = r.querySelector('.rackbar h2'), sub = r.querySelector('.rk-sub'), name = hd ? hd.textContent.trim() : r.getAttribute('aria-label') || '';
@@ -13509,7 +13509,7 @@ const TG = (() => {
     if (!on) { advPause(); return; }
     stopRound();
     let f = $('tgAdvP').querySelector('iframe');
-    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Pocket Finder'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
+    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Pocket Aim'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
     setTimeout(() => { try { f.focus(); } catch (e) {} }, 0);
   }
   $('tgTabGame').addEventListener('click', () => advTab(false));
