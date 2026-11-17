@@ -13375,7 +13375,7 @@ const TG = (() => {
     if (!on) { advPause(); return; }
     stopRound();
     let f = $('tgAdvP').querySelector('iframe');
-    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Advanced flow game'; f.allow = 'autoplay'; $('tgAdvP').appendChild(f); }
+    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Advanced flow game'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
     setTimeout(() => { try { f.focus(); } catch (e) {} }, 0);
   }
   $('tgTabGame').addEventListener('click', () => advTab(false));
