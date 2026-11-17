@@ -2066,6 +2066,13 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-row.tg-now .tg-pass { color: var(--tg-at); }
 .tg-mark { transform-box: fill-box; transform-origin: center; }
 .tg-mark.tg-pop { animation: tg-pop .22s ease-out; }
+/* tap numbers on the pills (Bennie 2026-11-17): blue count on, red landings count on their own, the next one is ringed */
+.tg-num circle { fill: var(--bd-syl); }
+.tg-num.tg-num-r circle { fill: var(--land); }
+.tg-num text { font: 700 11px var(--body); fill: #fff; }
+.tg-num .tg-nring { fill: none; stroke: var(--fg); stroke-width: 1.8; opacity: 0; }
+.tg-num.tg-nx .tg-nring { opacity: 1; }
+.tg-num.tg-ndone { opacity: .28; }
 .tg-ring { fill: none; transform-box: fill-box; transform-origin: center; animation: tg-ring .45s ease-out forwards; pointer-events: none; }
 @keyframes tg-pop { 0% { transform: scale(1.7); } 100% { transform: scale(1); } }
 @keyframes tg-ring { 0% { transform: scale(1); opacity: .9; } 100% { transform: scale(2.6); opacity: 0; } }
@@ -2131,7 +2138,16 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-beat.tg-boff { grid-template-columns: minmax(0, 1fr); }
 .tg-beat.tg-boff .tg-bmedia, .tg-beat.tg-boff .tg-bname, .tg-beat.tg-boff .tg-bacts, .tg-beat.tg-boff .tg-blink { display: none; }
 .tg-play.tg-going .tg-bacts, .tg-play.tg-going .tg-blink, .tg-play.tg-going .tg-beat .tg-sw { display: none; }
-@media (max-width: 700px) { .tg-beat { grid-template-columns: minmax(0, 1fr); } }
+/* phones (Bennie 2026-11-17: "on mobile the beat thing takes over the screen"): the player shrinks to YouTube's smallest allowed
+   viewport (200 x 200) beside the beat's name, and during a round only that strip stays */
+@media (max-width: 700px) {
+  .tg-beat { grid-template-columns: 200px minmax(0, 1fr); gap: 10px 12px; align-items: start; }
+  .tg-bmedia { width: 200px; height: 200px; min-height: 0; aspect-ratio: auto; grid-row: span 3; }
+  .tg-beat .tg-bacts, .tg-beat .tg-blink { grid-column: 1 / -1; }
+  .tg-beat .tg-binfo { display: contents; }
+  .tg-beat .tg-binfo > .tg-sw, .tg-beat .tg-binfo > .tg-bname, .tg-beat .tg-binfo > .tg-bst { grid-column: 2; }
+  .tg-beat.tg-boff .tg-binfo > * { grid-column: 1 / -1; }
+}
 .tg-lnav[hidden] { display: none; }
 .tg-jump { flex: 1 1 auto; min-width: 0; max-width: 30rem; min-height: 38px; padding: 6px 10px; font: 600 .86rem var(--body); color: var(--fg); background: var(--panel);
   border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
@@ -13133,20 +13149,30 @@ const TG = (() => {
   }
   function drawRows() {
     const box = $('tgRows'), L = cur.L, cw = bdCw(L.lay), pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), padL = 6 + pad * cw, tg = gameTargets(L); box.replaceChildren(); rows = [];
+    // Bennie 2026-11-17 ("blue 1, blue 2, blue 3, red 1 · blue 4, 5, 6, red 2"): every pill carries its tap number, blue ones counting on
+    // across both passes, the red landing ones counting on their own; the next one to tap wears a ring (set in frame)
+    let nBlue = 0, nRed = 0;
     for (let p = 0; p < 2; p++) {
       const wrap = breakdownSvg(L, 0, pad, {}), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, row = h('div', 'tg-row');
       svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p ? 'Second' : 'First'} time: ${L.text}`);
       const dots = tg.map(x => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy: 38, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
-        g.append(c, tick); svg.append(g); return { c, tick, g, cx, r, cw };
+        const n = x.land ? ++nRed : ++nBlue, num = sv('g', { class: 'tg-num' + (x.land ? ' tg-num-r' : '') });
+        num.append(sv('circle', { class: 'tg-nring', cx, cy: 23.5, r: 9.8 }), sv('circle', { cx, cy: 23.5, r: 7.6 }), sv('text', { x: cx, y: 27.3, 'text-anchor': 'middle' }, String(n)));
+        g.append(c, num, tick); svg.append(g); return { c, tick, g, num, cx, r, cw };
       });
       const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
       row.append(h('span', 'tg-pass', p ? '2nd time' : '1st time'), wrap); box.append(row);
       rows.push({ row, dots, head, x0: padL, w: L.grid * cw });
     }
   }
-  function resetRows() { rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  function resetRows() { rows.forEach(r => { r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.num.classList.remove('tg-nx', 'tg-ndone'); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  // the pill to tap next wears a ring; tapped or missed ones fade their number
+  function nextShow() {
+    if (!R) return; const nx = R.targets.find(x => !x.done);
+    R.targets.forEach(x => { const d = rows[x.p] && rows[x.p].dots[x.k]; if (!d) return; d.num.classList.toggle('tg-nx', x === nx); d.num.classList.toggle('tg-ndone', x.done); });
+  }
   function bpmShow() { $('tgBpm').replaceChildren(h('b', '', String(tempo)), ' BPM'); const r = $('tgTempo'); r.value = tempo; r.style.setProperty('--p', ((tempo - 40) / 160 * 100).toFixed(1) + '%'); }
   function bestShow() { const b = $('tgBest'); if (!cur || cur.calib) { b.textContent = '–'; return; } const n = starsOf(cur.key); if (n) b.replaceChildren(starEl(n)); else b.textContent = '–'; }
   function lagFill() { const r = $('tgLag'); r.style.setProperty('--p', ((+r.value + 50) / 350 * 100).toFixed(1) + '%'); }
@@ -13404,6 +13430,7 @@ const TG = (() => {
       for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) { x.done = true; R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud(); }
       if (now >= R.end) return finish();
     }
+    if (state === 'count' || state === 'play') nextShow();
     raf = requestAnimationFrame(frame);
   }
   function mark(x, grade, off) {
