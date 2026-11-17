@@ -782,6 +782,11 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
 .file-btn:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .fit-in { display: grid; gap: 12px; padding: 14px 15px; border-bottom: 1px solid var(--line); }
+.lib-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .8rem; color: var(--dim, var(--muted)); }
+.lib-row label { font-weight: 600; letter-spacing: .04em; text-transform: uppercase; font-size: .72rem; }
+.lib-row select { max-width: 18rem; min-width: 0; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.lib-row .cbtn { padding: 5px 10px; font-size: .78rem; }
+.lib-note { font-size: .74rem; opacity: .8; }
 .fit-out { display: grid; gap: 12px; padding: 14px 15px; }
 .fit-out:not(:has(> :not(:empty):not([hidden]))) { display: none; }
 
@@ -3392,6 +3397,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 .fp-beat.on { border-color: var(--fg); background: var(--fg); color: var(--bg); }
 .fp-grp { display: inline-flex; gap: 6px; align-items: center; justify-self: end; }
 .fp-bars { display: grid; gap: 14px; min-width: 0; }
+.fp-song { margin: 0 0 8px; font-size: .78rem; color: var(--dim, var(--muted)); text-align: center; min-height: 1em; }
 .fp-bar { display: grid; gap: 8px; min-width: 0; }
 .fp-bar + .fp-bar { padding-top: 14px; border-top: 1px solid var(--line); }
 .fp-bh { display: flex; align-items: center; justify-content: space-between; }
@@ -3834,6 +3840,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
   <section class="rack fit" aria-label="Fit">
     <div class="rackbar"><h2>Fit <span class="steps">→ Flow → Practice</span></h2></div>
     <div class="fit-in">
+    <div class="lib-row" id="fitSong"><label for="fitSongSel">Song</label><select id="fitSongSel" aria-label="Song in the Fit box (the same song in Write and the Highlight Zone)"></select><button class="cbtn ghost" id="fitNew" type="button" title="Start a new song (it is a new song in Write and the Highlight Zone too)">+ New song</button><span class="lib-note">Same song in Write, the Highlight Zone and Pocket Practice</span></div>
     <textarea id="lyrics" spellcheck="false" placeholder="One line per bar. Or paste free text and press Split into bars."></textarea>
     <div class="commit">
       <button class="cbtn pri" id="fitBtn">Fit</button>
@@ -3843,8 +3850,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <details class="fit-more"><summary class="cbtn ghost">More</summary><div class="fit-more-in">
       <button class="cbtn ghost" id="tplWrite" title="Put the template's lyric skeleton (section headings plus example bars) in the box">Lyric template</button>
       <button class="cbtn ghost" id="tplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my lyrics</button>
-      <button class="cbtn ghost" id="saveSong" title="Save these lyrics as a song in Write, the writing companion">Save to Songs</button>
-      <button class="cbtn ghost" id="bookCopy" title="Copy these lyrics into The Highlight Zone as a new page">Copy to Highlight Zone</button>
+      <button class="cbtn ghost" id="saveSong" title="This song in Write, the writing companion (the same song: changes show in both)">Open in Write</button>
+      <button class="cbtn ghost" id="bookCopy" title="This song in The Highlight Zone (the same song: changes show in both)">Open in Highlight Zone</button>
       </div></details>
       <span class="det" id="tplMsg" role="status"></span>
     </div>
@@ -3901,6 +3908,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 
   <section class="fp" id="fp" aria-labelledby="fpTitle">
     <div class="fp-hd"><h2 id="fpTitle">Pocket Practice</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
+    <p class="fp-song" id="fpSong" role="status"></p>
     <div class="fp-bars" id="fpBars"></div>
     <button class="fp-add" id="fpAdd" type="button">+ Add bar</button>
     <div class="fp-wave" id="fpWave" hidden>
@@ -3932,7 +3940,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <label class="fp-ck"><input type="checkbox" id="fpClick" checked> Click</label>
         <button class="fp-b" id="fpClear" type="button">Clear the grid</button>
         <button class="fp-b" id="fpRecDel" type="button" hidden>Robot voice again</button>
-        <button class="fp-b" id="fpToLyr" type="button" title="Add this bar to the lyrics box in Advanced > Fit">Add to my lyrics</button>
+        <button class="fp-b" id="fpToLyr" type="button" title="These bars live in your song: open it in Write">Open my song</button>
       </div></details></span>
     </div>
   </section>
@@ -3966,7 +3974,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <button class="btn" id="wrTplWrite" title="Add the template's section headings and example bars at the end of the song">Lyric template</button>
         <button class="btn" id="wrTplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my bars</button>
         <button class="btn tg" id="wrPlay" aria-pressed="false" title="Play the click (and the beat you loaded in MetroBar) while you write. Space does not work here, so use this button.">▶ Beat</button>
-        <button class="btn" id="wrToBook" title="Copy this song into The Highlight Zone as a new page">To Highlight Zone</button>
+        <button class="btn" id="wrToBook" title="This song in The Highlight Zone (the same song: changes show in both)">Open in Highlight Zone</button>
         <button class="btn pri" id="wrPractice" title="Open this song in MetroBar: Fit, Compare and Practice it on the beat">Practice in MetroBar</button>
         <span class="wr-toast" id="wrMsg" role="status"></span>
       </div>
@@ -4060,7 +4068,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <button class="bk-up" type="button" id="bkUp">Upload your own beat</button>
       <p class="bk-msg" id="bkMsg" role="status"></p>
     </section>
-    <div class="rb-top"><input id="rbTitle" placeholder="Untitled" aria-label="Page title" autocomplete="off"><input id="rbFolderIn" class="num-in" list="rbFolders" placeholder="Folder" aria-label="Folder" autocomplete="off"><datalist id="rbFolders"></datalist><span class="rb-stat" id="rbStat"></span><span class="wr-toast" id="rbMsg" role="status"></span><span class="rb-acts"><button class="btn rb-zenbtn" type="button" id="rbZen" aria-pressed="false" title="Focus: only your page and a live list of rhymes for the word you just wrote. Esc brings everything back."><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Focus</button><button class="btn tg" type="button" id="rbLock" aria-pressed="false" title="Lock this page so it can't be changed by accident">Lock</button><button class="btn pri" type="button" id="rbPost" title="Share this page in the Zone, the MetroBar community">Post to the Zone</button><button class="btn" type="button" id="rbToWrite" title="Copy this page to Write as a new song, to count bars and practise it">Copy to Write</button><button class="btn" type="button" id="rbDel" title="Move this page to Recently deleted">Delete</button></span></div>
+    <div class="rb-top"><input id="rbTitle" placeholder="Untitled" aria-label="Page title" autocomplete="off"><input id="rbFolderIn" class="num-in" list="rbFolders" placeholder="Folder" aria-label="Folder" autocomplete="off"><datalist id="rbFolders"></datalist><span class="rb-stat" id="rbStat"></span><span class="wr-toast" id="rbMsg" role="status"></span><span class="rb-acts"><button class="btn rb-zenbtn" type="button" id="rbZen" aria-pressed="false" title="Focus: only your page and a live list of rhymes for the word you just wrote. Esc brings everything back."><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Focus</button><button class="btn tg" type="button" id="rbLock" aria-pressed="false" title="Lock this page so it can't be changed by accident">Lock</button><button class="btn pri" type="button" id="rbPost" title="Share this page in the Zone, the MetroBar community">Post to the Zone</button><button class="btn" type="button" id="rbToWrite" title="This song in Write, to count bars and practise it (the same song: changes show in both)">Open in Write</button><button class="btn" type="button" id="rbDel" title="Move this page to Recently deleted">Delete</button></span></div>
     <aside class="rb-lib" id="rbLib" aria-label="The Highlight Zone songs">
       <div class="rb-libh"><h2>The Highlight Zone</h2><button class="btn" type="button" id="rbNew" title="Start a new page">+ New</button></div>
       <input id="rbSearch" class="num-in rb-search" type="search" placeholder="Search" aria-label="Search The Highlight Zone">
@@ -5556,6 +5564,77 @@ function bookFamilies(text, rows) {
 function bookPaint(s, w) { s.style.setProperty('--h', w.h); s.style.setProperty('--d', w.d); }
 // Syllables per line (headings and blank lines count 0)
 function bookSyl(text, fix) { return String(text || '').split('\n').map(l => /^\s*#/.test(l) || /^\s*\[[^\]]*\]\s*$/.test(l) ? 0 : bookWords(l).reduce((a, w) => a + sylCount(w.k, fix || {}), 0)); }
+// ---- One song library (2026-11-17, Bennie: "my lyrics connected to each other everywhere, in every mode"). Write songs,
+// Highlight Zone pages, the Fit box and Pocket Practice bars are one list of songs, stored as the Barbook pages (metrobar.book,
+// synced to the account). libMigrate folds the old stores in without losing a word: same id = newest edit wins, a copy with
+// exactly the same words is the same song, blank songs Write made on its own are dropped, purged stays purged.
+const libTrim = t => String(t || '').replace(/\r/g, '').split('\n').map(l => l.replace(/\s+$/, '')).join('\n').trim();
+// a bar's words without its meter tag; '' for blank lines, "# Heading: note" lines and [Hook] labels
+function libBody(line) {
+  const t = String(line || '').trim(); if (!t || t.startsWith('#')) return '';
+  if (/^\[[^\]]+\]$/.test(t) && !parseMeter(t.slice(1, -1).trim())) return '';
+  const m = t.match(/^\[\s*([^\]]*?)\s*\]\s*/); if (m && parseMeter(m[1])) return t.slice(m[0].length).trim();
+  return t;
+}
+function libBars(text) { return String(text || '').split('\n').map((l, i) => ({ i, body: libBody(l) })).filter(r => r.body); }
+function songSetBar(text, i, body) {   // new words for line i, its indent and meter tag stay
+  const L = String(text || '').split('\n'); if (i < 0 || i >= L.length) return String(text || '');
+  const l = L[i], lead = l.match(/^\s*/)[0], t = l.trim(), m = t.match(/^\[\s*([^\]]*?)\s*\]\s*/), tag = m && parseMeter(m[1]) ? m[0] : '';
+  L[i] = lead + tag + String(body || '').trim(); return L.join('\n');
+}
+function songAddBar(text, after, body) {   // a new bar line after line `after` (or at the end); returns { text, i }
+  const L = String(text || '') === '' ? [] : String(text).split('\n');
+  let at = after == null || after < 0 || after >= L.length - 1 ? -1 : after + 1;
+  if (at < 0) { while (L.length && !L[L.length - 1].trim()) L.pop(); at = L.length; }
+  L.splice(at, 0, String(body || '').trim()); return { text: L.join('\n'), i: at };
+}
+function songFindBar(text, body, near) {   // the line holding exactly these words, nearest to `near`; -1 = gone
+  let best = -1, d = 1e9; String(text || '').split('\n').forEach((l, i) => { if (body && libBody(l) === body && Math.abs(i - (near || 0)) < d) { d = Math.abs(i - (near || 0)); best = i; } });
+  return best;
+}
+function libMigrate(o) {
+  o = o || {}; const arr = v => (Array.isArray(v) ? v.filter(x => x && typeof x === 'object' && x.id) : []);
+  const gone = new Set([].concat(o.purged || [], o.bookPurged || []).filter(Boolean));
+  const stamp = p => Math.max(+p.updated || 0, +p.deleted || 0), T = o.now || Date.now();
+  const pages = new Map(), bin = new Map(), map = {}, made = {};
+  const put = (m, p) => { const was = m.get(p.id); if (!was || stamp(p) > stamp(was)) m.set(p.id, Object.assign({}, was || {}, p)); };
+  const norm = s => Object.assign({ folder: '', locked: false }, s, { title: String(s.title || ''), text: String(s.text || ''), created: +s.created || +s.updated || T, updated: +s.updated || T });
+  arr(o.book).forEach(p => { if (!gone.has(p.id)) put(pages, p); });
+  arr(o.bookBin).forEach(p => { if (!gone.has(p.id)) put(bin, p); });
+  for (const [id, b] of bin) { const p = pages.get(id); if (p) { if ((+p.updated || 0) >= stamp(b)) bin.delete(id); else pages.delete(id); } }
+  const live = new Map(); for (const p of pages.values()) { const k = libTrim(p.text); if (k && !live.has(k)) live.set(k, p.id); }
+  const dead = new Set([...bin.values()].map(p => libTrim(p.text)).filter(Boolean));
+  arr(o.songs).forEach(s => {
+    if (gone.has(s.id)) return;
+    const k = libTrim(s.text);
+    if (!k && !String(s.title || '').trim()) return;                       // a blank song Write made on its own
+    if (pages.has(s.id)) { put(pages, norm(s)); map[s.id] = s.id; return; }
+    if (bin.has(s.id)) { if ((+s.updated || 0) <= stamp(bin.get(s.id))) return; bin.delete(s.id); }
+    if (k && live.has(k)) { const p = pages.get(live.get(k)); map[s.id] = p.id; ['tpl', 'split'].forEach(f => { if (s[f] && !p[f]) p[f] = s[f]; }); return; }
+    const n = norm(s); delete n.deleted; pages.set(n.id, n); map[s.id] = n.id; if (k) live.set(k, n.id);
+  });
+  arr(o.songBin).forEach(s => {
+    if (gone.has(s.id) || pages.has(s.id) || bin.has(s.id)) return;
+    const k = libTrim(s.text); if (!k || live.has(k) || dead.has(k)) return;
+    const n = norm(s); n.deleted = +s.deleted || T; bin.set(n.id, n); dead.add(k);
+  });
+  let seq = 0; const nid = o.newId || (() => 'b' + T.toString(36) + (seq++).toString(36) + Math.random().toString(36).slice(2, 5));
+  const firstBar = t => (libBars(t)[0] || { body: '' }).body.slice(0, 40);
+  const fit = libTrim(o.fit);
+  if (fit) {
+    if (live.has(fit)) made.fit = live.get(fit);
+    else { const n = norm({ id: nid(), title: (o.fitTitle ? o.fitTitle + ' (Fit)' : firstBar(o.fit) || 'Fit lyrics').slice(0, 48), text: String(o.fit).replace(/\s+$/, '') }); pages.set(n.id, n); live.set(fit, n.id); made.fit = n.id; }
+  }
+  const bars = (o.pocket || []).map(t => String(t || '').trim()).filter(Boolean);
+  if (bars.length) {
+    const host = [...pages.values()].find(p => bars.every(b => songFindBar(p.text, b, 0) >= 0));
+    if (host) made.pocket = host.id;
+    else { const n = norm({ id: nid(), title: 'Pocket Practice bars', text: bars.join('\n') }); pages.set(n.id, n); made.pocket = n.id; }
+  }
+  const ok = x => x && pages.has(x), list = [...pages.values()].sort((a, b) => (+b.updated || 0) - (+a.updated || 0));
+  const cur = ok(o.cur) ? o.cur : ok(map[o.curSong]) ? map[o.curSong] : ok(made.fit) ? made.fit : (list[0] || {}).id || null;
+  return { pages: list, bin: [...bin.values()].sort((a, b) => stamp(b) - stamp(a)), cur, purged: [...gone], map, made };
+}
 // Split one long export into songs: blocks headed by a title line, separated by a line of ---, ===, *** or 2+ blank lines.
 function bookSplitExport(text) {
   const t = String(text || '').replace(/\r\n?/g, '\n').trim(); if (!t) return [];
@@ -6677,6 +6756,60 @@ const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
   set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
+// ---- One song library (Bennie 2026-11-17: "my lyrics connected everywhere, in every mode"). Write (WR.songs), the Highlight
+// Zone (RB.pages), the Fit box, Pocket Practice, the Flow game's own bars and ADVANCED Studio all read and write these same
+// song objects: RB.pages / WR.songs / .bin / .cur are getters onto LIB. Stored as metrobar.book / bookBin / bookCur (the
+// Barbook keys, so the account sync and the two-tab merge rbMergeStored cover every view). Saving goes through rbSaveNow
+// once that script has loaded. LIB.on(fn) hears every change: 'text' (a song's words), 'cur' (another song chosen), 'ext'
+// (another tab, the ADVANCED frame or the account changed songs). Old stores are folded in by core libMigrate, see libLoad.
+var LIB = (function () {
+  const subs = [], L = { pages: [], bin: [], cur: null, seen: {}, timer: 0, mute: 0 };
+  L.song = id => L.pages.find(p => p.id === (id == null ? L.cur : id)) || null;
+  L.on = fn => { subs.push(fn); };
+  L.emit = (kind, src) => { if (L.mute) return; subs.slice().forEach(f => { try { f(kind, src); } catch (e) { console.error(e); } }); };
+  L.saveNow = () => {
+    clearTimeout(L.timer); L.timer = 0;
+    if (typeof rbSaveNow === 'function') rbSaveNow();
+    else { store.set('metrobar.book', L.pages); store.set('metrobar.bookBin', L.bin); store.set('metrobar.bookCur', L.cur); }
+  };
+  L.save = () => { clearTimeout(L.timer); L.timer = setTimeout(L.saveNow, 400); };
+  L.setText = (id, text, src) => {
+    const p = L.song(id); text = String(text == null ? '' : text); if (!p || p.text === text) return p;
+    p.text = text; p.updated = Date.now();
+    if (!String(p.title || '').trim()) { const b = libBars(text)[0]; if (b) p.title = b.body.slice(0, 40); }
+    L.save(); L.emit('text', src); return p;
+  };
+  L.setCur = (id, src) => { if (!L.song(id) || L.cur === id) return; L.cur = id; store.set('metrobar.bookCur', id); L.emit('cur', src); };
+  L.create = (text, title, src) => {
+    const t = Date.now(), p = { id: 'b' + t.toString(36) + Math.random().toString(36).slice(2, 6), title: String(title || ''), text: String(text || ''), folder: '', locked: false, created: t, updated: t };
+    if (!p.title.trim()) { const b = libBars(p.text)[0]; if (b) p.title = b.body.slice(0, 40); }
+    L.pages.unshift(p); L.cur = p.id; L.saveNow(); L.emit('cur', src); return p;
+  };
+  return L;
+})();
+// load + fold the old stores in. Runs again whenever an old key has content (a tab still on the old version, the "Move my
+// songs" card): those songs join the library and the old key is emptied (its last content kept in metrobar.libOld).
+function libLoad() {
+  const first = !store.get('metrobar.libV', 0), songs = store.get('metrobar.songs', []), sBin = store.get('metrobar.bin', []);
+  const old = (Array.isArray(songs) && songs.length) || (Array.isArray(sBin) && sBin.length);
+  if (first || old) {
+    const fit = first ? (store.get('metrobar.song', {}) || {}).lyrics || '' : '', lk = store.get('metrobar.linked', null);
+    const fp = first ? store.get('metrobar.fpad', {}) || {} : {}, pocket = Array.isArray(fp.list) ? fp.list.map(b => b && b.text) : [fp.text];
+    const r = libMigrate({ book: store.get('metrobar.book', []), bookBin: store.get('metrobar.bookBin', []), songs, songBin: sBin,
+      purged: store.get('metrobar.purged', []), bookPurged: store.get('metrobar.bookPurged', []), cur: store.get('metrobar.bookCur', null),
+      curSong: store.get('metrobar.curSong', null), fit, fitTitle: ((Array.isArray(songs) ? songs : []).find(s => s && s.id === lk) || {}).title || '', pocket });
+    if (old) { const keep = store.get('metrobar.libOld', {}) || {}; keep.songs = songs; keep.bin = sBin; keep.at = Date.now(); store.set('metrobar.libOld', keep); }
+    store.set('metrobar.book', r.pages); store.set('metrobar.bookBin', r.bin); store.set('metrobar.bookCur', r.cur);
+    store.set('metrobar.bookPurged', r.purged.slice(-500)); store.set('metrobar.songs', []); store.set('metrobar.bin', []);
+    if (first) { if (r.made.pocket) { fp.song = r.made.pocket; store.set('metrobar.fpad', fp); } store.set('metrobar.libV', 1); }
+  }
+  const pg = store.get('metrobar.book', []), bn = store.get('metrobar.bookBin', []);
+  LIB.pages = Array.isArray(pg) ? pg.filter(p => p && p.id) : []; LIB.bin = Array.isArray(bn) ? bn.filter(p => p && p.id) : [];
+  LIB.cur = store.get('metrobar.bookCur', null); if (!LIB.song()) LIB.cur = LIB.pages[0] ? LIB.pages[0].id : null;
+  LIB.pages.concat(LIB.bin).forEach(p => { LIB.seen[p.id] = Math.max(+p.updated || 0, +p.deleted || 0); });
+}
+libLoad();
+window.LIB = LIB;
 let fix = store.get('metrobar.fix', {});
 let practice = false, lines = [], total = 80, detected = null;
 
@@ -6716,6 +6849,7 @@ function barLay(b) {
   return PM.lay;
 }
 function persist() {
+  if (typeof fitToLib === 'function') fitToLib();
   store.set('metrobar.song', { heel: $('heel').value, lyrics: $('lyrics').value, bpm: bpm(), beatMark, subMark, accent: $('accent').value, loopLo: $('loopLo').value, loopHi: $('loopHi').value });
 }
 let shownBar = 0;
@@ -7516,7 +7650,8 @@ function heelVal() { return +$('heel').value || 0; }
 $('heel').addEventListener('change', () => { if (lines.length || $('lyrics').value.trim()) runFit(); });
 $('rhymesOn').addEventListener('change', () => { if (lines.length) renderFit(); });
 const EXAMPLE = "Every three syllables we underscore\nPickin' the words so we keep up the form\nI came to the city with a plan in my hand\nMoney power glory freedom";
-$('exampleBtn').addEventListener('click', () => { editSrc = null; editNew = null; $('lyrics').value = EXAMPLE; runFit(); });
+$('exampleBtn').addEventListener('click', () => { const s = LIB.song(); if (s && s.text.trim() && s.text !== EXAMPLE) { LIB.create('', 'Example', 'fit'); if (typeof fitSongs === 'function') fitSongs(); $('lyrics').readOnly = false; }   // never over a song you wrote
+  editSrc = null; editNew = null; $('lyrics').value = EXAMPLE; runFit(); });
 $('lyrics').addEventListener('input', () => { if (editSrc != null) { editSrc = null; editNew = null; if (lines.length) renderFit(); } });
 $('splitBtn').addEventListener('click', () => {
   const t = $('lyrics').value.trim(); if (!t) return;
@@ -7745,11 +7880,12 @@ $('tplPlace').addEventListener('click', () => {
 (function restore() {
   const s = store.get('metrobar.song', null);
   if (s) {
-    $('lyrics').value = s.lyrics || ''; if (s.bpm) $('bpm').value = s.bpm; if (s.heel) $('heel').value = s.heel;
+    if (s.bpm) $('bpm').value = s.bpm; if (s.heel) $('heel').value = s.heel;
     (s.beatMark || []).forEach((v, i) => { beatMark[i] = !!v; }); (s.subMark || []).forEach((v, i) => { const j = s.subMark.length === 28 ? Math.floor(i / 4) * MAXS + i % 4 : i; if (j < subMark.length) subMark[j] = !!v; });   // old saves used 4 slots per beat
     if (s.accent) { $('accent').value = s.accent; setAccent(s.accent); }
     $('loopLo').value = s.loopLo || ''; $('loopHi').value = s.loopHi || '';
   }
+  { const cs = LIB.song(); $('lyrics').value = cs ? cs.text : ''; $('lyrics').readOnly = !!(cs && cs.locked); }   // the song you're on (one library)
   roll($('bpmOut'), bpm());
   if ($('lyrics').value.trim()) runFit();
   applyTemplate(store.get('metrobar.tpl', ''), false);
@@ -7838,31 +7974,23 @@ const TECHS = [
       verse: 'Round and round we go, round and\nround we go, round and round we\ngo, round and round we go.\nBack to one, back home.\nTurn the key and walk, turn the\nkey and walk, turn the key and\nwalk, turn the key and walk.\nBack to one, we talk.',
       chorus: 'Feel it, find it, flow, feel it\nfind it, flow, feel it, find it\nflow, feel it, find it, flow.\nHold it, hold it, home.' } },
 ];
-const WR = { songs: store.get('metrobar.songs', []), bin: store.get('metrobar.bin', []), cur: store.get('metrobar.curSong', null), rows: [], bars: [], rh: null, cache: new Map(), timer: 0, word: null, rev: 0, tcKey: '', cl: null, myCl: store.get('metrobar.cliches', []) };
+const WR = { get songs() { return LIB.pages; }, set songs(v) { LIB.pages = v; }, get bin() { return LIB.bin; }, set bin(v) { LIB.bin = v; },
+  get cur() { return LIB.cur; }, set cur(v) { if (LIB.cur !== v) { LIB.cur = v; LIB.emit('cur', 'write'); } }, rows: [], bars: [], rh: null, cache: new Map(), timer: 0, word: null, rev: 0, tcKey: '', cl: null, myCl: store.get('metrobar.cliches', []) };
 const now = () => Date.now();
 const newId = () => 's' + now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
 function wrSong() { return WR.songs.find(s => s.id === WR.cur) || null; }
-// another tab may have saved since: merge by id (newest copy wins); a song deleted anywhere stays deleted
-function wrMerge() {
-  const ss = store.get('metrobar.songs', []), bb = store.get('metrobar.bin', []), purged = new Set(store.get('metrobar.purged', []));
-  const pick = (a, b) => (!a ? b : !b ? a : (b.updated || 0) > (a.updated || 0) ? b : a);
-  const byId = new Map(); WR.songs.concat(ss).forEach(x => { if (x && x.id) byId.set(x.id, pick(byId.get(x.id), x)); });
-  const binById = new Map(); WR.bin.concat(bb).forEach(x => { if (x && x.id) binById.set(x.id, pick(binById.get(x.id), x)); });
-  for (const [id, d] of binById) { const live = byId.get(id); if (live && (live.updated || 0) > (d.deleted || 0)) binById.delete(id); else byId.delete(id); }
-  for (const id of purged) { byId.delete(id); binById.delete(id); }
-  const cur = byId.get(WR.cur), mem = wrSong();
-  WR.songs = [...byId.values()].map(x => (mem && x.id === mem.id ? (x === mem ? x : Object.assign(mem, x)) : x)); WR.bin = [...binById.values()];
-  return cur;
-}
+// one library (LIB): the two-tab merge is the Highlight Zone's rbMergeStored, saving is rbSaveNow (account sync included)
+function wrMerge() { if (typeof rbMergeStored === 'function') rbMergeStored(); return wrSong(); }
 function wrSave() {
-  WR.timer = 0; let ok = true; wrMerge();
-  try { localStorage.setItem('metrobar.songs', JSON.stringify(WR.songs)); localStorage.setItem('metrobar.bin', JSON.stringify(WR.bin)); localStorage.setItem('metrobar.curSong', JSON.stringify(WR.cur)); } catch { ok = false; }
+  WR.timer = 0; let ok = true;
+  try { localStorage.setItem('metrobar.probe', '1'); localStorage.removeItem('metrobar.probe'); } catch { ok = false; }
+  LIB.saveNow(); LIB.emit('text', 'write');
   $('wrSaved').textContent = ok ? 'Saved' : 'Not saved';
   const err = ok ? '' : 'Not saved: this browser blocks storage. Use Download .txt to keep this song.'; if ($('wrSaveErr').textContent !== err) $('wrSaveErr').textContent = err;
 }
 function wrFlush() { if (WR.timer) { clearTimeout(WR.timer); wrSave(); } }
 function wrCreate(text = '', title = '', tpl = '') {
-  const s = { id: newId(), title, text, tpl, created: now(), updated: now() };
+  const s = { id: newId(), title, text, tpl, folder: '', locked: false, created: now(), updated: now() };
   WR.songs.unshift(s); WR.cur = s.id; wrSave(); wrOpen(); return s;
 }
 function wrOpen() {
@@ -7886,11 +8014,11 @@ function wrList() {
     li.append(b); ul.append(li);
   });
   $('wrLibN').textContent = `(${WR.songs.length})`; $('wrBinN').textContent = WR.bin.length; const bin = $('wrBin'); bin.replaceChildren();
-  if (!WR.bin.length) bin.append(h('p', 'note', 'Nothing here. Deleted songs stay here for 30 days.'));
+  if (!WR.bin.length) bin.append(h('p', 'note', 'Nothing here. Deleted songs wait here (the same list as the Highlight Zone).'));
   WR.bin.forEach(s => {
     const r = h('div', 'binrow'), rs = h('button', 'mini', 'Restore');
     rs.addEventListener('click', () => { WR.bin = WR.bin.filter(x => x !== s); delete s.deleted; s.updated = now(); WR.songs.unshift(s); WR.cur = s.id; wrSave(); wrOpen(); wrLibClose(); });
-    const del = binDel(s.title || 'Untitled', () => { WR.bin = WR.bin.filter(x => x !== s); store.set('metrobar.purged', store.get('metrobar.purged', []).concat([s.id]).slice(-500)); wrSave(); wrList(); });
+    const del = binDel(s.title || 'Untitled', () => { WR.bin = WR.bin.filter(x => x !== s); rbPurge(s.id); wrSave(); wrList(); });
     r.append(h('span', '', s.title || 'Untitled'), rs, del); bin.append(r);
   });
 }
@@ -8253,23 +8381,35 @@ function wrDownload(name, text, type = 'text/plain') {
   const a = h('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 const fileName = t => (t || 'untitled').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').toLowerCase() || 'untitled';
-// ---- MetroBar's Fit box -> Songs: save the lyrics as a song (or back into the song they came from)
-let linkedSong = store.get('metrobar.linked', null), linkedAt = store.get('metrobar.linkedAt', 0);
-function updateSaveBtn() { const s = WR.songs.find(x => x.id === linkedSong); $('saveSong').textContent = s ? `Save to "${(s.title || 'Untitled').slice(0, 24)}"` : 'Save to Songs'; }
-$('saveSong').addEventListener('click', () => {
-  const text = $('lyrics').value; if (!text.trim()) { $('tplMsg').textContent = 'Nothing to save yet.'; return; }
-  wrMerge(); let s = WR.songs.find(x => x.id === linkedSong), note = '';
-  if (s && s.text !== text && (s.updated || 0) > linkedAt + 1) s = null, note = ' The song in Write had newer changes, so this was saved as a new song.';
-  if (s) { s.text = text; s.updated = now(); if (tplId) s.tpl = tplId; }
-  else {
-    const first = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('#') && !isLabel(l)).map(l => l.replace(/^\[[^\]]*\]\s*/, '').trim()).find(Boolean);
-    const base = WR.songs.find(x => x.id === linkedSong);
-    s = { id: newId(), title: base && note ? (base.title || 'Untitled') + ' (from MetroBar)' : (first || 'Untitled').slice(0, 40), text, tpl: tplId, created: now(), updated: now() }; WR.songs.unshift(s); linkedSong = s.id; store.set('metrobar.linked', linkedSong);
-  }
-  linkedAt = s.updated; store.set('metrobar.linkedAt', linkedAt);
-  WR.cur = s.id; wrSave(); updateSaveBtn();
-  const m = $('tplMsg'); m.replaceChildren(`Saved to Songs as "${s.title || 'Untitled'}".${note} `); const a = h('a', '', 'Open in Write'); a.href = '#write'; m.append(a);
+// ---- the Fit box IS the song you're on (LIB.cur): typing here changes it in Write, the Highlight Zone, Pocket Practice and
+// ADVANCED Studio too (one library, Bennie 2026-11-17). The picker above the box chooses the song for every view.
+let fitDirty = false;
+function fitSongs() {
+  const sel = $('fitSongSel'); if (!sel) return;
+  const list = LIB.pages.slice().sort((a, b) => (+b.updated || 0) - (+a.updated || 0));
+  const sig = list.map(p => p.id + ':' + (p.title || '')).join('|');
+  if (sel.dataset.sig !== sig || !sel.options.length) { sel.dataset.sig = sig; sel.replaceChildren(...(list.length ? list.map(p => new Option((p.title || '').trim() || 'Untitled', p.id)) : [new Option('No songs yet: type to start one', '')])); }
+  sel.value = LIB.cur || '';
+}
+function fitFromLib() {   // the current song's words into the box (and Fit them)
+  const s = LIB.song(), t = s ? s.text : '', ta = $('lyrics'); fitDirty = false;
+  ta.readOnly = !!(s && s.locked); fitSongs();
+  if (ta.value === t) return false;
+  editSrc = null; editNew = null; ta.value = t; runFit(); return true;
+}
+function fitToLib() {     // the box's words into the current song (a new song when there is none yet)
+  const ta = $('lyrics'); if (ta.readOnly) return; const t = ta.value, s = LIB.song();
+  if (s) LIB.setText(s.id, t, 'fit'); else if (t.trim()) { LIB.create(t, '', 'fit'); fitSongs(); }
+}
+LIB.on((kind, src) => {
+  if (src === 'fit') { if (kind === 'cur') fitSongs(); return; }
+  if ($('viewPractice').hidden || document.activeElement === $('lyrics')) { fitDirty = true; return; }
+  fitFromLib();
 });
+$('lyrics').addEventListener('blur', () => { if (fitDirty) setTimeout(() => { if (document.activeElement !== $('lyrics')) fitFromLib(); }, 0); });
+$('fitSongSel').addEventListener('change', e => { fitToLib(); LIB.saveNow(); LIB.setCur(e.target.value, 'fit'); fitFromLib(); });
+$('fitNew').addEventListener('click', () => { fitToLib(); LIB.create('', '', 'fit'); fitFromLib(); $('lyrics').focus(); });
+$('saveSong').addEventListener('click', () => { fitToLib(); LIB.saveNow(); location.hash = '#write'; });
 // ---- views
 function setView() {
   const w = location.hash === '#write', b = location.hash === '#book', z = location.hash === '#zone', here = w ? '#write' : b ? '#book' : z ? '#zone' : '#practice';
@@ -8282,12 +8422,7 @@ function setView() {
   if (w) { wrOpen(); return; }
   if (b) { wrFlush(); if (typeof bookOpen === 'function') bookOpen(true); if (typeof bookPop === 'function') bookPop(); return; }
   if (z) { wrFlush(); if (typeof zoneOpen === 'function') zoneOpen(); return; }
-  wrFlush(); wrMerge(); updateSaveBtn();
-  const s = WR.songs.find(x => x.id === linkedSong);
-  if (s && (s.updated || 0) > linkedAt + 1 && s.text !== $('lyrics').value) {
-    const m = $('tplMsg'); m.replaceChildren(`"${s.title || 'Untitled'}" changed in Write. `); const b = h('button', 'mini', 'Load the new version');
-    b.addEventListener('click', () => { linkedAt = s.updated; store.set('metrobar.linkedAt', linkedAt); lyricsChanged(s.text, `Loaded the new version of "${s.title || 'Untitled'}".`); }); m.append(b);
-  }
+  wrFlush(); fitFromLib(); if (window.FP && FP.sync) FP.sync();
 }
 window.addEventListener('hashchange', setView);
 // ---- Rhyme "makes way" (Bennie 2026-11-14): clicking Rhyme is a transition, not a page load. The screen splits: wordmark,
@@ -8453,8 +8588,7 @@ $('wrTplPlace').addEventListener('click', () => {
 });
 $('wrPractice').addEventListener('click', () => {
   const s = wrSong(); if (!s || !s.text.trim()) { wrMsg('Write some bars first.'); return; }
-  wrFlush(); wrSave(); linkedSong = s.id; linkedAt = s.updated; store.set('metrobar.linked', linkedSong); store.set('metrobar.linkedAt', linkedAt);
-  location.hash = '#practice'; if ($('lyrics').value !== s.text) lyricsChanged(s.text, `Loaded "${s.title || 'Untitled'}" from Write.`);
+  wrFlush(); wrSave(); location.hash = '#practice'; fitFromLib();   // the same song: the Fit box already holds it
   if (s.tpl && TEMPLATES[s.tpl] && s.tpl !== tplId) applyTemplate(s.tpl, false);
   runFit(); advReveal(document.querySelector('.fit')); setTimeout(() => document.querySelector('.fit').scrollIntoView({ block: 'start' }), 50);
 });
@@ -8467,7 +8601,7 @@ $('wrDel').addEventListener('click', () => {
   $('wrMsg').replaceChildren();
   toast(`Moved "${s.title || 'Untitled'}" to Recently deleted.`, { undo: () => { if (!WR.bin.includes(s)) return;
     // the empty song made to replace the last one goes for good (purged), or the save merge would bring it back from storage
-    const blank = WR.songs.find(x => x.id === ph && !x.text && !x.title); if (blank) store.set('metrobar.purged', store.get('metrobar.purged', []).concat(ph));
+    const blank = WR.songs.find(x => x.id === ph && !x.text && !x.title); if (blank) rbPurge(ph);
     WR.songs = WR.songs.filter(x => x !== blank); WR.bin = WR.bin.filter(x => x !== s); delete s.deleted; s.updated = now(); WR.songs.unshift(s); WR.cur = s.id; wrSave(); wrOpen(); } });
 });
 $('wrImport').addEventListener('click', () => $('wrImportFile').click());
@@ -8493,12 +8627,13 @@ $('wrPlay').addEventListener('click', () => (running ? stop() : start()));
 window.addEventListener('resize', () => { if (!$('viewWrite').hidden) wrGrow(); });
 window.addEventListener('pagehide', wrFlush);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') wrFlush(); });
-window.addEventListener('storage', e => {
-  if (!/^metrobar\.(songs|bin)$/.test(e.key || '')) return;
-  const mem = wrSong(), before = mem && mem.updated, cur = wrMerge();
-  if (!$('viewWrite').hidden) { if (!WR.timer && cur && mem && cur.updated > before && cur.text !== $('wrText').value) { $('wrText').value = cur.text; $('wrTitle').value = cur.title; wrAnalyse(); wrGrow(); } if (!wrSong()) wrOpen(); else wrList(); }
+// the same song changed somewhere else (Fit, Pocket, another tab, the ADVANCED frame, the account): show it here
+LIB.on((kind, src) => {
+  if (src === 'write' || $('viewWrite').hidden) return;
+  const s = wrSong(); if (!s || WR.opened !== s.id) { wrOpen(); return; }
+  if (!WR.timer && s.text !== $('wrText').value) { const t = $('wrText'), at = t.selectionStart; t.value = s.text; $('wrTitle').value = s.title; if (document.activeElement === t) t.setSelectionRange(at, at); WR.cache.clear(); wrAnalyse(); wrGrow(); }
+  wrList();
 });
-WR.bin = WR.bin.filter(s => now() - (s.deleted || 0) < 30 * 86400e3);
 wrTechs(); wrClRender(); setView();
 </script>
 <script>
@@ -9166,9 +9301,10 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
 </script>
 <script>
 // ---- Rhyme Book (#book): its own pages, folders, lock and bin; Rhymer's-Block-style highlight (core bookHighlight). Saved in localStorage.
-var RB = { pages: store.get('metrobar.book', []), bin: store.get('metrobar.bookBin', []), cur: store.get('metrobar.bookCur', null),
+var RB = { get pages() { return LIB.pages; }, set pages(v) { LIB.pages = v; }, get bin() { return LIB.bin; }, set bin(v) { LIB.bin = v; },
+  get cur() { return LIB.cur; }, set cur(v) { if (LIB.cur !== v) { LIB.cur = v; LIB.emit('cur', 'book'); } }, get seen() { return LIB.seen; }, set seen(v) { LIB.seen = v; },
   look: Object.assign({ theme: 'white', font: 'sans', hi: true, syl: true, auto: false, shell: 'light' }, store.get('metrobar.bookLook', {})), folder: '', timer: 0, paintT: 0 };
-RB.seen = {}; RB.pages.concat(RB.bin).forEach(p => { RB.seen[p.id] = Math.max(+p.updated || 0, +p.deleted || 0); });   // what this tab last saw stored, per song (two-tab merge)
+// RB.seen = what this tab last saw stored, per song (two-tab merge); LIB fills it on load
 // Barbook full page (Bennie 2026-11-09): white is the look now; move a saved dark default over once, keep any other picks
 if (!store.get('metrobar.bookWhite', false)) { RB.look.shell = 'light'; if (RB.look.theme === 'dark') RB.look.theme = 'white'; store.set('metrobar.bookLook', RB.look); store.set('metrobar.bookWhite', true); }
 const RB_THEMES = { white: 'White', dark: 'MetroBar dark', paper: 'Paper', notebook: 'Notebook', sky: 'Sky', blush: 'Blush', night: 'Night', studio: 'Studio', chalk: 'Chalkboard' };
@@ -9243,13 +9379,15 @@ function rbMergeStored() {
 function rbSeenAll() { const s = RB.seen || (RB.seen = {}); RB.pages.forEach(p => { s[p.id] = Math.max(s[p.id] || 0, +p.updated || 0); }); RB.bin.forEach(p => { s[p.id] = Math.max(s[p.id] || 0, +p.updated || 0, +p.deleted || 0); }); }
 window.addEventListener('storage', e => {
   if (e.key !== 'metrobar.book' && e.key !== 'metrobar.bookBin') return;
-  if (RB.timer) return;                              // this tab has unsaved typing; its own save will merge
+  if (RB.timer || LIB.timer || WR.timer) return;     // this tab has unsaved typing; its own save will merge
   const r = rbMergeStored(); if (!r.changed) return;
+  LIB.emit('ext', 'storage');
   if (location.hash === '#book' || window.BBAPP) { try { if (r.cur) { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } else rbList(); } catch (er) { console.warn(er); } }
 });
-function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; const mg = rbMergeStored(); rbSeenAll(); store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon();
+function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; clearTimeout(LIB.timer); LIB.timer = 0; const mg = rbMergeStored(); rbSeenAll(); store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon();
+  if (mg.changed) LIB.emit('ext', 'merge');
   if (mg.cur && !RB.opening && (location.hash === '#book' || window.BBAPP)) { RB.opening = 1; try { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } catch (e) { console.warn(e); } RB.opening = 0; } }
-function rbSave() { clearTimeout(RB.timer); RB.timer = setTimeout(rbSaveNow, 400); }
+function rbSave() { clearTimeout(RB.timer); RB.timer = setTimeout(rbSaveNow, 400); LIB.emit('text', 'book'); }
 function rbLookSave() { store.set('metrobar.bookLook', RB.look); }
 function rbId() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function bookAdd(title, text, folder) {
@@ -9325,7 +9463,7 @@ function rbKeepOld(p) {   // a sync is about to replace this page with your acco
   const now = Date.now();
   RB.bin.unshift({ id: rbId(), title: (p.title || 'Untitled') + ' (older copy)', text: p.text, folder: p.folder || '', locked: false, created: +p.created || now, updated: now, deleted: now });
 }
-function rbSyncSoon(ms) { clearTimeout(RBS.t); RBS.t = setTimeout(bookSync, ms == null ? 2500 : ms); }
+function rbSyncSoon(ms) { if (location.hash !== '#book' && !window.BBAPP && !store.get('metrobar.zoneAuth', null)) return; clearTimeout(RBS.t); RBS.t = setTimeout(bookSync, ms == null ? 2500 : ms); }
 async function bookSync() {
   if (RBS.busy) { RBS.again = true; return; }
   RBS.busy = true;
@@ -9352,18 +9490,18 @@ async function bookSync() {
       if (map[id] != null && map[id] === rbSig(l)) { RB.pages = RB.pages.filter(x => x !== l); RB.bin = RB.bin.filter(x => x !== l); rbPurge(id); delete map[id]; changed = true; }   // deleted for good on another device
       else put.push(l);
     }
-    const editing = document.activeElement === $('rbText') || document.activeElement === $('rbTitle');
+    const editing = ['rbText', 'rbTitle', 'wrText', 'wrTitle', 'lyrics'].some(id => document.activeElement === $(id)) || !!(document.activeElement && document.activeElement.classList.contains('fp-in'));
     for (const r of take) {
       const old = local.get(r.id);
       if (old && old.id === RB.cur && editing && rbSig(old) !== rbSig(r)) { RBS.again = true; continue; }   // never swap the page under the cursor while you type
       if (old && (old.text || '').trim() && old.text !== r.text) rbKeepOld(old);   // the version being replaced stays recoverable
-      const p = { id: r.id, title: r.title, text: r.text, folder: r.folder, locked: r.locked, created: +r.created || Date.now(), updated: +r.updated || Date.now() };
-      if (r.deleted) p.deleted = +r.deleted;
+      const p = Object.assign({}, old || {}, { id: r.id, title: r.title, text: r.text, folder: r.folder, locked: r.locked, created: +r.created || Date.now(), updated: +r.updated || Date.now() });   // local-only fields (template, drafts, cover) stay
+      delete p.deleted; if (r.deleted) p.deleted = +r.deleted;
       if (old) { RB.pages = RB.pages.filter(x => x.id !== r.id); RB.bin = RB.bin.filter(x => x.id !== r.id); }   // by id: a merge may have swapped the object
       if (p.deleted) RB.bin.unshift(p); else RB.pages.push(p);
       map[r.id] = rbSig(p); changed = true;
     }
-    if (changed) { RB.pages.sort((a, b) => (+b.updated || 0) - (+a.updated || 0)); rbSaveNow(); }
+    if (changed) { RB.pages.sort((a, b) => (+b.updated || 0) - (+a.updated || 0)); rbSaveNow(); LIB.emit('ext', 'sync'); }
     if (put.length) {
       rbSyncSay(`Saving ${put.length} page${put.length > 1 ? 's' : ''} to your account…`);
       // Snapshot first: the upload can take a while and you may keep typing. Only what was actually sent counts as synced,
@@ -9607,11 +9745,7 @@ $('rbDel').addEventListener('click', () => {
   if (typeof toast === 'function') toast('Page moved to Recently deleted.', { undo: () => { RB.bin = RB.bin.filter(x => x !== p); delete p.deleted; p.updated = Date.now(); RB.pages.unshift(p); RB.cur = p.id; rbSaveNow(); bookOpen(); } });
   else $('rbMsg').textContent = 'Page moved to Recently deleted.';
 });
-$('rbToWrite').addEventListener('click', () => {
-  const p = rbPage(); if (!p || !p.text.trim()) { $('rbMsg').textContent = 'Nothing to copy yet.'; return; }
-  rbFlush(); WR.songs.unshift({ id: newId(), title: p.title || 'Untitled', text: p.text, tpl: '', created: now(), updated: now() }); WR.cur = WR.songs[0].id; wrSave();
-  location.hash = '#write';
-});
+$('rbToWrite').addEventListener('click', () => { rbFlush(); if (typeof mwGo === 'function') mwGo('#write'); else location.hash = '#write'; });   // the same song, not a copy
 $('rbImport').addEventListener('click', () => $('rbImportFile').click());
 $('rbImportFile').addEventListener('change', async e => {
   let n = 0;
@@ -9629,13 +9763,12 @@ $('rbBackup').addEventListener('click', () => {
   a.download = 'metrobar-rhyme-book-' + new Date().toLocaleDateString('en-CA') + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 });
 // Copy to Rhyme Book from Write and from MetroBar's lyrics
-function rbCopyIn(title, text) { if (!String(text || '').trim()) return false; rbFlush(); bookAdd(title, text, 'From MetroBar'); mwGo('#book'); return true; }
-$('wrToBook').addEventListener('click', () => { const s = wrSong(); wrFlush(); if (!rbCopyIn(s && s.title, $('wrText').value)) $('wrMsg').textContent = 'Write something first.'; });
-$('bookCopy').addEventListener('click', () => { const s = WR.songs.find(x => x.id === linkedSong); if (!rbCopyIn(s ? s.title : '', $('lyrics').value)) $('tplMsg').textContent = 'No lyrics to copy yet.'; });
+$('wrToBook').addEventListener('click', () => { wrFlush(); mwGo('#book'); });   // one library: the same song opens there
+$('bookCopy').addEventListener('click', () => { fitToLib(); LIB.saveNow(); mwGo('#book'); });
 window.addEventListener('hashchange', () => { if (location.hash !== '#book') rbFlush(); else rbSyncSoon(300); });
-window.addEventListener('load', () => { if (location.hash === '#book') rbSyncSoon(300); });
-window.addEventListener('focus', () => { if (location.hash === '#book') rbSyncSoon(500); });
-setInterval(() => { if (location.hash === '#book' && !document.hidden) rbSyncSoon(0); }, 60000);
+window.addEventListener('load', () => rbSyncSoon(location.hash === '#book' ? 300 : 1500));
+window.addEventListener('focus', () => rbSyncSoon(500));
+setInterval(() => { if (!document.hidden) rbSyncSoon(0); }, 60000);   // every view shows the same songs now; off the Highlight Zone only when signed in
 window.addEventListener('pagehide', rbFlush);
 window.addEventListener('resize', () => { if (location.hash === '#book') rbGrow(); });
 // repaint once the pronunciation dictionary is in (better vowels + the rhyme lists)
@@ -14507,7 +14640,63 @@ var FP = (function () {
   const bOff = () => +$('beatOffset').value || 0, beatTempo = () => S.ft || baseTempo(), bar0 = () => 240 / beatTempo();
   const loopBars = () => LP.n;
   const loopAt = (s, n) => { const b = bar0(), D = beatBuf.duration; n = Math.max(1, Math.min(n, Math.floor((D - s) / b + 1e-6))); LP = { s, n, e: Math.min(D, s + n * b) }; };
-  const save = () => { S.list[S.cur] = { text: S.text, hits: S.hits, sub: S.sub }; store.set('metrobar.fpad', { list: S.list, cur: S.cur, bpm: S.bpm, voice: S.voice, click: S.click, beat: S.beat }); };
+  const save = () => { const o = S.list[S.cur]; S.list[S.cur] = { text: S.text, hits: S.hits, sub: S.sub }; if (o && o.src != null) S.list[S.cur].src = o.src; store.set('metrobar.fpad', { list: S.list, cur: S.cur, bpm: S.bpm, voice: S.voice, click: S.click, beat: S.beat, song: S.song || null }); };
+  // ---- one library (Bennie 2026-11-17): every Pocket bar is a line of a song (S.song, bar.src = its line number), so typing
+  // here changes the song in Write, Fit and the Highlight Zone, and a change there shows here. Delete only takes a bar off the pad.
+  const host = () => (S.song && LIB.song(S.song)) || null;
+  function linkPut(i) {
+    const b = S.list[i]; if (!b) return; let sg = host();
+    if (!sg) { if (!String(b.text || '').trim()) return; sg = LIB.song() || LIB.create('', '', 'pocket'); S.song = sg.id; }
+    if (sg.locked) return;
+    const Ls = String(sg.text || '').split('\n');
+    if (b.src != null && b.src < Ls.length && (libBody(Ls[b.src]) || !Ls[b.src].trim())) { if (libBody(Ls[b.src]) !== b.text.trim()) LIB.setText(sg.id, songSetBar(sg.text, b.src, b.text), 'pocket'); }
+    else if (String(b.text || '').trim()) {
+      const prev = S.list.slice(0, i).map(x => x.src).filter(x => x != null), r = songAddBar(sg.text, prev.length ? Math.max(...prev) : null, b.text);
+      S.list.forEach((x, k) => { if (k !== i && x.src != null && x.src >= r.i) x.src++; }); b.src = r.i; LIB.setText(sg.id, r.text, 'pocket');
+    }
+    store.set('metrobar.fpad', Object.assign(store.get('metrobar.fpad', {}) || {}, { list: S.list, song: S.song }));
+    songLabel();
+  }
+  // where you put the syllables of a bar is kept by its words, so a bar you come back to (another song, Add bar) keeps its dots
+  const KEEP = store.get('metrobar.fpadKeep', {}) || {};
+  function remember(b) { const t = String(b && b.text || '').trim(); if (!t || !b.hits || !b.hits.length) return; delete KEEP[t]; KEEP[t] = { hits: b.hits, sub: b.sub }; const ks = Object.keys(KEEP); ks.slice(0, Math.max(0, ks.length - 200)).forEach(k => delete KEEP[k]); store.set('metrobar.fpadKeep', KEEP); }
+  function recall(b) { const k = KEEP[String(b.text || '').trim()]; if (k && (!b.hits || !b.hits.length)) { b.hits = k.hits.slice(); b.sub = k.sub || b.sub; } return b; }
+  function songLabel() {
+    const el = $f('fpSong'); if (!el) return; const sg = host(), b = S.list[S.cur];
+    if (!sg) { el.textContent = 'Type a bar: it goes into the song you are on (' + ((LIB.song() || {}).title || 'a new song') + ').'; return; }
+    const n = b && b.src != null ? libBars(sg.text).findIndex(r => r.i === b.src) : -1;
+    el.textContent = 'In your song “' + ((sg.title || '').trim() || 'Untitled') + '”' + (n >= 0 ? ', bar ' + (n + 1) : '') + '. Same bars in Write, Fit and the Highlight Zone.';
+  }
+  // follow the library: the song you're on, and words changed somewhere else
+  function sync(follow) {
+    let sg = host(), changed = false;
+    if (follow && LIB.cur && S.song !== LIB.cur) { sg = null; S.song = null; }
+    if (!sg && S.song) { S.song = null; S.list.forEach(b => { delete b.src; }); }
+    if (!sg) {
+      const cs = LIB.song(), empty = S.list.every(b => !String(b.text || '').trim());
+      if (cs && (follow || empty)) {
+        const bars = libBars(cs.text), keep = S.list.filter(b => String(b.text || '').trim()).map(b => b.text.trim()).filter(t => bars.some(r => r.body === t));
+        if (keep.length) S.list.forEach(b => { const k = songFindBar(cs.text, String(b.text || '').trim(), b.src || 0); if (k >= 0) b.src = k; else delete b.src; });
+        else { if (playing) halt(); save(); S.list.forEach(remember); const r = bars[0]; S.list = [recall({ text: r ? r.body : '', hits: [], sub: S.sub, src: r ? r.i : undefined })]; S.cur = 0; Object.assign(S, S.list[0]); sel = null; }
+        S.song = cs.id; sg = cs; changed = true;
+      }
+    }
+    if (sg) {
+      const Ls = String(sg.text || '').split('\n');
+      S.list.forEach((b, i) => {
+        const t = String(b.text || '').trim();
+        if (b.src == null) { const k = t ? songFindBar(sg.text, t, 0) : -1; if (k >= 0) b.src = k; return; }
+        if (b.src < Ls.length && libBody(Ls[b.src]) === t) return;
+        const k = songFindBar(sg.text, t, b.src); if (k >= 0) { b.src = k; return; }
+        if (b.src < Ls.length && libBody(Ls[b.src])) { b.text = libBody(Ls[b.src]); if (i === S.cur) S.text = b.text; changed = true; } else delete b.src;
+      });
+    }
+    if (changed) { if (S.cur >= S.list.length) S.cur = 0; Object.assign(S, S.list[S.cur]); parse(); save(); render(); recUi(); }
+    else store.set('metrobar.fpad', Object.assign(store.get('metrobar.fpad', {}) || {}, { song: S.song || null, list: S.list }));
+    songLabel();
+  }
+  let fpDirty = false;
+  LIB.on((kind, src) => { if (src === 'pocket') return; if ($('viewPractice').hidden || (document.activeElement && document.activeElement.classList.contains('fp-in'))) { fpDirty = fpDirty || kind; return; } sync(kind === 'cur'); });
   const fixes = () => (typeof fix !== 'undefined' && fix) || {};
   const SYC = new Map();
   function sylOf(text) {
@@ -14556,7 +14745,10 @@ var FP = (function () {
     if (S.cur >= 0 && S.cur < S.list.length) save(); S.cur = i; Object.assign(S, S.list[i]); sel = null; parse(); save();
     const m = $f('fpMsg').textContent; render(); recUi(); if (keepMsg) $f('fpMsg').textContent = m;
   }
-  function addBar() { if (S.list.length >= MAXB) return; save(); S.list.push({ text: '', hits: [], sub: S.sub }); show(S.list.length - 1); $f('fpText').focus(); }
+  function addBar() {   // the next bar of your song when there is one, else a new empty bar (typing puts it in the song)
+    if (S.list.length >= MAXB) return; save(); const sg = host(), last = S.list.map(x => x.src).filter(x => x != null);
+    const nx = sg && last.length ? libBars(sg.text).find(r => r.i > Math.max(...last) && !S.list.some(x => x.src === r.i)) : null;
+    S.list.push(nx ? recall({ text: nx.body, hits: [], sub: S.sub, src: nx.i }) : { text: '', hits: [], sub: S.sub }); show(S.list.length - 1); $f('fpText').focus(); }
   $f('fpAdd').addEventListener('click', addBar);
   function delBar(i) {
     if (S.list.length < 2) return; if (playing) halt();
@@ -14955,7 +15147,8 @@ registerProcessor('fp-cap', FpCap);`;
   const take = el => { const i = barOf(el); if (i >= 0 && i !== S.cur) show(i); return i; };   // touching a bar makes it the current one
   const W = $f('fpBars');
   W.addEventListener('focusin', e => { if (e.target.classList.contains('fp-in')) take(e.target); });
-  W.addEventListener('input', e => { if (!e.target.classList.contains('fp-in')) return; take(e.target); S.text = e.target.value; sel = null; parse(); save(); render(); recUi(); });
+  W.addEventListener('input', e => { if (!e.target.classList.contains('fp-in')) return; take(e.target); S.text = e.target.value; sel = null; parse(); save(); linkPut(S.cur); render(); recUi(); });
+  W.addEventListener('focusout', () => setTimeout(() => { if (fpDirty && !(document.activeElement && document.activeElement.classList.contains('fp-in'))) { const f = fpDirty === 'cur'; fpDirty = false; sync(f); } }, 0));
   W.addEventListener('click', e => { const x = e.target.closest('.fp-bx'); if (x) delBar(barOf(x)); });
   let drag = null;
   W.addEventListener('pointerdown', e => {
@@ -15026,11 +15219,7 @@ registerProcessor('fp-cap', FpCap);`;
   $f('fpVoice').addEventListener('change', e => { S.voice = e.target.checked; save(); });
   $f('fpClick').addEventListener('change', e => { S.click = e.target.checked; save(); });
   $f('fpClear').addEventListener('click', () => { sel = null; setHits([]); });
-  $f('fpToLyr').addEventListener('click', () => {
-    save(); const all = S.list.map(b => b.text.trim()).filter(Boolean).join('\n'), ta = $f('lyrics'); if (!ta || !all) return;
-    ta.value = (ta.value.replace(/\s+$/, '') ? ta.value.replace(/\s+$/, '') + '\n' : '') + all; ta.dispatchEvent(new Event('input', { bubbles: true }));
-    if (typeof toast === 'function') toast('Added to your lyrics (Advanced > Fit)');
-  });
+  $f('fpToLyr').addEventListener('click', () => { save(); S.list.forEach((b, i) => linkPut(i)); const sg = host(); if (sg) LIB.setCur(sg.id, 'pocket'); LIB.saveNow(); location.hash = '#write'; });   // the bars are already in the song
   document.addEventListener('visibilitychange', () => { if (document.hidden && playing) halt(); if (document.hidden && rec) recStop(); });
   parse(); render(); recUi();
   // open a bar from a Fit card: its text and the slots Fit gave it
@@ -15039,11 +15228,13 @@ registerProcessor('fp-cap', FpCap);`;
     if (!(L.lay.den === 4 && L.lay.nb === 4 && (L.lay.sub === 4 || L.lay.sub === 3))) { if (typeof toast === 'function') toast('Pocket Practice does 4/4 bars in 16ths or triplets'); return; }
     if (playing) halt();
     S.text = L.text; $f('fpText').value = S.text; S.sub = L.lay.sub; parse();
+    if (L.src != null && LIB.song()) { S.song = LIB.cur; S.list.forEach((b, k) => { if (k !== S.cur && b.src === L.src) delete b.src; }); S.list[S.cur].src = L.src; }   // a Fit card: that line of the song
     const pk = Math.min(PK, L.pickup || 0), a = []; for (let i = 0; i < pk; i++) a.push(i - pk);
     L.slots.forEach((v, s) => { if (v >= 0) a.push(s); }); setHits(a.slice(0, syl.length));
     if (!stay) $f('fp').scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-  return { load, play, halt, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, get loop() { return LP && Object.assign({ ph: PH }, LP); }, show, addBar, delBar, _take: useTake, _beatTake: (data, sr, off) => placeTake(data, sr, off, barLen()), get locked() { return lockWhy(); }, get lastTake() { return lastTake; }, get _run() { return run && { first: run.first, bl: barLen(), lat: lat() }; } };
+  sync(false);
+  return { load, play, halt, sync, linkPut, get state() { return S; }, get syl() { return syl; }, get take() { return takes[S.text] || null; }, get loop() { return LP && Object.assign({ ph: PH }, LP); }, show, addBar, delBar, _take: useTake, _beatTake: (data, sr, off) => placeTake(data, sr, off, barLen()), get locked() { return lockWhy(); }, get lastTake() { return lastTake; }, get _run() { return run && { first: run.first, bl: barLen(), lat: lat() }; } };
 })();
 </script>
 <script>
