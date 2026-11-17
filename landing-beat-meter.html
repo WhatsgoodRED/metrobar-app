@@ -1990,7 +1990,6 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-ls { font: 700 .78rem var(--mono); color: var(--tg-at); white-space: nowrap; }
 .tg-lt { margin: -6px 0 0; font-size: .84rem; color: var(--muted); line-height: 1.4; }
 .tg-mini { min-width: 0; overflow: hidden; }
-.tg-lv.tg-locked .tg-mini, .tg-lv.tg-locked .tg-bars { opacity: .45; }
 .tg-lv.tg-done { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .tg-bars { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
 /* chapters (2026-11-17): a strip of chapter tabs over the level cards; on phones it scrolls sideways */
@@ -2003,7 +2002,6 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-ch b { font-family: var(--tg-h); font-weight: 700; font-size: .92rem; text-transform: uppercase; line-height: 1.1; letter-spacing: -.005em; }
 .tg-chn { font: 700 .72rem var(--mono); color: var(--tg-at); }
 .tg-chs-s { font-size: .74rem; color: var(--muted); }
-.tg-ch.tg-locked b, .tg-ch.tg-locked .tg-chn { opacity: .55; }
 .tg-ch.tg-done { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
 .tg-ch[aria-selected="true"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--tg-card)); box-shadow: inset 0 0 0 1px var(--accent); }
 .tg-chb { margin: -6px 0 0; font-size: .9rem; color: var(--muted); line-height: 1.45; }
@@ -2107,6 +2105,14 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 /* running: the settings step away and the pad becomes the big TAP card */
 .tg-play.tg-going .tg-tempo, .tg-play.tg-going .tg-opts, .tg-play.tg-going #tgTip { display: none; }
 .tg-play.tg-going .tg-deck { padding: 0; border: 0; background: none; }
+/* level nav (2026-11-17: every level open): previous / any level / next; hidden while a round runs so Space never lands on it */
+.tg-lnav { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+.tg-lnav[hidden] { display: none; }
+.tg-jump { flex: 1 1 auto; min-width: 0; max-width: 30rem; min-height: 38px; padding: 6px 10px; font: 600 .86rem var(--body); color: var(--fg); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
+.tg-jump:hover { border-color: var(--muted); }
+.tg-jump:focus-visible, .tg-lnav .tg-b:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
+.tg-play.tg-going .tg-lnav { visibility: hidden; }
 .tg-pad.tg-run { width: 100%; min-height: clamp(130px, 22vh, 190px); background: color-mix(in srgb, var(--accent) 10%, var(--tg-card)); color: var(--tg-at);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent) 70%, transparent); border-radius: 16px; }
 .tg-pad.tg-run b { font-size: clamp(2rem, 6vw, 2.8rem); }
@@ -3503,7 +3509,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
         <h3 class="tg-h">This week on the Zone</h3>
         <div class="tg-zone" id="tgZone"></div>
-        <h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>A level opens at 6 of the 9 stars on the one before it. A chapter opens when you clear 3 levels of the chapter before.</small></h3>
+        <h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Every level is open. Go in order or jump to any chapter; a level counts as cleared at 6 of its 9 stars.</small></h3>
         <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters"></div>
         <p class="tg-chb" id="tgChB"></p>
         <ol class="tg-lvs" id="tgLvs" role="tabpanel"></ol>
@@ -3512,6 +3518,11 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <p class="tg-note" id="tgMineNote"></p>
       </div>
       <div class="tg-play" id="tgPlay" hidden>
+        <nav class="tg-lnav" id="tgLnav" aria-label="Levels" hidden>
+          <button class="tg-b tg-sq" id="tgPrevLv" type="button" aria-label="Previous level"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <select class="tg-jump" id="tgJump" aria-label="Jump to any level"></select>
+          <button class="tg-b tg-sq" id="tgNextLv" type="button" aria-label="Next level"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </nav>
         <div class="tg-top">
           <div class="tg-crumb"><span class="tg-kick" id="tgSub"></span><b id="tgName"></b></div>
           <dl class="tg-sc"><div><dt>Combo</dt><dd id="tgCombo">–</dd></div><div><dt>Accuracy</dt><dd id="tgLive">–</dd></div><div><dt>Best</dt><dd id="tgBest">–</dd></div></dl>
@@ -5920,8 +5931,9 @@ const LADDER = [
   { id: "b4mts", name: "Straight on the grid", flow: "16ths", bpm: 86, tip: "A straight flow: every syllable sits exactly on a 16th line. Tap with the hats and do not drift.",
     bars: ["Ev-ery sin-gle sound is sit-ting square up-on the line", "Like a ru-ler mea-sured out, no drift-ing, all in time", "Tick for tick I match the hats, I nev-er slip be-hind"] },
 ];
-// The game home groups the levels into chapters, easy to hard. Inside a chapter a level opens at GAME.unlock stars on the one before it;
-// a chapter opens once GAME.chapter levels of the chapter before it are cleared. LADDER order stays fixed (Zone bars are keyed by it).
+// The game home groups the levels into chapters, easy to hard. Nothing is ever locked (Bennie 2026-11-17: "dont restrict me or anyone"):
+// every level and chapter is open from the first visit; a level counts as cleared at GAME.clear of its 9 stars. LADDER order stays fixed
+// (Zone bars are keyed by it).
 const GAME_CHAPTERS = [
   { id: "found", name: "Foundations", blurb: "On the beat, 8ths, 16ths and space. Land the rhyme on 4 every time.",
     ids: ["beat", "8ths", "space", "b4crowd", "b6chant", "stomp", "b6riff", "b1stab", "b7ondr", "iso1", "b4story", "b1voice", "b7stjump", "lfc1", "lcw1", "b4dunk", "b7strun", "b6chest", "b4lofi", "16ths", "b6tank", "b6talk", "b4met2", "b1dense", "frs1", "lbd1", "longw", "run16"] },
@@ -5978,7 +5990,7 @@ function gameTargets(L) {
   return out;
 }
 // Tap: within 40 ms perfect, 85 good. Voice is judged wider: an onset detector hears where a syllable starts getting loud, not where you feel it.
-const GAME = { tap: { perfect: 40, good: 85, stray: 0.25 }, voice: { perfect: 55, good: 110, stray: 0 }, pts: { perfect: 1, good: 0.6, ok: 0.25 }, stars: [50, 75, 90], unlock: 6, chapter: 3 };
+const GAME = { tap: { perfect: 40, good: 85, stray: 0.25 }, voice: { perfect: 55, good: 110, stray: 0 }, pts: { perfect: 1, good: 0.6, ok: 0.25 }, stars: [50, 75, 90], clear: 6 };
 function gameGrade(absMs, mode) { const g = GAME[mode] || GAME.tap; return absMs <= g.perfect ? 'perfect' : absMs <= g.good ? 'good' : 'ok'; }
 function gameAcc(pts, strays, n, mode) { return n ? Math.max(0, Math.round(100 * (pts - (GAME[mode] || GAME.tap).stray * strays) / n)) : 0; }
 function gameStars(acc) { return GAME.stars.filter(v => acc >= v).length; }
@@ -12570,17 +12582,13 @@ const TG = (() => {
   const starsOf = k => S.stars[S.mode][k] || 0;
   const lvKey = (lv, i) => 'L:' + LADDER[lv].id + ':' + i;
   const lvStars = lv => [0, 1, 2].reduce((a, i) => a + starsOf(lvKey(lv, i)), 0);
-  // chapters (GAME_CHAPTERS): CHS[c] = level indexes in play order, POS[lv] = { c, p }. A level opens at GAME.unlock stars on the one
-  // before it in its chapter; a chapter opens once GAME.chapter levels of the chapter before are cleared. Any level or chapter you
-  // already have stars on stays open (progress from the single ladder carries over).
+  // chapters (GAME_CHAPTERS): CHS[c] = level indexes in play order, POS[lv] = { c, p }, ORDER = every level in play order.
+  // Every level is open to everyone (no locks); stars, records and "Play n.n" are only there to show progress and suggest a next bar.
   const CHS = GAME_CHAPTERS.map(C => C.ids.map(id => LADDER.findIndex(V => V.id === id)).filter(lv => lv >= 0)), POS = [];
   CHS.forEach((a, c) => a.forEach((lv, p) => { POS[lv] = { c, p }; }));
   const lvNo = lv => POS[lv] ? `${POS[lv].c + 1}-${POS[lv].p + 1}` : String(lv + 1);
-  const cleared = c => CHS[c].filter(lv => lvStars(lv) >= GAME.unlock).length;
-  const chNeed = c => Math.min(GAME.chapter, CHS[c - 1].length);
-  const chOpen = c => c === 0 || cleared(c - 1) >= chNeed(c) || CHS[c].some(lv => lvStars(lv) > 0);
-  const nextLv = lv => { const q = POS[lv]; return q && q.p + 1 < CHS[q.c].length ? CHS[q.c][q.p + 1] : -1; };
-  const lvOpen = lv => { const q = POS[lv]; if (!q || lvStars(lv) > 0) return true; if (!chOpen(q.c)) return false; return !q.p || lvStars(CHS[q.c][q.p - 1]) >= GAME.unlock; };
+  const cleared = c => CHS[c].filter(lv => lvStars(lv) >= GAME.clear).length;
+  const ORDER = CHS.flat(), step = (lv, d) => { const k = ORDER.indexOf(lv) + d; return k >= 0 && k < ORDER.length ? ORDER[k] : -1; };
   let chSel = null;
   const total = () => LADDER.reduce((a, V, lv) => a + lvStars(lv), 0);
   const hash = t => { let x = 5381; for (let i = 0; i < t.length; i++) x = ((x * 33) ^ t.charCodeAt(i)) >>> 0; return x.toString(36); };
@@ -12611,7 +12619,7 @@ const TG = (() => {
   let zTok = 0;
   async function board(ask) {
     const box = $('tgZone'), w = week(), V = LADDER[w.lv], b = V.bars[w.i], tok = ++zTok, top = h('div', 'tg-zw'), tx = h('div'), note = h('p', 'tg-note');
-    tx.append(h('b', '', `Bar of the week: ${typeof b === 'string' ? b : b.t}`), h('span', '', `${V.name} · the same bar for everyone until Monday · open even if the level is locked`));
+    tx.append(h('b', '', `Bar of the week: ${typeof b === 'string' ? b : b.t}`), h('span', '', `${V.name} · the same bar for everyone until Monday`));
     const play = h('button', 'tg-b tg-pri', 'Play it'); play.type = 'button'; play.addEventListener('click', () => playLadder(w.lv, w.i));
     top.append(tx, play); box.replaceChildren(top, note);
     const goZone = () => { const z = h('button', 'tg-b', 'Go to the Zone'); z.type = 'button'; z.addEventListener('click', () => { dlg.close(); location.hash = '#zone'; }); return z; };
@@ -12659,27 +12667,26 @@ const TG = (() => {
     if (no) b.append(h('span', 'tg-bno', no)); b.append(h('span', 'tg-bt', text), m); return b;
   }
   const barText = b => (typeof b === 'string' ? b : b.t).replace(/(\w)-(\w)/g, '$1$2');   // triplet pack bars mark syllables with hyphens
-  // the next bar to play: the first open level bar without 3 stars
-  function nextUp() { for (const a of CHS) for (const lv of a) { if (!lvOpen(lv)) break; for (let i = 0; i < 3; i++) if (starsOf(lvKey(lv, i)) < 3) return [lv, i]; } return [0, 0]; }
+  // a suggestion for the next bar: the first bar in play order without 3 stars (everything is open, this only points the way)
+  function nextUp() { for (const lv of ORDER) for (let i = 0; i < 3; i++) if (starsOf(lvKey(lv, i)) < 3) return [lv, i]; return [ORDER[0] || 0, 0]; }
   function mini(L) { const pad = Math.min(3, L.pickup || 0), w = breakdownSvg(L, 0, pad, {}), g = w.firstChild; if (g && g.viewBox) g.style.maxWidth = Math.round(g.viewBox.baseVal.width * 1.4) + 'px'; return w; }
   // the chapter strip and the cards of the chosen chapter (only that chapter is drawn: 135 mini breakdowns at once is too heavy on a phone)
   function chapters() {
-    const strip = $('tgChs'), ol = $('tgLvs'), c = chSel, C = GAME_CHAPTERS[c], open = chOpen(c); strip.replaceChildren(); ol.replaceChildren();
+    const strip = $('tgChs'), ol = $('tgLvs'), c = chSel, C = GAME_CHAPTERS[c]; strip.replaceChildren(); ol.replaceChildren();
     CHS.forEach((a, k) => {
-      const ok = chOpen(k), b = h('button', 'tg-ch' + (ok ? '' : ' tg-locked') + (cleared(k) === a.length ? ' tg-done' : '')); b.type = 'button';
+      const b = h('button', 'tg-ch' + (cleared(k) === a.length ? ' tg-done' : '')); b.type = 'button';
       b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', String(k === c)); b.setAttribute('aria-controls', 'tgLvs');
-      b.append(h('span', 'tg-chn', String(k + 1).padStart(2, '0')), h('b', '', GAME_CHAPTERS[k].name), h('span', 'tg-chs-s', ok ? `${cleared(k)} / ${a.length} cleared` : 'Locked'));
+      b.append(h('span', 'tg-chn', String(k + 1).padStart(2, '0')), h('b', '', GAME_CHAPTERS[k].name), h('span', 'tg-chs-s', `${cleared(k)} / ${a.length} cleared`));
       b.addEventListener('click', () => { chSel = k; chapters(); const s = $('tgChs').children[k]; if (s) s.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: calmQ.matches ? 'auto' : 'smooth' }); });
       strip.append(b);
     });
-    $('tgChB').textContent = open ? C.blurb : `${C.blurb} Locked: clear ${chNeed(c)} levels of ${GAME_CHAPTERS[c - 1].name} to open it (${cleared(c - 1)} so far).`;
+    $('tgChB').textContent = C.blurb;
     CHS[c].forEach((lv, p) => {
-      const V = LADDER[lv], ok = lvOpen(lv), n = lvStars(lv), li = h('li', 'tg-lv' + (ok ? '' : ' tg-locked') + (n === 9 ? ' tg-done' : '')), hd = h('div', 'tg-lh'), t4 = h('h4'), bars = h('div', 'tg-bars'), mn = h('div', 'tg-mini');
+      const V = LADDER[lv], n = lvStars(lv), li = h('li', 'tg-lv' + (n === 9 ? ' tg-done' : '')), hd = h('div', 'tg-lh'), t4 = h('h4'), bars = h('div', 'tg-bars'), mn = h('div', 'tg-mini');
       t4.append('Level', h('span', 'tg-acc', lvNo(lv)), V.name); hd.append(t4, h('span', 'tg-ls', n + ' / 9 ★'));
       try { mn.append(mini(ladderBar(lv, 0))); } catch (e) {}
-      V.bars.forEach((b, i) => { const bt = barBtn(barText(b), lvKey(lv, i), '', `${lvNo(lv)}.${i + 1}`); bt.disabled = !ok; bt.addEventListener('click', () => playLadder(lv, i)); bars.append(bt); });
-      const pv = p ? CHS[c][p - 1] : -1;
-      li.append(hd, h('p', 'tg-lt', ok ? V.tip : !open ? 'Locked with its chapter.' : `Locked. Get ${GAME.unlock} of 9 stars on ${LADDER[pv].name} (${lvStars(pv)} so far).`), mn, bars); ol.append(li);
+      V.bars.forEach((b, i) => { const bt = barBtn(barText(b), lvKey(lv, i), '', `${lvNo(lv)}.${i + 1}`); bt.addEventListener('click', () => playLadder(lv, i)); bars.append(bt); });
+      li.append(hd, h('p', 'tg-lt', V.tip), mn, bars); ol.append(li);
     });
   }
   function home() {
@@ -12710,12 +12717,21 @@ const TG = (() => {
     $('tgHome').hidden = true; $('tgPlay').hidden = false; $('tgBack').hidden = false; $('tgRes').hidden = true; $('tgPad').hidden = false;
     $('tgTitle').textContent = o.calib ? 'Calibrate' : o.fit != null ? 'Your bars' : 'Level ' + lvNo(o.lv);
     const nm = $('tgName'); nm.replaceChildren(); if (o.no) nm.append(h('span', 'tg-acc', o.no + ' ')); nm.append(o.name); $('tgSub').textContent = o.sub; $('tgTip').textContent = o.tip;
-    $('tgPlay').classList.remove('tg-going'); bestShow();
+    $('tgPlay').classList.remove('tg-going'); bestShow(); navUi();
     $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm();
     drawRows(); idleUi(o.calib ? 'Start' : 'Start'); showRec(false); bpmShow(); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–';
     $('tgPad').focus({ preventScroll: true }); dlg.querySelector('.tg-body').scrollTop = 0;
   }
-  function playLadder(lv, i) { const V = LADDER[lv]; setCur({ key: lvKey(lv, i), L: ladderBar(lv, i), lv, bi: i, no: `${lvNo(lv)}.${i + 1}`, name: V.name, sub: `${POS[lv] ? GAME_CHAPTERS[POS[lv].c].name + ' · ' : ''}Level ${lvNo(lv)} · bar ${i + 1} of 3 · ${by()} · “${barText(V.bars[i])}”`, tip: V.tip, base: V.bpm }); }
+  // level nav on the play screen: previous / next level in play order and a picker for any level of any chapter
+  function navUi() {
+    const on = !!cur && cur.lv != null && !cur.calib; $('tgLnav').hidden = !on; if (!on) return;
+    const pv = step(cur.lv, -1), nx = step(cur.lv, 1), sel = $('tgJump');
+    [['tgPrevLv', pv, 'Previous level'], ['tgNextLv', nx, 'Next level']].forEach(([id, lv, t]) => { const b = $(id); b.disabled = lv < 0; b.title = lv < 0 ? '' : `${t}: ${lvNo(lv)} ${LADDER[lv].name}`; });
+    sel.replaceChildren();
+    CHS.forEach((a, c) => { const g = document.createElement('optgroup'); g.label = `${c + 1}. ${GAME_CHAPTERS[c].name}`;
+      a.forEach(lv => { const o = document.createElement('option'), n = lvStars(lv); o.value = String(lv); o.textContent = `${lvNo(lv)}  ${LADDER[lv].name}${n ? ` · ${n} ★` : ''}`; o.selected = lv === cur.lv; g.append(o); }); sel.append(g); });
+  }
+  function playLadder(lv, i) { if (POS[lv]) chSel = POS[lv].c; const V = LADDER[lv]; setCur({ key: lvKey(lv, i), L: ladderBar(lv, i), lv, bi: i, no: `${lvNo(lv)}.${i + 1}`, name: V.name, sub: `${POS[lv] ? GAME_CHAPTERS[POS[lv].c].name + ' · ' : ''}Level ${lvNo(lv)} · bar ${i + 1} of 3 · ${by()} · “${barText(V.bars[i])}”`, tip: V.tip, base: V.bpm }); }
   function playFit(i) {
     const L = lines[i]; if (!L || !L.N) return;
     setCur({ key: fitKey(L), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, no: 'Bar ' + (i + 1), name: L.flow.name, sub: `Your bars · ${by()} · “${L.text}”`,
@@ -12864,8 +12880,7 @@ const TG = (() => {
       add(okc ? `You were ${Math.abs(Math.round(med))} ms ${med > 0 ? 'late' : 'early'} on average. The ${by()} game now allows for that.` : `Only ${o.length} of 8 clicks were caught. ${S.mode === 'voice' ? 'Say it louder and shorter, close to the mic.' : 'Tap right on each click.'}`);
       main.textContent = 'Run it again'; last.lag = S.lag[S.mode];
     } else {
-      const was = starsOf(cur.key), wasRec = S.best[S.mode][cur.key] || 0, rk0 = gameRank(total()), nlv = cur.lv != null ? nextLv(cur.lv) : -1, nextOpen0 = nlv >= 0 && lvOpen(nlv),
-        c1 = cur.lv != null && POS[cur.lv] ? POS[cur.lv].c + 1 : CHS.length, chOpen0 = c1 < CHS.length && chOpen(c1);
+      const was = starsOf(cur.key), wasRec = S.best[S.mode][cur.key] || 0, rk0 = gameRank(total()), lvWas = cur.lv != null ? lvStars(cur.lv) : 0;
       if (stars > was) S.stars[S.mode][cur.key] = stars;
       const rec = stars === 3 && tempo > wasRec; if (rec) S.best[S.mode][cur.key] = tempo;
       if (stars > was || rec) keep();
@@ -12877,9 +12892,7 @@ const TG = (() => {
       if (rec) add(`New record by ${by()}: ${tempo} BPM.`, true);
       if (cur.lv != null) {
         const rk1 = gameRank(total()); if (rk1.tier > rk0.tier) add(`New ${by()} rank: ${rk1.name}.`, true);
-        if (nlv >= 0 && !nextOpen0 && lvOpen(nlv)) add(`Level ${lvNo(nlv)} is open: ${LADDER[nlv].name}.`, true);
-        else if (nlv >= 0 && !lvOpen(nlv)) add(`${GAME.unlock - lvStars(cur.lv)} more ${GAME.unlock - lvStars(cur.lv) === 1 ? 'star' : 'stars'} on this level open level ${lvNo(nlv)}.`);
-        if (c1 < CHS.length && !chOpen0 && chOpen(c1)) add(`New chapter open: ${GAME_CHAPTERS[c1].name}.`, true);
+        if (lvWas < GAME.clear && lvStars(cur.lv) >= GAME.clear) add(`Level ${lvNo(cur.lv)} cleared: ${lvStars(cur.lv)} of 9 stars.`, true);
       }
       if (S.mode === 'voice' && Q.offs.length < n / 2) add('The mic caught fewer than half the syllables. Start each one with a clear consonant, stay close to the mic and wear headphones. Calibrate helps if every hit shows late.');
       fails = stars === 0 ? fails + 1 : 0;
@@ -12897,9 +12910,9 @@ const TG = (() => {
     if (!cur || cur.calib) return null;
     if (cur.fit != null) { for (let i = cur.fit + 1; i < lines.length; i++) if (lines[i].N) return { label: 'Next bar', go: () => playFit(i) }; return null; }
     if (cur.bi < 2) return { label: 'Next bar', go: () => playLadder(cur.lv, cur.bi + 1) };
-    const nx = nextLv(cur.lv), c1 = POS[cur.lv] ? POS[cur.lv].c + 1 : CHS.length;
-    if (nx >= 0 && lvOpen(nx)) return { label: 'Next level: ' + LADDER[nx].name, go: () => playLadder(nx, 0) };
-    if (nx < 0 && c1 < CHS.length && chOpen(c1)) return { label: 'Next chapter: ' + GAME_CHAPTERS[c1].name, go: () => { chSel = c1; playLadder(CHS[c1][0], 0); } };
+    const nx = step(cur.lv, 1); if (nx < 0) return null;
+    const newCh = POS[nx] && POS[cur.lv] && POS[nx].c !== POS[cur.lv].c;
+    return { label: (newCh ? 'Next chapter: ' + GAME_CHAPTERS[POS[nx].c].name : 'Next level: ' + LADDER[nx].name), go: () => playLadder(nx, 0) };
     return null;
   }
   function primary() { if (playing() || !cur) return; if (state === 'done') setTempo(tempo + (+$('tgMain').dataset.d || 0)); start(); }
@@ -12947,6 +12960,9 @@ const TG = (() => {
   $('tgSong').addEventListener('click', () => { if (!playing()) setTempo(bpm()); });
   $('tgStop').addEventListener('click', stopRound);
   $('tgTempo').addEventListener('input', () => { if (!playing()) setTempo(+$('tgTempo').value); });
+  $('tgPrevLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
+  $('tgNextLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
+  $('tgJump').addEventListener('change', e => { const lv = +e.target.value; if (lv >= 0 && lv < LADDER.length) playLadder(lv, 0); });
   $('tgPick').addEventListener('click', () => $('tgLvH').scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }));
   $('tgAll').addEventListener('click', home);
   $('tgCal').addEventListener('click', playCal);
