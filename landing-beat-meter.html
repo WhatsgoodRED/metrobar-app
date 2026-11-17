@@ -2109,6 +2109,24 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-play.tg-going .tg-deck { padding: 0; border: 0; background: none; }
 /* level nav (2026-11-17: every level open): previous / any level / next; hidden while a round runs so Space never lands on it */
 .tg-lnav { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+/* the beat (Bennie 2026-11-17): a YouTube or SoundCloud beat per level, the player stays visible under the pad */
+.tg-beat { display: grid; grid-template-columns: minmax(0, 356px) minmax(0, 1fr); gap: 14px 20px; align-items: center; }
+.tg-beat[hidden] { display: none; }
+.tg-bmedia { position: relative; width: 100%; aspect-ratio: 16 / 9; min-height: 200px; border-radius: 10px; overflow: hidden; background: color-mix(in srgb, var(--fg) 8%, transparent); }
+.tg-bbox, .tg-bbox iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.tg-bbox[hidden] { display: none; }
+.tg-bph { position: absolute; inset: 0; display: grid; place-items: center; padding: 14px; text-align: center; font-size: .8rem; color: var(--muted); pointer-events: none; }
+.tg-bph[hidden] { display: none; }
+.tg-binfo { display: grid; gap: 10px; align-content: start; min-width: 0; }
+.tg-bname { margin: 0; font-family: var(--tg-h); font-weight: 700; font-size: 1.05rem; text-transform: uppercase; line-height: 1.1; }
+.tg-bst { margin: 0; font-size: .76rem; color: var(--muted); line-height: 1.4; }
+.tg-bacts { display: flex; flex-wrap: wrap; gap: 8px; }
+.tg-blink { display: flex; gap: 8px; margin: 0; }
+.tg-blink input { flex: 1 1 auto; min-width: 0; min-height: 36px; padding: 6px 10px; font: .84rem var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+.tg-beat.tg-boff { grid-template-columns: minmax(0, 1fr); }
+.tg-beat.tg-boff .tg-bmedia, .tg-beat.tg-boff .tg-bname, .tg-beat.tg-boff .tg-bacts, .tg-beat.tg-boff .tg-blink { display: none; }
+.tg-play.tg-going .tg-bacts, .tg-play.tg-going .tg-blink, .tg-play.tg-going .tg-beat .tg-sw { display: none; }
+@media (max-width: 700px) { .tg-beat { grid-template-columns: minmax(0, 1fr); } }
 .tg-lnav[hidden] { display: none; }
 .tg-jump { flex: 1 1 auto; min-width: 0; max-width: 30rem; min-height: 38px; padding: 6px 10px; font: 600 .86rem var(--body); color: var(--fg); background: var(--panel);
   border: 1px solid var(--line); border-radius: 8px; cursor: pointer; }
@@ -3555,6 +3573,16 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
             <button class="tg-pad" id="tgPad" type="button"><b id="tgPadT">Play</b><span id="tgPadS"></span><i class="tg-meter" id="tgMeter" hidden></i></button>
             <button class="tg-stop" id="tgStop" type="button" hidden>Stop (Esc)</button>
           </div>
+          <div class="tg-beat" id="tgBeat" hidden>
+            <div class="tg-bmedia"><div class="tg-bbox" id="tgYtBox"><div id="tgYt"></div></div><div class="tg-bbox" id="tgSc" hidden></div><span class="tg-bph" id="tgBph">The beat starts when you press Play</span></div>
+            <div class="tg-binfo">
+              <label class="tg-sw"><input type="checkbox" id="tgBeatOn"><i aria-hidden="true"></i><b>Beat</b><span>A different beat on every level, from YouTube or SoundCloud</span></label>
+              <p class="tg-bname" id="tgBeatName"></p>
+              <p class="tg-bst" id="tgBeatSt" aria-live="polite"></p>
+              <div class="tg-bacts"><button class="tg-b" id="tgBeatNew" type="button">Another beat</button><button class="tg-b" id="tgBeatTap" type="button" hidden>Tap it in again</button><button class="tg-b" id="tgBeatOwn" type="button" hidden>Level's own beat</button></div>
+              <form class="tg-blink" id="tgBeatLink" autocomplete="off"><input id="tgBeatUrl" type="text" inputmode="url" placeholder="Paste a YouTube or SoundCloud link" aria-label="YouTube or SoundCloud link for this level"><button class="tg-b" type="submit">Use</button></form>
+            </div>
+          </div>
         </div>
         <p class="tg-msg" id="tgMsg" role="status" hidden></p>
       </div>
@@ -4461,11 +4489,16 @@ function spellPhones(t) {
 // Every slot is a 16th in 16th grids (x/4 and x/8), a third or a fifth of a beat in triplet / quintuplet grids. BPM = quarter notes.
 const GROUPS8 = { 2: [2], 3: [3], 4: [2, 2], 5: [3, 2], 6: [3, 3], 7: [2, 2, 3], 8: [3, 3, 2], 9: [3, 3, 3], 10: [3, 3, 2, 2], 11: [3, 3, 3, 2], 12: [3, 3, 3, 3], 13: [3, 3, 3, 2, 2], 14: [3, 3, 3, 3, 2], 15: [3, 3, 3, 3, 3] };
 function parseMeter(str) {
-  const m = String(str == null ? '' : str).trim().match(/^(\d{1,2})\s*\/\s*(4|8)(?:\s*[:( ]\s*(\d(?:\s*\+\s*\d)*)\s*\)?)?$/);
+  const m = String(str == null ? '' : str).trim().match(/^(\d{1,2})\s*\/\s*(4|8|16)(?:\s*[:( ]\s*(\d(?:\s*\+\s*\d)*)\s*\)?)?$/);
   if (!m) return null;
   const num = +m[1], den = +m[2];
-  if (den === 4 ? num < 1 || num > 7 : num < 2 || num > 15) return null;
+  if (den === 4 ? num < 1 || num > 7 : den === 8 ? num < 2 || num > 15 : num < 3 || num > 31) return null;
   if (den === 4) return { num, den, groups: null };
+  if (den === 16) {   // x/16 (round 2, 2026-11-17): one slot per 16th, groups of 2-7 16ths (default 4s, the rest at the end)
+    let groups = m[3] ? m[3].split('+').map(Number) : null;
+    if (!groups || groups.some(g => g < 2 || g > 7) || groups.reduce((a, b) => a + b, 0) !== num) { groups = new Array(Math.floor(num / 4)).fill(4); const r = num % 4; if (r === 1) groups[groups.length - 1] = 5; else if (r) groups.push(r); }
+    return { num, den, groups };
+  }
   let groups = m[3] ? m[3].split('+').map(Number) : null;
   if (!groups || groups.some(g => g < 2 || g > 4) || groups.reduce((a, b) => a + b, 0) !== num) groups = GROUPS8[num];
   return { num, den, groups };
@@ -4474,17 +4507,18 @@ function meterLayout(meter = '4/4', sub = 4) {
   const M = typeof meter === 'object' && meter ? meter : parseMeter(meter) || parseMeter('4/4');
   let lens, unit;
   if (M.den === 4) { if (![3, 4, 5, 6].includes(sub)) sub = 4; lens = new Array(M.num).fill(sub); unit = 1 / sub; }
-  else { sub = 4; lens = M.groups.map(g => g * 2); unit = 1 / 4; }
+  else { sub = 4; lens = M.den === 16 ? M.groups.slice() : M.groups.map(g => g * 2); unit = 1 / 4; }
   const starts = [], beatOf = []; let G = 0;
   lens.forEach((l, b) => { starts.push(G); for (let i = 0; i < l; i++) beatOf.push(b); G += l; });
-  const key = M.num + '/' + M.den + (M.den === 8 ? ':' + M.groups.join('+') : '');
+  const key = M.num + '/' + M.den + (M.den !== 4 ? ':' + M.groups.join('+') : '');
   return { num: M.num, den: M.den, groups: M.groups, sub, lens, starts, beatOf, G, unit, nb: lens.length, quarters: G * unit,
-    key, name: M.num + '/' + M.den + (M.den === 8 ? ` (${M.groups.join('+')})` : ''), std: M.den === 4 && M.num === 4 };
+    key, name: M.num + '/' + M.den + (M.den !== 4 ? ` (${M.groups.join('+')})` : ''), std: M.den === 4 && M.num === 4 };
 }
 // Counting under each slot: "1 e + a", "1 trip let", quintuplets in Takadimi "1 ka di mi ti", x/8 restarts every group "1 & 2 & 1 & 2 & 3 &".
 function countLabel(lay, s) {
   const b = lay.beatOf[s], i = s - lay.starts[b];
   if (lay.den === 8) return i % 2 ? '&' : String(i / 2 + 1);
+  if (lay.den === 16) return String(i + 1);   // x/16: count every 16th, restarting each group (1 2 3 4 5 1 2 3 4 5 ...)
   if (!i) return String(b + 1);
   return (lay.sub === 3 ? ['', 'trip', 'let'] : lay.sub === 5 ? ['', 'ka', 'di', 'mi', 'ti'] : lay.sub === 6 ? ['', 'la', 'li', '+', 'la', 'li'] : ['', 'e', '+', 'a'])[i];
 }
@@ -6082,6 +6116,33 @@ const LADDER = [
     bars: [{ t: "Odd steps, keep on", meter: "5/8" }, { t: "Two and two and three to land", meter: "7/8" }, { t: "Short and sharp, done", meter: "2/4", flow: "8ths" }] },
   { id: "meterflip", name: "Meter switch", flow: "8ths", meter: "5/4", bpm: 120, tip: "Every bar has a different length: five beats, then three, then a rocking six-eight. Keep the pulse, let the bar move.",
     bars: [{ t: "Five beats wide, I take my time and stretch the line out", meter: "5/4" }, { t: "Waltz it in three, then we flee", meter: "3/4" }, { t: "Rocking the boat and we stay afloat", meter: "6/8" }] },
+  // Round 2 chunk 3 (2026-11-17): Mazbouq levels that needed engine work (see levels/mazbouq/ENGINE-GAPS.md)
+  { id: "s17a", name: "Seventeen sixteen", flow: "16ths", meter: "17/16:5+5+7", sub: 4, bpm: 90, slots: [0,2,5,7,10,12,14], acc: [0,5,10,14], tip: "Seventeen 16ths, grouped 5 + 5 + 7. Two syllables in each five, three in the seven; the stresses mark where each group starts.",
+    bars: ["Climb the hill and mark the stone", "Odd the count but true the line", "Five and five and sev-en more"] },
+  { id: "s17b", name: "Fill the odd bar", flow: "16ths", meter: "17/16:5+5+7", sub: 4, bpm: 85, slots: [0,1,2,3,5,6,7,8,10,11,12,13,14,15], acc: [0,5,10,14], tip: "Four 16ths in each five, six in the seven, a breath at the end of every group. The bar comes round a 16th later than you expect.",
+    bars: ["Pull it to the mid-dle of the ta-ble, now we turn it", "Count it on your fin-gers in the dark and nev-er lose it", "Five and then a-noth-er five and sev-en if you need it"] },
+  { id: "sev78", name: "Short bar", flow: "16ths", meter: "7/16:4+3", sub: 4, bpm: 120, slots: [0,1,2,3,4,5,6], acc: [0,2,4,6], tip: "Seven syllables, one per pulse, then the bar is over. Don't wait for an eighth beat: the next 1 comes early.",
+    bars: ["Cut it short and spin a-round", "Clip the end and roll it on", "Trim the bar and keep it tight"] },
+  { id: "b6rub8", name: "Rubato", flow: "8ths", bpm: 85, drift: [[0,0.25,0.5,0.75,0.5,0.25,0], [0,0.3,0.6,0.9,0.6,0.3,0], [0,0.5,0.75,1,0.75,0.25,0]], tip: "Pull the middle of the bar late, like stretching a rubber band, then catch up so the last word lands right on beat 4.",
+    bars: ["Slowly let the line go loose", "Stretch it out and catch the end", "Lagging back, still right on time"] },
+  { id: "b1lazy", name: "Behind the beat", flow: "8ths", bpm: 85, late: 50, tip: "Microtiming: the same 8ths, but every word sits a little late, like telling a story. Lag behind the click, never by a whole 16th.",
+    bars: ["Took the long way home and told it slow", "Every word a little late but nothing lost", "Lean behind the drum and let the story breathe"] },
+  { id: "b7lag", name: "Lag behind the grid", flow: "16ths", bpm: 87, late: 35, tip: "Same grid, but sit every syllable a hair late, like a wave rolling behind the drums. Stay late by the same amount the whole bar.",
+    bars: ["Let it drag like a rope that is pulled through the sand", "Slower in the step but I walk the same road", "Hang a little back and the groove starts to breathe"] },
+  { id: "b4obl", name: "Microtimed, laid back", flow: "16ths", sub: 4, bpm: 130, drift: [[0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4], [0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4], [0.4,0.4,0.4,0.4,0.4,0.4,0.4,0.4]], tip: "Same rhythm, but every syllable comes about a third of a 16th late. It sounds off the beat and still works because the pattern stays.",
+    bars: [{ t: "Slow, and slip-ping right be-hind it", slots: [5,7,9,10,11,13,14,15], acc: [5,9,14] }, { t: "Loose, and sway-ing just off the click", slots: [5,7,9,10,11,13,14,15], acc: [5,9,15] }, { t: "Drunk on the groove, but it still works", slots: [5,7,9,10,11,13,14,15], acc: [5,10,15] }] },
+  { id: "b6rub16", name: "Rubato 16ths", flow: "16ths", bpm: 70, drift: [[0,0.1,0.2,0.3,0.4,0.5,0.6,0.6,0.6,0.5,0.4,0.3,0.2,0.1,0], [0,0.15,0.3,0.45,0.6,0.75,0.75,0.6,0.45,0.3,0.15,0,0,0,0], [0,-0.1,-0.2,-0.3,-0.3,-0.2,0,0.2,0.4,0.5,0.5,0.4,0.2,0,0]], tip: "A full 16ths bar that drifts behind the beat in the middle and rushes back. Only the first word and the landing sit exactly on the grid.",
+    bars: ["Pulling on the timing like a rubber band and letting go", "Falling off the beat a little till it snaps back into place", "Drifting over every bar and landing on the four as planned"] },
+  { id: "b4mtw", name: "Microtimed, wavy", flow: "16ths", bpm: 86, drift: [[0,0.25,0.4,0.3,0.45,0.2,0.35,0.5,0.3,0.15,0.3,0.1,0.2,0.05,0], [0,0.25,0.4,0.3,0.45,0.2,0.35,0.5,0.3,0.15,0.3,0.1,0.2,0.05,0], [0,0.25,0.4,0.3,0.45,0.2,0.35,0.5,0.5,0.3,0.15,0.3,0.1,0.2,0.05,0]], tip: "Same kind of 16ths, but talk it: syllables drift a little late, stretch and catch up, and still land on beat 4.",
+    bars: ["Now I loos-en up and talk it like I'm chill-ing with a friend", "Words a lit-tle late, a lit-tle slow, but still the line will bend", "Off the lines but some-how ev-ery bar still lands right at the end"] },
+  { id: "b8feels", name: "Straight, swung, syncopated", flow: "8ths", bpm: 85, tip: "Three bars, three feels: even 8ths, then the same speed swung long-short, then the stresses pushed onto the \"and\".",
+    bars: ["Count it even, keep it level", { t: "Shuffle lazy, loose and easy", swing8: 0.667 }, { t: "Kick the stress between the claps", heel: 2 }] },
+  { id: "b8sw16", name: "Swung 16ths", flow: "16ths", sub: 6, bpm: 75, slots: [0,2,3,5,6,8,9,11,12,14,15,17,18], acc: [0,6,12,18], tip: "Fast syllables in pairs, and every second one comes a little late: long-short, long-short. Three beats of swing, then land on 4.",
+    bars: ["La-zi-ly and ea-si-ly and care-less-ly and home", "Mer-ri-ly and hap-pi-ly and read-i-ly and done", "Stead-i-ly and heav-i-ly and wear-i-ly I go"] },
+  { id: "b7sw", name: "Swung 16ths", flow: "16ths", bpm: 88, swing: 0.58, tip: "Keep the 16ths, but push every e and a a little to the right: long-short, long-short. The beats stay where they are.",
+    bars: ["Rocking in the playground on a swing that never stops", "Every little offbeat gets to wait a little bit", "Push it on the downbeat and it pulls it on the way"] },
+  { id: "b7swh", name: "Hard swing", flow: "16ths", bpm: 88, swing: 0.667, tip: "Full swing: each pair of 16ths becomes long-short like a shuffle (2 to 1). Bounce it, do not run it.",
+    bars: ["Skipping like a record with a scratch upon the side", "Bouncing on a trampoline and floating on the fall", "Shuffle in the hallway with the slippers on the floor"] },
 ];
 // The game home groups the levels into chapters, easy to hard. Nothing is ever locked (Bennie 2026-11-17: "dont restrict me or anyone"):
 // every level and chapter is open from the first visit; a level counts as cleared at GAME.clear of its 9 stars. LADDER order stays fixed
@@ -6094,21 +6155,23 @@ const GAME_CHAPTERS = [
   { id: "sync", name: "Syncopation and displacement", blurb: "Off the beat on purpose: shifted 8ths, early landings, 3-3-2 and words between the drums.",
     ids: ["drill332", "tres", "b6tres", "late", "early", "b7offdr", "b1offg", "dh332", "b7pepper", "slick332", "clave", "b7estart", "b6swing", "snap", "offsing", "drillpk", "drillsync", "offeas", "frm0", "frm2", "offghost", "frm1", "b1gal1", "b1gal2", "b1gal3", "b4meta1", "b4meta2", "b4obg", "pull16", "b7bartres", "dispcell", "disp8", "disp16", "dhswitch"] },
   { id: "trip", name: "Triplets and compound feel", blurb: "Three to a beat: rolls, shuffles, 12/8 sway and switching between straight and triplets.",
-    ids: ["trip", "drumsw", "b1shuf", "afrohat", "drumshuf", "b1bell", "b8phase", "b8phase2", "gcl1", "b1chug", "b1roll", "afrotrip", "b8walkroll", "b6tswing", "drilltrip", "b7tlate", "tstraight", "iso2", "b6trip", "b4met1", "b4lock", "gridsw", "b7tbeat2"] },
+    ids: ["trip", "drumsw", "b1shuf", "afrohat", "drumshuf", "b1bell", "b8phase", "b8phase2", "gcl1", "b1chug", "b1roll", "afrotrip", "b8walkroll", "b6tswing", "drilltrip", "b7tlate", "tstraight", "iso2", "b6trip", "b4met1", "b4lock", "gridsw", "b7tbeat2", "b8feels", "b8sw16", "b7sw", "b7swh"] },
   { id: "accent", name: "Triplet accents", blurb: "The same triplet grid, grouped in twos, fours, fives and mixes. The stress fights the beat.",
     ids: ["pair4", "qtrip", "b4odd", "b4oddsh", "themiola", "tafter", "b1cnt4", "g33222", "tshift", "tlong", "b1twos", "hm2b", "b6s34", "tskip", "b8tfive", "b7tfour", "b7tsix", "b7t345", "b7t32", "b7t24", "b1four", "b1mix", "hm2a", "b8tgrow", "b6four", "b6four3", "trip2s", "tripin2", "tripin4", "b6s7x", "b7tfive", "b4cntup", "b4cntdn"] },
   { id: "poly", name: "Polyrhythm", blurb: "Groups of three over four on the 16ths, dotted 8ths across the bar line, quintuplets.",
     ids: ["b6dotx", "b6dot", "b1code3", "b6vow3", "hem", "quint", "quint2", "b1six4", "b1six5", "gal1", "gal2", "b4odd2", "b1five16", "b6five", "b6fivex", "b6vow6", "b4kdq", "sev12", "reset7", "b1five4", "glt1", "flow5", "b4prun", "b4kick", "sev16", "five16", "b4poly", "b7rolltres"] },
   { id: "odd", name: "Odd meters", blurb: "Bars of 3, 5, 6, 7 and 9: count the groups, land early, go again.",
-    ids: ["b6w8", "b1cnt3", "b7five8", "seven", "b7nine", "b7six8", "b7sev43", "b8five", "b1waltz3", "b1sev3", "n128", "odd74", "sw78", "n98a", "b1waltz", "b6w16", "b1sev16", "dt78", "b1five", "ct3", "ct4", "b7sixflip", "b7oddhome", "four7", "b8suite", "meterflip"] },
+    ids: ["b6w8", "b1cnt3", "b7five8", "seven", "b7nine", "b7six8", "b7sev43", "b8five", "b1waltz3", "b1sev3", "n128", "odd74", "sw78", "n98a", "b1waltz", "b6w16", "b1sev16", "dt78", "b1five", "ct3", "ct4", "b7sixflip", "b7oddhome", "four7", "b8suite", "meterflip", "s17a", "s17b", "sev78"] },
   { id: "feel", name: "Feel and microtiming", blurb: "Lock dead on the grid, every syllable exactly on its slot: the base for laying back or pushing ahead.",
-    ids: ["b7grid", "b4mts"] },
+    ids: ["b7grid", "b4mts", "b6rub8", "b1lazy", "b7lag", "b4obl", "b6rub16", "b4mtw"] },
 ];
 function ladderBar(lv, i) {
   const V = LADDER[lv], b = V.bars[i], o = typeof b === 'string' ? { t: b } : b, slots = o.slots || V.slots, meter = o.meter || V.meter || '4/4';
-  if (slots) return slotBar(o.t, slots, o.acc || V.acc || [], o.sub || V.sub || 3, meter, o.land != null ? o.land : V.land);   // fixed slots, per bar or for the level
+  const pick = k => o[k] != null ? o[k] : V[k], drift = o.drift || (V.drift && V.drift[i]);
+  const feel = L => { const F = { late: pick('late') || 0, swing: pick('swing') || 0, swing8: pick('swing8') || 0, drift: drift || null }; if (F.late || F.swing || F.swing8 || F.drift) L.feel = F; return L; };
+  if (slots) return feel(slotBar(o.t, slots, o.acc || V.acc || [], o.sub || V.sub || 3, meter, o.land != null ? o.land : V.land));   // fixed slots, per bar or for the level
   const L = analyseLine(o.t, {}, o.heel || 0, o.flow || V.flow, meter);
-  return o.ant || V.ant ? anticipate(L, o.ant || V.ant) : L;
+  return feel(o.ant || V.ant ? anticipate(L, o.ant || V.ant) : L);
 }
 // A bar on fixed slots: hyphens mark the syllables ("Trip-lets"), `at` = one slot per syllable, `acc` = the stressed slots.
 // sub = slots per beat: 3 triplets (the triplet pack), 4 16ths (also x/8 meters), 5 quintuplets, 6 sextuplets (16th triplets; 4/4 only).
@@ -6116,7 +6179,8 @@ function ladderBar(lv, i) {
 function slotBar(text, at, acc, sub = 3, meter = '4/4', land = null) {
   const fix = {}; text.replace(/[’‘]/g, "'").split(/\s+/).forEach(w => { const k = cleanKey(w.replace(/-/g, '')); if (k) fix[k] = w.split('-').filter(Boolean).length; });
   const force = sub === 3 ? 'trip' : sub === 5 ? 'quint' : '16ths';
-  const L0 = analyseLine(text.replace(/-/g, ''), fix, 0, force, sub === 6 ? '4/4' : meter), lay = sub === 6 ? meterLayout(meter, 6) : L0.lay;
+  const own = sub === 6 || /\/\s*16/.test(String(meter));   // sextuplets and x/16: split the syllables in 4/4, then lay them on their own grid
+  const L0 = analyseLine(text.replace(/-/g, ''), fix, 0, force, own ? '4/4' : meter), lay = own ? meterLayout(meter, sub === 6 ? 6 : 4) : L0.lay;
   const L = Object.assign({}, L0, { lay, grid: lay.G, overflow: 0 });
   if (L.syl.length !== at.length) return L;
   const slots = new Array(lay.G).fill(-1); at.forEach((s, k) => { slots[s] = k; });
@@ -6142,8 +6206,18 @@ function anticipate(L, by = 1) {
     anticipated: landSlot === lay.starts[lb] + lay.lens[lb] - 1 ? (lb + 1) % nb + 1 : 0, endSlot, endBeat: lay.beatOf[endSlot] + 1, landOff: lb + 1 < nb - 1 });
 }
 // the dots to hit in one pass of a bar: slot, time from the bar line in quarter notes, stressed, landing
+// Feel (round 2, 2026-11-17): L.feel moves the targets off the grid line. swing / swing8 = share of a 16th / 8th pair the first note takes
+// (0.58 light, 0.667 = 2:1), so every 2nd 16th / 8th comes later; drift = one number per dot in 16ths (+ late, - early: microtiming and rubato);
+// late = ms for every dot (laid back), kept apart as x.ms because it does not scale with the tempo. Grading stays relative to the moved target.
 function gameTargets(L) {
-  const out = []; L.slots.forEach((v, s) => { if (v >= 0) out.push({ slot: s, q: s * L.lay.unit, st: !!L.syl[v].st, land: s === L.landSlot }); });
+  const F = L.feel || {}, lay = L.lay, out = []; let k = 0;
+  L.slots.forEach((v, s) => {
+    if (v < 0) return; let q = s * lay.unit; const i = s - lay.starts[lay.beatOf[s]];
+    if (F.swing && lay.sub === 4 && i % 2) q += (F.swing - 0.5) * 2 * lay.unit;
+    if (F.swing8 && lay.sub === 4 && i === 2) q += (F.swing8 - 0.5) * 4 * lay.unit;
+    if (F.drift) q += (F.drift[k] || 0) * 0.25;
+    out.push({ slot: s, q, ms: F.late || 0, st: !!L.syl[v].st, land: s === L.landSlot }); k++;
+  });
   return out;
 }
 // Tap: within 40 ms perfect, 85 good. Voice is judged wider: an onset detector hears where a syllable starts getting loud, not where you feel it.
@@ -7149,7 +7223,7 @@ function breakdownSvg(L, li, padSlots = 0, opts = {}) {
   } else if (L.flow.id === 'stomp') {
     for (let c = 0; c < lay.nb / 2; c++) bracket(lay.starts[2 * c], lay.starts[2 * c] + 2 * lay.lens[0], 'cell ' + (c + 1), `var(${L.flow.color})`);
   } else if (lay.sub !== 4) lay.starts.forEach((a, b) => bracket(a, a + lay.lens[b], lay.sub, `var(${L.flow.color})`));
-  else if (lay.den === 8) lay.starts.forEach((a, b) => bracket(a, a + lay.lens[b], lay.groups[b], 'var(--bd-num)'));
+  else if (lay.den !== 4) lay.starts.forEach((a, b) => bracket(a, a + lay.lens[b], lay.groups[b], 'var(--bd-num)'));
   // beat lines (dotted) and bar lines (solid)
   for (let b = 0; b <= lay.nb; b++) {
     const x = padL + (b < lay.nb ? lay.starts[b] : G) * cw;
@@ -11654,7 +11728,7 @@ var BKB = (() => {
   // shortcut list
   try { const dl = keysDlg.querySelector('dl'); dl.insertAdjacentHTML('beforeend', '<dt class="ksec">The Highlight Zone</dt><dd hidden></dd><dt><kbd>Alt</kbd> <kbd>P</kbd></dt><dd>Play / pause the beat (Option+P on a Mac)</dd>'); } catch {}
   recentList();
-  return { S, play, pause, toggle, useFile, useYt, useSc, playing, audio, open, song, pageOpened };
+  return { S, play, pause, toggle, useFile, useYt, useSc, playing, audio, open, song, pageOpened, ytApi, ytFind, loadScript };
 })();
 </script>
 <script>
@@ -12847,6 +12921,7 @@ const TG = (() => {
     });
   }
   function home() {
+    gbPause();
     stopRound(); cur = null; $('tgHome').hidden = false; $('tgPlay').hidden = true; dlg.querySelector('.tg-body').scrollTop = 0; $('tgBack').hidden = true; $('tgTitle').textContent = 'Flow game';
     const r = rankLine(), lo = GAME_RANKS[r.rk.tier][0], hi = r.rk.next ? lo + (r.t - lo) + r.rk.need : lo;
     $('tgRankL').textContent = S.mode === 'voice' ? 'Voice rank' : 'Tap rank'; $('tgRank').textContent = r.rk.name; $('tgRankS').textContent = r.text;
@@ -12876,6 +12951,8 @@ const TG = (() => {
     const nm = $('tgName'); nm.replaceChildren(); if (o.no) nm.append(h('span', 'tg-acc', o.no + ' ')); nm.append(o.name); $('tgSub').textContent = o.sub; $('tgTip').textContent = o.tip;
     $('tgPlay').classList.remove('tg-going'); bestShow(); navUi();
     $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm();
+    if (gbFixed()) tempo = Math.round(gbTempo());
+    if (o.calib) gbPause(); else if (GBS.on && (GB.yt || GB.sc) && GB.key !== gbKey(gbPick())) gbLoad(gbPlaying());
     drawRows(); idleUi(o.calib ? 'Start' : 'Start'); showRec(false); bpmShow(); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–';
     $('tgPad').focus({ preventScroll: true }); dlg.querySelector('.tg-body').scrollTop = 0;
   }
@@ -12926,7 +13003,7 @@ const TG = (() => {
   function idleUi(txt) {
     const v = S.mode === 'voice'; $('tgPad').classList.remove('tg-run', 'tg-hit'); $('tgPadT').textContent = txt; $('tgStop').hidden = true; $('tgMeter').hidden = true;
     $('tgPadS').textContent = v ? 'Space · then rap it into the mic, headphones on' : 'or press Space';
-    $('tgPlay').classList.remove('tg-going'); $('tgTempo').disabled = false;
+    $('tgPlay').classList.remove('tg-going'); $('tgTempo').disabled = false; gbUi();
   }
   function say(text, cls) { const v = $('tgVerdict'); v.textContent = text; v.className = 'tg-verdict' + (cls ? ' v-' + cls : ''); if (cls && !calmQ.matches) { v.classList.remove('tg-bump'); void v.offsetWidth; v.classList.add('tg-bump'); } }
   function msg(t) { const m = $('tgMsg'); m.textContent = t || ''; m.hidden = !t; }
@@ -12953,18 +13030,198 @@ const TG = (() => {
   }
   function micOff() { if (!mic) return; try { mic.proc.onaudioprocess = null; mic.src.disconnect(); mic.proc.disconnect(); mic.mute.disconnect(); } catch (e) {} mic.stream.getTracks().forEach(t => t.stop()); mic = null; }
 
+  // ---- the beat (Bennie 2026-11-17: "with every level a completely different beat to hit it off"). GB_LIST = one YouTube beat per
+  // level (checked embeddable on 2026-11-17, BPM from its title; labels are styles only: no artist names in the game). Another beat =
+  // a fresh search (BKB.ytFind: public Piped servers, only the search words are sent), or paste a YouTube / SoundCloud link. The
+  // player stays visible under the pad. An embedded player can't be heard by the page, so you tap 4 beats along with it once (8 when
+  // the title has no BPM): the downbeat in the video's own seconds + the tempo are kept per beat (metrobar.gameBeat.lock), and every
+  // round starts on the beat's next bar. Media time -> page clock = the freshest (media time - now) the player reports (gbNow).
+  const GB_LIST = { beat: ['kQ4Vp-4ucos', 90, 'Boom bap'], '8ths': ['NNUXEPpnMOQ', 90, 'Old school'], space: ['LqjH0hsWgtk', 90, 'Lo-fi'], stomp: ['cfZ7hJ_Dcvs', 90, 'West coast'],
+    tres: ['YCEGsdv_jhQ', 90, 'Afro R&B'], trip: ['xsHuUkX6mEw', 80, 'Trap'], '16ths': ['aaRxHmUeQC4', 75, 'Jazz drums'], late: ['SEhcvqB2G08', 91, 'Loose drums'],
+    early: ['HMBaQO2SVBM', 90, 'Grime'], hem: ['gQk5YKp7JZM', 85, 'Neo soul'], seven: ['R2uVvNaRe0Q', 90, 'Dark boom bap'], quint: ['Ro7Ji0uKWKg', 60, 'Slow lo-fi'],
+    tstraight: ['QyFpzWCgjO8', 80, 'Memphis'], themiola: ['jMeDA3UbTFU', 80, 'Hip hop'], tshift: ['RURVNMgxiQc', 80, 'Dark trap'], tlong: ['XYqbPJIJ9gI', 80, 'Piano'],
+    tskip: ['qO4ZHvWjOWo', 80, 'Chill hip hop'], tafter: ['ElmhIXr08Vk', 80, 'Jazzy trap'] };
+  const GBS = Object.assign({ on: true, pick: {}, lock: {} }, store.get('metrobar.gameBeat', {}) || {});
+  const gbKeep = () => store.set('metrobar.gameBeat', GBS);
+  const GB = { src: '', key: '', yt: null, ytSt: -1, sc: null, scUrl: '', scOn: false, dur: 0, smp: [], taps: [], want: false, err: 0, seen: [] };
+  const gbLv = () => !cur || cur.calib ? null : cur.lv != null ? LADDER[cur.lv].id : 'fit';
+  const gbUse = () => GBS.on && !!gbLv();
+  function gbPick() {
+    const id = gbLv(); if (!id) return null; if (GBS.pick[id]) return GBS.pick[id];
+    const d = GB_LIST[id] || GB_LIST.space; return { kind: 'yt', id: d[0], bpm: d[1], label: d[2] };
+  }
+  const gbKey = p => p ? (p.kind === 'sc' ? 'sc:' + p.url : 'yt:' + p.id) : '';
+  const gbLock = () => GBS.lock[gbKey(gbPick())] || null;
+  const titleBpm = t => { const m = /(\d{2,3})\s*bpm/i.exec(t || '') || /bpm\s*[:\-]?\s*(\d{2,3})/i.exec(t || ''); const b = m ? +m[1] : 0; return b >= 50 && b <= 200 ? b : 0; };
+  function gbTempo() {   // the tempo the game plays at: the tapped one, else the title's, halved or doubled to sit near the level's own
+    const lk = gbLock(); if (lk) return lk.bpm;
+    const p = gbPick(); let b = p && p.bpm || 0; if (!b) return 0;
+    const lb = cur && cur.lv != null ? LADDER[cur.lv].bpm : 90; if (b > lb * 1.45) b /= 2; else if (b < lb / 1.45) b *= 2; return b;
+  }
+  const gbFixed = () => gbUse() && !!gbTempo();
+  // the media clock: samples of (page time, media time - page time); the max of the last 4 s = the freshest report
+  function gbSample(m) {
+    if (typeof m !== 'number' || !isFinite(m)) return;
+    const p = performance.now() / 1000, d = m - p, top = GB.smp.length ? Math.max(...GB.smp.map(x => x[1])) : null;
+    if (top != null && (d > top + 0.08 || d < top - 0.7)) GB.smp = [];   // a seek, a loop or a stall
+    GB.smp.push([p, d]); while (GB.smp.length && p - GB.smp[0][0] > 4) GB.smp.shift();
+  }
+  function gbNow() { const x = GB.smp; if (x.length < 4 || x[x.length - 1][0] - x[0][0] < 0.45 || !gbPlaying()) return null; return Math.max(...x.map(v => v[1])); }
+  const gbPlaying = () => GB.src === 'yt' ? GB.ytSt === 1 : GB.src === 'sc' ? GB.scOn : false;
+  const gbDur = () => GB.src === 'yt' ? (GB.yt && GB.yt.getDuration ? GB.yt.getDuration() || 0 : 0) : GB.dur;
+  function gbSeek(t) { GB.smp = []; try { if (GB.src === 'yt') GB.yt.seekTo(t, true); else if (GB.src === 'sc') GB.sc.seekTo(t * 1000); } catch (e) {} }
+  function gbPause() { GB.want = false; GB.smp = []; try { if (GB.yt && GB.yt.pauseVideo) GB.yt.pauseVideo(); } catch (e) {} try { if (GB.sc && GB.scOn) GB.sc.pause(); } catch (e) {} }
+  setInterval(() => { if (GB.src === 'yt' && GB.ytSt === 1 && GB.yt && GB.yt.getCurrentTime) try { gbSample(GB.yt.getCurrentTime()); } catch (e) {} }, 30);
+  addEventListener('message', e => {   // YouTube's own time reports, the moment they arrive
+    if (GB.src !== 'yt' || GB.ytSt !== 1 || !GB.yt || !GB.yt.getIframe || !/youtube/.test(e.origin)) return;
+    try { if (e.source !== GB.yt.getIframe().contentWindow) return; } catch (x) { return; }
+    let d = e.data; if (typeof d === 'string') { try { d = JSON.parse(d); } catch (x) { return; } }
+    if (d && d.info && typeof d.info.currentTime === 'number') gbSample(d.info.currentTime);
+  });
+  function gbErr(code) {
+    GB.err++; const p = gbPick();
+    if (p && !p.own && GB.err <= 3) { msg('That beat can’t play here. Finding another one…'); gbAnother(); return; }
+    msg(code === 101 || code === 150 ? 'The owner doesn’t allow this video outside YouTube. Try another link.' : 'That beat couldn’t play. Try another one or turn Beat off.');
+  }
+  async function gbLoad(play) {
+    const p = gbPick(); if (!p) return false; const key = gbKey(p); GB.want = play;
+    if (window.BKB && BKB.playing && BKB.playing()) BKB.pause();
+    if (p.kind === 'sc') {
+      try { await BKB.loadScript('https://w.soundcloud.com/player/api.js', () => !!(window.SC && SC.Widget)); } catch (e) { msg('Couldn’t reach SoundCloud. Check the connection, or turn Beat off.'); return false; }
+      try { if (GB.yt && GB.yt.pauseVideo) GB.yt.pauseVideo(); } catch (e) {}
+      $('tgYtBox').hidden = true; $('tgSc').hidden = false; $('tgBph').hidden = true; GB.src = 'sc';
+      if (GB.sc && GB.scUrl === p.url) { if (play && !GB.scOn) GB.sc.play(); GB.key = key; return true; }
+      GB.scUrl = p.url; GB.key = key; GB.smp = []; GB.scOn = false; GB.dur = 0;
+      const o = { auto_play: false, visual: true, hide_related: true, show_comments: false, show_reposts: false, show_teaser: false, buying: false, sharing: false, download: false };
+      if (GB.sc) { GB.sc.load(p.url, Object.assign({ callback: gbScReady }, o)); return true; }
+      const f = document.createElement('iframe'); f.title = 'SoundCloud beat'; f.allow = 'autoplay'; f.setAttribute('scrolling', 'no');
+      f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(p.url) + '&' + Object.entries(o).map(([k, v]) => k + '=' + v).join('&'); $('tgSc').replaceChildren(f);
+      const W = SC.Widget(f), E = SC.Widget.Events; GB.sc = W;
+      W.bind(E.READY, gbScReady);
+      W.bind(E.PLAY, () => { GB.scOn = true; });
+      W.bind(E.PAUSE, () => { GB.scOn = false; GB.smp = []; });
+      W.bind(E.FINISH, () => { GB.smp = []; W.seekTo(0); W.play(); });
+      W.bind(E.PLAY_PROGRESS, e => { if (GB.src === 'sc') gbSample((e.currentPosition || 0) / 1000); });
+      W.bind(E.ERROR, () => gbErr(0));
+      return true;
+    }
+    try { await BKB.ytApi(); } catch (e) { msg('Couldn’t reach YouTube. Check the connection, or turn Beat off.'); return false; }
+    try { if (GB.sc && GB.scOn) GB.sc.pause(); } catch (e) {}
+    $('tgSc').hidden = true; $('tgYtBox').hidden = false; GB.src = 'yt';
+    if (GB.yt && GB.yt.loadVideoById) {
+      if (GB.key !== key) { GB.key = key; GB.smp = []; play ? GB.yt.loadVideoById(p.id) : GB.yt.cueVideoById(p.id); }
+      else if (play && GB.ytSt !== 1) GB.yt.playVideo();
+      return true;
+    }
+    GB.key = key;
+    await new Promise(ok => {
+      GB.yt = new YT.Player('tgYt', { host: 'https://www.youtube-nocookie.com', videoId: p.id, width: '100%', height: '100%',
+        playerVars: { playsinline: 1, rel: 0, origin: location.origin.startsWith('http') ? location.origin : undefined },
+        events: {
+          onReady: () => { $('tgBph').hidden = true; try { GB.yt.setVolume(75); } catch (e) {} if (GB.want) GB.yt.playVideo(); ok(); },
+          onStateChange: e => {
+            GB.ytSt = e.data; if (e.data !== 1) GB.smp = [];
+            if (e.data === 0) { GB.yt.seekTo(0, true); GB.yt.playVideo(); }
+            if (e.data === 1) { GB.err = 0; const q = gbPick(), d = GB.yt.getVideoData && GB.yt.getVideoData(); if (q && q.kind === 'yt' && !q.bpm && d && titleBpm(d.title)) { q.bpm = titleBpm(d.title); gbKeep(); gbTempoSync(); } }
+          },
+          onError: e => gbErr(e.data)
+        } });
+      setTimeout(ok, 12000);
+    });
+    return !!GB.yt;
+  }
+  function gbScReady() {
+    const W = GB.sc; if (!W) return; try { W.setVolume(75); } catch (e) {}
+    W.getDuration(d => { GB.dur = (d || 0) / 1000; });
+    W.getCurrentSound(x => { const q = gbPick(); if (q && q.kind === 'sc' && !q.bpm && x && titleBpm(x.title)) { q.bpm = titleBpm(x.title); gbKeep(); gbTempoSync(); } });
+    if (GB.want) W.play();
+  }
+  function gbReady(ms = 9000) { const t0 = performance.now(); return new Promise(ok => { (function w() { if (gbNow() != null) return ok(true); if (performance.now() - t0 > ms || !dlg.open) return ok(false); setTimeout(w, 60); })(); }); }
+  // the next bar of the beat (beat bars are 4 quarters), on the audio clock; seeks back to the top when the round wouldn't fit before the end
+  async function gbBar(lk, need) {
+    for (let k = 0; k < 3; k++) {
+      const off = gbNow(); if (off == null) { if (!await gbReady()) return null; continue; }
+      const acn = ac.currentTime, m = performance.now() / 1000 + off, bb = 240 / lk.bpm;
+      const ms = lk.v0 + Math.ceil((m + 0.35 - lk.v0) / bb) * bb, d = gbDur();
+      if (d > 0 && ms + need > d - 0.3) { gbSeek(Math.max(0, lk.v0 + Math.ceil(-lk.v0 / bb) * bb + bb - 0.6)); await new Promise(r => setTimeout(r, 400)); if (!await gbReady()) return null; continue; }
+      return acn + (ms - m);
+    }
+    return null;
+  }
+  function gbTempoSync() { if (!cur || playing()) return; if (gbFixed()) tempo = Math.round(gbTempo()); bpmShow(); gbUi(); }
+  function gbUi() {
+    const row = $('tgBeat'), use = !!gbLv(); row.hidden = !use; if (!use) return;
+    $('tgBeatOn').checked = GBS.on; row.classList.toggle('tg-boff', !GBS.on);
+    const p = gbPick(), lk = gbLock(), b = gbTempo(), id = gbLv();
+    $('tgBeatName').textContent = `${p.label}${b ? ' · ' + Math.round(b) + ' BPM' : ''} · ${p.kind === 'sc' ? 'SoundCloud' : 'YouTube'}`;
+    $('tgBeatSt').textContent = !GBS.on ? 'Off: you play to the clicks, at any tempo.' : state === 'lock' ? 'Tap along with the beat.'
+      : lk ? 'Tapped in. Every round starts on the beat’s next bar; the beat sets the tempo.' : 'Press Play, then tap along with the beat to lock in. MetroBar remembers it.';
+    $('tgBeatTap').hidden = !lk || !GBS.on; $('tgBeatOwn').hidden = !GBS.pick[id] || !GB_LIST[id];
+    const fx = gbFixed(); if (!playing() && state !== 'lock') ['tgTempo', 'tgSlow', 'tgFast'].forEach(i => { $(i).disabled = fx; });
+  }
+  async function gbAnother() {
+    const id = gbLv(); if (!id || !GBS.on) return; const p = gbPick(), lb = cur.lv != null ? LADDER[cur.lv].bpm : 90;
+    const style = p.own ? (GB_LIST[id] || GB_LIST.space)[2] : p.label;
+    const used = new Set(Object.values(GB_LIST).map(x => x[0]).concat(Object.values(GBS.pick).map(x => x.id).filter(Boolean), GB.seen));
+    $('tgBeatSt').textContent = 'Looking for another ' + style.toLowerCase() + ' beat…';
+    const list = BKB.ytFind ? await BKB.ytFind(`${lb} bpm ${style.toLowerCase()} type beat`) : null;
+    if (!list) { gbUi(); msg('Beat search isn’t reachable right now. Paste a YouTube or SoundCloud link instead.'); return; }
+    const fine = x => !used.has(x.id) && (!x.dur || (x.dur > 60 && x.dur < 900));
+    const r = list.find(x => fine(x) && titleBpm(x.title)) || list.find(fine);
+    if (!r) { gbUi(); msg('No new beat found. Paste a link instead.'); return; }
+    GB.seen.push(r.id); GBS.pick[id] = { kind: 'yt', id: r.id, bpm: titleBpm(r.title), label: style }; gbKeep(); msg(''); gbSwitch();
+  }
+  function gbSwitch() { const was = gbPlaying() || !!GB.yt || !!GB.sc; stopRound(); if (was && GBS.on) gbLoad(gbPlaying()); gbTempoSync(); }
+  function lockBegin() {
+    state = 'lock'; GB.taps = []; const n = gbPick().bpm ? 4 : 8;
+    $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = 'Tap the beat'; $('tgPadS').textContent = `${n} taps along with it, start on a 1 (the big kick)`;
+    $('tgPlay').classList.add('tg-going'); $('tgStop').hidden = false; say('Tap ' + n, ''); msg(''); gbUi();
+  }
+  function lockTap(ms) {
+    const pad = $('tgPad'); pad.classList.remove('tg-hit'); void pad.offsetWidth; pad.classList.add('tg-hit');
+    const off = gbNow(); if (off == null) { say('Wait for the beat', 'miss'); return; }
+    const out = ac ? (ac.outputLatency || ac.baseLatency || 0) : 0, m = ms / 1000 + off - out - S.lag.tap / 1000, T = GB.taps, p = gbPick();
+    if (T.length && (m - T[T.length - 1] > 1.8 || m <= T[T.length - 1])) T.length = 0;
+    T.push(m); if (T.length > 12) T.shift();
+    const need = p.bpm && !GB.retry ? 4 : 8; say(T.length < need ? String(T.length) : 'Locking', T.length < need ? 'good' : 'perfect');
+    if (T.length < need) return;
+    const W = T.slice(-need), iv = W.slice(1).map((x, i) => x - W[i]), med = iv.slice().sort((a, b) => a - b)[iv.length >> 1];
+    if (med < 0.25 || med > 1.6 || iv.some(x => Math.abs(x - med) > med * 0.18)) { say('Keep it steady', 'miss'); return; }
+    // tempo: the least-squares slope over the taps, snapped to the title's BPM (or its half / double) when it is that close, else to a whole BPM
+    const n = W.length, xs = W.map((x, i) => i), mx = (n - 1) / 2, my = W.reduce((a, x) => a + x, 0) / n;
+    const slope = xs.reduce((a, x, i) => a + (x - mx) * (W[i] - my), 0) / xs.reduce((a, x) => a + (x - mx) * (x - mx), 0);
+    let b = 60 / slope; const tb = p.bpm || 0, c = tb && [tb, tb / 2, tb * 2].find(c => Math.abs(c - b) / b < 0.07);
+    if (c) b = c; else if (tb && !GB.retry) { GB.retry = 1; T.length = 0; say('Tap 8', 'miss'); $('tgPadS').textContent = 'That isn’t the tempo the beat says. 8 taps, nice and even'; return; }
+    else b = Math.round(b);
+    GB.retry = 0; b = Math.min(200, Math.max(40, b)); const spq = 60 / b;
+    const v0 = W.reduce((a, x) => a + (x - Math.round((x - W[0]) / spq) * spq), 0) / n;
+    GBS.lock[gbKey(p)] = { v0: +v0.toFixed(4), bpm: +b.toFixed(3) }; gbKeep();
+    state = 'idle'; tempo = Math.round(b); bpmShow(); gbUi(); start();
+  }
+
   // ---- a round: one bar of count-in, then the bar twice
   async function start() {
-    if (playing() || !cur || state === 'wait') return;
+    if (playing() || !cur || state === 'wait' || state === 'lock') return;
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     ac.resume();
     if (S.mode === 'voice' && !mic) { state = 'wait'; const ok = await micOn(); state = 'idle'; if (!ok || !cur) return; }
+    const beat = gbUse() && !cur.calib; let lk = null, bx = tempo, at = null;
+    if (beat) {
+      state = 'wait'; $('tgPadT').textContent = 'Beat'; $('tgPadS').textContent = 'Starting the beat…';
+      const ok = await gbLoad(true) && await gbReady(); state = 'idle';
+      if (!cur || !dlg.open) return;
+      if (!ok) { idleUi('Start'); msg('The beat didn’t start. Press play on the video once, or turn Beat off.'); return; }
+      lk = gbLock(); if (!lk) { $('tgRes').hidden = true; $('tgPad').hidden = false; lockBegin(); return; }
+      bx = lk.bpm; tempo = Math.round(bx); bpmShow();
+    }
+    const L = cur.L, lay = L.lay, spq = 60 / bx, barDur = lay.quarters * spq, voice = S.mode === 'voice', maxWin = voice ? 0.16 : 0.14;
+    if (lk) { state = 'wait'; at = await gbBar(lk, 3 * barDur + 0.4); state = 'idle'; if (!cur || !dlg.open || !ac) return; if (at == null) { idleUi('Start'); msg('Lost the beat. Press Play again.'); return; } }
     resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
-    const L = cur.L, lay = L.lay, spq = 60 / tempo, barDur = lay.quarters * spq, t0 = ac.currentTime + 0.15, tPlay = t0 + barDur, voice = S.mode === 'voice', maxWin = voice ? 0.16 : 0.14;
+    const t0 = at != null ? at : ac.currentTime + 0.15, tPlay = t0 + barDur;
     const tg = gameTargets(L), targets = [];
-    for (let p = 0; p < 2; p++) tg.forEach((x, k) => targets.push({ t: tPlay + p * barDur + x.q * spq, p, k, land: x.land, done: false }));
+    for (let p = 0; p < 2; p++) tg.forEach((x, k) => targets.push({ t: tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000, p, k, land: x.land, done: false }));
     targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
-    for (let b = 0; b < 3; b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
+    for (let b = 0; b < (lk ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
     if (S.guide && !voice && !cur.calib) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
     const out = ac.outputLatency || ac.baseLatency || 0;
     R = { t0, tPlay, barDur, spq, slot: lay.unit * spq, targets, maxWin, end: tPlay + 2 * barDur + (voice ? 0.4 : 0.25), perf0: performance.now(), ctx0: ac.currentTime, out, lat: out + (voice ? 0 : S.lag.tap / 1000),
@@ -13017,7 +13274,7 @@ const TG = (() => {
     say(grade === 'perfect' ? 'Perfect' : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early'), grade); hud();
   }
   function stopRound() {
-    cancelAnimationFrame(raf); const was = playing();
+    cancelAnimationFrame(raf); const was = playing() || state === 'lock'; GB.taps = []; GB.retry = 0;
     if (was && ac) { ac.close(); ac = null; if (mic) { mic.stream.getTracks().forEach(t => t.stop()); mic = null; } }   // drops every click still scheduled
     R = null; state = 'idle'; if (was) { resetRows(); idleUi('Start'); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–'; }
   }
@@ -13053,7 +13310,8 @@ const TG = (() => {
       }
       if (S.mode === 'voice' && Q.offs.length < n / 2) add('The mic caught fewer than half the syllables. Start each one with a clear consonant, stay close to the mic and wear headphones. Calibrate helps if every hit shows late.');
       fails = stars === 0 ? fails + 1 : 0;
-      if (stars === 3 && tempo < 200) { main.textContent = `Go faster: ${tempo + 5} BPM`; main.dataset.d = 5; alt.hidden = false; alt.textContent = 'Again at ' + tempo; }
+      if (gbFixed()) main.textContent = 'Again';
+      else if (stars === 3 && tempo < 200) { main.textContent = `Go faster: ${tempo + 5} BPM`; main.dataset.d = 5; alt.hidden = false; alt.textContent = 'Again at ' + tempo; }
       else if (fails >= 2 && tempo > 40) { main.textContent = `Ease off: ${tempo - 5} BPM`; main.dataset.d = -5; alt.hidden = false; alt.textContent = 'Again at ' + tempo; }
       else main.textContent = 'Again';
       const to = nextItem(); if (to && stars > 0) { nx.hidden = false; nx.textContent = to.label; }
@@ -13112,38 +13370,49 @@ const TG = (() => {
   $('tgBack').addEventListener('click', home);
   $('tgTap').addEventListener('click', () => setMode('tap'));
   $('tgVoice').addEventListener('click', () => setMode('voice'));
-  $('tgSlow').addEventListener('click', () => { if (!playing()) setTempo(tempo - 5); });
-  $('tgFast').addEventListener('click', () => { if (!playing()) setTempo(tempo + 5); });
+  $('tgSlow').addEventListener('click', () => { if (!playing() && !gbFixed()) setTempo(tempo - 5); });
+  $('tgFast').addEventListener('click', () => { if (!playing() && !gbFixed()) setTempo(tempo + 5); });
   $('tgSong').addEventListener('click', () => { if (!playing()) setTempo(bpm()); });
   $('tgStop').addEventListener('click', stopRound);
-  $('tgTempo').addEventListener('input', () => { if (!playing()) setTempo(+$('tgTempo').value); });
+  $('tgTempo').addEventListener('input', () => { if (!playing() && !gbFixed()) setTempo(+$('tgTempo').value); });
   $('tgPrevLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
   $('tgNextLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
   $('tgJump').addEventListener('change', e => { const lv = +e.target.value; if (lv >= 0 && lv < LADDER.length) playLadder(lv, 0); });
   $('tgPick').addEventListener('click', () => $('tgLvH').scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }));
   $('tgAll').addEventListener('click', home);
+  $('tgBeatOn').addEventListener('change', () => { GBS.on = $('tgBeatOn').checked; gbKeep(); stopRound(); if (!GBS.on) gbPause(); else if (GB.yt || GB.sc) gbLoad(false); gbTempoSync(); });
+  $('tgBeatNew').addEventListener('click', () => { if (!playing()) gbAnother(); });
+  $('tgBeatOwn').addEventListener('click', () => { const id = gbLv(); if (!id || playing()) return; delete GBS.pick[id]; gbKeep(); gbSwitch(); });
+  $('tgBeatTap').addEventListener('click', () => { if (playing()) return; delete GBS.lock[gbKey(gbPick())]; gbKeep(); gbTempoSync(); start(); });
+  $('tgBeatLink').addEventListener('submit', e => {
+    e.preventDefault(); const id = gbLv(), v = $('tgBeatUrl').value.trim(); if (!id || playing()) return;
+    const y = ytParse(v), sc = !y && scParse(v); if (!y && !sc) { msg('That isn’t a YouTube or SoundCloud link.'); return; }
+    GBS.pick[id] = y ? { kind: 'yt', id: y.id, bpm: 0, label: 'Your beat', own: 1 } : { kind: 'sc', url: sc, bpm: 0, label: 'Your beat', own: 1 };
+    $('tgBeatUrl').value = ''; GB.err = 0; gbKeep(); msg(''); gbSwitch();
+  });
   $('tgCal').addEventListener('click', playCal);
   $('tgGuide').addEventListener('change', () => { S.guide = $('tgGuide').checked; keep(); });
   $('tgLag').addEventListener('input', () => { S.lag[S.mode] = +$('tgLag').value; lagShow(); keep(); });
   $('tgMain').addEventListener('click', primary);
   $('tgAlt').addEventListener('click', () => { if (!playing()) start(); });
   $('tgNext').addEventListener('click', () => { const to = nextItem(); if (to) to.go(); });
-  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false); } else primary(); });
+  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'lock') lockTap(e.timeStamp); else if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false); } else primary(); });
   $('tgPad').addEventListener('click', e => { if (e.detail === 0 && !playing()) primary(); });   // Enter on the pad, or a screen reader's press
   $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false); } });
   document.addEventListener('keydown', e => {   // on the document: focus falls to the page when the focused button hides
     if (!dlg.open || e.repeat || e.metaKey || e.ctrlKey || e.altKey || $('tgPlay').hidden) return;
     const k = e.key.toLowerCase(), on = playing();
+    if (state === 'lock' && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); lockTap(e.timeStamp); return; }
     if (on && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); if (S.mode === 'tap') hit(heard(e.timeStamp), false); }
     else if (!on && k === ' ' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); primary(); }
   });
   document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
-  dlg.addEventListener('cancel', e => { if (playing()) { e.preventDefault(); stopRound(); } else if (!$('tgPlay').hidden) { e.preventDefault(); home(); } });
-  dlg.addEventListener('close', () => { stopRound(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
+  dlg.addEventListener('cancel', e => { if (playing() || state === 'lock') { e.preventDefault(); stopRound(); } else if (!$('tgPlay').hidden) { e.preventDefault(); home(); } });
+  dlg.addEventListener('close', () => { stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
   return { open, openFit, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
-    week, tap: t => hit(t, false), heard: () => R ? heard() : 0, ladder: playLadder, cal: playCal, mode: setMode, start } };
+    week, tap: t => hit(t, false), heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
 <script>
