@@ -13281,7 +13281,8 @@ const TG = (() => {
     const box = $('tgRows'), L = cur.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), tg = gameTargets(L); box.replaceChildren(); rows = [];
     // Bennie 2026-11-17: no tap badges; the only numbers are the count, 1 2 3 4 the first time and 5 6 7 8 the second (one 8-count, no gap).
     // On a touch screen you tap the pill's own spot: each target owns its stretch of the row, from its slot to the next target's
-    const zs = tg.map((x, k) => [x.slot - 0.5, k + 1 < tg.length ? tg[k + 1].slot : L.grid + 0.5]);
+    // Bennie 2026-11-18: tap anywhere in the pill's own section (its bar/beat line up to the next pill), top to bottom of the row; the time of the tap is what scores
+    const zs = tg.map((x, k) => [k ? x.slot : -99, k + 1 < tg.length ? tg[k + 1].slot : 99]);
     for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push(rowDraw(row, p, { L, pad, tg, zs })); }
     lyricLines();
   }
@@ -13305,7 +13306,7 @@ const TG = (() => {
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
-      const r = rows[p], b = r.svg.getBoundingClientRect(); if (e.clientY < b.top - 8 || e.clientY > b.bottom + 8) continue;
+      const r = rows[p], b = r.svg.getBoundingClientRect(), rb = r.row.getBoundingClientRect(); if (e.clientY < rb.top || e.clientY > rb.bottom) continue;
       const s = ((e.clientX - b.left) * r.W / b.width - r.x0) / r.cw, k = r.zs.findIndex(z => s >= z[0] && s < z[1]);
       return { p, k };
     }
