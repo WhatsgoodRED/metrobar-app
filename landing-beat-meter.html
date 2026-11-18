@@ -1938,9 +1938,9 @@ html.bb .pp-strip button:focus-visible { outline: 2px solid var(--accent); outli
 html.bb #rbEd:not(.be-on) { min-height: calc(100dvh - 150px); }
 html.bb #rbEd:not(.be-on) > #rbText { min-height: calc(100dvh - 170px) !important; }
 @media (min-width: 1001px) {
-  html.bb.bb-rhy #viewBook { grid-template-columns: 16.5rem minmax(0, 1fr) 18rem; }
-  html.bb.bb-rhy.bb-nolib #viewBook { grid-template-columns: minmax(0, 1fr) 18rem; }
-  html.bb.bb-rhy[data-bv="booth"] #viewBook { grid-template-columns: minmax(0, 1fr); }
+  html.bb.bb-rhy #viewBook:is(*, .rb-dark) { grid-template-columns: 16.5rem minmax(0, 1fr) 18rem; }   /* :is() = beats html.bb #viewBook.rb-dark (night mode put the panel in the wide column) */
+  html.bb.bb-rhy.bb-nolib #viewBook:is(*, .rb-dark) { grid-template-columns: minmax(0, 1fr) 18rem; }
+  html.bb.bb-rhy[data-bv="booth"] #viewBook:is(*, .rb-dark) { grid-template-columns: minmax(0, 1fr); }
   html.bb.bb-rhy:not([data-bv="booth"]) .rb-zl[hidden] { display: grid !important; }
   html.bb.bb-rhy .rb-zl { grid-row: 1; grid-column: -2; min-height: 0; height: 100dvh; overflow: auto; scrollbar-width: thin; align-content: start; }
   html.bb.bb-rhy body:not(.rb-zen) .rb-zlh { display: none; }
@@ -2472,7 +2472,7 @@ html.bb .wrap > *:not(#viewBook):not(dialog), html.bb #beatStrip, html.bb #cmdkB
 html.bb #viewBook, html.bb #viewBook.rb-dark { --bg: #0b0c0d; --panel: #131517; --card2: #1a1d20; --line: #24282c; --fg: #eceeef; --muted: #8b9197; --side: #0e0f11;
   display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 0; margin: 0; padding: 0; height: 100dvh; min-height: 0;
   border: 0; border-radius: 0; box-shadow: none; background: var(--bg); color: var(--fg); animation: none; }
-html.bb.bb-nolib #viewBook { grid-template-columns: minmax(0, 1fr); }
+html.bb.bb-nolib #viewBook:is(*, .rb-dark) { grid-template-columns: minmax(0, 1fr); }
 html.bb.bb-nolib .rb-lib { display: none; }
 html.bb .rb-top, html.bb .rb-sidetg, html.bb .rb-sidex, html.bb .be-tools, html.bb .be-tip, html.bb .be-done, html.bb .be-title, html.bb #rbZen, html.bb .be-ghost { display: none !important; }
 html.bb button, html.bb input, html.bb select, html.bb textarea { font-family: inherit; }
