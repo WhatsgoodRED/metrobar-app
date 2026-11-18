@@ -1914,6 +1914,8 @@ html.bb .pp-ssteps button, html.bb .pp-shl button { display: inline-flex; align-
 html.bb .pp-ssteps button b { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; border: 1px solid currentColor; font-size: .62rem; }
 html.bb .pp-ssteps button[aria-current="step"], html.bb .pp-shl button[aria-pressed="true"] { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
 html.bb .pp-ssteps button:hover, html.bb .pp-shl button:hover { opacity: 1; }
+html.bb .pp-sbeat { border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 9px; padding: 6px 12px; min-height: 34px; background: transparent; color: inherit; font: 600 .8rem var(--body); cursor: pointer; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html.bb .pp-sbeat::before { content: '♫ '; }
 html.bb .pp-ssp { flex: 1; }
 html.bb .pp-splay { border: 0; border-radius: 9px; padding: 8px 14px; min-height: 34px; background: var(--accent); color: var(--on-accent, #fff); font: 700 .8rem var(--body); cursor: pointer; }
 html.bb .pp-splay:active { transform: scale(.97); }
@@ -2008,6 +2010,25 @@ html:not(.pp-mode) .pp-wt { display: none !important; }
 .pp-card:hover { border-color: var(--accent); box-shadow: 0 12px 34px -18px color-mix(in srgb, var(--accent) 60%, transparent); }
 .pp-card:active { transform: scale(.985); }
 .pp-card:disabled { opacity: .5; cursor: not-allowed; }
+/* the song card (Pocket Practice): all bars in one card, part names between them; hold + drag picks a part */
+.tg-sbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 0 10px; position: sticky; top: 0; z-index: 3; background: inherit; }
+.tg-sbar[hidden] { display: none; }
+.tg-sbar #tgSHint { font-size: .84rem; color: var(--muted); }
+.tg-play.tg-going .tg-sbar { display: none; }
+dialog.tg-scard .tg-rows { display: grid; gap: 4px; }
+.tg-songs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr)); gap: 10px; margin-bottom: 18px; }
+.tg-scard-b { display: grid; gap: 3px; text-align: left; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--tg-card); color: var(--fg); font: inherit; cursor: pointer; min-width: 0; }
+.tg-scard-b b { font-size: 1rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tg-scard-b span { font-size: .78rem; color: var(--accent-text, var(--accent)); font-weight: 700; }
+.tg-scard-b small { font-size: .8rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tg-scard-b:hover { border-color: var(--accent); }
+.tg-scard-b:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
+.tg-part { margin: 10px 0 2px; font: 700 .74rem var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.tg-part:first-child { margin-top: 0; }
+.tg-srow { border-radius: 10px; cursor: pointer; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: background .15s; }
+.tg-srow.tg-sel { background: color-mix(in srgb, var(--accent) 12%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.tg-srow.tg-from:not(.tg-sel) { box-shadow: inset 3px 0 0 var(--accent); }
+.tg-srow.tg-now { background: color-mix(in srgb, var(--tg-good) 10%, transparent); }
 .pp-map { display: grid; gap: 10px; }
 .pp-mapbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; position: sticky; top: -6px; z-index: 2; padding: 8px 0; background: var(--bg); }
 .pp-mapbar b { font-size: .95rem; } .pp-mapbar > span:not(.tg-sp) { font-size: .84rem; color: var(--muted); }
@@ -3770,6 +3791,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters"></div>
         <p class="tg-chb" id="tgChB"></p>
         <ol class="tg-lvs" id="tgLvs" role="tabpanel"></ol>
+        <h3 class="tg-h" id="tgSongsH" hidden>Your song cards</h3>
+        <div class="tg-songs" id="tgSongs" hidden></div>
         <h3 class="tg-h">Your bars</h3>
         <div class="tg-mine" id="tgMine"></div>
         <p class="tg-note" id="tgMineNote"></p>
@@ -3786,6 +3809,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
           <dl class="tg-sc"><div><dt>Combo</dt><dd id="tgCombo">–</dd></div><div><dt>Score</dt><dd id="tgLive">–</dd></div><div><dt>Best</dt><dd id="tgBest">–</dd></div></dl>
         </div>
         <div class="tg-card tg-grid">
+          <div class="tg-sbar" id="tgSBar" hidden><span id="tgSHint"></span><span class="tg-sp"></span><button class="tg-b" type="button" id="tgSClear" hidden>Clear</button><button class="tg-b" type="button" id="tgSLoop" disabled>Loop</button><button class="tg-b tg-pri" type="button" id="tgSFrom">Play from bar 1</button></div>
           <div class="tg-rows" id="tgRows"></div>
           <div class="tg-hud"><span class="tg-verdict" id="tgVerdict" aria-live="polite">Ready</span></div>
         </div>
@@ -4258,7 +4282,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     </div></div>
   </section>
 
-  <section class="tg-entry pp-entry"><button class="tg-ebtn" id="ppOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Pocket Practice</span><span class="tg-ebs" id="ppOpenS">Build your own song: pick the parts, write the bars, load your beat, then play it in the Flow Game.</span></span><span class="pp-echips" aria-hidden="true"><i>Intro</i><i class="on">Verse</i><i class="on">Chorus</i><i>Verse</i><i class="on">Chorus</i><i>Outro</i></span></button></section>
+  <section class="tg-entry pp-entry"><button class="tg-ebtn" id="ppOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Pocket Practice</span><span class="tg-ebs" id="ppOpenS">A blank page to write your song. Pick a template or just freestyle, then turn it into a card and play it in the Flow Game.</span></span><span class="pp-echips" aria-hidden="true"><i>Intro</i><i class="on">Verse</i><i class="on">Chorus</i><i>Verse</i><i class="on">Chorus</i><i>Outro</i></span></button></section>
 
   <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots into your pocket. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
@@ -13520,7 +13544,20 @@ const TG = (() => {
     });
     $('tgMineNote').textContent = shown ? `Your own lyrics from Fit, on the dots Fit gave them. Play them by tap or by voice.${more ? ` ${more} more bars: use Play on their Fit card.` : ''}`
       : 'Type your lyrics in Advanced and press Fit. Your bars then show up here, and every Fit card gets a Play button, so you can tap or rap your own words.';
-    entry(); board(false);
+    songCards(); entry(); board(false);
+  }
+  // the song cards made in Pocket Practice (Create card): one big card per song
+  function songCards() {
+    const box = $('tgSongs'), ids = store.get('metrobar.gameSongs', []).filter(id => LIB.song(id)); box.replaceChildren();
+    $('tgSongsH').hidden = box.hidden = !ids.length;
+    ids.forEach(id => { const p = LIB.song(id), bars = libBars(p.text).filter(b => b.body.trim()), b = h('button', 'tg-scard-b'); b.type = 'button';
+      b.append(h('b', '', p.title || (bars[0] ? bars[0].body.slice(0, 40) : 'Untitled')), h('span', '', `${bars.length} bar${bars.length === 1 ? '' : 's'}`), h('small', '', bars.slice(0, 2).map(x => x.body).join(' / ')));
+      b.addEventListener('click', () => songCard(id)); box.append(b); });
+  }
+  function songCard(id) {
+    const p = LIB.song(id); if (!p) return; LIB.setCur(id, 'pp'); if (typeof fitFromLib === 'function') fitFromLib(); if (!lines.some(L => L.N)) runFit();
+    const k = lines.findIndex(L => L.N); if (k < 0) { toast('That song has no bars yet'); return; }
+    playSong(k, window.PP && PP.beatObj ? PP.beatObj() : null, { whole: true, title: p.title || '' });
   }
 
   // ---- one bar on screen: the Breakdown drawing twice (first and second time through), with marks laid over the dots
@@ -13531,7 +13568,7 @@ const TG = (() => {
     $('tgTitle').textContent = o.calib ? 'Calibrate' : o.song ? 'Your song' : o.fit != null ? 'Your bars' : 'Level ' + lvNo(o.lv);
     const nm = $('tgName'); nm.replaceChildren(); if (o.no) nm.append(h('span', 'tg-acc', o.no + ' ')); nm.append(o.name); $('tgSub').textContent = o.sub; $('tgTip').textContent = o.tip;
     $('tgPlay').classList.remove('tg-going'); bestShow(); navUi();
-    $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm();
+    $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm(); $('tgSBar').hidden = !o.whole; dlg.classList.toggle('tg-scard', !!o.whole);
     if (gbFixed()) tempo = Math.round(gbTempo());
     if (o.calib) gbPause(); else if (GBS.on && (GB.yt || GB.sc) && GB.key !== gbKey(gbPick())) gbLoad(gbPlaying());
     drawRows(); idleUi(o.calib ? 'Start' : 'Start challenge'); showRec(false); bpmShow(); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–';
@@ -13549,7 +13586,7 @@ const TG = (() => {
       const o = document.createElement('option'); o.value = String(k); o.textContent = `${n}. ${L.text.slice(0, 48)}`; o.selected = k === cur.fit; g.append(o); });
   }
   function navUi() {
-    const sg = !!(cur && cur.song); $('tgWhole').hidden = !sg; if (sg) $('tgWhole').textContent = cur.whole ? 'Bar by bar' : 'Whole song';
+    const sg = !!(cur && cur.song); $('tgWhole').hidden = !sg; if (sg) $('tgWhole').textContent = cur.whole ? 'Bar by bar' : 'Song card';
     ['tgPrevLv', 'tgNextLv', 'tgJump'].forEach(id => { $(id).hidden = !!(cur && cur.whole); }); $('tgPrevLv').setAttribute('aria-label', sg ? 'Previous bar' : 'Previous level'); $('tgNextLv').setAttribute('aria-label', sg ? 'Next bar' : 'Next level'); $('tgJump').setAttribute('aria-label', sg ? 'Jump to any bar of your song' : 'Jump to any level');
     if (sg) { $('tgLnav').hidden = false; navSong(); return; }
     const on = !!cur && cur.lv != null && !cur.calib; $('tgLnav').hidden = !on; if (!on) return;
@@ -13582,32 +13619,40 @@ const TG = (() => {
   function playSong(i, beat, o = {}) { OWNB = beat && beat.buf ? beat : null; ownOff = false; songBpm = beat && beat.bpm ? beat.bpm : 0; songTitle = o.title || ''; open(); if (o.whole) playWhole(i, o.to); else playFit(i, true); }
   // the whole song in one run, like Guitar Hero: every bar once, back to back, scored as one (Bennie 2026-11-18)
   function playWhole(i, to) {
-    const end = to != null ? to : lines.length - 1, inR = (x, k) => k >= i && k <= end && x.N;
-    const n = lines.filter(inR).length; if (!n) return; const L = lines[i];
+    const inR = (x, k) => x.N;
+    const n = lines.filter(inR).length; if (!n) return; const k0 = lines.findIndex(x => x.N), L = lines[k0];
     const secs = []; lines.forEach((x, k) => { if (inR(x, k) && x.section && !secs.includes(x.section.name)) secs.push(x.section.name); });
-    const all = to == null || lines.slice(end + 1).every(x => !x.N) && lines.slice(0, i).every(x => !x.N);
-    setCur({ key: 'S:' + fitKey({ text: lines.filter(inR).map(x => x.text).join('/'), flow: { id: 'song' } }), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, to: all ? null : end, song: true, whole: true,
-      no: all ? 'Whole song' : n + (n === 1 ? ' bar' : ' bars'), name: songTitle || 'Your song', sub: `${n} bars${secs.length ? ' · ' + secs.slice(0, 6).join(', ') : ''} · ${by()}`,
-      tip: 'Your whole song in one run: every bar once, back to back, on your beat. The rows roll on as you go; hold the long pills.', base: Math.round(Math.min(200, Math.max(50, OWNB ? OWNB.bpm : songBpm || Math.min(bpm(), 90)))) });
+    const bn = k => lines.slice(0, k).filter(x => x.N).length;
+    setCur({ key: 'S:' + fitKey({ text: lines.filter(inR).map(x => x.text).join('/'), flow: { id: 'song' } }), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: k0, song: true, whole: true,
+      selA: i != null && i !== k0 ? bn(i) : 0, selB: to != null ? bn(to) : null, picked: (i != null && i !== k0) || to != null, loop: false,
+      no: 'Song card', name: songTitle || 'Your song', sub: `${n} bars${secs.length ? ' · ' + secs.slice(0, 6).join(', ') : ''} · ${by()}`,
+      tip: 'Your whole song on one card. Hold a bar and drag to pick a part, then play from it or loop it. Hold the long pills.', base: Math.round(Math.min(200, Math.max(50, OWNB ? OWNB.bpm : songBpm || Math.min(bpm(), 90)))) });
   }
   function playCal() {
     setCur({ key: null, calib: true, L: ladderBar(0, 0), name: 'Find your delay', sub: by(), base: 90,
       tip: S.mode === 'voice' ? 'Say a short "ta" on every click, eight times. MetroBar measures how late the mic hears you and sets the sound delay for voice.'
         : 'Tap on every click, eight times. MetroBar measures how late your taps arrive (Bluetooth headphones add delay) and sets the sound delay for tap.' });
   }
-  // whole song: the song's bars (from the first one with words), each drawn in its own row when it comes up
-  function songBars() { const out = [], end = cur.to != null ? Math.min(cur.to, lines.length - 1) : lines.length - 1; for (let i = cur.fit; i <= end; i++) if (lines[i].N) { const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }); out.push({ L, li: i, tg: gameTargets(L) }); } return out; }
-  function songRow(bi, W) {
-    W = W || (R && R.song) || cur.W; const b = W[bi]; if (!b) return; const ri = bi % 2, old = rows[ri]; if (old && old.bar === bi) return;
-    const L = b.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), zs = b.tg.map((x, k) => [k ? x.slot : -99, k + 1 < b.tg.length ? b.tg[k + 1].slot : 99]);
-    const r = rowDraw(old.row, ri, { L, pad, tg: b.tg, zs }); r.bar = bi; rows[ri] = r;
-    const sec = L.section ? L.section.name + ' · ' : '', abs = lines.slice(0, b.li + 1).filter(x => x.N).length;
-    r.row.querySelector('.tg-pass').textContent = `${sec}bar ${abs} · ${bi + 1} of ${W.length}`;
+  // the song card (Bennie 2026-11-18: "one big card with all the bars placed under it"): every bar of the song is a row of the card,
+  // part names between them; hold a bar and drag to pick a part, then play from it or loop it
+  function songBars() { const out = []; for (let i = 0; i < lines.length; i++) if (lines[i].N) { const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }); out.push({ L, li: i, tg: gameTargets(L) }); } return out; }
+  function songRowDraw(row, bi, W) {
+    const b = W[bi], L = b.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), zs = b.tg.map((x, k) => [k ? x.slot : -99, k + 1 < b.tg.length ? b.tg[k + 1].slot : 99]);
+    const r = rowDraw(row, 0, { L, pad, tg: b.tg, zs }); r.bar = bi; r.row.querySelector('.tg-pass').textContent = String(bi + 1); return r;
+  }
+  function rowClear(r) { r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }
+  function selPaint() {
+    if (!cur || !cur.whole) return; const a = cur.selA || 0, b = cur.loop || cur.selB != null ? (cur.selB != null ? cur.selB : a) : -1, W = cur.W;
+    rows.forEach((r, i) => { r.row.classList.toggle('tg-sel', cur.picked && i >= a && i <= b); r.row.classList.toggle('tg-from', i === a && cur.picked); });
+    const n = cur.picked ? b - a + 1 : 0;
+    $('tgSFrom').textContent = `Play from bar ${a + 1}`; $('tgSLoop').textContent = n > 1 ? `Loop bars ${a + 1}–${b + 1}` : `Loop bar ${a + 1}`; $('tgSLoop').disabled = !cur.picked;
+    $('tgSClear').hidden = !cur.picked; $('tgSHint').textContent = cur.picked ? (n > 1 ? `${n} bars picked` : `Bar ${a + 1} picked`) + (W[a] && W[a].L.section ? ` · ${W[a].L.section.name}` : '') : 'Hold a bar and drag to pick a part. Tap a bar to play from it.';
   }
   function drawRows() {
-    if (cur.whole) { const box = $('tgRows'); box.replaceChildren(); rows = []; cur.W = songBars();
-      for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push({ row }); }
-      songRow(0, cur.W); if (cur.W.length > 1) songRow(1, cur.W); else rows.pop().row.remove(); lyricLines(); return; }
+    if (cur.whole) { const box = $('tgRows'); box.replaceChildren(); rows = []; cur.W = songBars(); let sec;
+      cur.W.forEach((b, bi) => { if (b.L.section !== sec) { sec = b.L.section; box.append(h('div', 'tg-part', sec ? sec.name : 'Bars')); }
+        const row = h('div', 'tg-row tg-srow'); row.dataset.bi = bi; box.append(row); rows.push(songRowDraw(row, bi, cur.W)); });
+      selPaint(); lyricLines(); return; }
     const box = $('tgRows'), L = cur.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), tg = gameTargets(L); box.replaceChildren(); rows = [];
     // Bennie 2026-11-17: no tap badges; the only numbers are the count, 1 2 3 4 the first time and 5 6 7 8 the second (one 8-count, no gap).
     // On a touch screen you tap the pill's own spot: each target owns its stretch of the row, from its slot to the next target's
@@ -13633,7 +13678,7 @@ const TG = (() => {
       return { row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs, o, pass: p };
     }
   }
-  function resetRows() { if (cur && cur.whole) { drawRows(); return; } rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  function resetRows() { if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
@@ -13920,23 +13965,30 @@ const TG = (() => {
       if (!lk && gbTempo()) lk = { v0: 0, bpm: gbTempo(), guess: true };
       if (lk) { bx = lk.bpm; tempo = Math.round(bx); bpmShow(); }
     }
+    if (cur.whole) cur.L = cur.W[cur.selA || 0].L;   // the count-in is in the meter of the bar you start from
     const L = cur.L, lay = L.lay, spq = 60 / bx, barDur = lay.quarters * spq, voice = S.mode === 'voice', maxWin = voice ? 0.16 : 0.14;
     if (lk) { state = 'wait'; at = await gbBar(lk, 3 * barDur + 0.4); state = 'idle'; if (!cur || !dlg.open || !ac) return; if (at == null) { idleUi('Start challenge'); msg('Lost the beat. Press Play again.'); return; } }
     resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
     const t0 = at != null ? at : ac.currentTime + 0.15, tPlay = t0 + barDur;
-    const tg = gameTargets(L), targets = [], W = cur.whole ? songBars() : null;
+    const tg = gameTargets(L), targets = [], W = cur.whole ? cur.W : null;
     // Bennie 2026-11-18: hold the long pills (2+ slots). Press scores as before; letting go any time from the pill's last slot on is a clean hold, earlier is a miss
     const holds = !voice && !cur.calib, rel = (x, at) => holds && x.hold ? at + x.hold * lay.unit * spq : 0;
-    if (W) {   // whole song (Pocket Practice): every bar once, back to back, each on its own meter; rows roll on two at a time
-      let t = tPlay; W.forEach((b, bi) => { b.t = t; b.dur = b.L.lay.quarters * spq; t += b.dur;
-        b.tg.forEach((x, k) => { const at = b.t + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p: bi % 2, k, pass: bi % 2, bar: bi, land: x.land, done: false, rel: holds && x.hold ? at + x.hold * b.L.lay.unit * spq : 0 }); }); });
-      targets.sort((a, b) => a.t - b.t);
+    let SCH = null, songPass = null;
+    if (W) {   // the song card: from the chosen bar to the end, or the chosen part on a loop; every bar of the card is its own row
+      const A = cur.selA || 0, B = cur.loop ? cur.selB : W.length - 1; SCH = [];
+      songPass = (t, n) => { for (let bi = A; bi <= B; bi++) { const b = W[bi], dur = b.L.lay.quarters * spq; SCH.push({ bi, t, dur, n });
+        b.tg.forEach((x, k) => { const at = t + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p: bi, k, pass: 0, bar: bi, run: n, land: x.land, done: false, win: 0, rel: holds && x.hold ? at + x.hold * b.L.lay.unit * spq : 0 }); });
+        if (!lk && !MBB) b.L.lay.starts.forEach((s, q) => blip(t + s * b.L.lay.unit * spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06));
+        if (S.guide && !voice) b.tg.forEach(x => blip(t + x.q * spq + (x.ms || 0) / 1000, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
+        t += dur; } return t; };
+      let t = songPass(tPlay, 0); if (cur.loop) t = songPass(t, 1);
+      targets.sort((a, b) => a.t - b.t); SCH.end = t;
     } else for (let p = 0; p < 2; p++) tg.forEach((x, k) => { const at = tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p, k, pass: p, land: x.land, done: false, rel: rel(x, at) }); });
     targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
-    const wins = tg.map((x, k) => targets[tg.length + k].win);   // overtime passes use the 2nd pass's windows
-    if (W) { lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * spq, 600, 0.5, 0.06)); if (!lk && !MBB) W.forEach(b => b.L.lay.starts.forEach((s, q) => blip(b.t + s * b.L.lay.unit * spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06))); }
+    const wins = tg.map((x, k) => (targets[tg.length + k] || targets[k] || { win: maxWin }).win);   // overtime passes use the 2nd pass's windows
+    if (W) lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * spq, 600, 0.5, 0.06));
     else for (let b = 0; b < (lk || MBB ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
-    if (S.guide && !voice && !cur.calib) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
+    if (S.guide && !voice && !cur.calib && !W) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
     if (MBB) mbPlay(ac, MBB, t0);   // the beat starts on a bar line together with the count-in
     const out = ac.outputLatency || ac.baseLatency || 0;
     R = { t0, tPlay, barDur, spq, slot: lay.unit * spq, targets, maxWin, end: tPlay + 2 * barDur + (voice ? 0.4 : 0.25), perf0: performance.now(), ctx0: ac.currentTime, out, lat: out + (voice ? 0 : S.lag.tap / 1000),
@@ -13944,7 +13996,7 @@ const TG = (() => {
       // overtime (Bennie 2026-11-17): the level's score locks at the end as before; the bar keeps looping and every clean hit after that adds
       // bonus points (perfect 2, good 1) until the first mistake: a miss, a way-off hit, or a tap with no dot / on the wrong spot
       n: targets.length + targets.filter(x => x.rel).length, hold: null, holds, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk && !MBB, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
-    if (W) { R.song = W; R.cur = -1; R.ot = false; R.otT = Infinity; R.end = W[W.length - 1].t + W[W.length - 1].dur + (voice ? 0.4 : 0.25); songRow(0); if (W.length > 1) songRow(1); }
+    if (W) { R.song = W; R.sch = SCH; R.pass = songPass; R.runs = cur.loop ? 2 : 1; R.cur = null; R.ot = false; R.otT = Infinity; R.loop = !!cur.loop; R.end = cur.loop ? Infinity : SCH.end + (voice ? 0.4 : 0.25); }
     state = 'count';
     $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = voice ? 'Rap it' : 'Tap'; $('tgPadS').textContent = voice ? 'One syllable per dot' : 'Space · F · J';
     $('tgPlay').classList.add('tg-going'); $('tgTempo').disabled = true; dlg.classList.add('tg-focus'); dlg.querySelector('.tg-body').scrollTop = 0;   // focus: only the grid, the score and TAP
@@ -13962,10 +14014,14 @@ const TG = (() => {
       else { let q = -1; R.beats.forEach((b, i) => { if (now - R.t0 >= b) q = i; }); if (q >= 0 && $('tgVerdict').textContent !== String(q + 1)) say(String(q + 1), 'miss'); }
     }
     if (state === 'play' && R.song) {
-      const W = R.song; let bi = W.findIndex(b => now < b.t + b.dur); if (bi < 0) bi = W.length - 1;
-      if (R.cur !== bi) { R.cur = bi; songRow(bi); if (bi + 1 < W.length) songRow(bi + 1); }
-      rows.forEach(r => { const on = r.bar === bi; r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
-        if (on) { const x = r.x0 + Math.min(1, Math.max(0, (now - W[bi].t) / W[bi].dur)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+      const e = R.sch.find(x => now < x.t + x.dur) || R.sch[R.sch.length - 1];
+      if (R.cur !== e) {
+        const was = R.cur; R.cur = e; if (was) { const r0 = rows[was.bi]; r0.row.classList.remove('tg-now'); r0.head.setAttribute('opacity', 0); }
+        const r = rows[e.bi]; if (e.n > 0) rowClear(r); r.row.classList.add('tg-now');
+        r.row.scrollIntoView({ block: 'center', behavior: calmQ.matches ? 'auto' : 'smooth' });
+        if (R.loop && e.n >= R.runs - 1) { R.sch.end = R.pass(R.sch.end, R.runs); R.runs++; R.targets.sort((a, b) => a.t - b.t); R.n = R.targets.length + R.targets.filter(x => x.rel).length; }
+      }
+      const r = rows[e.bi]; r.head.setAttribute('opacity', 0.9); const x = r.x0 + Math.min(1, Math.max(0, (now - e.t) / e.dur)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x);
     }
     if (state === 'play' && !R.song) {
       const p = (now - R.tPlay) / R.barDur, pass = Math.max(0, Math.floor(p)), over = R.passes > 2 && pass >= 2, b = over ? pass % 2 : Math.min(1, pass);
@@ -13976,6 +14032,7 @@ const TG = (() => {
     if (state === 'play') {
       if (R.hold && now >= R.hold.x.rel - GAME.tap.good / 1000) holdEnd(true);
       while (R.ot && now > R.tPlay + (R.passes - 1) * R.barDur - 0.1) addPass(R.passes++);   // no cap: the loop runs until the first mistake (Bennie 2026-11-18)
+      if (R.song) for (const x of R.targets) if (!x.win) { const i = R.targets.indexOf(x), a = R.targets[i - 1], b = R.targets[i + 1]; x.win = Math.min(R.maxWin, 0.5 * Math.min(a ? x.t - a.t : 9, b ? b.t - x.t : 9)) || R.maxWin; }
       for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) {
         x.done = true; if (x.pass >= 2) { if (R.ot) { mark(x, 'miss', 0); otOver('Missed'); } continue; }
         R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud();
@@ -14178,7 +14235,29 @@ const TG = (() => {
   $('tgSlow').addEventListener('click', () => { if (!playing() && !gbFixed()) setTempo(tempo - 5); });
   $('tgFast').addEventListener('click', () => { if (!playing() && !gbFixed()) setTempo(tempo + 5); });
   $('tgSong').addEventListener('click', () => { if (!playing()) setTempo(bpm()); });
-  $('tgStop').addEventListener('click', () => { if (R && R.lock != null && R.ot) { otOver('Stopped'); return; } stopRound(); });
+  $('tgStop').addEventListener('click', () => { if (R && R.song && R.loop) { songStop(); return; } if (R && R.lock != null && R.ot) { otOver('Stopped'); return; } stopRound(); });
+  // a loop on the song card runs until Stop: what you played so far is the score
+  function songStop() { const now = heard(); R.targets = R.targets.filter(x => x.done || x.t + (x.win || R.maxWin) < now); R.n = R.targets.length + R.targets.filter(x => x.rel && x.rel < now).length; R.hold = null; try { ac.close(); } catch (e) {} ac = null; finish(); }
+  // picking a part on the card: hold a bar (380 ms) and drag; a short tap = play from that bar
+  let SD = null;
+  $('tgRows').addEventListener('pointerdown', e => {
+    if (playing() || !cur || !cur.whole) return; const row = e.target.closest('.tg-srow'); if (!row) return; const bi = +row.dataset.bi;
+    SD = { bi, x: e.clientX, y: e.clientY, sel: false, tm: setTimeout(() => { if (!SD) return; SD.sel = true; cur.picked = true; cur.selA = cur.selB = bi; cur.loop = false; selPaint(); if (navigator.vibrate) try { navigator.vibrate(12); } catch (er) {} }, 380) };
+  });
+  window.addEventListener('pointermove', e => {
+    if (!SD) return;
+    if (!SD.sel) { if (Math.hypot(e.clientX - SD.x, e.clientY - SD.y) > 8) { clearTimeout(SD.tm); SD = null; } return; }
+    const el = document.elementFromPoint(e.clientX, e.clientY), row = el && el.closest && el.closest('.tg-srow'); if (!row) return;
+    const bi = +row.dataset.bi; cur.selA = Math.min(SD.bi, bi); cur.selB = Math.max(SD.bi, bi); selPaint();
+  });
+  $('tgRows').addEventListener('touchmove', e => { if (SD && SD.sel) e.preventDefault(); }, { passive: false });
+  ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, e => {
+    if (!SD) return; clearTimeout(SD.tm); const d = SD; SD = null;
+    if (!d.sel && ev === 'pointerup' && cur && cur.whole && !playing()) { cur.picked = true; cur.selA = d.bi; cur.selB = null; cur.loop = false; selPaint(); }
+  }));
+  $('tgSFrom').addEventListener('click', () => { if (!cur || !cur.whole || playing()) return; cur.loop = false; if (!cur.picked) cur.selA = 0; start(); });
+  $('tgSLoop').addEventListener('click', () => { if (!cur || !cur.whole || playing() || !cur.picked) return; cur.loop = true; if (cur.selB == null) cur.selB = cur.selA; start(); });
+  $('tgSClear').addEventListener('click', () => { if (!cur || !cur.whole) return; cur.picked = false; cur.selA = 0; cur.selB = null; cur.loop = false; selPaint(); });
   $('tgTempo').addEventListener('input', () => { if (!playing() && !gbFixed()) setTempo(+$('tgTempo').value); });
   $('tgPrevLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, -1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
   $('tgNextLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, 1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
@@ -14225,7 +14304,7 @@ const TG = (() => {
   dlg.addEventListener('close', () => { fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
-  return { open, openFit, playSong, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
+  return { open, openFit, playSong, songCard, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
     week, tap: (t, src) => hit(t, false, undefined, src), rel: (t, src) => release(t, src), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
@@ -16121,7 +16200,7 @@ var PP = (() => {
   function beat(o) {   // called by the beat loader: 'busy' while it measures, then { bpm, first, name } (or null when it failed)
     if (o === 'busy') { BEAT.busy = true; beatStop(); }
     else { BEAT.busy = false; BEAT.mult = 1; if (o && o.bpm) { BEAT.bpm = o.bpm; BEAT.first = o.first || 0; } else { BEAT.bpm = 0; BEAT.first = 0; } if (o && o.name) BEAT.name = o.name; }
-    if (dlg.open) beatUi();
+    if (dlg.open) beatUi(); if (window.PPZ) PPZ.beatUi();
   }
   function beatPlay() {
     if (BEAT.src) { beatStop(); return; } if (!beatBuf || !ctx) return;
@@ -16178,12 +16257,20 @@ var PP = (() => {
     $('ppSheet').hidden = false; toast('Saved in your songs as a lyric sheet');
   }
   const plain = () => S.secs.filter(s => s.bars.some(b => b.trim())).map(s => '[' + label(S.secs.indexOf(s)) + ']\n' + s.bars.filter(b => b.trim()).join('\n')).join('\n\n');
+  function beatObj() { const off = +$('beatOffset').value; return beatBuf && BEAT.bpm ? { id: (BEAT.name || 'beat') + ':' + beatBuf.length, buf: beatBuf, bpm: tempo(), down: isFinite(off) && off >= 0 ? off : BEAT.first, name: BEAT.name } : (tempo() ? { bpm: tempo() } : null); }
+  // Create card (Bennie 2026-11-18): the song (done or half way) becomes one big card in the Flow Game; it stays on the Flow Game home
+  function card() {
+    const p = LIB.song(); if (!p) return; if (typeof rbFlush === 'function') try { rbFlush(); } catch (e) {}
+    if (!libBars(p.text).some(b => b.body.trim())) { toast('Write a bar first: the card is made from your bars'); return; }
+    const cs = store.get('metrobar.gameSongs', []).filter(id => id !== p.id); cs.unshift(p.id); store.set('metrobar.gameSongs', cs.slice(0, 50));
+    TG.songCard(p.id);
+  }
   function playGame(whole, range) {
     if (!dlg.open) { const p = LIB.song(); if (p) { fromSong(p); $('ppSongTitle').value = p.title || ''; } } else save(true);
     if (!S.id || !written()) { toast('Write a bar first'); return; }
     beatStop(); LIB.setCur(S.id, 'pp'); fitFromLib(); if (!lines.length) runFit();
     const i = lines.findIndex(L => L.N); if (i < 0) { toast('No bars to play yet'); return; }
-    const off = +$('beatOffset').value, bt = beatBuf && BEAT.bpm ? { id: (BEAT.name || 'beat') + ':' + beatBuf.length, buf: beatBuf, bpm: tempo(), down: isFinite(off) && off >= 0 ? off : BEAT.first, name: BEAT.name } : null;
+    const bt = beatObj();
     if (dlg.open) dlg.close(); TG.playSong(range ? range.a : i, bt || (tempo() ? { bpm: tempo() } : null), { whole: whole === true, to: range ? range.b : null, title: (LIB.song(S.id) || {}).title || '' });
   }
 
@@ -16242,9 +16329,9 @@ var PP = (() => {
   $('ppToWrite').addEventListener('click', () => { save(true); LIB.setCur(S.id, 'pp'); dlg.close(); location.hash = '#write'; });
   $('ppClose').addEventListener('click', () => dlg.close());
   dlg.addEventListener('close', () => { beatStop(); if (saveT) save(true); });
-  $('ppOpen').addEventListener('click', open);
+  $('ppOpen').addEventListener('click', () => PPZ.enter());
   LIB.on((kind, src) => { if (src === 'pp' || !dlg.open || !S.id) return; if (kind === 'ext' || kind === 'text') { const p = LIB.song(S.id); if (p && p.text !== textOf() && !body.contains(document.activeElement)) { fromSong(p); render(); } } });
-  return { open, openAt, beat, play: playGame, get state() { return S; }, _text: textOf, go };
+  return { open, openAt, beat, play: playGame, card, beatObj, beatInfo: () => ({ has: !!beatBuf, busy: BEAT.busy, name: BEAT.name || ($('beatBtn').title || ''), bpm: tempo() }), get state() { return S; }, _text: textOf, go };
 })();
 </script>
 <script>
@@ -16293,22 +16380,28 @@ var PPZ = (() => {
   function stripUi() { if (!strip) return; strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === hlNow()))); }
   function buildStrip() {
     strip = h('div', 'pp-strip'); strip.setAttribute('role', 'region'); strip.setAttribute('aria-label', 'Pocket Practice');
-    strip.innerHTML = '<span class="pp-sbadge">Pocket Practice</span><nav class="pp-ssteps" aria-label="Pocket Practice steps"><button type="button" data-st="0"><b>1</b>Structure</button><button type="button" data-st="1" aria-current="step"><b>2</b>Bars</button><button type="button" data-st="2"><b>3</b>Beat</button><button type="button" data-st="3"><b>4</b>Finish</button></nav>'
-      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress">Stress</button><button type="button" data-hl="rhyme">Stress + rhyme</button></div><span class="pp-ssp"></span>'
-      + '<button type="button" class="pp-splay">Play whole song</button><button type="button" class="pp-sx" aria-label="Leave Pocket Practice" title="Leave Pocket Practice">×</button>';
-    strip.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => { const n = +b.dataset.st; if (n === 1) return; PP.openAt(n); }));
+    strip.innerHTML = '<span class="pp-sbadge">Pocket Practice</span>'
+      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress">Stress</button><button type="button" data-hl="rhyme">Stress + rhyme</button></div>'
+      + '<button type="button" class="pp-sbeat" title="Upload the beat you rap on: the card plays your song on it"><span class="pp-sbn">Upload a beat</span></button><span class="pp-ssp"></span>'
+      + '<button type="button" class="pp-splay" title="Turn this song (done or half way) into one big card in the Flow Game">Create card</button><button type="button" class="pp-sx" aria-label="Leave Pocket Practice" title="Leave Pocket Practice">×</button>';
     strip.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => hlSet(b.dataset.hl)));
-    strip.querySelector('.pp-splay').addEventListener('click', () => { rbFlush(); PP.play(true); });
+    strip.querySelector('.pp-sbeat').addEventListener('click', () => $('beatFile').click());
+    strip.querySelector('.pp-splay').addEventListener('click', () => PP.card());
     strip.querySelector('.pp-sx').addEventListener('click', () => { exit(); mwGo('#practice'); });
   }
   function place() {
     const head = document.querySelector('.be-head'); if (!head) { setTimeout(place, 120); return; }
     if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || strip.nextElementSibling !== head) head.before(strip);
-    tools(); stripUi(); wrSync();
+    tools(); stripUi(); beatUi(); wrSync();
     const want = store.get('metrobar.ppHl', 'stress'); if (want !== hlNow() || ($('bsFlowB') && $('bsFlowB').getAttribute('aria-pressed') !== 'true')) hlSet(want);
   }
+  function blank() {   // a blank page: the empty one Pocket Practice made last time, else a new one (no pile of empty songs)
+    let p = LIB.pages.find(x => x.ppBlank && !String(x.text || '').trim());
+    if (p) LIB.setCur(p.id, 'pp'); else { p = LIB.create('', '', 'pp'); p.ppBlank = true; LIB.saveNow(); }
+    return p.id;
+  }
   function enter(id) {
-    if (id) LIB.setCur(id, 'pp'); on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {}
+    LIB.setCur(id || blank(), 'pp'); on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {}
     if (location.hash === '#book') { try { bookOpen(); } catch (e) {} place(); } else mwGo('#book');
   }
   function exit() { if (!on) return; on = false; html.classList.remove('pp-mode'); try { sessionStorage.removeItem('metrobar.ppMode'); } catch (e) {} toolsBack(); if (strip) strip.remove(); }
@@ -16325,7 +16418,8 @@ var PPZ = (() => {
     if (!STASH.some(x => x.text === t)) STASH.unshift({ text: t, at: Date.now() }); STASH = STASH.slice(0, 300); stashSave(); toast('Stashed: ' + t.slice(0, 40));
   }, true);
   try { if (sessionStorage.getItem('metrobar.ppMode') === '1' && location.hash === '#book') { on = true; html.classList.add('pp-mode'); setTimeout(place, 300); } } catch (e) {}
-  return { enter, exit, get on() { return on; }, sync: wrSync };
+  function beatUi() { if (!strip) return; const b = PP.beatInfo(), el = strip.querySelector('.pp-sbn'); el.textContent = b.busy ? 'Finding the tempo…' : b.has ? `${(b.name || 'Your beat').replace(/\.[a-z0-9]+$/i, '').slice(0, 24)}${b.bpm ? ' · ' + Math.round(b.bpm) + ' BPM' : ''}` : 'Upload a beat'; }
+  return { enter, exit, beatUi, get on() { return on; }, sync: wrSync };
 })();
 </script>
 </body>
