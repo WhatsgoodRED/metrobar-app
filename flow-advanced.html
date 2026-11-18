@@ -22,10 +22,16 @@ document.addEventListener('DOMContentLoaded', function () {
     '#mxGate .t { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 18rem; } #mxGate .t i { height: 8px; border-radius: 4px; background: #d3d6d1; } #mxGate .t i:last-child { background: #af0000; }' +
     '#mxGate .nt { color: #af0000; font-size: .9rem; } #mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
     '#mxGate a { margin-top: 10px; color: #5d636a; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; }' +
+    '#mxGate .ea-b, #mxGate .go { margin-top: 4px; border: 0; border-radius: 999px; background: #af0000; color: #fff; font: inherit; font-weight: 600; font-size: .95rem; text-decoration: none; text-transform: none; letter-spacing: 0; padding: 10px 22px; cursor: pointer; }' +
+    '#mxGate .go:disabled { opacity: .6; cursor: default; } #mxGate .ea { display: grid; gap: 10px; width: 100%; max-width: 22rem; text-align: left; } #mxGate .ea[hidden], #mxGate .ea-b[hidden] { display: none; }' +
+    '#mxGate .ea label { display: grid; gap: 4px; font-size: .85rem; color: #3b4046; } #mxGate .ea i { font-style: normal; color: #80868c; }' +
+    '#mxGate .ea input, #mxGate .ea textarea { font: inherit; font-size: 1rem; padding: 9px 11px; border: 1px solid #c9cdc7; border-radius: 10px; background: #fff; color: #15171a; resize: vertical; }' +
+    '#mxGate .ea input:focus, #mxGate .ea textarea:focus { outline: 2px solid #af0000; outline-offset: 1px; } #mxGate .ea .go { justify-self: center; } #mxGate .hp { position: absolute; left: -9999px; width: 1px; height: 1px; opacity: 0; }' +
+    '#mxGate .ea-m { min-height: 1.2em; font-size: .85rem; text-align: center; } #mxGate .ea-ok { color: #15171a; text-align: center; }' +
     'html.mx-ok #mxGate { display: none; }';
   document.head.appendChild(st);
   var g = document.createElement('div'); g.id = 'mxGate'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'MetroBar is under maintenance');
-  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><p class="nt" hidden></p><a href="landing-beat-meter.html">Signed up already? Sign in</a></div>';
+  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><p class="nt" hidden></p><button type="button" class="ea-b">Request early access</button><form class="ea" hidden novalidate><label><span>Email</span><input name="email" type="email" required autocomplete="email" spellcheck="false" placeholder="you@example.com"></label><label><span>Name or artist name <i>(optional)</i></span><input name="name" maxlength="80" autocomplete="nickname"></label><label><span>Anything we should know? <i>(optional)</i></span><textarea name="note" rows="3" maxlength="1000"></textarea></label><input name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true"><button type="submit" class="go">Send request</button><p class="ea-m" role="status"></p></form><a href="landing-beat-meter.html" class="si">Signed up already? Sign in</a></div>';
   document.body.appendChild(g);
   /* Coming soon (Bennie 2026-11-18): an account made before ZONE_CONFIG.maintenanceSince gets through, so does an admin;
      an account made later (or nobody signed in) sees the curtain. Sign-up is off while maintenance is on. */
@@ -42,11 +48,35 @@ document.addEventListener('DOMContentLoaded', function () {
     if (CUT && made && made < CUT) { open(u.id); return; }
     try { if (sessionStorage.getItem('metrobar.mxOk') === u.id) de.classList.add('mx-ok'); } catch (e) {}
     if (!C.url || !C.key) return;
-    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(u.id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
-      .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (rows) { if (rows && rows.length) open(u.id); else shut('This account was made after sign-ups closed. It opens at launch.'); })
-      .catch(function () {});
+    var H = { apikey: C.key, Authorization: 'Bearer ' + C.key, 'Content-Type': 'application/json' };
+    var deny = function () { shut('This account is not on the early-access list yet. Request it below.'); };
+    var admin = function () { // fallback while mx_can_enter is missing: admins only
+      fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(u.id), { headers: H })
+        .then(function (r) { return r.ok ? r.json() : []; }).then(function (rows) { rows && rows.length ? open(u.id) : deny(); }).catch(function () {});
+    };
+    // mx_can_enter (zone/early-access-2026-11-18.sql): admin, made before the curtain, or email on public.early_access
+    fetch(C.url + '/rest/v1/rpc/mx_can_enter', { method: 'POST', headers: H, body: JSON.stringify({ p_uid: u.id }) })
+      .then(function (r) { if (!r.ok) throw 0; return r.json(); })
+      .then(function (ok) { ok === true ? open(u.id) : deny(); })
+      .catch(admin);
   };
+  /* Request early access (Bennie 2026-11-18): the form posts to metrobarz.com/early-access.php, which mails info@metrobarz.com. */
+  var eb = g.querySelector('.ea-b'), ef = g.querySelector('.ea'), em = g.querySelector('.ea-m');
+  var eaFail = 'That did not go through. Mail info@metrobarz.com instead.';
+  eb.addEventListener('click', function () { ef.hidden = false; eb.hidden = true; ef.elements.email.focus(); });
+  ef.addEventListener('submit', function (e) {
+    e.preventDefault(); var b = ef.querySelector('.go'), v = function (k) { return ef.elements[k].value.trim(); };
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('email'))) { em.textContent = 'That email does not look right.'; return; }
+    b.disabled = true; em.textContent = 'Sending…';
+    fetch(C.earlyAccess || 'https://metrobarz.com/early-access.php', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: v('email'), name: v('name'), note: v('note'), hp: v('hp'), page: location.host + location.pathname }) })
+      .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { j.status = r.status; return j; }); })
+      .then(function (j) {
+        if (j.ok) { ef.innerHTML = '<p class="ea-ok">Thanks, your request is in. You get an email when your spot opens.</p>'; return; }
+        b.disabled = false; em.textContent = j.status === 429 ? 'Too many requests from here. Try again in an hour.' : j.why === 'email' ? 'That email does not look right.' : eaFail;
+      })
+      .catch(function () { b.disabled = false; em.textContent = eaFail; });
+  });
   check();
   window.addEventListener('focus', check);
   window.addEventListener('storage', function (e) { if (e.key === 'metrobar.zoneAuth') check(); });
