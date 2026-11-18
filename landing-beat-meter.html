@@ -3821,7 +3821,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <section class="pp-pane" data-pane="0" aria-label="Song structure">
         <p class="pp-lead">Pick the parts in the order you want them. Click a part to add it at the end, then move it, change its bars or take it out.</p>
         <div class="pp-pal" id="ppPal" role="group" aria-label="Add a part"></div>
-        <div class="pp-quick"><span>Start from</span><button class="tg-b" type="button" data-quick="verse">Verse first</button><button class="tg-b" type="button" data-quick="chorus">Chorus first</button><button class="tg-b" type="button" data-quick="clear">Empty</button></div>
+        <div class="pp-quick"><span>Start from</span><button class="tg-b" type="button" data-quick="verse">Verse first</button><button class="tg-b" type="button" data-quick="chorus">Chorus first</button><button class="tg-b" type="button" data-quick="clear">Empty</button><select id="ppTpl" class="pp-sel" aria-label="Start from a template: your own, artist structures or MetroBar drills"></select></div>
         <ol class="pp-order" id="ppOrder" aria-label="Your song, top to bottom"></ol>
         <p class="pp-sum" id="ppSum"></p>
         <div class="pp-nav"><span></span><button class="tg-b tg-pri" type="button" data-go="1">Write the bars</button></div>
@@ -7016,14 +7016,52 @@ but I kept it moving, now everybody knows.` },
     { name: 'Triplets (3 per beat)', bars: 4, sub: 3, color: '--r4', drill: 'Three a beat, then back up to five: hear the difference.' }],
     lyrics: `Running through the numbers and the money and the city with the people` },
 };
+// ---- One shared set of templates (Bennie 2026-11-18): the artist structures (Highlight Zone), the MetroBar drills (TEMPLATES) and your own
+// templates (metrobar.bookTpls, made in the Highlight Zone) show up in Write, the Highlight Zone, MetroBar's Template select and Pocket Practice.
+// A structure = parts + bar counts ([name, bars]); every one also exists as a TEMPLATES-style object (sections + lyric skeleton) via tplGet(id).
+const ARTIST_TPLS = [
+  { id: 'b50', name: '50 Cent', note: 'Hook first. The catchy part opens the song, then 16-bar verses with the hook between them.', parts: [['Intro', 4], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
+  { id: 'bbig', name: 'Biggie', note: 'A talking intro, then three full storytelling verses with a sung hook after each one.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
+  { id: 'bye', name: 'Kanye', note: 'Two verses and hooks, then a bridge that changes the mood and a long outro after the last hook.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Bridge', 8], ['Hook', 8], ['Outro', 8]] },
+  { id: 'bkdot', name: 'Kendrick', note: 'Two verses with hooks, then the beat switches and a third verse turns the song around.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Beat switch', 0], ['Verse', 16], ['Outro', 4]] },
+  { id: 'bdrake', name: 'Drake', note: 'A full song, then a beat switch into a Part 2 with one long verse.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Part 2', 24]] },
+  { id: 'btrav', name: 'Travis', note: 'Melodic hook first, shorter verses, a switch-up bridge in the middle.', parts: [['Hook', 8], ['Verse', 12], ['Hook', 8], ['Bridge', 8], ['Verse', 12], ['Outro', 8]] },
+  { id: 'bfut', name: 'Future', note: 'Hook first and often: three hooks around two verses.', parts: [['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8]] },
+  { id: 'bem', name: 'Eminem', note: 'Three dense verses that build, each harder than the last, with the hook between them.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
+  { id: 'bflow', name: 'Flowdan', note: 'Grime at 140: a long intro over the beat, the hook early, then hard 16s and a hook between them.', parts: [['Intro', 8], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 8]] },
+  { id: 'bjay', name: 'JAY-Z', note: 'Straight to the bars: three verses, a short hook between them, no intro.', parts: [['Verse', 16], ['Hook', 4], ['Verse', 16], ['Hook', 4], ['Verse', 16], ['Hook', 4]] },
+  { id: 'bradio', name: 'Radio single', note: 'The classic: hook first, two 16s, a bridge before the last hook.', parts: [['Intro', 4], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Bridge', 8], ['Hook', 8]] },
+  { id: 'bfree', name: 'Freestyle', note: 'One long verse, no hook.', parts: [['Verse', 32]] }
+];
+const tplPartName = n => (parseMeter(n) ? n + ' bars' : n);   // "[3/4]" would read as a meter tag, not a part
+const DRILL_TPLS = Object.entries(TEMPLATES).map(([id, t]) => ({ id: 'w' + id, wid: id, name: t.name, note: ((t.sections[0] || {}).drill || '').split('. ')[0] + '.', parts: t.sections.map(x => [tplPartName(x.name), x.bars]) }));
+const tplColor = n => /hook|chorus/i.test(n) ? '--s4' : /verse|part/i.test(n) ? '--s1' : /bridge|switch/i.test(n) ? '--s3' : '--s2';
+function tplFromParts(t) {   // a structure as a TEMPLATES-style object: sections for MetroBar/Write checks + a lyric skeleton of headings
+  let v = 0; const nVerse = t.parts.filter(p => p[0] === 'Verse').length, nm = n => n === 'Verse' && nVerse > 1 ? 'Verse ' + ++v : n;
+  const named = t.parts.map(([n, b]) => [nm(n), +b || 0]);
+  return { name: t.name + ' (structure)', structure: true, parts: t.parts, sections: named.filter(p => p[1] > 0).map(([n, b]) => ({ name: n, bars: b, color: tplColor(n), drill: t.note || '' })),
+    lyrics: named.map(([n]) => '[' + n + ']\n').join('\n') };
+}
+ARTIST_TPLS.forEach(t => { TEMPLATES['a' + t.id] = tplFromParts(t); });
+const tplOwn = () => (store.get('metrobar.bookTpls', []) || []).filter(t => t && t.id && Array.isArray(t.parts));
+function tplGet(id) { if (!id) return null; if (TEMPLATES[id]) return TEMPLATES[id]; const o = tplOwn().find(t => t.id === id); return o ? tplFromParts(o) : null; }
+// a <select> with every template, grouped: your own, artist structures, MetroBar drills (keeps the chosen value)
+function tplFill(sel, none) {
+  const v = sel.value; sel.replaceChildren(new Option(none, ''));
+  const grp = (label, list) => { if (!list.length) return; const g = document.createElement('optgroup'); g.label = label; list.forEach(([id, n]) => g.append(new Option(n, id))); sel.append(g); };
+  grp('Your templates', tplOwn().map(t => [t.id, t.name]));
+  grp('Artist structures', ARTIST_TPLS.map(t => ['a' + t.id, t.name]));
+  grp('MetroBar drills', Object.entries(TEMPLATES).filter(([, t]) => !t.structure).map(([id, t]) => [id, t.name]));
+  if (v && [...sel.options].some(o => o.value === v)) sel.value = v;
+}
 let SECTIONS = EMPTY_SECTIONS, tplId = '', barSection = [];
 function setSections(list) { SECTIONS = list; barSection = []; SECTIONS.forEach((s, i) => { for (let k = 0; k < s.bars; k++) barSection.push(i); }); }
 setSections(EMPTY_SECTIONS);
 function applyTemplate(id, setTempo) {
-  const t = TEMPLATES[id]; tplId = t ? id : '';
+  const t = tplGet(id); tplId = t ? id : '';
   if (practice) exitPractice();
   setSections(t ? t.sections : EMPTY_SECTIONS);
-  if (t && setTempo) setBpm(t.bpm);
+  if (t && setTempo && t.bpm) setBpm(t.bpm);
   store.set('metrobar.tpl', tplId); $('tpl').value = tplId;
   applyPm();
 }
@@ -8175,7 +8213,7 @@ $('pmPreset').addEventListener('change', () => { const [g, c] = $('pmPreset').va
 { const pm = store.get('metrobar.pm', null); if (pm) { if (pm.beats) $('beats').value = /^\d$/.test(pm.beats) ? pm.beats + '/4' : pm.beats; if (!$('beats').value) $('beats').value = '4/4'; if (pm.subdiv) $('subdiv').value = pm.subdiv; $('pmOn').checked = !!pm.on; if (pm.grid) $('pmGrid').value = pm.grid; if (pm.cell) $('pmCell').value = pm.cell; $('pmSolo').checked = !!pm.solo; }
 }
 // ---- templates: song shape for the map, a lyric skeleton on request, or your own bars placed into the shape
-Object.entries(TEMPLATES).forEach(([id, t]) => { const o = h('option', '', t.name); o.value = id; $('tpl').append(o); });
+tplFill($('tpl'), 'None (4-bar loop)'); $('tpl').addEventListener('focus', () => tplFill($('tpl'), 'None (4-bar loop)'));
 $('tpl').addEventListener('change', () => applyTemplate($('tpl').value, true));
 let undoLyrics = null;
 function lyricsChanged(next, msg) {
@@ -8208,9 +8246,9 @@ function placeInTemplate(text, t) {
   if (b < bars.length) { out.push('# Extra bars (after the template ends)'); out.push(...bars.slice(b)); }
   return { text: out.join('\n'), used: Math.min(b, bars.length), need: t.sections.reduce((a, x) => a + x.bars, 0), extra: bars.length - b };
 }
-$('tplWrite').addEventListener('click', () => { const t = TEMPLATES[tplId]; if (!t) { $('tplMsg').textContent = 'Pick a Template above first (next to Grid).'; $('tpl').focus(); return; } if (t) lyricsChanged(t.lyrics, `Lyric template for ${t.name.split(' (')[0]}: write under each heading.`); });
+$('tplWrite').addEventListener('click', () => { const t = tplGet(tplId); if (!t) { $('tplMsg').textContent = 'Pick a Template above first (next to Grid).'; $('tpl').focus(); return; } if (t) lyricsChanged(t.lyrics, `Lyric template for ${t.name.split(' (')[0]}: write under each heading.`); });
 $('tplPlace').addEventListener('click', () => {
-  const t = TEMPLATES[tplId]; if (!t) { $('tplMsg').textContent = 'Pick a Template above first (next to Grid).'; $('tpl').focus(); return; }
+  const t = tplGet(tplId); if (!t) { $('tplMsg').textContent = 'Pick a Template above first (next to Grid).'; $('tpl').focus(); return; }
   if (!$('lyrics').value.trim()) { $('tplMsg').textContent = 'Type or paste your bars first (one line per bar), then press Place my lyrics.'; return; }
   const r = placeInTemplate($('lyrics').value, t);
   lyricsChanged(r.text, `Placed ${r.used} bar${r.used === 1 ? '' : 's'} into ${t.name.split(' (')[0]} (it has ${r.need})${r.extra ? `, ${r.extra} left over at the end` : ''}.`);
@@ -8460,7 +8498,7 @@ function wrChecks() {
   if (m) box.append(h('div', 'todo', `Enjambment: ${Math.round(m.EA * 100)}% of bars end a sentence. Style: ${m.style}.`));
   const over = WR.bars.filter(r => r.L.N > +$('wrAim').value);
   if (over.length) box.append(h('div', 'todo', `Over your aim of ${$('wrAim').value}: bar ${over.map(r => r.bar + 1).join(', ')}.`));
-  const t = TEMPLATES[$('wrTpl').value];
+  const t = tplGet($('wrTpl').value);
   if (t) { const need = t.sections.reduce((a, x) => a + x.bars, 0); box.append(h('div', 'todo', `${t.name.split(' (')[0]}: ${ls.length} of ${need} bars written.`)); }
 }
 // ---- Technique check + cliché score: the whole song, or only the bars you select (select inside one line to check that bar)
@@ -8880,7 +8918,7 @@ document.addEventListener('click', e => {
   e.preventDefault(); mwGo(h);
 }, true);
 // ---- wiring
-Object.entries(TEMPLATES).forEach(([id, t]) => { const o = h('option', '', t.name); o.value = id; $('wrTpl').append(o); });
+tplFill($('wrTpl'), 'None'); $('wrTpl').addEventListener('focus', () => tplFill($('wrTpl'), 'None'));
 $('wrText').addEventListener('input', wrInput);
 ['click', 'keyup'].forEach(ev => $('wrText').addEventListener(ev, e => {
   const ta = $('wrText'); wrPaint(); wrFlow(); wrTechCheck();
@@ -8916,11 +8954,11 @@ $('wrAim').addEventListener('change', () => { store.set('metrobar.wrView', { rh:
 { const v = store.get('metrobar.wrView', null); if (v) { if (v.rh) $('wrRhymes').setAttribute('aria-pressed', v.rh); if (v.st) $('wrStress').setAttribute('aria-pressed', v.st); if (v.fl) $('wrFlowBtn').setAttribute('aria-pressed', v.fl); if (v.aim) $('wrAim').value = v.aim; } }
 $('wrTpl').addEventListener('change', () => { const s = wrSong(); if (s) { s.tpl = $('wrTpl').value; s.updated = now(); wrSave(); } wrChecks(); });
 $('wrTplWrite').addEventListener('click', () => {
-  const t = TEMPLATES[$('wrTpl').value]; if (!t) { wrMsg('Pick a template first.'); return; }
+  const t = tplGet($('wrTpl').value); if (!t) { wrMsg('Pick a template first.'); return; }
   const before = $('wrText').value; wrInsert(t.lyrics + '\n', true); wrMsg(`Added the ${t.name.split(' (')[0]} skeleton at the end.`, before);
 });
 $('wrTplPlace').addEventListener('click', () => {
-  const t = TEMPLATES[$('wrTpl').value]; if (!t) { wrMsg('Pick a template first.'); return; }
+  const t = tplGet($('wrTpl').value); if (!t) { wrMsg('Pick a template first.'); return; }
   const before = $('wrText').value; if (!before.trim()) { wrMsg('Write or paste your bars first (one line per bar).'); return; }
   const r = placeInTemplate(before, t); $('wrText').value = r.text; wrInput();
   wrMsg(`Placed ${r.used} bar${r.used === 1 ? '' : 's'} into ${t.name.split(' (')[0]} (it has ${r.need})${r.extra ? `, ${r.extra} left over` : ''}.`, before);
@@ -8928,7 +8966,7 @@ $('wrTplPlace').addEventListener('click', () => {
 $('wrPractice').addEventListener('click', () => {
   const s = wrSong(); if (!s || !s.text.trim()) { wrMsg('Write some bars first.'); return; }
   wrFlush(); wrSave(); location.hash = '#practice'; fitFromLib();   // the same song: the Fit box already holds it
-  if (s.tpl && TEMPLATES[s.tpl] && s.tpl !== tplId) applyTemplate(s.tpl, false);
+  if (s.tpl && tplGet(s.tpl) && s.tpl !== tplId) applyTemplate(s.tpl, false);
   runFit(); advReveal(document.querySelector('.fit')); setTimeout(() => document.querySelector('.fit').scrollIntoView({ block: 'start' }), 50);
 });
 $('wrDup').addEventListener('click', () => { const s = wrSong(); if (s) { wrCreate(s.text, (s.title || 'Untitled') + ' (copy)', s.tpl); wrMsg('Duplicated.'); } });
@@ -10938,7 +10976,7 @@ function ckRoot() {
 function ckPage(p) {
   if (p === 'tempo') { const cur = bpm(); return [60, 70, 80, 85, 90, 95, 100, 120, 130, 140, 145, 150, 160, 170].map(v => ({ group: 'Tempo', label: `${v} BPM`, key: v === cur ? 'now' : '', run: () => bpmSet(v) }))
     .concat([{ group: 'Tempo', label: `Half: ${Math.round(cur / 2)} BPM`, run: () => bpmSet(cur / 2), kw: 'half' }, { group: 'Tempo', label: `Double: ${cur * 2} BPM`, run: () => bpmSet(cur * 2), kw: 'double' }].filter(x => /\d+/.exec(x.label) && +/\d+(?= BPM)/.exec(x.label)[0] >= 60 && +/\d+(?= BPM)/.exec(x.label)[0] <= 200)); }
-  if (p === 'tpl') return Object.entries(TEMPLATES).map(([id, t]) => ({ group: 'Templates', label: t.name, run: () => { goView(false); $('tpl').value = id; $('tpl').dispatchEvent(new Event('change')); advReveal($('tpl')); } }));
+  if (p === 'tpl') return Object.entries(TEMPLATES).concat(tplOwn().map(t => [t.id, tplFromParts(t)])).map(([id, t]) => ({ group: 'Templates', label: t.name, run: () => { goView(false); $('tpl').value = id; $('tpl').dispatchEvent(new Event('change')); advReveal($('tpl')); } }));
   if (p === 'song') return WR.songs.map(s => ({ group: 'Your songs', label: s.title || 'Untitled', kw: (s.text || '').slice(0, 120), run: () => { goView(true); wrFlush(); WR.cur = s.id; wrSave(); wrOpen(); } }));
   if (p === 'tech') return TECHS.map((t, i) => ({ group: 'Techniques', label: t.name, kw: (t.what || '') + ' ' + ((TECH_TAG[t.name] || []).join(' ')), run: () => { goView(true); wrPanel('Techniques', true, true); wrTechShow(i, true); } }));
   return [];
@@ -14804,24 +14842,11 @@ var TPL = {};
 function tplBoot() { if (TPL.use) return; TPL = (() => {
   if (!window.BBAPP || typeof BE === 'undefined' || !BE.head) return {};
   const { btn, sv, IC } = BE, say = (m, o) => { if (typeof toast === 'function') toast(m, o); };
-  const BUILT = [
-    { id: 'b50', name: '50 Cent', note: 'Hook first. The catchy part opens the song, then 16-bar verses with the hook between them.', parts: [['Intro', 4], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
-    { id: 'bbig', name: 'Biggie', note: 'A talking intro, then three full storytelling verses with a sung hook after each one.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
-    { id: 'bye', name: 'Kanye', note: 'Two verses and hooks, then a bridge that changes the mood and a long outro after the last hook.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Bridge', 8], ['Hook', 8], ['Outro', 8]] },
-    { id: 'bkdot', name: 'Kendrick', note: 'Two verses with hooks, then the beat switches and a third verse turns the song around.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Beat switch', 0], ['Verse', 16], ['Outro', 4]] },
-    { id: 'bdrake', name: 'Drake', note: 'A full song, then a beat switch into a Part 2 with one long verse.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Part 2', 24]] },
-    { id: 'btrav', name: 'Travis', note: 'Melodic hook first, shorter verses, a switch-up bridge in the middle.', parts: [['Hook', 8], ['Verse', 12], ['Hook', 8], ['Bridge', 8], ['Verse', 12], ['Outro', 8]] },
-    { id: 'bfut', name: 'Future', note: 'Hook first and often: three hooks around two verses.', parts: [['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8]] },
-    { id: 'bem', name: 'Eminem', note: 'Three dense verses that build, each harder than the last, with the hook between them.', parts: [['Intro', 4], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
-    { id: 'bflow', name: 'Flowdan', note: 'Grime at 140: a long intro over the beat, the hook early, then hard 16s and a hook between them.', parts: [['Intro', 8], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 8]] },
-    { id: 'bjay', name: 'JAY-Z', note: 'Straight to the bars: three verses, a short hook between them, no intro.', parts: [['Verse', 16], ['Hook', 4], ['Verse', 16], ['Hook', 4], ['Verse', 16], ['Hook', 4]] },
-    { id: 'bradio', name: 'Radio single', note: 'The classic: hook first, two 16s, a bridge before the last hook.', parts: [['Intro', 4], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Bridge', 8], ['Hook', 8]] },
-    { id: 'bfree', name: 'Freestyle', note: 'One long verse, no hook.', parts: [['Verse', 32]] }
-  ];
+  const BUILT = ARTIST_TPLS;
   const NAMES = ['Intro', 'Verse', 'Pre-hook', 'Hook', 'Bridge', 'Beat switch', 'Part 2', 'Outro'];
   const own = () => store.get('metrobar.bookTpls', []), ownSet = a => store.set('metrobar.bookTpls', a);
   const fav = () => store.get('metrobar.bookTplFav', ''), favSet = id => store.set('metrobar.bookTplFav', id || '');
-  const all = () => own().concat(BUILT), byId = id => all().find(t => t.id === id);
+  const all = () => own().concat(BUILT, DRILL_TPLS), byId = id => all().find(t => t.id === id);
   const bars = t => t.parts.reduce((a, p) => a + (+p[1] || 0), 0);
   // the page lines for a template: each part = its heading + that many empty bars; plain "Verse" parts are numbered
   function linesOf(t) { const L = []; let v = 0; t.parts.forEach(([n, b]) => { L.push('[' + (n === 'Verse' ? 'Verse ' + ++v : n) + ']'); for (let k = 0; k < (+b || 0); k++) L.push(''); }); if (L.length && isHeadL(L[L.length - 1])) L.push(''); return L; }
@@ -14878,6 +14903,8 @@ function tplBoot() { if (TPL.use) return; TPL = (() => {
     mine.forEach(t => body.append(card(t, true)));
     body.append(h('h4', '', 'Artist structures'), h('p', 'tp-note', 'How these artists usually lay out a song: hook first or not, how many verses, a bridge or a beat switch. Structure only, never their words.'));
     BUILT.forEach(t => body.append(card(t, false)));
+    body.append(h('h4', '', 'MetroBar drills'), h('p', 'tp-note', 'The drill templates from Write and MetroBar: Radio freestyle, stomp cadence, odd meters, cadences and quintuplets, as parts and bar counts.'));
+    DRILL_TPLS.forEach(t => body.append(card(t, false)));
   }
   // the parts of the song you are in, as [name, bars]; numbered verses go back to plain "Verse"
   function structureNow() {
@@ -16072,6 +16099,16 @@ var PP = (() => {
     const before = snap(), had = written(); S.secs = QUICK[b.dataset.quick].map(nm => ({ name: nm, n: defBars(nm), bars: Array(defBars(nm)).fill('') }));
     save(); renderOrder(); if (had) undoable('New structure', before);
   }));
+  // templates: the same set as Write and the Highlight Zone (your own, artist structures, MetroBar drills)
+  const tplSel = $('ppTpl'), tplLoad = () => tplFill(tplSel, 'Template…');
+  tplLoad(); tplSel.addEventListener('focus', tplLoad); tplSel.addEventListener('pointerdown', tplLoad);
+  tplSel.addEventListener('change', () => {
+    const id = tplSel.value, own = tplOwn().find(t => t.id === id), t = own || ARTIST_TPLS.find(x => 'a' + x.id === id) || DRILL_TPLS.find(x => x.wid === id); if (!t) return;
+    const before = snap(), had = written();
+    S.secs = t.parts.filter(p => +p[1] > 0).map(([n, b]) => { const c = Math.min(BMAX, +b); return { name: String(n), n: c, bars: Array(c).fill('') }; });
+    save(); renderOrder(); tplSel.value = '';
+    if (had) undoable(`${t.name} structure`, before); else toast(`${t.name} structure: ${S.secs.length} parts`);
+  });
   body.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
   dlg.querySelectorAll('.pp-steps button').forEach(b => b.addEventListener('click', () => go(+b.dataset.step)));
   body.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => { hl = b.dataset.hl; store.set('metrobar.ppHl', hl); paintAll(); hlUi(); }));
