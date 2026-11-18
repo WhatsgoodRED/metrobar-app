@@ -1906,6 +1906,112 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 html.mo-off .tg-ebtn .tg-edots i.on { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tg-ebtn .tg-edots i.on { animation: none !important; } .tg-ebtn { transition: none; } }
 @media (max-width: 560px) { .tg-ebtn { padding-inline: 10px; } .tg-edots { gap: 4px; } .tg-edots i { width: 8px; height: 8px; } .tg-edots i.on { width: 14px; height: 14px; } }
+/* ---- Pocket Practice (Bennie 2026-11-18): build your own song (structure, bars, highlight, beat) and play it in the Flow Game or keep it as a
+   lyric sheet. Entry card = the Flow Game card's look; the dialog reuses dialog.tg. Classes pp-*. */
+#viewPractice > .pp-entry { margin-top: 18px; }
+.pp-echips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 40rem; }
+.pp-echips i { font-style: normal; font: 600 .72rem var(--body); letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.pp-echips i.on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--fg); }
+.pp-name { font-family: 'Panchang', var(--display) !important; font-weight: 605 !important; font-variation-settings: 'wght' 605; letter-spacing: 0 !important; }
+.pp-steps { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); min-width: 0; overflow-x: auto; }
+.pp-steps button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: transparent; color: var(--muted); font: 600 .82rem var(--body); padding: 6px 12px; min-height: 30px; border-radius: 7px; cursor: pointer; white-space: nowrap; }
+.pp-steps button b { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; font-size: .68rem; border: 1px solid currentColor; }
+.pp-steps button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+.pp-steps button:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
+.pp-body { display: grid; align-content: start; gap: 18px; }
+.pp-song { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-top: 6px; }
+.pp-lbl { font: 600 .72rem var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.pp-title { flex: 1 1 14rem; min-width: 0; font: 600 1.05rem var(--body); color: var(--fg); background: transparent; border: 0; border-bottom: 1px solid var(--line); padding: 6px 2px; }
+.pp-title:focus { outline: none; border-bottom-color: var(--accent); }
+.pp-sel { max-width: 14rem; min-height: 38px; font: inherit; font-size: .84rem; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 0 8px; }
+.pp-saved { font-size: .78rem; color: var(--muted); min-width: 4rem; }
+.pp-pane { display: grid; gap: 14px; min-width: 0; }
+.pp-lead { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.5; max-width: 46rem; }
+.pp-pal { display: flex; flex-wrap: wrap; gap: 8px; }
+.pp-pal button { font: 600 .86rem var(--body); padding: 9px 14px; min-height: 40px; border-radius: 999px; border: 1px dashed color-mix(in srgb, var(--fg) 30%, var(--line)); background: transparent; color: var(--fg); cursor: pointer; transition: transform .12s ease-out, border-color .15s; }
+.pp-pal button::before { content: '+ '; color: var(--accent-text, var(--accent)); }
+.pp-pal button:hover { border-style: solid; border-color: var(--accent); }
+.pp-pal button:active { transform: scale(.97); }
+.pp-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); }
+.pp-quick .tg-b { min-height: 32px; padding: 4px 12px; font-size: .8rem; }
+.pp-order { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; counter-reset: pp; }
+.pp-order:empty::after { content: 'No parts yet. Add a Verse or a Chorus above.'; color: var(--muted); font-size: .88rem; padding: 18px; border: 1px dashed var(--line); border-radius: 12px; text-align: center; }
+.pp-it { display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto auto; align-items: center; gap: 10px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--tg-card); counter-increment: pp; }
+.pp-it::before { content: counter(pp); font: 700 .8rem var(--mono, monospace); color: var(--muted); text-align: center; }
+.pp-it .pp-nm { font-weight: 700; font-size: .95rem; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pp-it .pp-nm small { font-weight: 500; color: var(--muted); margin-left: 6px; }
+.pp-stp { display: inline-flex; align-items: center; gap: 4px; font-size: .82rem; color: var(--muted); }
+.pp-stp b { min-width: 1.6rem; text-align: center; color: var(--fg); font-variant-numeric: tabular-nums; }
+.pp-ib { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; font: 600 .9rem var(--body); padding: 0; }
+.pp-ib:disabled { opacity: .35; cursor: default; }
+.pp-ib:focus-visible, .pp-pal button:focus-visible, .pp-card:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
+.pp-acts { display: inline-flex; gap: 4px; }
+.pp-sum { margin: 0; font-size: .86rem; color: var(--muted); }
+.pp-nav { display: flex; justify-content: space-between; gap: 10px; padding-top: 4px; }
+.pp-hlrow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.pp-key { display: inline-flex; flex-wrap: wrap; gap: 10px; font-size: .78rem; color: var(--muted); }
+.pp-key i { font-style: normal; display: inline-flex; align-items: center; gap: 5px; }
+.pp-key i::before { content: ''; width: 18px; height: 10px; border-radius: 6px; background: var(--bd-syl); }
+.pp-key i.rh::before { height: 3px; border-radius: 2px; background: hsl(200 82% 45%); }
+.pp-secs { display: grid; gap: 16px; }
+.pp-sec { border: 1px solid var(--line); border-radius: 14px; background: var(--tg-card); padding: 12px 12px 8px; display: grid; gap: 2px; min-width: 0; }
+.pp-sh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 2px 8px; }
+.pp-sh h3 { margin: 0; font: 700 .8rem var(--body); letter-spacing: .08em; text-transform: uppercase; }
+.pp-sh .pp-sn { font-size: .78rem; color: var(--muted); }
+.pp-sh .tg-b { min-height: 30px; padding: 3px 10px; font-size: .76rem; margin-left: auto; }
+.pp-bar { display: grid; grid-template-columns: 1.6rem minmax(0, 1fr) 2.2rem; align-items: start; gap: 8px; padding: 6px 2px; border-top: 1px solid color-mix(in srgb, var(--line) 60%, transparent); }
+.pp-bar:first-of-type { border-top: 0; }
+.pp-bn { font: 600 .74rem var(--mono, monospace); color: var(--muted); padding-top: 10px; text-align: right; }
+.pp-bw { display: grid; gap: 4px; min-width: 0; }
+.pp-in { width: 100%; min-width: 0; font: 500 1rem var(--body); color: var(--fg); background: transparent; border: 0; border-bottom: 1px dashed transparent; padding: 7px 2px; }
+.pp-in::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+.pp-in:focus { outline: none; border-bottom-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.pp-lit { display: flex; flex-wrap: wrap; gap: 4px 6px; min-height: 0; padding: 0 2px 2px; font: 600 .9rem var(--body); line-height: 1.2; }
+.pp-lit:empty { display: none; }
+.pp-w { display: inline-flex; align-items: center; padding: 1px 2px 3px; border-radius: 4px; }
+.pp-s { padding: 2px 3px; border-radius: 999px; color: color-mix(in srgb, var(--fg) 72%, transparent); }
+.pp-s.st { background: var(--bd-syl); color: #fff; padding: 2px 7px; }
+.pp-w.rh { --c: hsl(var(--h) 82% calc(43% + var(--d, 0) * -6%)); --t: color-mix(in srgb, var(--c) 17%, transparent); background: var(--t); box-shadow: inset 0 -2px 0 var(--c); }
+:root[data-theme="dark"] .pp-body .pp-w.rh { --c: hsl(var(--h) 80% calc(62% + var(--d, 0) * -6%)); --t: color-mix(in srgb, var(--c) 22%, transparent); }
+.pp-w.rh .pp-s:not(.st) { color: var(--fg); }
+.pp-cnt { font: 700 .78rem var(--mono, monospace); color: var(--muted); padding-top: 10px; text-align: center; font-variant-numeric: tabular-nums; }
+.pp-cnt.off { color: var(--tg-ok); }
+.pp-beat { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--tg-card); }
+.pp-bst { display: grid; gap: 2px; min-width: 0; }
+.pp-bst b { font-size: .95rem; overflow-wrap: anywhere; }
+.pp-bst span { font-size: .84rem; color: var(--muted); }
+.pp-tempo { display: flex; align-items: center; gap: 8px; }
+.pp-tempo b { font: 700 1.3rem var(--body); font-variant-numeric: tabular-nums; min-width: 3ch; text-align: center; }
+.pp-u { font-size: .78rem; color: var(--muted); }
+.pp-fin { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 12px; }
+.pp-card { display: grid; gap: 6px; text-align: left; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--tg-card); color: var(--fg); cursor: pointer; font: inherit; transition: transform .12s ease-out, border-color .15s, box-shadow .2s; }
+.pp-card b { font-size: 1rem; }
+.pp-card span { font-size: .86rem; color: var(--muted); line-height: 1.45; }
+.pp-card:hover { border-color: var(--accent); box-shadow: 0 12px 34px -18px color-mix(in srgb, var(--accent) 60%, transparent); }
+.pp-card:active { transform: scale(.985); }
+.pp-card:disabled { opacity: .5; cursor: not-allowed; }
+.pp-shbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.pp-paper { background: #fff; color: #15181a; border-radius: 12px; padding: clamp(18px, 4vw, 40px); border: 1px solid var(--line); --rb-cs: 82%; --rb-cl: 43%; --rb-ta: 17%; }
+.pp-paper h1 { margin: 0 0 4px; font: 700 1.3rem var(--body); }
+.pp-paper .pp-meta { margin: 0 0 18px; font-size: .82rem; color: #5b625f; }
+.pp-paper h2 { margin: 18px 0 6px; font: 700 .76rem var(--body); letter-spacing: .1em; text-transform: uppercase; color: #5b625f; }
+.pp-paper p { margin: 0; padding: 3px 0; font-size: 1rem; line-height: 1.55; display: flex; flex-wrap: wrap; gap: 2px 6px; }
+.pp-paper .pp-s { color: #15181a; }
+.pp-paper .pp-s.st { background: #1f66c9; color: #fff; }
+@media (max-width: 640px) {
+  .pp-it { grid-template-columns: 1.4rem minmax(0, 1fr) auto; }
+  .pp-it .pp-acts { grid-column: 2 / -1; justify-content: flex-end; }
+  .pp-bar { grid-template-columns: 1.2rem minmax(0, 1fr) 1.8rem; gap: 6px; }
+  .pp-sel { max-width: 100%; flex: 1 1 10rem; }
+  dialog.pp .tg-hd { flex-wrap: wrap; }
+  .pp-steps { order: 3; width: 100%; }
+}
+@media print {
+  body.pp-printing > *:not(#ppDlg) { display: none !important; }
+  body.pp-printing #ppDlg { position: static; width: auto; height: auto; border: 0; box-shadow: none; display: block; overflow: visible; }
+  body.pp-printing #ppDlg > *:not(.pp-body), body.pp-printing .pp-body > *:not([data-pane="3"]), body.pp-printing [data-pane="3"] > *:not(.pp-sheet), body.pp-printing .pp-shbar { display: none !important; }
+  body.pp-printing .pp-paper { border: 0; padding: 0; }
+}
 
 /* the dialog: MetroBar's own page background (light by day, black only in dark mode) */
 dialog.tg { --tg-perfect: #2f8a43; --tg-good: #1f66c9; --tg-ok: #b9531a; --tg-miss: var(--accent); --tg-card: color-mix(in srgb, var(--panel) 70%, var(--bg)); --tg-ink: #fff;
@@ -3694,6 +3800,73 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     </div>
     <div class="tg-advp" id="tgAdvP" role="tabpanel" aria-labelledby="tgTabAdv" hidden></div>
   </dialog>
+  <dialog class="tg pp" id="ppDlg" aria-labelledby="ppTitle">
+    <div class="tg-hd">
+      <h2 id="ppTitle" class="pp-name">Pocket Practice</h2>
+      <div class="pp-steps" role="tablist" aria-label="Pocket Practice steps">
+        <button type="button" role="tab" data-step="0" aria-selected="true"><b>1</b>Structure</button><button type="button" role="tab" data-step="1" aria-selected="false"><b>2</b>Bars</button><button type="button" role="tab" data-step="2" aria-selected="false"><b>3</b>Beat</button><button type="button" role="tab" data-step="3" aria-selected="false"><b>4</b>Finish</button>
+      </div>
+      <span class="tg-sp"></span>
+      <button class="tg-ib tg-x" id="ppClose" type="button" aria-label="Close Pocket Practice">×</button>
+    </div>
+    <div class="tg-body pp-body" id="ppBody">
+      <div class="pp-song">
+        <label class="pp-lbl" for="ppSongTitle">Song</label>
+        <input id="ppSongTitle" class="pp-title" placeholder="Untitled song" autocomplete="off" aria-label="Song title">
+        <select id="ppSongSel" class="pp-sel" aria-label="Open another of your songs"></select>
+        <button class="tg-b" id="ppNewSong" type="button">+ New song</button>
+        <span class="pp-saved" id="ppSaved" aria-live="polite"></span>
+      </div>
+
+      <section class="pp-pane" data-pane="0" aria-label="Song structure">
+        <p class="pp-lead">Pick the parts in the order you want them. Click a part to add it at the end, then move it, change its bars or take it out.</p>
+        <div class="pp-pal" id="ppPal" role="group" aria-label="Add a part"></div>
+        <div class="pp-quick"><span>Start from</span><button class="tg-b" type="button" data-quick="verse">Verse first</button><button class="tg-b" type="button" data-quick="chorus">Chorus first</button><button class="tg-b" type="button" data-quick="clear">Empty</button></div>
+        <ol class="pp-order" id="ppOrder" aria-label="Your song, top to bottom"></ol>
+        <p class="pp-sum" id="ppSum"></p>
+        <div class="pp-nav"><span></span><button class="tg-b tg-pri" type="button" data-go="1">Write the bars</button></div>
+      </section>
+
+      <section class="pp-pane" data-pane="1" aria-label="Write the bars" hidden>
+        <div class="pp-hlrow">
+          <span class="pp-lbl">Highlight</span>
+          <div class="tg-seg" role="group" aria-label="What to highlight"><button type="button" data-hl="stress" aria-pressed="true">Stress words</button><button type="button" data-hl="rhyme" aria-pressed="false">Stress + rhyme words</button></div>
+          <span class="pp-key" id="ppKey"></span>
+        </div>
+        <div class="pp-secs" id="ppSecs"></div>
+        <div class="pp-nav"><button class="tg-b" type="button" data-go="0">Structure</button><button class="tg-b tg-pri" type="button" data-go="2">Add a beat</button></div>
+      </section>
+
+      <section class="pp-pane" data-pane="2" aria-label="Your beat" hidden>
+        <p class="pp-lead">Upload the beat you rap on (mp3, wav, m4a). MetroBar finds its tempo and first beat, and the Flow Game plays your song on it. No beat? The Flow Game plays a MetroBar beat.</p>
+        <div class="pp-beat" id="ppBeat">
+          <button class="tg-b tg-pri" type="button" id="ppBeatUp">Upload a beat</button>
+          <button class="tg-b" type="button" id="ppBeatPlay" hidden>Play beat</button>
+          <div class="pp-bst"><b id="ppBeatName">No beat yet</b><span id="ppBeatInfo"></span></div>
+        </div>
+        <div class="pp-tempo" id="ppTempoRow" hidden>
+          <span class="pp-lbl">Tempo</span>
+          <button class="tg-b tg-sq" type="button" id="ppHalf" title="Half the tempo">½</button>
+          <b id="ppBpm">–</b><span class="pp-u">BPM</span>
+          <button class="tg-b tg-sq" type="button" id="ppDbl" title="Double the tempo">×2</button>
+        </div>
+        <div class="pp-nav"><button class="tg-b" type="button" data-go="1">Bars</button><button class="tg-b tg-pri" type="button" data-go="3">Finish</button></div>
+      </section>
+
+      <section class="pp-pane" data-pane="3" aria-label="Finish your song" hidden>
+        <p class="pp-lead" id="ppDoneLead"></p>
+        <div class="pp-fin">
+          <button class="pp-card" type="button" id="ppPlayGame"><b>Play it in the Flow Game</b><span>Every bar of your song becomes a round: tap or rap the dots into your pocket, bar after bar, on your beat.</span></button>
+          <button class="pp-card" type="button" id="ppSheetBtn"><b>Keep it as a lyric sheet</b><span>Your song, saved in your songs, as a clean sheet with the highlight. Print it, copy it or open it in Write.</span></button>
+        </div>
+        <div class="pp-sheet" id="ppSheet" hidden>
+          <div class="pp-shbar"><button class="tg-b" type="button" id="ppPrint">Print</button><button class="tg-b" type="button" id="ppCopy">Copy lyrics</button><button class="tg-b" type="button" id="ppToWrite">Open in Write</button></div>
+          <article class="pp-paper" id="ppPaper"></article>
+        </div>
+        <div class="pp-nav"><button class="tg-b" type="button" data-go="2">Beat</button><span></span></div>
+      </section>
+    </div>
+  </dialog>
   <dialog class="info" id="infoDlg" aria-labelledby="infoTitle">
     <div class="info-h"><h2 id="infoTitle">How MetroBar works</h2><button class="ibtn x" id="infoClose" aria-label="Close">×</button></div>
     <div class="info-beat">
@@ -4045,6 +4218,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
   </section>
     </div></div>
   </section>
+
+  <section class="tg-entry pp-entry"><button class="tg-ebtn" id="ppOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Pocket Practice</span><span class="tg-ebs" id="ppOpenS">Build your own song: pick the parts, write the bars, load your beat, then play it in the Flow Game.</span></span><span class="pp-echips" aria-hidden="true"><i>Intro</i><i class="on">Verse</i><i class="on">Chorus</i><i>Verse</i><i class="on">Chorus</i><i>Outro</i></span></button></section>
 
   <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots into your pocket. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
@@ -7346,16 +7521,18 @@ $('beatFile').addEventListener('change', async e => {
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
   detected = null; $('keyInfo').textContent = ''; $('keyNotes').hidden = true; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
   try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); }
-  catch { beatBuf = null; logoWave(); bbShow(); $('det').textContent = 'Could not read that file'; return; }
+  catch { beatBuf = null; logoWave(); bbShow(); $('det').textContent = 'Could not read that file'; if (window.PP) PP.beat(null); return; }
   waveOv = null; logoWave(); beatSkip = 0; bbShow();
   busy($('det'), 'Finding the BPM'); orbSet('think');
+  if (window.PP) PP.beat('busy');
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
   const myBuf = beatBuf;
   const res = await coreJob('detectBpm', chs, beatBuf.sampleRate);
   if (beatBuf !== myBuf) return;   // another beat was loaded meanwhile
   orbSet('off');
-  if (!showDetected(res, 'file')) return;
+  if (!showDetected(res, 'file')) { if (window.PP) PP.beat({ name: f.name }); return; }
+  if (window.PP) PP.beat({ bpm: detected.bpm, first: detected.first, name: f.name });
   $('beatOffset').value = detected.first.toFixed(2); bbShow();   // offset is prefilled; the BPM never is
   persist(); stretched = { sp: 1, buf: null }; makeStretch();
   // Key finder: after the BPM, so the BPM shows first
@@ -13272,9 +13449,9 @@ const TG = (() => {
   // ---- one bar on screen: the Breakdown drawing twice (first and second time through), with marks laid over the dots
   function setCur(o) {
     stopRound(); cur = o; fails = 0; const rec = o.key ? S.best[S.mode][o.key] || 0 : 0;
-    tempo = o.fit != null ? rec || o.base : Math.max(o.base, rec);
+    tempo = o.song ? o.base : o.fit != null ? rec || o.base : Math.max(o.base, rec);
     $('tgHome').hidden = true; $('tgPlay').hidden = false; $('tgBack').hidden = false; $('tgRes').hidden = true; $('tgPad').hidden = false;
-    $('tgTitle').textContent = o.calib ? 'Calibrate' : o.fit != null ? 'Your bars' : 'Level ' + lvNo(o.lv);
+    $('tgTitle').textContent = o.calib ? 'Calibrate' : o.song ? 'Your song' : o.fit != null ? 'Your bars' : 'Level ' + lvNo(o.lv);
     const nm = $('tgName'); nm.replaceChildren(); if (o.no) nm.append(h('span', 'tg-acc', o.no + ' ')); nm.append(o.name); $('tgSub').textContent = o.sub; $('tgTip').textContent = o.tip;
     $('tgPlay').classList.remove('tg-going'); bestShow(); navUi();
     $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm();
@@ -13284,7 +13461,19 @@ const TG = (() => {
     $('tgPad').focus({ preventScroll: true }); dlg.querySelector('.tg-body').scrollTop = 0;
   }
   // level nav on the play screen: previous / next level in play order and a picker for any level of any chapter
+  // your song (Pocket Practice): previous / next bar of the song and a picker for any bar, by section
+  const songNx = (i, d) => { for (let k = i + d; k >= 0 && k < lines.length; k += d) if (lines[k].N) return k; return -1; };
+  function navSong() {
+    const pv = songNx(cur.fit, -1), nx = songNx(cur.fit, 1), sel = $('tgJump');
+    [['tgPrevLv', pv, 'Previous bar'], ['tgNextLv', nx, 'Next bar']].forEach(([id, k, t]) => { const b = $(id); b.disabled = k < 0; b.title = k < 0 ? '' : `${t}: ${lines[k].text}`; });
+    sel.replaceChildren(); let g = null, gs = null, n = 0;
+    lines.forEach((L, k) => { if (!L.N) return; n++; const sn = L.section ? L.section.name : 'Bars';
+      if (!g || gs !== L.section) { g = document.createElement('optgroup'); g.label = sn; gs = L.section; sel.append(g); }
+      const o = document.createElement('option'); o.value = String(k); o.textContent = `${n}. ${L.text.slice(0, 48)}`; o.selected = k === cur.fit; g.append(o); });
+  }
   function navUi() {
+    const sg = !!(cur && cur.song); $('tgPrevLv').setAttribute('aria-label', sg ? 'Previous bar' : 'Previous level'); $('tgNextLv').setAttribute('aria-label', sg ? 'Next bar' : 'Next level'); $('tgJump').setAttribute('aria-label', sg ? 'Jump to any bar of your song' : 'Jump to any level');
+    if (sg) { $('tgLnav').hidden = false; navSong(); return; }
     const on = !!cur && cur.lv != null && !cur.calib; $('tgLnav').hidden = !on; if (!on) return;
     const pv = step(cur.lv, -1), nx = step(cur.lv, 1), sel = $('tgJump');
     [['tgPrevLv', pv, 'Previous level'], ['tgNextLv', nx, 'Next level']].forEach(([id, lv, t]) => { const b = $(id); b.disabled = lv < 0; b.title = lv < 0 ? '' : `${t}: ${lvNo(lv)} ${LADDER[lv].name}`; });
@@ -13301,11 +13490,17 @@ const TG = (() => {
     box.hidden = items.length < 2;
     items.forEach(([t, on, go]) => { const b = h('button', 'tg-ln', t); b.type = 'button'; if (on) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => { if (!playing() && !on) go(); }); box.append(b); });
   }
-  function playFit(i) {
+  function playFit(i, song) {
     const L = lines[i]; if (!L || !L.N) return;
-    setCur({ key: fitKey(L), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, no: 'Bar ' + (i + 1), name: L.flow.name, sub: `Your bars · ${by()} · “${L.text}”`,
-      tip: 'Your own words on the dots Fit gave them. To try another flow, use Compare A/B/C/D on the Fit card.', base: Math.min(bpm(), 90) });
+    if (song == null) song = !!(cur && cur.song);
+    const sec = L.section ? L.section.name : '', bn = lines.slice(0, i + 1).filter(x => x.N).length;
+    setCur({ key: fitKey(L), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, song, no: 'Bar ' + (song ? bn : i + 1), name: L.flow.name,
+      sub: song ? `${sec ? sec + ' · ' : ''}Your song · ${by()} · “${L.text}”` : `Your bars · ${by()} · “${L.text}”`,
+      tip: song ? 'Your own song, bar by bar. Next bar (or the list) moves on; Pocket Practice is where you change the words.' : 'Your own words on the dots Fit gave them. To try another flow, use Compare A/B/C/D on the Fit card.',
+      base: song ? Math.round(Math.min(200, Math.max(50, OWNB ? OWNB.bpm : songBpm || Math.min(bpm(), 90)))) : Math.min(bpm(), 90) });
   }
+  let songBpm = 0;
+  function playSong(i, beat) { OWNB = beat && beat.buf ? beat : null; ownOff = false; songBpm = beat && beat.bpm ? beat.bpm : 0; open(); playFit(i, true); }
   function playCal() {
     setCur({ key: null, calib: true, L: ladderBar(0, 0), name: 'Find your delay', sub: by(), base: 90,
       tip: S.mode === 'voice' ? 'Say a short "ta" on every click, eight times. MetroBar measures how late the mic hears you and sets the sound delay for voice.'
@@ -13403,10 +13598,13 @@ const TG = (() => {
   // beats/index.json). The page decodes them itself, so they play on the game's own audio clock, stretched with the pitch kept to the
   // tempo you play at, starting on a bar line: nothing to guess or tap in. 4/4 levels only (other meters play to clicks).
   const MB_STYLES = ['Boom bap', 'Trap', 'Lo-fi'], MB = { list: null, buf: {}, st: {} };
+  // Pocket Practice: the beat you uploaded there plays under your own song, locked to the grid from its first beat (OWNB = { id, buf, bpm, down, name })
+  const OWN_ST = 'Your beat'; let OWNB = null, ownOff = false;
   async function mbList() { if (MB.list && MB.list.length) return MB.list; try { const r = await fetch('beats/index.json', { cache: 'no-cache' }); MB.list = r.ok ? await r.json() : []; } catch (e) { MB.list = []; } return MB.list; }
   const mbFor = (style, bpm, list) => { const c = list.filter(x => x.style === style), pool = c.length ? c : list; return pool.reduce((a, x) => (!a || Math.abs(x.bpm - bpm) < Math.abs(a.bpm - bpm) ? x : a), null); };
   async function mbReady(style, bpm) {
-    const x = mbFor(style, bpm, await mbList()); if (!x) return null;
+    const x = style === OWN_ST ? (OWNB ? { file: 'own:' + OWNB.id, bpm: OWNB.bpm, down: OWNB.down } : null) : mbFor(style, bpm, await mbList()); if (!x) return null;
+    if (style === OWN_ST) MB.buf[x.file] = OWNB.buf;
     let buf = MB.buf[x.file];
     if (!buf) { const r = await fetch(x.file); if (!r.ok) return null; buf = MB.buf[x.file] = await new OfflineAudioContext(2, 1, 44100).decodeAudioData(await r.arrayBuffer()); }
     const rate = bpm / x.bpm; let b = buf, down = x.down, bar = 240 / x.bpm, pr = rate;
@@ -13427,7 +13625,9 @@ const TG = (() => {
   const gbLv = () => !cur || cur.calib ? null : cur.lv != null ? LADDER[cur.lv].id : 'fit';
   const gbUse = () => GBS.on && !!gbLv();
   function gbPick() {
-    const id = gbLv(); if (!id) return null; if (GBS.pick[id]) return GBS.pick[id];
+    const id = gbLv(); if (!id) return null;
+    if (cur && cur.song && OWNB && !ownOff) return { kind: 'mb', style: OWN_ST };
+    if (GBS.pick[id]) return GBS.pick[id];
     return { kind: 'mb', style: MB_STYLES[(cur && cur.lv != null ? cur.lv : 0) % MB_STYLES.length] };   // default: a MetroBar beat, the style changes level by level
   }
   const gbKey = p => p ? (p.kind === 'mb' ? 'mb:' + p.style : p.kind === 'sc' ? 'sc:' + p.url : 'yt:' + p.id) : '';
@@ -13535,14 +13735,14 @@ const TG = (() => {
     const row = $('tgBeat'), use = !!gbLv(); row.hidden = !use; if (!use) return;
     $('tgBeatOn').checked = GBS.on; row.classList.toggle('tg-boff', !GBS.on);
     const p = gbPick(), lk = gbLock(), b = gbTempo(), id = gbLv(), mb = p.kind === 'mb'; row.classList.toggle('tg-bmb', mb);
-    $('tgBeatName').textContent = mb ? `${p.style} · MetroBar beat · ${tempo} BPM` : `${p.label}${b ? ' · ' + Math.round(b) + ' BPM' : ''} · ${p.kind === 'sc' ? 'SoundCloud' : 'YouTube'}`;
+    $('tgBeatName').textContent = mb && p.style === OWN_ST ? `${OWNB.name || 'Your beat'} · your beat · ${tempo} BPM` : mb ? `${p.style} · MetroBar beat · ${tempo} BPM` : `${p.label}${b ? ' · ' + Math.round(b) + ' BPM' : ''} · ${p.kind === 'sc' ? 'SoundCloud' : 'YouTube'}`;
     $('tgBeatSt').textContent = !GBS.on ? 'Off: you play to the clicks, at any tempo.' : mb ? (mbFits() ? 'Made for MetroBar and locked to the grid at the tempo you play: nothing to tap in. Next beat changes the style.' : 'This level isn’t in 4/4, so it plays to the clicks.')
       : state === 'lock' ? 'Tap along with the beat.' : lk ? 'Tapped in. Every round starts on the beat’s next bar; the beat sets the tempo. Still off? Nudge it.' : 'Every round starts on the beat’s next bar. Off the grid? Tap it in, or nudge it.';
     $('tgBeatTap').hidden = !GBS.on || mb; $('tgBeatTap').textContent = lk ? 'Tap it in again' : 'Tap it in'; $('tgBeatOwn').hidden = !GBS.on || mb;
     $('tgBeatNew').hidden = !GBS.on || !mb; $('tgBeatYt').hidden = !GBS.on; $('tgBeatYt').textContent = mb ? 'Find one on YouTube' : 'Next YouTube beat'; $('tgNudge').hidden = !GBS.on || mb;
     const fx = gbFixed(); if (!playing() && state !== 'lock') ['tgTempo', 'tgSlow', 'tgFast'].forEach(i => { $(i).disabled = fx; });
   }
-  function mbNext() { const id = gbLv(); if (!id || playing()) return; const p = gbPick(), i = p.kind === 'mb' ? MB_STYLES.indexOf(p.style) : -1; GBS.pick[id] = { kind: 'mb', style: MB_STYLES[(i + 1) % MB_STYLES.length] }; gbKeep(); msg(''); gbSwitch(); }
+  function mbNext() { const id = gbLv(); if (!id || playing()) return; if (cur && cur.song && OWNB && !ownOff) ownOff = true; const p = gbPick(), i = p.kind === 'mb' ? MB_STYLES.indexOf(p.style) : -1; GBS.pick[id] = { kind: 'mb', style: MB_STYLES[(i + 1) % MB_STYLES.length] }; gbKeep(); msg(''); gbSwitch(); }
   // YouTube backup: only beats whose title says the tempo you play at (or half / double it); Next walks through what was found
   async function ytNext() {
     const id = gbLv(); if (!id || !GBS.on || playing()) return; const want = Math.round(tempo), style = (GB_LIST[id] || GB_LIST.space)[2], q = want + ':' + style;
@@ -13864,9 +14064,9 @@ const TG = (() => {
   $('tgSong').addEventListener('click', () => { if (!playing()) setTempo(bpm()); });
   $('tgStop').addEventListener('click', () => { if (R && R.lock != null && R.ot) { otOver('Stopped'); return; } stopRound(); });
   $('tgTempo').addEventListener('input', () => { if (!playing() && !gbFixed()) setTempo(+$('tgTempo').value); });
-  $('tgPrevLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
-  $('tgNextLv').addEventListener('click', () => { const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
-  $('tgJump').addEventListener('change', e => { const lv = +e.target.value; if (lv >= 0 && lv < LADDER.length) playLadder(lv, 0); });
+  $('tgPrevLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, -1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
+  $('tgNextLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, 1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
+  $('tgJump').addEventListener('change', e => { if (cur && cur.song) { const k = +e.target.value; if (lines[k] && lines[k].N) playFit(k, true); return; } const lv = +e.target.value; if (lv >= 0 && lv < LADDER.length) playLadder(lv, 0); });
   $('tgPick').addEventListener('click', () => $('tgLvH').scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }));
   $('tgAll').addEventListener('click', home);
   $('tgBeatOn').addEventListener('change', () => { GBS.on = $('tgBeatOn').checked; gbKeep(); stopRound(); if (!GBS.on) gbPause(); else if (GB.yt || GB.sc) gbLoad(false); gbTempoSync(); });
@@ -13908,7 +14108,7 @@ const TG = (() => {
   dlg.addEventListener('close', () => { fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
-  return { open, openFit, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
+  return { open, openFit, playSong, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
     week, tap: (t, src) => hit(t, false, undefined, src), rel: (t, src) => release(t, src), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
@@ -15629,6 +15829,270 @@ var HZG = (function () {
   const go = () => setTimeout(() => { if (window.BBAPP) check(); }, 300);
   if (window.BBAPP) document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
   return { go, shut };
+})();
+</script>
+<script>
+// ---- Pocket Practice (Bennie 2026-11-18: "creating my own song, based on the look and feel of the flow game, so I can play the flow game
+// with my own song"). 1 structure (parts in any order), 2 bars (highlight = the Flow Game's tap targets: stressed syllables as blue pills,
+// optionally rhyme words in their rhyme colour), 3 beat (MetroBar's own loader: tempo + first beat), 4 play it in the Flow Game bar by bar on
+// that beat (TG.playSong) or keep it as a lyric sheet. The song is one LIB song: "[Part]" heading lines + bars (an empty bar = an empty line),
+// the parts and bar counts in song.pp. Classes pp-*. Var because the beat loader calls PP.beat().
+var PP = (() => {
+  const dlg = $('ppDlg'), body = $('ppBody');
+  const PARTS = [['Intro', 4], ['Verse', 16], ['Pre-chorus', 4], ['Chorus', 8], ['Hook', 8], ['Bridge', 8], ['Outro', 4]];
+  const QUICK = { verse: ['Intro', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Bridge', 'Chorus', 'Outro'], chorus: ['Chorus', 'Verse', 'Chorus', 'Verse', 'Chorus', 'Outro'], clear: [] };
+  const defBars = n => (PARTS.find(p => p[0] === n) || [0, 8])[1];
+  const BMAX = 32;
+  let S = { id: null, secs: [] }, step = 0, hl = store.get('metrobar.ppHl', 'stress') === 'rhyme' ? 'rhyme' : 'stress', rows = null, rowOf = [], saveT = 0, paintT = 0;
+  const BEAT = { name: '', bpm: 0, first: 0, busy: false, mult: 1, src: null };
+  const cache = new Map();
+  const anal = t => { if (cache.has(t)) return cache.get(t); let L = null; try { L = analyseLine(t, fix); } catch (e) {} if (cache.size > 600) cache.clear(); cache.set(t, L); return L; };
+
+  // ---- the song <-> text
+  const baseName = t => String(t || '').replace(/\s+\d+$/, '').trim() || 'Verse';
+  function label(k) {
+    const nm = S.secs[k].name, all = S.secs.filter(s => s.name === nm).length;
+    if (all < 2 || !/^(Verse|Bridge|Pre-chorus)$/.test(nm)) return nm;
+    return nm + ' ' + (S.secs.slice(0, k + 1).filter(s => s.name === nm).length);
+  }
+  function textOf() {
+    rowOf = []; const out = [];
+    S.secs.forEach((s, k) => {
+      if (out.length) out.push('');
+      out.push('[' + label(k) + ']'); rowOf[k] = [];
+      const b = s.bars.slice(); while (b.length && !b[b.length - 1].trim()) b.pop();
+      s.bars.forEach((t, i) => { rowOf[k][i] = i < b.length ? out.length + i : -1; });
+      b.forEach(t => out.push(t.replace(/\n/g, ' ')));
+    });
+    return out.join('\n');
+  }
+  function fromSong(p) {
+    const secs = []; let cur = null;
+    String(p.text || '').split('\n').forEach(raw => {
+      const t = raw.trim(), hd = /^\[([^\]]+)\]$/.exec(t);
+      if (hd && !parseMeter(hd[1].trim())) { cur = { name: baseName(hd[1]), bars: [] }; secs.push(cur); return; }
+      if (!cur) { if (!t) return; cur = { name: 'Verse', bars: [] }; secs.push(cur); }
+      cur.bars.push(t);
+    });
+    secs.forEach(s => { while (s.bars.length && !s.bars[s.bars.length - 1]) s.bars.pop(); });
+    const pp = p.pp && Array.isArray(p.pp.secs) && p.pp.secs.length === secs.length ? p.pp.secs : null;
+    secs.forEach((s, k) => { const n = pp ? pp[k].n : Math.max(s.bars.length, Math.min(defBars(s.name), Math.max(4, s.bars.length))); s.n = Math.min(BMAX, Math.max(1, n, s.bars.length)); if (pp && pp[k].name) s.name = pp[k].name; while (s.bars.length < s.n) s.bars.push(''); });
+    S = { id: p.id, secs };
+  }
+  const written = () => S.secs.reduce((a, s) => a + s.bars.filter(b => b.trim()).length, 0);
+  const total = () => S.secs.reduce((a, s) => a + s.n, 0);
+  function save(now) {
+    clearTimeout(saveT); saveT = 0;
+    const run = () => {
+      const text = textOf(), title = $('ppSongTitle').value.trim();
+      let p = S.id ? LIB.song(S.id) : null;
+      if (!p) { if (!S.secs.length && !title) return; p = LIB.create(text, title, 'pp'); S.id = p.id; songs(); }
+      else { LIB.setText(p.id, text, 'pp'); if (title && p.title !== title) { p.title = title; p.updated = Date.now(); } }
+      p.pp = { secs: S.secs.map(s => ({ name: s.name, n: s.n })) }; LIB.save();
+      $('ppSaved').textContent = 'Saved';
+    };
+    if (now) run(); else { $('ppSaved').textContent = ''; saveT = setTimeout(run, 450); }
+  }
+  function songs() {
+    const sel = $('ppSongSel'); sel.replaceChildren();
+    const o0 = document.createElement('option'); o0.value = ''; o0.textContent = LIB.pages.length ? 'Open one of your songs…' : 'No songs yet'; sel.append(o0);
+    LIB.pages.forEach(p => { const o = document.createElement('option'); o.value = p.id; o.textContent = (p.title || 'Untitled').slice(0, 40) + (p.pp ? '' : ' (no parts yet)'); o.selected = p.id === S.id; sel.append(o); });
+  }
+  function load(p) { if (p) { fromSong(p); $('ppSongTitle').value = p.title || ''; } else { S = { id: null, secs: [] }; $('ppSongTitle').value = ''; } rows = null; songs(); render(); }
+
+  // ---- 1 structure
+  function snap() { return JSON.stringify(S.secs); }
+  function undoable(msg, before) { toast(msg, { undo: () => { S.secs = JSON.parse(before); save(); render(); } }); }
+  function addPart(nm) { const n = defBars(nm); S.secs.push({ name: nm, n, bars: Array(n).fill('') }); save(); renderOrder(); }
+  function renderOrder() {
+    const ol = $('ppOrder'); ol.replaceChildren();
+    S.secs.forEach((s, k) => {
+      const li = h('li', 'pp-it'), nm = h('span', 'pp-nm', label(k)), w = s.bars.filter(b => b.trim()).length;
+      if (w) nm.append(h('small', '', `${w} written`));
+      const minN = Math.max(1, s.bars.reduce((m, b, i) => (b.trim() ? i + 1 : m), 0));
+      const stp = h('span', 'pp-stp'), dn = h('button', 'pp-ib', '−'), up = h('button', 'pp-ib', '+'), n = h('b', '', String(s.n));
+      dn.type = up.type = 'button'; dn.setAttribute('aria-label', `Fewer bars in ${label(k)}`); up.setAttribute('aria-label', `More bars in ${label(k)}`);
+      dn.disabled = s.n <= minN; up.disabled = s.n >= BMAX;
+      dn.onclick = () => { if (s.n > minN) { s.n--; s.bars.length = s.n; save(); renderOrder(); } };
+      up.onclick = () => { if (s.n < BMAX) { s.n++; s.bars.push(''); save(); renderOrder(); } };
+      stp.append(dn, n, up, ' bars');
+      const acts = h('span', 'pp-acts'), mu = h('button', 'pp-ib', '↑'), md = h('button', 'pp-ib', '↓'), rm = h('button', 'pp-ib', '×');
+      [mu, md, rm].forEach(b => { b.type = 'button'; });
+      mu.setAttribute('aria-label', `Move ${label(k)} up`); md.setAttribute('aria-label', `Move ${label(k)} down`); rm.setAttribute('aria-label', `Take out ${label(k)}`);
+      mu.disabled = k === 0; md.disabled = k === S.secs.length - 1;
+      mu.onclick = () => { [S.secs[k - 1], S.secs[k]] = [S.secs[k], S.secs[k - 1]]; save(); renderOrder(); ol.children[k - 1].querySelector('.pp-acts button').focus(); };
+      md.onclick = () => { [S.secs[k + 1], S.secs[k]] = [S.secs[k], S.secs[k + 1]]; save(); renderOrder(); ol.children[k + 1].querySelectorAll('.pp-acts button')[1].focus(); };
+      rm.onclick = () => { const b = snap(), l = label(k); S.secs.splice(k, 1); save(); renderOrder(); if (w) undoable(`${l} taken out`, b); };
+      acts.append(mu, md, rm); li.append(nm, stp, acts); ol.append(li);
+    });
+    $('ppSum').textContent = S.secs.length ? `${S.secs.length} part${S.secs.length > 1 ? 's' : ''} · ${total()} bars${written() ? ` · ${written()} written` : ''}` : '';
+  }
+
+  // ---- 2 bars, with the Flow Game's highlight
+  function parts(raw, n) {   // the word as typed, cut into n syllables for display
+    if (n <= 1 || /\d/.test(raw)) return [raw];
+    const ps = splitSyl(raw.toLowerCase().replace(/[^a-z']/g, ''), n), out = []; let p = 0;
+    const letters = raw.replace(/[^A-Za-z]/g, '').length; if (ps.join('').length !== letters) return [raw];
+    ps.forEach((q, i) => { let need = q.length, e = p; while (e < raw.length && (need > 0 || (i === ps.length - 1))) { if (/[A-Za-z]/.test(raw[e])) need--; e++; } out.push(raw.slice(p, e)); p = e; });
+    if (p < raw.length) out[out.length - 1] += raw.slice(p);
+    return out.filter(Boolean).length === n ? out : [raw];
+  }
+  function lit(el, text, bw, mode) {
+    el.replaceChildren(); if (!String(text || '').trim()) return null;
+    const L = anal(text); if (!L || !L.words) return null;
+    const by = L.words.map(() => []); L.syl.forEach(y => { if (by[y.w]) by[y.w].push(y); });
+    let j = 0;
+    L.words.forEach((w, wi) => {
+      const sy = by[wi], span = h('span', 'pp-w'), ps = parts(w.raw, sy.length);
+      if (ps.length === sy.length) ps.forEach((t, i) => span.append(h('span', 'pp-s' + (sy[i].st ? ' st' : ''), t)));
+      else span.append(h('span', 'pp-s' + (sy.some(y => y.st) ? ' st' : ''), w.raw));
+      if (mode === 'rhyme' && bw) {
+        const k = cleanKey(w.raw); let m = -1; for (let q = j; q < Math.min(bw.length, j + 4); q++) if (bw[q].k === k) { m = q; break; }
+        if (m >= 0) { j = m + 1; const x = bw[m]; if (x.c) { span.classList.add('rh'); bookPaint(span, x); span.title = 'Rhymes: same colour = same sound'; } }
+      }
+      el.append(span);
+    });
+    return L;
+  }
+  const rowWords = (k, i) => { if (hl !== 'rhyme' || !rows) return null; const r = rowOf[k] ? rowOf[k][i] : -1; return r >= 0 ? rows[r] : null; };
+  function paintAll() {
+    clearTimeout(paintT); paintT = 0;
+    const text = textOf(); rows = hl === 'rhyme' ? bookHighlight(text, fix) : null;
+    $('ppSecs').querySelectorAll('.pp-bar').forEach(b => { const k = +b.dataset.k, i = +b.dataset.i; paintBar(b, k, i); });
+  }
+  function paintBar(b, k, i) {
+    const t = S.secs[k].bars[i], L = lit(b.querySelector('.pp-lit'), t, rowWords(k, i), hl), c = b.querySelector('.pp-cnt');
+    const ns = S.secs[k].bars.map(x => x.trim() ? (anal(x) || {}).N || 0 : 0).filter(Boolean).sort((p, q) => p - q), med = ns.length ? ns[ns.length >> 1] : 0;
+    c.textContent = L && L.N ? String(L.N) : ''; c.classList.toggle('off', !!(L && L.N && med && Math.abs(L.N - med) >= 3)); c.title = L && L.N ? `${L.N} syllables${med ? `, the part's middle is ${med}` : ''}` : '';
+  }
+  function focusBar(k, i) { const b = $('ppSecs').querySelector(`.pp-bar[data-k="${k}"][data-i="${i}"] input`); if (b) { b.focus(); b.setSelectionRange(b.value.length, b.value.length); } return !!b; }
+  function nextBar(k, i, d) { i += d; while (k >= 0 && k < S.secs.length) { if (i >= 0 && i < S.secs[k].n) return [k, i]; k += d; if (k < 0 || k >= S.secs.length) break; i = d > 0 ? 0 : S.secs[k].n - 1; } return null; }
+  function renderBars() {
+    const box = $('ppSecs'); box.replaceChildren();
+    if (!S.secs.length) { box.append(h('p', 'pp-lead', 'No parts yet. Go back to Structure and pick your Verse, Chorus and the rest.')); return; }
+    textOf(); rows = hl === 'rhyme' ? bookHighlight(textOf(), fix) : null;
+    let no = 0;
+    S.secs.forEach((s, k) => {
+      const sec = h('section', 'pp-sec'), hd = h('div', 'pp-sh'), w = s.bars.filter(b => b.trim()).length;
+      hd.append(h('h3', '', label(k)), h('span', 'pp-sn', `${s.n} bars${w ? ` · ${w} written` : ''}`));
+      const twin = !w ? S.secs.findIndex((o, q) => q < k && o.name === s.name && o.bars.some(b => b.trim())) : -1;
+      if (twin >= 0) { const cp = h('button', 'tg-b', `Same words as ${label(twin)}`); cp.type = 'button'; cp.onclick = () => { s.bars = S.secs[twin].bars.slice(0, s.n); while (s.bars.length < s.n) s.bars.push(''); save(); renderBars(); }; hd.append(cp); }
+      sec.append(hd);
+      s.bars.forEach((t, i) => {
+        no++; const b = h('div', 'pp-bar'), wrap = h('div', 'pp-bw'), inp = h('input', 'pp-in'), lt = h('div', 'pp-lit'), c = h('span', 'pp-cnt');
+        b.dataset.k = k; b.dataset.i = i; inp.value = t; inp.placeholder = `Bar ${i + 1}…`; inp.autocomplete = 'off'; inp.spellcheck = false; inp.setAttribute('aria-label', `${label(k)}, bar ${i + 1}`);
+        inp.addEventListener('input', () => { s.bars[i] = inp.value; save(); lit(lt, inp.value, null, 'stress'); paintBar(b, k, i); if (hl === 'rhyme') { clearTimeout(paintT); paintT = setTimeout(paintAll, 350); } });
+        inp.addEventListener('keydown', e => {
+          if (e.key === 'Enter' || (e.key === 'ArrowDown' && !e.altKey)) { const n = nextBar(k, i, 1); if (n) { e.preventDefault(); focusBar(n[0], n[1]); } }
+          else if (e.key === 'ArrowUp') { const n = nextBar(k, i, -1); if (n) { e.preventDefault(); focusBar(n[0], n[1]); } }
+        });
+        inp.addEventListener('paste', e => {
+          const tx = (e.clipboardData || window.clipboardData).getData('text'); if (!/\n/.test(tx)) return;
+          e.preventDefault(); const ls = tx.split(/\r?\n/).map(x => x.trim()).filter(Boolean); let q = i;
+          ls.forEach((x, z) => { if (q >= s.bars.length) { if (s.n >= BMAX) return; s.n++; s.bars.push(''); } s.bars[q] = z === 0 && inp.value.trim() ? inp.value.trim() + ' ' + x : x; q++; });
+          save(); renderBars(); focusBar(k, Math.min(q - 1, s.n - 1)); toast(`Pasted ${ls.length} bars into ${label(k)}`);
+        });
+        wrap.append(inp, lt); b.append(h('span', 'pp-bn', String(i + 1)), wrap, c); sec.append(b);
+        paintBar(b, k, i);
+      });
+      box.append(sec);
+    });
+    hlUi();
+  }
+  function hlUi() {
+    body.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === hl)));
+    const key = $('ppKey'); key.replaceChildren(h('i', '', 'stressed syllable = a tap in the Flow Game'));
+    if (hl === 'rhyme') key.append(h('i', 'rh', 'rhyme word: same colour = same sound'));
+  }
+
+  // ---- 3 beat (MetroBar's loader; the Flow Game plays it under your song)
+  const tempo = () => BEAT.bpm ? Math.round(BEAT.bpm * BEAT.mult * 10) / 10 : 0;
+  function beatStop() { if (BEAT.src) { try { BEAT.src.stop(); } catch (e) {} BEAT.src = null; } $('ppBeatPlay').textContent = 'Play beat'; }
+  function beatUi() {
+    const has = !!beatBuf; $('ppBeatPlay').hidden = !has; $('ppBeatUp').textContent = has ? 'Change beat' : 'Upload a beat';
+    $('ppBeatName').textContent = has ? (BEAT.name || $('beatBtn').title || 'Your beat') : 'No beat yet';
+    $('ppBeatInfo').textContent = BEAT.busy ? 'Finding the tempo…' : has ? (BEAT.bpm ? `${tempo()} BPM · first beat at ${BEAT.first.toFixed(2)} s · ${Math.round(beatBuf.duration)} s long` : 'No steady tempo found: the Flow Game plays it to the clicks at the MetroBar tempo.') : 'The Flow Game will play a MetroBar beat.';
+    $('ppTempoRow').hidden = !(has && BEAT.bpm); $('ppBpm').textContent = tempo() ? String(Math.round(tempo())) : '–';
+  }
+  function beat(o) {   // called by the beat loader: 'busy' while it measures, then { bpm, first, name } (or null when it failed)
+    if (o === 'busy') { BEAT.busy = true; beatStop(); }
+    else { BEAT.busy = false; BEAT.mult = 1; if (o && o.bpm) { BEAT.bpm = o.bpm; BEAT.first = o.first || 0; } else { BEAT.bpm = 0; BEAT.first = 0; } if (o && o.name) BEAT.name = o.name; }
+    if (dlg.open) beatUi();
+  }
+  function beatPlay() {
+    if (BEAT.src) { beatStop(); return; } if (!beatBuf || !ctx) return;
+    ctx.resume(); const s = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 0.8; s.buffer = beatBuf; s.loop = true; s.loopStart = Math.min(BEAT.first, beatBuf.duration - 1); s.loopEnd = beatBuf.duration;
+    s.connect(g).connect(ctx.destination); s.start(0, s.loopStart); BEAT.src = s; $('ppBeatPlay').textContent = 'Stop beat';
+  }
+
+  // ---- 4 finish
+  function finUi() {
+    const w = written(), t = $('ppSongTitle').value.trim() || 'Your song';
+    $('ppDoneLead').textContent = !S.secs.length ? 'Add some parts and bars first.' : `${t}: ${S.secs.length} part${S.secs.length > 1 ? 's' : ''}, ${w} of ${total()} bars written${beatBuf ? `, on ${BEAT.name || 'your beat'}` : ''}. It is saved in your songs, on every MetroBar screen.`;
+    $('ppPlayGame').disabled = !w;
+  }
+  function sheet() {
+    save(true); const pap = $('ppPaper'); pap.replaceChildren();
+    const t = $('ppSongTitle').value.trim() || 'Untitled song', text = textOf(), rws = hl === 'rhyme' ? bookHighlight(text, fix) : null;
+    pap.append(h('h1', '', t), h('p', 'pp-meta', `${written()} bars${tempo() ? ` · ${Math.round(tempo())} BPM` : ''} · MetroBar · ${new Date().toLocaleDateString()}`));
+    S.secs.forEach((s, k) => {
+      if (!s.bars.some(b => b.trim())) return; pap.append(h('h2', '', label(k)));
+      s.bars.forEach((b, i) => { if (!b.trim()) return; const p = h('p'); lit(p, b, rws && rowOf[k][i] >= 0 ? rws[rowOf[k][i]] : null, hl); pap.append(p); });
+    });
+    $('ppSheet').hidden = false; toast('Saved in your songs as a lyric sheet');
+  }
+  const plain = () => S.secs.filter(s => s.bars.some(b => b.trim())).map(s => '[' + label(S.secs.indexOf(s)) + ']\n' + s.bars.filter(b => b.trim()).join('\n')).join('\n\n');
+  function playGame() {
+    save(true); if (!S.id || !written()) return;
+    beatStop(); LIB.setCur(S.id, 'pp'); fitFromLib(); if (!lines.length) runFit();
+    const i = lines.findIndex(L => L.N); if (i < 0) { toast('No bars to play yet'); return; }
+    const off = +$('beatOffset').value, bt = beatBuf && BEAT.bpm ? { id: (BEAT.name || 'beat') + ':' + beatBuf.length, buf: beatBuf, bpm: tempo(), down: isFinite(off) && off >= 0 ? off : BEAT.first, name: BEAT.name } : null;
+    dlg.close(); TG.playSong(i, bt || (tempo() ? { bpm: tempo() } : null));
+  }
+
+  // ---- steps + open
+  function go(n) {
+    step = n; if (n !== 2) beatStop();
+    body.querySelectorAll('.pp-pane').forEach(p => { p.hidden = +p.dataset.pane !== n; });
+    dlg.querySelectorAll('.pp-steps button').forEach(b => b.setAttribute('aria-selected', String(+b.dataset.step === n)));
+    if (n === 0) renderOrder(); if (n === 1) renderBars(); if (n === 2) beatUi(); if (n === 3) { finUi(); $('ppSheet').hidden = true; }
+    body.scrollTop = 0;
+  }
+  function render() { go(step); }
+  function open() {
+    document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); });
+    const p = LIB.song(); load(p && p.pp ? p : null);
+    if (!BEAT.name && beatBuf) BEAT.name = $('beatBtn').title || '';
+    if (!BEAT.bpm && beatBuf && detected && detected.first != null) { BEAT.bpm = detected.bpm; BEAT.first = detected.first; }
+    step = S.secs.length ? (written() ? 1 : 1) : 0; if (!dlg.open) dlg.showModal(); render();
+  }
+  // palette + controls
+  PARTS.forEach(([nm]) => { const b = h('button', '', nm); b.type = 'button'; b.onclick = () => addPart(nm); $('ppPal').append(b); });
+  body.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => {
+    const before = snap(), had = written(); S.secs = QUICK[b.dataset.quick].map(nm => ({ name: nm, n: defBars(nm), bars: Array(defBars(nm)).fill('') }));
+    save(); renderOrder(); if (had) undoable('New structure', before);
+  }));
+  body.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => go(+b.dataset.go)));
+  dlg.querySelectorAll('.pp-steps button').forEach(b => b.addEventListener('click', () => go(+b.dataset.step)));
+  body.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => { hl = b.dataset.hl; store.set('metrobar.ppHl', hl); paintAll(); hlUi(); }));
+  $('ppSongTitle').addEventListener('input', () => save());
+  $('ppSongSel').addEventListener('change', e => { const id = e.target.value; if (!id) return; save(true); const p = LIB.song(id); if (p) { load(p); go(S.secs.length ? 1 : 0); } });
+  $('ppNewSong').addEventListener('click', () => { save(true); load(null); go(0); $('ppSongTitle').focus(); });
+  $('ppBeatUp').addEventListener('click', () => $('beatFile').click());
+  $('ppBeatPlay').addEventListener('click', beatPlay);
+  $('ppHalf').addEventListener('click', () => { if (tempo() / 2 >= 50) { BEAT.mult /= 2; beatUi(); } });
+  $('ppDbl').addEventListener('click', () => { if (tempo() * 2 <= 200) { BEAT.mult *= 2; beatUi(); } });
+  $('ppPlayGame').addEventListener('click', playGame);
+  $('ppSheetBtn').addEventListener('click', sheet);
+  $('ppCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(($('ppSongTitle').value.trim() ? $('ppSongTitle').value.trim() + '\n\n' : '') + plain()); toast('Lyrics copied'); } catch (e) { toast('Copy didn’t work here'); } });
+  $('ppPrint').addEventListener('click', () => { document.body.classList.add('pp-printing'); window.print(); });
+  window.addEventListener('afterprint', () => document.body.classList.remove('pp-printing'));
+  $('ppToWrite').addEventListener('click', () => { save(true); LIB.setCur(S.id, 'pp'); dlg.close(); location.hash = '#write'; });
+  $('ppClose').addEventListener('click', () => dlg.close());
+  dlg.addEventListener('close', () => { beatStop(); if (saveT) save(true); });
+  $('ppOpen').addEventListener('click', open);
+  LIB.on((kind, src) => { if (src === 'pp' || !dlg.open || !S.id) return; if (kind === 'ext' || kind === 'text') { const p = LIB.song(S.id); if (p && p.text !== textOf() && !body.contains(document.activeElement)) { fromSong(p); render(); } } });
+  return { open, beat, get state() { return S; }, _text: textOf, go };
 })();
 </script>
 </body>
