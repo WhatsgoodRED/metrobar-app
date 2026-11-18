@@ -3415,7 +3415,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 /* HZ-DAY:END */
 /* Flow pad (2026-11-14): type a bar, tap where each syllable goes, hear it rapped back. Classes fp-*. */
 #viewPractice > .fp { margin-inline: 0; }
-.fp { display: grid; gap: 12px; min-width: 0; width: 100%; max-width: 860px; justify-self: center; margin-top: 18px; padding: 18px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.fp { display: grid; gap: 12px; min-width: 0; width: 100%; padding: 14px 15px; }
 .fp-hd { text-align: center; }
 .fp-hd h2 { margin: 0; font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: clamp(1.15rem, 6vw, 1.9rem); line-height: 1; letter-spacing: 0; text-transform: uppercase; color: var(--fg); }
 .fp-hd p { margin: 4px 0 0; color: var(--muted); font-size: .92rem; }
@@ -3972,11 +3972,10 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div id="fitOut" style="display:grid;gap:10px"></div>
     </div>
   </section>
-    </div></div>
-  </section>
 
-  <section class="fp" id="fp" aria-labelledby="fpTitle">
-    <div class="fp-hd"><h2 id="fpTitle">Pocket Practice</h2><p>Type a bar, tap the grid where each syllable goes, and hear it rapped back.</p></div>
+  <section class="rack fprack" aria-label="Practice">
+    <div class="rackbar"><h2 id="fpTitle">Practice</h2><span class="rk-sub">type a bar, tap where each syllable goes, hear it back</span></div>
+  <div class="fp" id="fp">
     <p class="fp-song" id="fpSong" role="status"></p>
     <div class="fp-bars" id="fpBars"></div>
     <button class="fp-add" id="fpAdd" type="button">+ Add bar</button>
@@ -4012,7 +4011,11 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <button class="fp-b" id="fpToLyr" type="button" title="These bars live in your song: open it in Write">Open my song</button>
       </div></details></span>
     </div>
+  </div>
   </section>
+    </div></div>
+  </section>
+
   <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots into your pocket. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
 </div>
