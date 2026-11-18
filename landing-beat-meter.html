@@ -1922,6 +1922,31 @@ html.bb .pp-splay:active { transform: scale(.97); }
 html.bb .pp-sx { width: 32px; height: 32px; border-radius: 8px; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); background: transparent; color: inherit; font-size: 1.05rem; cursor: pointer; }
 html.bb .pp-strip button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 html:not(.pp-mode) .pp-wt { display: none !important; }
+
+/* Bar Book writing (Bennie 2026-11-18): Bar for bar off = one big plain pad from under the title to the bottom; the rhyme panel
+   (#rbZl, the Focus list) docks on the right and fills in as you type; Play in the top row launches the song in the Flow Game */
+#rbEd:not(.be-on) > .be-rows { display: none; }
+html.bb #rbEd:not(.be-on) { min-height: calc(100dvh - 150px); }
+html.bb #rbEd:not(.be-on) > #rbText { min-height: calc(100dvh - 170px) !important; }
+@media (min-width: 1001px) {
+  html.bb.bb-rhy #viewBook { grid-template-columns: 16.5rem minmax(0, 1fr) 18rem; }
+  html.bb.bb-rhy.bb-nolib #viewBook { grid-template-columns: minmax(0, 1fr) 18rem; }
+  html.bb.bb-rhy[data-bv="booth"] #viewBook { grid-template-columns: minmax(0, 1fr); }
+  html.bb.bb-rhy:not([data-bv="booth"]) .rb-zl[hidden] { display: grid !important; }
+  html.bb.bb-rhy .rb-zl { grid-row: 1; grid-column: -2; min-height: 0; height: 100dvh; overflow: auto; scrollbar-width: thin; align-content: start; }
+  html.bb.bb-rhy body:not(.rb-zen) .rb-zlh { display: none; }
+}
+html.bb .be-play { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent, #fff); font: 700 .86rem var(--body); cursor: pointer; }
+html.bb .be-play svg { width: 14px; height: 14px; fill: currentColor; }
+html.bb .be-play:active { transform: scale(.97); }
+html.bb .be-play:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.bb #beRf[aria-pressed="true"] { border-color: var(--accent); }
+html.bb .be-head > .be-ib, html.bb .be-head > .be-pill, html.bb .be-head > .be-play, html.bb .be-head > #bsAct { white-space: nowrap; flex-shrink: 0; }
+html.bb .be-head > #beSec { flex-shrink: 0; }
+html.bb .be-rowsb[aria-pressed="true"], html.bb .be-rowsb[aria-pressed="true"] * { color: var(--on-accent, #fff) !important; }
+html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 1500px) { html.bb.bb-rhy .be-head .be-rowsb .lbl, html.bb.bb-rhy #bsFlowB .lbl { display: none; } }
+@media (max-width: 640px) { html.bb .be-play span { display: none; } html.bb .be-play { padding: 0 12px; } }
 #rbSide .pp-wt .wr-card { display: block; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; max-width: 100%; }
 #rbSide .pp-wt .wr-card > h3 { display: none; }
 #rbSide .pp-wt .wr-card .btn { min-height: 32px; }
@@ -10118,20 +10143,24 @@ function rbZen(on) {
   rbGrow(); bookFit();
 }
 // the word the list is for: the word the caret is in or just after; while a word is still being typed the list waits for it to finish
+// the textarea you're writing in: a bar's box (Bar for bar) or the page itself
+function rbZenTa() { const a = document.activeElement; return a && a.tagName === 'TEXTAREA' && (a.id === 'rbText' || a.classList.contains('be-in')) ? a : $('rbText'); }
+// the docked rhyme panel (Bennie 2026-11-18): rhymes fill in by themselves as you type, next to the page (wide screens)
+function rhyOn() { return document.documentElement.classList.contains('bb-rhy') && innerWidth > 1000; }
 function rbZenPick(typing) {
-  const t = $('rbText'), v = t.value, pos = t.selectionStart;
+  const t = rbZenTa(), v = t.value, pos = t.selectionStart;
   if (typing && /[A-Za-z'’]/.test(v[pos - 1] || '')) return null;
   const ls = v.lastIndexOf('\n', pos - 1) + 1, line = v.slice(ls, pos + (typing ? 0 : (v.slice(pos).match(/^[A-Za-z'’]*/) || [''])[0].length));
   if (/^\s*[\[#]/.test(line)) return null;   // headings like [Verse 1]
   const m = line.match(/([A-Za-z][A-Za-z'’]*)[^A-Za-z\n]*$/); return m ? m[1] : null;
 }
 function rbZenWord(force, typing) {
-  if (!ZEN.on) return;
+  if (!ZEN.on && !rhyOn()) return;
   const raw = rbZenPick(typing); if (raw == null && !force) return;
   const w = raw ? cleanKey(raw) : ''; if (w === ZEN.w && !force) return; ZEN.w = w;
   const out = $('rbZlOut'); out.replaceChildren(); $('rbZlW').textContent = raw || '';
   $('rbZlLbl').textContent = raw ? 'Rhymes for' : 'Rhymes show up here';
-  if (!w) { out.append(h('p', 'note', 'Write a word and press space: rhymes for it show up here. Click one to add it.')); return; }
+  if (!w) { out.append(h('p', 'note', 'Write a word: rhymes for it show up here as you type. Click one to add it.')); return; }
   const r = rbWordList(w, 40);
   if (!r) { out.append(h('p', 'note', DICTUI.state === 'loading' ? 'Loading the dictionary…' : 'The rhyme list needs the pronunciation dictionary (open MetroBar from a web address).')); return; }
   // groups like a rhyme drawer: rhymes, multis with their syllable count, near rhymes, then whole phrases (idea from RhymeFlux's drawer; own code)
@@ -10141,7 +10170,7 @@ function rbZenWord(force, typing) {
   // phrases that match the last 2-3 vowel sounds: of the word itself when it has two, else of the last two words of the line
   try {
     if (typeof doubleRhymes === 'function' && DICT) {
-      const t = $('rbText'), pos = t.selectionStart, ls = t.value.lastIndexOf('\n', pos - 1) + 1, two = (t.value.slice(ls, pos).match(/([A-Za-z'’]+\s+[A-Za-z'’]+)[^A-Za-z\n]*$/) || [])[1];
+      const t = rbZenTa(), pos = t.selectionStart, ls = t.value.lastIndexOf('\n', pos - 1) + 1, two = (t.value.slice(ls, pos).match(/([A-Za-z'’]+\s+[A-Za-z'’]+)[^A-Za-z\n]*$/) || [])[1];
       let d = doubleRhymes(w, { len: 0, max: 24 }); if ((!d || d.k < 2) && two) d = doubleRhymes(two.replace(/\s+/g, ' '), { len: 0, max: 24 });
       if (d && d.k >= 2) { const seen = new Set([].concat(r.perfect, r.multi, r.slant)), ph = (d.phrases || []).concat((d.words || []).filter(x => / /.test(x.w))).filter(x => !seen.has(x.w)).slice(0, 12);
         if (ph.length) { out.append(h('h4', '', 'Phrases')); ph.forEach(x => out.append(add(x.w, x.syl || syl(x.w)))); } }
@@ -13378,28 +13407,20 @@ const TG = (() => {
     $('tgLvH').firstChild.textContent = `${LADDER.length} levels in ${CHS.length} chapters `;
     if (chSel == null) chSel = POS[nl] ? POS[nl].c : 0;
     chapters();
-    const box = $('tgMine'), seen = new Set(); box.replaceChildren(); let shown = 0, more = 0;
-    lines.forEach((L, i) => {
-      if (!L.N) return; const k = fitKey(L); if (seen.has(k)) return; seen.add(k);
-      if (shown >= 48) { more++; return; } shown++;
-      const bt = barBtn(L.text, k, L.flow.name); bt.addEventListener('click', () => playFit(i)); box.append(bt);
-    });
-    $('tgMineNote').textContent = shown ? `Your own lyrics from Fit, on the dots Fit gave them. Play them by tap or by voice.${more ? ` ${more} more bars: use Play on their Fit card.` : ''}`
-      : 'Type your lyrics in Advanced and press Fit. Your bars then show up here, and every Fit card gets a Play button, so you can tap or rap your own words.';
     songCards(); entry(); board(false);
   }
   // the song cards made in Bar Book (Create card): one big card per song
   function songCards() {
-    const box = $('tgSongs'), isEx = id => { const q = LIB.song(id); return q && (q.ppExample || q.title === 'Bar Book example'); };
-    const ids = store.get('metrobar.gameSongs', []).filter(id => LIB.song(id) && !isEx(id)); box.replaceChildren();
-    // the Bar Book example is a song card for everyone (Bennie 2026-11-18), always first
-    if (window.PP && PP.EXAMPLE) { const bars = libBars(PP.EXAMPLE).filter(x => x.body.trim()), b = h('button', 'tg-scard-b tg-scard-ex'); b.type = 'button';
-      b.append(h('b', '', 'Bar Book example'), h('span', '', `Example · ${bars.length} bars`), h('small', '', bars.slice(0, 2).map(x => x.body).join(' / ')));
-      b.addEventListener('click', () => songCard(PP.exampleSong())); box.append(b); }
-    $('tgSongsH').hidden = box.hidden = !box.children.length && !ids.length;
-    ids.forEach(id => { const p = LIB.song(id), bars = libBars(p.text).filter(b => b.body.trim()), b = h('button', 'tg-scard-b'); b.type = 'button';
-      b.append(h('b', '', p.title || (bars[0] ? bars[0].body.slice(0, 40) : 'Untitled')), h('span', '', `${bars.length} bar${bars.length === 1 ? '' : 's'}`), h('small', '', bars.slice(0, 2).map(x => x.body).join(' / ')));
-      b.addEventListener('click', () => songCard(id)); box.append(b); });
+    // "Your bars" (Bennie 2026-11-18): every song you wrote in Bar Book (the one song library), newest first, each one a card to
+    // play; the Bar Book example and empty songs stay out. (The Fit box's bars no longer list here: they weren't your songs.)
+    const isEx = q => q.ppExample || q.title === 'Bar Book example';
+    const list = LIB.pages.filter(q => !isEx(q) && libBars(q.text).some(b => b.body.trim())).sort((a, b) => (+b.updated || 0) - (+a.updated || 0));
+    const box = $('tgMine'); box.replaceChildren(); box.classList.add('tg-songs'); $('tgSongsH').hidden = $('tgSongs').hidden = true;
+    list.slice(0, 60).forEach(p => { const bars = libBars(p.text).filter(b => b.body.trim()), b = h('button', 'tg-scard-b'); b.type = 'button';
+      b.append(h('b', '', p.title || bars[0].body.slice(0, 40)), h('span', '', `${bars.length} bar${bars.length === 1 ? '' : 's'}`), h('small', '', bars.slice(0, 2).map(x => x.body).join(' / ')));
+      b.addEventListener('click', () => songCard(p.id)); box.append(b); });
+    $('tgMineNote').textContent = list.length ? `Every song you write in Bar Book, ready to play. Pick one: it opens as one big card, play it from any bar or loop a part.${list.length > 60 ? ` Showing your 60 newest of ${list.length}.` : ''}`
+      : 'Write a song in Bar Book and it shows up here, ready to play.';
   }
   function songCard(id) {
     const p = LIB.song(id); if (!p) return; LIB.setCur(id, 'pp'); if (typeof fitFromLib === 'function') fitFromLib(); if (!lines.some(L => L.N)) runFit();
@@ -16062,6 +16083,49 @@ var PPZ = (() => {
   try { if (sessionStorage.getItem('metrobar.ppMode') === '1' && location.hash === '#book') { on = true; html.classList.add('pp-mode'); setTimeout(place, 300); } } catch (e) {}
   function beatUi() { if (!strip) return; const b = PP.beatInfo(), el = strip.querySelector('.pp-sbn'); el.textContent = b.busy ? 'Finding the tempo…' : b.has ? `${(b.name || 'Your beat').replace(/\.[a-z0-9]+$/i, '').slice(0, 24)}${b.bpm ? ' · ' + Math.round(b.bpm) + ' BPM' : ''}` : 'Upload a beat'; }
   return { enter, exit, beatUi, get on() { return on; }, sync: wrSync };
+})();
+</script>
+<script>
+// ---- Bar Book writing (Bennie 2026-11-18): Play in the top row (the song opens as one big Flow Game card), the rhyme panel that
+// fills in as you type (Rhymes toggles it; phones keep the Rhyme Finder), and the Bar for bar switch next to High-Light: on = one row
+// per bar with numbers, tools and the syllable meter; off (default) = one big plain page. Settings metrobar.bookRhy / metrobar.bookRows.
+var BBP = (() => {
+  const root = document.documentElement, ed = $('rbEd');
+  const S = { rhy: store.get('metrobar.bookRhy', true) !== false, rows: store.get('metrobar.bookRows', false) === true, t: 0 };
+  // Play
+  const play = BE.btn('be-play', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg><span>Play</span>', 'Play this song in the Flow Game: it opens as one big card, play it from any bar or loop a part', 'Play this song in the Flow Game');
+  play.addEventListener('click', () => { if (typeof rbFlush === 'function') try { rbFlush(); } catch (e) {} PP.card(); });
+  function placePlay() { const rf = $('beRf'), anchor = rf || document.querySelector('.be-tplb') || BE.secBtn; anchor.after(play); }
+  // Bar for bar
+  const rowsB = BE.btn('be-ib be-rowsb', '<svg class="ic" viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01" stroke-width="2.6"/></svg><span class="lbl">Bar for bar</span>', 'Bar for bar: every bar on its own row with its number, tools and syllable meter. Off = one big plain page.', 'Bar for bar');
+  rowsB.addEventListener('click', () => rows(!S.rows, true));
+  function rows(on, user) {
+    S.rows = !!on; if (user) store.set('metrobar.bookRows', S.rows); rowsB.setAttribute('aria-pressed', String(S.rows));
+    ed.classList.toggle('be-on', S.rows); root.classList.toggle('bb-rows', S.rows);
+    if (S.rows) { try { BE.render(); } catch (e) {} } else { try { rbPaint(); rbGrow(); } catch (e) {} if (user) { const t = $('rbText'); if (!t.readOnly) t.focus({ preventScroll: true }); } }
+  }
+  // the rhyme panel
+  function rhy(on, user) {
+    S.rhy = !!on; if (user) store.set('metrobar.bookRhy', S.rhy); root.classList.toggle('bb-rhy', S.rhy);
+    const rf = $('beRf'); if (rf) rf.setAttribute('aria-pressed', String(S.rhy && innerWidth > 1000));
+    if (S.rhy) { ZEN.w = '\u0000'; rbZenWord(true, false); }
+  }
+  const isPad = el => el && el.tagName === 'TEXTAREA' && (el.id === 'rbText' || el.classList.contains('be-in'));
+  document.addEventListener('input', e => { if (!isPad(e.target) || !rhyOn() || ZEN.on) return; clearTimeout(S.t); S.t = setTimeout(() => rbZenWord(false, false), 280); }, true);
+  ['click', 'keyup', 'focusin'].forEach(ev => document.addEventListener(ev, e => { if (!isPad(e.target) || !rhyOn() || ZEN.on || (ev === 'keyup' && !/Arrow|Home|End/.test(e.key || ''))) return; rbZenWord(false, false); }, true));
+  function wireRf() {
+    const rf = $('beRf'); if (!rf || rf.dataset.bbp) return; rf.dataset.bbp = '1';
+    rf.title = 'Rhymes: a panel next to your page that fills in as you type (Ctrl/⌘+J opens the Rhyme Finder)';
+    rf.addEventListener('click', e => { if (innerWidth <= 1000) return; e.stopImmediatePropagation(); e.preventDefault(); rhy(!S.rhy, true); }, true);
+  }
+  function boot() {
+    if (!BE.flowBtn.parentElement) { setTimeout(boot, 200); return; }
+    BE.flowBtn.after(rowsB); wireRf(); placePlay(); rows(S.rows); rhy(S.rhy);
+  }
+  setTimeout(boot, 0);
+  addEventListener('hashchange', () => { if (location.hash === '#book') [300, 1200].forEach(ms => setTimeout(() => { wireRf(); placePlay(); rhy(S.rhy); }, ms)); });
+  addEventListener('resize', () => { const rf = $('beRf'); if (rf) rf.setAttribute('aria-pressed', String(S.rhy && innerWidth > 1000)); });
+  return { rows, rhy, get state() { return S; } };
 })();
 </script>
 </body>
