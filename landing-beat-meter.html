@@ -3698,6 +3698,11 @@ body { overscroll-behavior: none; }
 /* status bar strip: the page scrolls under a bar in the page colour instead of under the clock */
 html:not(.bb) body { padding-top: env(safe-area-inset-top, 0px); }
 html:not(.bb) body::before { content: ""; position: fixed; z-index: 85; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); pointer-events: none; }
+/* #6 (2026-11-19): black-translucent (kept for the full-screen app) always draws the iPhone clock in white, so in the installed app
+   the strip under the clock is dark on every page, Bar Book too; the clock reads on the light page and the app stays full screen */
+@media (display-mode: standalone), (display-mode: fullscreen) {
+  body::before { content: ""; position: fixed; z-index: 2147483000; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: #111413 !important; pointer-events: none; }
+}
 .wrap { padding-bottom: calc(40px + env(safe-area-inset-bottom, 0px)); }
 /* dialogs sit inside the safe area; the ones that take the whole screen pad their content instead */
 dialog:modal:not(.sheet) { top: env(safe-area-inset-top, 0px); bottom: env(safe-area-inset-bottom, 0px); left: env(safe-area-inset-left, 0px); right: env(safe-area-inset-right, 0px); }
