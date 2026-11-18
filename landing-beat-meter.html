@@ -7163,7 +7163,7 @@ const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).
 function h(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
 const store = {
   get(k, d) { try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } },   // false = not saved (storage full or blocked)
 };
 // ---- One song library (Bennie 2026-11-17: "my lyrics connected everywhere, in every mode"). Write (WR.songs), the Highlight
 // Zone (RB.pages), the Fit box, Practice, the Flow game's own bars and ADVANCED Studio all read and write these same
@@ -10123,9 +10123,15 @@ window.addEventListener('storage', e => {
   LIB.emit('ext', 'storage');
   if (location.hash === '#book' || window.BBAPP) { try { if (r.cur) { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } else rbList(); } catch (er) { console.warn(er); } }
 });
-function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; clearTimeout(LIB.timer); LIB.timer = 0; const mg = rbMergeStored(); rbSeenAll(); store.set('metrobar.book', RB.pages); store.set('metrobar.bookBin', RB.bin); store.set('metrobar.bookCur', RB.cur); if (window.RBS && !RBS.busy) rbSyncSoon();
+function rbSaveNow() { clearTimeout(RB.timer); RB.timer = 0; clearTimeout(LIB.timer); LIB.timer = 0; const mg = rbMergeStored(); const ok = store.set('metrobar.book', RB.pages) & store.set('metrobar.bookBin', RB.bin) & store.set('metrobar.bookCur', RB.cur); rbSaveOk(!!ok); if (ok) rbSeenAll(); if (window.RBS && !RBS.busy) rbSyncSoon();
   if (mg.changed) LIB.emit('ext', 'merge');
   if (mg.cur && !RB.opening && (location.hash === '#book' || window.BBAPP)) { RB.opening = 1; try { const t = $('rbText'), at = t && t.selectionStart; bookOpen(); if (t && document.activeElement === t && at != null) t.setSelectionRange(at, at); } catch (e) { console.warn(e); } RB.opening = 0; } }
+// Storage full (bugs-write-hz #1): say so once per failure run instead of losing the typing silently; sync stays off the deletion paths meanwhile
+function rbSaveOk(ok) {
+  const was = RB.saveFailed; RB.saveFailed = !ok;
+  if (!ok && !was && window.toast) toast('Storage is full: Bar Book could not save. Download a Backup now, then delete old songs or covers.', { ms: 12000 });
+  if (ok && was && window.toast) toast('Bar Book is saving again.');
+}
 function rbSave() { clearTimeout(RB.timer); RB.timer = setTimeout(rbSaveNow, 400); LIB.emit('text', 'book'); }
 function rbLookSave() { store.set('metrobar.bookLook', RB.look); }
 function rbId() { return 'b' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -10188,7 +10194,14 @@ function bookMini(p) {
 // in your own private rows (book_pages; row level security: only you can read or change them). Posting to the Zone stays a
 // separate button. Two-way: per page, whichever side changed since the last sync wins; both changed = newest edit wins.
 var RBS = { busy: false, again: false, t: 0, state: '' };
-function rbSig(p) { return JSON.stringify([p.title || '', p.text || '', p.folder || '', !!p.locked, p.deleted || 0]); }
+function rbHash(str) {   // cyrb53: a short fingerprint, so the sync map does not store every page a second time
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 2654435761); h2 = Math.imul(h2 ^ c, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return str.length.toString(36) + ':' + (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36);
+}
+function rbSig(p) { return rbHash(JSON.stringify([p.title || '', p.text || '', p.folder || '', !!p.locked, p.deleted || 0])); }
 function rbStamp(p) { return Math.max(+p.updated || 0, +p.deleted || 0); }
 function rbSyncSay(t, btn) { const el = document.getElementById('rbSync'); if (el) el.textContent = t; const b = document.getElementById('rbSyncNow'); if (b) b.hidden = !btn; }
 async function rbSyncApi() {
@@ -10213,12 +10226,13 @@ async function bookSync() {
     if (!uid) { rbSyncSay('Saved in this browser only. Sign in on The Zone to keep your pages in your account (private).'); return; }
     rbFlush(); rbSyncSay('Syncing with your account…');
     let meta = store.get('metrobar.bookSync', {}); if (meta.uid !== uid) meta = { uid, map: {} };
+    for (const k in meta.map) if (typeof meta.map[k] === 'string' && meta.map[k][0] === '[') meta.map[k] = rbHash(meta.map[k]);   // old maps kept the full JSON: same fingerprint, a fraction of the space
     const map = meta.map, rows = await api.bookRows(), byId = new Map(rows.map(r => [r.id, r]));
     const local = new Map(); RB.pages.forEach(p => local.set(p.id, p)); RB.bin.forEach(p => local.set(p.id, p));
     const put = [], del = [], take = []; let changed = false;
     for (const r of rows) {
       const l = local.get(r.id), rs = rbSig(r);
-      if (!l) { if (map[r.id] != null && map[r.id] === rs) del.push(r.id); else take.push(r); continue; }   // purged here since last sync, or new from another device
+      if (!l) { if (map[r.id] != null && map[r.id] === rs && !RB.saveFailed) del.push(r.id); else take.push(r); continue; }   // never delete from the account while this browser cannot save   // purged here since last sync, or new from another device
       const ls = rbSig(l), lc = map[r.id] !== ls, rc = map[r.id] !== rs;
       if (ls === rs) map[r.id] = ls;
       else if (rc && !lc) take.push(r);
@@ -10251,7 +10265,7 @@ async function bookSync() {
       if (put.some(l => rbSig(l) !== map[l.id])) RBS.again = true;
     }
     if (del.length) { await api.bookDel(del); del.forEach(id => { delete map[id]; }); }
-    store.set('metrobar.bookSync', meta);
+    if (!RB.saveFailed) store.set('metrobar.bookSync', meta);   // the map only moves on when the pages it describes were saved
     const who = window.ZN && ZN.me ? ' @' + ZN.me.username : '';
     rbSyncSay(`Synced to your account${who}. Private: only you can see these pages.`);
     if (changed && location.hash === '#book' && document.activeElement !== $('rbText')) bookOpen();
