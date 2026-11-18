@@ -1003,10 +1003,10 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 .rb-ed[data-rbtheme="night"] .rb-w, .rb-ed[data-rbtheme="studio"] .rb-w, .rb-ed[data-rbtheme="chalk"] .rb-w, .rb-ed[data-rbtheme="dark"] .rb-w { box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -2px 0 var(--c), 0 6px 12px -6px color-mix(in srgb, var(--c) 70%, transparent); }
 /* spotlight: one rhyme sound lit (caret in it, or pinned in the Rhyme map), the rest step back */
 /* Bar Book highlight modes (RB.hl, rbSylMarks): paint only, nothing that changes the size of the letters */
-.rb-ov .rb-s.st { box-shadow: inset 0 -3px 0 var(--bd-syl); }
-.rb-ov .rb-s.rh { box-shadow: inset 0 -2px 0 var(--rc); }
-.rb-ov .rb-s.rh.st { box-shadow: inset 0 -2px 0 var(--rc), inset 0 -5px 0 var(--bd-syl); }
-.rb-ov .rb-s.mu { outline: 1px dashed var(--rc, var(--muted)); outline-offset: 0; border-radius: 3px; }
+:is(.rb-ov, .be-mir) .rb-s.st { box-shadow: inset 0 -3px 0 var(--bd-syl); }
+:is(.rb-ov, .be-mir) .rb-s.rh { box-shadow: inset 0 -2px 0 var(--rc); }
+:is(.rb-ov, .be-mir) .rb-s.rh.st { box-shadow: inset 0 -2px 0 var(--rc), inset 0 -5px 0 var(--bd-syl); }
+:is(.rb-ov, .be-mir) .rb-s.mu { outline: 1px dashed var(--rc, var(--muted)); outline-offset: 0; border-radius: 3px; }
 .rb-ov.rb-foc .rb-w:not(.lit) { opacity: .3; }
 .rb-ov.rb-foc .rb-w.lit { --rb-ta: 36%; }
 .rb-ov.rb-foc .rb-k.on:not(.lit) { opacity: .35; }
@@ -3100,6 +3100,17 @@ html.bb .be-cnt[role="button"] { cursor: help; }
   html.bb .be-row { grid-template-columns: minmax(0, 1fr) 2.4rem; }
   html.bb .be-row:not(.cur) .be-lead { display: none; }
   html.bb .be-nav { display: none !important; }
+  html.bb .be-row.cur .be-rt { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
+}
+/* Bar for bar rows in a narrow writing column (Bennie 2026-11-18, iPad landscape / small laptop with the rhyme panel open): the
+   fixed tool column left the words ~160px, so below 880px of column the rows take the phone layout (tools under the bar you're on) */
+html.bb .rb-main { container: bbmain / inline-size; }
+@container bbmain (max-width: 880px) {
+  html.bb .be-row { grid-template-columns: minmax(0, 1fr) 2.4rem; column-gap: 8px; padding: 12px 4px 10px 8px; }
+  html.bb .be-cell { grid-column: 1; } html.bb .be-meter { grid-column: 1; gap: 3px; } html.bb .be-side { grid-column: 2; }
+  html.bb .be-lead { grid-column: 1 / -1; grid-row: 3; display: none; justify-content: flex-start; margin-top: 12px; }
+  html.bb .be-row.cur .be-lead { display: flex; } html.bb .be-rt { margin-top: 0; } html.bb .be-num { display: none; }
+  html.bb .be-pop { grid-column: 1 / -1; }
   html.bb .be-row.cur .be-rt { flex-wrap: nowrap; overflow-x: auto; max-width: 100%; }
 }
 .mb-move { position: fixed; z-index: 2000; left: 50%; bottom: 16px; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 16px; padding: 12px 16px; border-radius: 14px; background: #af0000; color: #fff; font: 600 14px/1.4 system-ui, sans-serif; box-shadow: 0 12px 40px #0008; }
@@ -10248,6 +10259,7 @@ function rbPaint() {
   const text = $('rbText').value, rows = bookHighlight(text, fix), syl = bookSyl(text, fix), ov = $('rbOv'), frag = document.createDocumentFragment();
   const abc = schemeLetters(text); let bars = 0, sylT = 0, marks = null;
   try { marks = rbSylMarks(text); } catch (e) { console.warn('Bar Book marks', e); marks = null; }
+  RB.marks = marks;   // the Bar for bar rows (BE paintMir) use the same marks
   text.split('\n').forEach((line, i) => {
     const ln = h('span', 'rb-ln' + (/^\s*\[[^\]]*\]\s*$/.test(line) ? ' rb-hd' : '')); let c = 0;
     const mk = marks && marks[i] && marks[i].length === line.length ? marks[i] : null;
@@ -12734,9 +12746,13 @@ var BE = (() => {
     const frag = document.createDocumentFragment(), ad = adRanges(l), segs = [];
     colours(i, l).forEach(w => { if (!inAd(ad, w.a)) segs.push({ a: w.a, b: w.b, w }); });
     ad.forEach(r => segs.push({ a: r[0], b: r[1], ad: 1 })); segs.sort((x, y) => x.a - y.a);
+    // syllable marks of the highlight mode (Stress / Stress + rhyme / Write, rbSylMarks via rbPaint), only while the line is
+    // the one they were made for, so they never sit on the wrong letters while you type
+    const mk0 = RB.marks && RB.marks[i], mk = mk0 && mk0.length === l.length && t.value.split('\n')[i] === l ? mk0 : null;
+    const run = (el, a, b) => { if (b <= a) return; if (!mk) { el.append(l.slice(a, b)); return; } let x = a; while (x < b) { const k = mk[x] || ''; let y = x + 1; while (y < b && (mk[y] || '') === k) y++; el.append(k ? h('span', 'rb-s ' + k, l.slice(x, y)) : l.slice(x, y)); x = y; } };
     let c = 0;
-    segs.forEach(s => { if (s.a < c) return; if (s.a > c) frag.append(l.slice(c, s.a)); const sp = h('span', s.ad ? 'be-ad' : 'rb-w', l.slice(s.a, s.b)); if (!s.ad) { bookPaint(sp, s.w); sp.dataset.c = s.w.c; } frag.append(sp); c = s.b; });
-    frag.append(l.slice(c) + '​'); mir.replaceChildren(frag);
+    segs.forEach(s => { if (s.a < c) return; run(frag, c, s.a); const sp = h('span', s.ad ? 'be-ad' : 'rb-w'); if (s.ad) sp.textContent = l.slice(s.a, s.b); else { run(sp, s.a, s.b); bookPaint(sp, s.w); sp.dataset.c = s.w.c; } frag.append(sp); c = s.b; });
+    run(frag, c, l.length); frag.append('​'); mir.replaceChildren(frag);
   }
 
   // ---- rows
