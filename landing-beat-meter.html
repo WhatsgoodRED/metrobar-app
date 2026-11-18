@@ -1258,6 +1258,7 @@ dialog.info[open]::backdrop, dialog.cmdk[open]::backdrop, dialog.keys[open]::bac
   font-size: .9rem; line-height: 1.35; pointer-events: auto; touch-action: none; user-select: none;
   transform: translateY(var(--ty, 0)) scale(var(--sc, 1)); opacity: var(--op, 1); transform-origin: 50% 100%;
   transition: transform .35s cubic-bezier(.2, .8, .3, 1), opacity .25s ease-out; }
+:root[data-theme="dark"] .tt { background: #262d2b; border-color: #4a5552; box-shadow: 0 10px 30px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .3); }   /* dark page: the toast sits on a lighter surface, not #111413 on #111413 */
 .tt.enter { --ty: 120%; --op: 0; }
 .tt.leave { --op: 0; transition-duration: .2s; }
 .tt.drag { transition: none; }
@@ -6855,7 +6856,8 @@ function takePlace(data, sr, off, bl, counts, o = {}) {
    roll(el, v)  numbers roll digit by digit like an odometer; every changed digit rolls up when the number grows, down when it shrinks
    busy(el, t)  a working line with a soft shimmer and a seconds counter, so a long wait never looks frozen
    orbSet(s)    a round grid of dots beside the status line: 'listen' blooms with the mic level, 'think' sweeps, 'off' hides */
-const motionCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+let mcAt = -1, mcVal = false;
+const motionCalm = () => { const t = performance.now(); if (t - mcAt > 15) { mcVal = matchMedia('(prefers-reduced-motion: reduce)').matches; mcAt = t; } return mcVal; };   // read once per frame, not ~69 times
 function roll(el, val) {
   if (!el) return;
   const s = String(val), p = el.dataset.rv;
@@ -7659,11 +7661,12 @@ $('bpm').addEventListener('change', () => setBpm(bpm()));
 })();
 $('beatFile').addEventListener('change', async e => {
   const f = e.target.files[0]; if (!f) return;
+  setTimeout(() => { e.target.value = ''; }, 0);   // the same file can be picked again (after an error too); after the other change listeners have read it
   $('beatBtn').textContent = 'Change beat'; $('beatBtn').title = f.name;
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
   detected = null; $('keyInfo').textContent = ''; $('keyNotes').hidden = true; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
   try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); stretched = { sp: 1, buf: null }; stretchJob++; }   // a new beat: drop the old beat's pitch-kept copy and any stretch still running for it
-  catch { beatBuf = null; logoWave(); bbShow(); $('det').textContent = 'Could not read that file'; if (window.PP) PP.beat(null); return; }
+  catch { beatBuf = null; logoWave(); bbShow(); $('beatBtn').textContent = 'Load beat'; $('beatBtn').title = 'Load a beat (mp3 or wav). MetroBar finds the BPM and the first beat.'; $('det').textContent = 'Could not read that file'; if (window.PP) PP.beat(null); return; }
   waveOv = null; logoWave(); beatSkip = 0; bbShow();
   busy($('det'), 'Finding the BPM'); orbSet('think');
   if (window.PP) PP.beat('busy');
@@ -7769,7 +7772,9 @@ function tap() {
   if (taps.length >= 4) { const st = tapSteady(taps); setBpm(60000 / st.gap); tapShow(`tap tempo ${bpm()} BPM · steady ${st.steady}% · ${Math.round(st.gap)} ms${st.dropped ? ` · ${st.dropped} stray tap${st.dropped > 1 ? 's' : ''} left out` : ''}`, bpm()); }
   else tapShow('●'.repeat(taps.length) + '○'.repeat(4 - taps.length) + ' keep tapping');
 }
-$('tapBtn').addEventListener('click', tap);
+// pointerdown (press, not release) gives a steadier tempo; click still covers the keyboard (Enter/Space on the focused button)
+$('tapBtn').addEventListener('pointerdown', e => { if (e.button === 0) { $('tapBtn').dataset.pd = '1'; tap(); } });
+$('tapBtn').addEventListener('click', () => { if ($('tapBtn').dataset.pd) { delete $('tapBtn').dataset.pd; return; } tap(); });
 
 // ---- Fit
 let rhymes = { groups: [], syl: [], endRhyme: [] };
@@ -8311,6 +8316,7 @@ document.addEventListener('keydown', e => {
   if ($('viewPractice').hidden || document.querySelector('dialog[open]')) return;
   if (e.target.closest && e.target.closest('summary, a, [contenteditable]')) return;
   if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.type !== 'checkbox' && document.activeElement.type !== 'range') return;
+  if (e.repeat && (e.code === 'KeyT' || e.code === 'Space')) { e.preventDefault(); return; }   // holding a key must not flip Start/Stop or tap itself to 200
   if (e.code === 'KeyT' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); tap(); return; }
   if (e.code === 'Escape' && running) { stop(); return; }
   if (e.code === 'Space' && document.activeElement.matches('input[type=checkbox]:focus-visible')) return;   // a keyboard-focused switch: Space toggles it (after a mouse click, Space still starts)
@@ -8385,6 +8391,10 @@ $('tplPlace').addEventListener('click', () => {
 // ---- PWA (needs http(s): file:// cannot register a service worker)
 try { if (!localStorage.getItem('metrobar.introSeen')) $('intro').hidden = false; } catch (e) { $('intro').hidden = false; }
 $('introClose').addEventListener('click', () => { $('intro').hidden = true; try { localStorage.setItem('metrobar.introSeen', '1'); } catch (e) {} });
+// Moving house: the old address sends you here with ?moved=N; say how many songs came along, then drop the ?moved from the address
+{ const mv = new URLSearchParams(location.search).get('moved');
+  if (mv != null) { const n = +mv || 0; history.replaceState(null, '', location.pathname + location.hash);
+    window.addEventListener('load', () => setTimeout(() => { if (window.toast) toast(n ? `${n} song${n === 1 ? '' : 's'} moved here from the old address.` : 'You are on the new address now.'); }, 600)); } }
 if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));   // after load: the first-visit precache does not compete with the page's own files
 </script>
 <script>
@@ -10888,7 +10898,7 @@ function aiPay(kind) {
 function aiPaywall(why) {
   const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, w = AIW.w, cur = w ? w.plan : '';
   let d = document.getElementById('aiPayDlg');
-  if (!d) { d = document.createElement('dialog'); d.id = 'aiPayDlg'; d.className = 'ai-pay'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
+  if (!d) { d = document.createElement('dialog'); d.id = 'aiPayDlg'; d.className = 'ai-pay'; document.body.append(d); d.addEventListener('pointerdown', e => { if (e.target === d) d.close(); }); }   // pointerdown: a selection dragged out of a field must not close it
   const free = P.freeCredits || 15, proN = P.proCredits || 400, supN = P.superCredits || 800, packs = P.packs || [];
   const when = w && w.resets_at ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';   // no date: a cancelled plan, no refill coming
   const btnFor = (plan, k, label) => cur === plan ? '<span class="cur">Your plan</span>' : `<a class="btn${plan === 'super' ? ' pri' : ''}" data-k="${k}">${label}</a>`;
@@ -11313,9 +11323,8 @@ function ckRoot() {
   const it = [], add = (group, label, run, o = {}) => it.push({ group, label, run, ...o });
   add('Go to', 'MetroBar (practice)', () => goView(false), { kw: 'practice metronome home' });
   add('Go to', 'Game (Flow Game, Pocket Aim)', () => { mwGo('#game'); }, { kw: 'flow game pocket aim play levels tap' });
-  add('Go to', 'Bar Book', () => { mwGo('#book'); }, { kw: 'rhyme book rhymes notebook pages lyrics highlight write pad songs' });
+  add('Go to', 'Bar Book', () => { mwGo('#book'); }, { kw: 'rhyme book rhymes rhymers block notebook pages lyrics highlight write pad songs' });
   add('Go to', 'The Zone', () => { location.hash = '#zone'; }, { kw: 'community posts feed profile respect props' });
-  if ($('viewBook')) add('Go to', 'Bar Book', () => { mwGo('#book'); }, { kw: 'rhyme book rhymers block book highlight' });
   add('Actions', running ? 'Stop' : 'Start', () => { goView(false); running ? stop() : start(); }, { key: 'Space', kw: 'play start stop' });
   add('Actions', 'Tap tempo', () => { goView(false); tap(); }, { key: 'T', kw: 'tap bpm' });
   add('Actions', 'Load a beat', () => { goView(false); $('beatBtn').click(); }, { kw: 'mp3 wav audio file upload' });
@@ -11584,6 +11593,8 @@ function znSupabase(cfg) {
     async block(uid, on) { chk(on ? await sb.from('blocks').insert({ blocked: uid }) : await sb.from('blocks').delete().eq('blocked', uid)); },
     async report(postId, commentId, reason) { chk(await sb.from('reports').insert({ post_id: postId || null, comment_id: commentId || null, reason })); },
     async setFeatured(id, on) { chk(await sb.rpc('zone_set_featured', { p: id, on_: on })); },
+    async setHidden(id, on) { chk(await sb.rpc('zone_set_hidden', { p: id, on_: on })); },
+    async reports() { return chk(await sb.from('reports').select('id,post_id,comment_id,score_id,reason,created_at').order('created_at', { ascending: false }).limit(100)); },
     // flow game (zone/flow-game.sql): the database scores the raw timing itself; nothing here can write a score directly
     async gameSubmit(r) {
       const a = { p_mode: r.mode, p_bar: r.bar, p_bpm: r.bpm, p_offs: r.offs, p_strays: r.strays };
@@ -11657,6 +11668,8 @@ function znDemo() {
     async block(uid, on) { on ? blocks.add(uid) : blocks.delete(uid); },
     async report() {},
     async setFeatured(id, on) { posts.find(x => x.id === id).featured = on; },
+    async setHidden(id, on) { const i = posts.findIndex(x => x.id === id); if (on && i >= 0) posts.splice(i, 1); },
+    async reports() { return []; },
     async gameSubmit(r) {
       const g = GAME[r.mode], n = 2 * gameTargets(ladderBar(...r.bar.split(':').slice(1).map((v, k) => k ? +v : LADDER.findIndex(V => V.id === v)))).length;
       const acc = gameAcc(r.offs.reduce((a, o) => a + GAME.pts[gameGrade(Math.abs(o), r.mode)], 0), r.strays, n, r.mode), bonus = gameBonus(r.bonus || [], r.mode), points = Math.round((acc + bonus) * r.bpm / 10), k = r.mode + r.bar;
@@ -11743,7 +11756,7 @@ async function znAuthChanged(first) {
 function znRender() {
   const body = $('znBody');
   document.querySelectorAll('.zn-seg button').forEach(b => b.setAttribute('aria-selected', String(ZN.view === 'feed' && b.dataset.feed === ZN.feed)));
-  const fn = { connect: znConnect, feed: znFeed, post: znPost, profile: znProfile, auth: znAuth, edit: znEdit, compose: znCompose, newpw: znNewPw }[ZN.view] || znFeed;
+  const fn = { connect: znConnect, feed: znFeed, post: znPost, profile: znProfile, auth: znAuth, edit: znEdit, compose: znCompose, newpw: znNewPw, reports: znReports }[ZN.view] || znFeed;
   body.replaceChildren(h('p', 'zn-empty', 'Loading…'));
   Promise.resolve(fn(body)).catch(e => body.replaceChildren(h('p', 'zn-err', znErr(e))));
 }
@@ -11797,7 +11810,23 @@ async function znFeed(body) {
   }
   const top = h('div', 'row'); top.style.gap = '6px';
   top.append(znBtn('+ New post', 'btn pri', () => { ZN.draft = { title: '', body: '' }; ZN.me ? znGo('compose') : znNeedSignIn('Sign in to post.'); }));
+  if (ZN.admin) top.append(znBtn('Reports', 'btn', () => znGo('reports')));
   body.replaceChildren(top, list.length ? ul : h('p', 'zn-empty', ZN.feed === 'following' ? (ZN.me ? 'Follow some rhymers to fill this feed.' : 'Sign in to see who you follow.') : $('znSearch').value ? 'Nothing matches.' : 'No posts yet. Be the first.'));
+}
+// Admins: what people reported, newest first, with a way to open and hide the post (polish #4)
+async function znReports(body) {
+  if (!ZN.admin) { znGo('feed'); return; }
+  const rows = await ZN.api.reports(), ul = h('ul', 'zn-list');
+  for (const r of rows) {
+    const li = h('li', 'zn-row'), mid = h('div');
+    mid.append(h('div', 't', r.reason || '(no reason given)'), h('div', 'u', (r.post_id ? 'Post ' + r.post_id : r.score_id ? 'Game score ' + r.score_id : 'Comment ' + r.comment_id) + ' · ' + znAgo(r.created_at)));
+    const n = h('div', 'n');
+    if (r.post_id) n.append(znBtn('Open', 'btn', () => znGo('post', r.post_id)),
+      znBtn('Hide', 'btn', async () => { if (!confirm('Hide this post for everyone?')) return; try { await ZN.api.setHidden(r.post_id, true); znSay('Post hidden.'); znRender(); } catch (e) { znSay(znErr(e)); } }));
+    li.append(mid, n); ul.append(li);
+  }
+  const top = h('div', 'row'); top.append(znBtn('← Feed', 'btn', () => znGo('feed')));
+  body.replaceChildren(top, rows.length ? ul : h('p', 'zn-empty', 'No reports.'));
 }
 async function znPost(body) {
   const p = await ZN.api.post(ZN.id); if (!p) { body.replaceChildren(h('p', 'zn-empty', 'This post is gone.')); return; }
@@ -11825,6 +11854,7 @@ async function znPost(body) {
     acts.append(znBtn('Block @' + p.user.username, 'btn', async () => { if (!ZN.me) return znNeedSignIn('Sign in to block.'); try { await ZN.api.block(p.user_id, true); ZN.blocked.add(p.user_id); znSay(`You won't see @${p.user.username} any more.`); znGo('feed'); } catch (e) { znSay(znErr(e)); } }));
   }
   if (ZN.admin) acts.append(znBtn(p.featured ? 'Unfeature' : 'Feature', 'btn', async () => { try { await ZN.api.setFeatured(p.id, !p.featured); znRender(); } catch (e) { znSay(znErr(e)); } }));
+  if (ZN.admin && !mine) acts.append(znBtn('Hide', 'btn', async () => { if (!confirm('Hide this post for everyone?')) return; try { await ZN.api.setHidden(p.id, true); znSay('Post hidden.'); znGo('feed'); } catch (e) { znSay(znErr(e)); } }));
   const cms = await ZN.api.comments(p.id), ul = h('ul', 'zn-cm');
   for (const c of cms) {
     if (ZN.blocked.has(c.user_id)) continue;
@@ -12008,7 +12038,8 @@ if (location.hash === '#zone') setView();
    FF.pop(button) = glass pop on click; FF.scan() enhances everything (also runs for controls added later). */
 var FF = (() => {
   'use strict';
-  const calm = () => !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  let calmAt = -1, calmV = false;
+  const calm = () => { const t = performance.now(); if (t - calmAt > 15) { calmV = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches); calmAt = t; } return calmV; };   // once per frame
   const hexRgb = v => { v = String(v || '').trim(); const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(v); if (!m) return null;
     let x = m[1]; if (x.length === 3) x = x.replace(/./g, c => c + c); return [0, 2, 4].map(i => parseInt(x.slice(i, i + 2), 16) / 255); };
   const cssRgb = (el, name, fb) => hexRgb(getComputedStyle(el).getPropertyValue(name)) || fb;
@@ -15449,7 +15480,7 @@ if (window.BBAPP) tplBoot();
 var ACCT = { mode: 'in' };
 async function acctOpen(mode) {
   let d = document.getElementById('acctDlg');
-  if (!d) { d = document.createElement('dialog'); d.id = 'acctDlg'; d.className = 'acct'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
+  if (!d) { d = document.createElement('dialog'); d.id = 'acctDlg'; d.className = 'acct'; document.body.append(d); d.addEventListener('pointerdown', e => { if (e.target === d) d.close(); }); }   // pointerdown: a selection dragged out of a field must not close it
   if (!d.open) d.showModal();
   d.innerHTML = '<p class="acct-wait">One moment…</p>';
   let api = null; try { api = typeof rbSyncApi === 'function' ? await rbSyncApi() : null; } catch (e) {}
