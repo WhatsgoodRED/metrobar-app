@@ -9176,7 +9176,7 @@ function mwGroups() {
     if (rows[0]) [...rows[0].children].forEach(side);
   } else if (!$('viewZone').hidden) {    // The Zone: head items and loose buttons by side, posts alternate
     kids('.zn-head').forEach(side);
-    kids('#znBody').forEach((el, i) => el.classList.contains('row') ? [...el.children].forEach(side) : (i % 2 ? R : L).push(el));
+    kids('#znBody > .zn-v').forEach((el, i) => el.classList.contains('row') ? [...el.children].forEach(side) : (i % 2 ? R : L).push(el));
   } else {                               // MetroBar: deck left, Start box right, Flow game left, Advanced right
     kids('#viewPractice').reverse().filter(el => vis(el) && el.offsetHeight > 8).forEach((el, i) => (i % 2 ? L : R).push(el));
   }
@@ -10195,7 +10195,7 @@ async function rbSyncApi() {
   if (typeof znCfg !== 'function') return null;
   if (window.ZN && ZN.api) return ZN.api.demo ? null : ZN.api;
   const cfg = znCfg(); if (!cfg) return null;
-  await znLoadSdk(); if (!ZN.api) { ZN.api = znSupabase(cfg); ZN.api.onAuth(znAuthChanged); }
+  await znLoadSdk(); if (!ZN.api) { ZN.api = znSupabase(cfg); ZN.api.onAuth(znAuthChanged); znAuthChanged(); }   // INITIAL_SESSION is skipped, so load the first state here
   return ZN.api;
 }
 function rbKeepOld(p) {   // a sync is about to replace this page with your account's copy: keep this version in Recently deleted
@@ -11544,7 +11544,8 @@ function znSupabase(cfg) {
   return {
     demo: false,
     async session() { const id = await meId(); if (!id) return null; const p = chk(await sb.from('profiles').select('id,username,avatar_url,badge,bio').eq('id', id).maybeSingle()); if (p) { const { data } = await sb.auth.getSession(); p.email = (data.session && data.session.user.email) || ''; } return p; },
-    onAuth(cb) { let last; sb.auth.onAuthStateChange((ev, s) => { const id = s && s.user ? s.user.id : null; if (id === last) return; last = id; setTimeout(cb, 0); }); }, // only when the signed-in user changes: supabase repeats SIGNED_IN on every tab refocus, which rebuilt the view and wiped typed text. Never await supabase inside the callback: it holds the auth lock and every later call would hang
+    onAuth(cb) { let last; sb.auth.onAuthStateChange((ev, s) => { const id = s && s.user ? s.user.id : null; if (ev === 'INITIAL_SESSION') { last = id; return; }   // the opener loads the first state itself: no second load
+      if (id === last) return; last = id; setTimeout(cb, 0); }); }, // only when the signed-in user changes: supabase repeats SIGNED_IN on every tab refocus, which rebuilt the view and wiped typed text. Never await supabase inside the callback: it holds the auth lock and every later call would hang
     async signUp(email, pw, username) { const r = await sb.auth.signUp({ email, password: pw, options: { data: { username } } }); chk(r); return r.data.session ? 'in' : 'confirm'; },
     async signIn(email, pw) { chk(await sb.auth.signInWithPassword({ email, password: pw })); },
     async resetPw(email) { chk(await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] + '#zone' })); },
@@ -11783,8 +11784,10 @@ function znRender() {
   const body = $('znBody');
   document.querySelectorAll('.zn-seg button').forEach(b => b.setAttribute('aria-selected', String(ZN.view === 'feed' && b.dataset.feed === ZN.feed)));
   const fn = { connect: znConnect, feed: znFeed, post: znPost, profile: znProfile, auth: znAuth, edit: znEdit, compose: znCompose, newpw: znNewPw, reports: znReports }[ZN.view] || znFeed;
-  body.replaceChildren(h('p', 'zn-empty', 'Loading…'));
-  Promise.resolve(fn(body)).catch(e => body.replaceChildren(h('p', 'zn-err', znErr(e))));
+  // latest render wins: each render gets its own box; a newer render replaces it, so a slow earlier view (fast typing in search) lands off the page
+  const k = ZN.rk = (ZN.rk || 0) + 1, box = h('div', 'zn-v'); box.style.display = 'contents';
+  box.append(h('p', 'zn-empty', 'Loading…')); body.replaceChildren(box);
+  Promise.resolve(fn(box)).catch(e => { if (k === ZN.rk) box.replaceChildren(h('p', 'zn-err', znErr(e))); });
 }
 function znNewPw(body) {   // after a password-reset link: set the new password
   if (!ZN.me) { znGo('auth', null, false); return; }
