@@ -10679,7 +10679,9 @@ rbMode(RB.mode);
   t.addEventListener('input', () => { clearTimeout(tm); tm = setTimeout(() => { if (RB2.tools.includes('check')) checkRender(); }, 500); });
 })();
 const _bookOpen = window.bookOpen;
-window.bookOpen = bookOpen = function () { _bookOpen.apply(this, arguments); if (RB2.view !== 'write') rbView(RB2.view); if (RB2.tools.includes('check')) checkRender(); if (RB2.tools.includes('topic')) topicRender(); };
+window.bookOpen = bookOpen = function () { _bookOpen.apply(this, arguments);
+  // the extras must never stop the open: the wrapper around this one still has to reset undo for the new song
+  try { if (RB2.view !== 'write') rbView(RB2.view); if (RB2.tools.includes('check')) checkRender(); if (RB2.tools.includes('topic')) topicRender(); } catch (e) { console.error(e); } };
 
 // ---- Booth: big lyric sheet, a click at the BPM, and the current bar lit (one line = one bar of 4 beats)
 const BOOTH = { on: false, ctx: null, t0: 0, next: 0, beat: 0, timer: 0, raf: 0 };
@@ -10854,7 +10856,7 @@ function checkRender() {
   const I = [], med = [...S.ls.map(L => L.N)].sort((a, b) => a - b)[Math.floor(S.n / 2)];
   S.cl.hits.forEach(x => I.push({ sev: 'fix', bar: x.bar, t: 'Stock phrase', d: `"${x.phrase}" (${x.fam})`, tip: 'Swap it for something only you could say: a place, a name, an object.' }));
   S.cl.worn.forEach(x => I.push({ sev: 'improve', bar: x.bar, t: 'Worn rhyme', d: `"${x.word}" (${x.set})`, tip: 'Fine inside a multi or with a twist; otherwise try Double rhymes.' }));
-  S.rh.endRhyme.forEach((r, k) => { if (!r && S.n > 1) I.push({ sev: 'fix', bar: k, t: 'Loose end', d: `"${S.ls[k].words.slice(-1)[0].raw}" doesn't rhyme with a bar near it.`, tip: 'Look it up in Rhymes, or rhyme it with the bar before.' }); });
+  S.rh.endRhyme.forEach((r, k) => { const w = S.ls[k].words.slice(-1)[0]; if (!r && w && S.n > 1) I.push({ sev: 'fix', bar: k, t: 'Loose end', d: `"${w.raw}" doesn't rhyme with a bar near it.`, tip: 'Look it up in Rhymes, or rhyme it with the bar before.' }); });
   S.ls.forEach((L, k) => {
     if (Math.abs(L.N - med) >= 5) I.push({ sev: 'improve', bar: k, t: 'Flow outlier', d: `${L.N} syllables; the others sit around ${med}.`, tip: L.N > med ? 'Cut a few words or split the bar.' : 'Fill it, or make the space count.' });
     if (L.halfEmpty) I.push({ sev: 'improve', bar: k, t: 'Half empty', d: 'Half the bar has no words.', tip: 'Fine as a rest on purpose; otherwise add a pickup.' });
@@ -13800,7 +13802,8 @@ void main(){
   }, 0));
   const _open = window.bookOpen;
   window.bookOpen = bookOpen = function () {
-    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; S.extra = 0; S.oneSec = 0; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); _open.apply(this, arguments); histReset(); render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
+    if (S.rec) S.rec.mr.stop(); S.cur = -1; S.at = -1; S.rep = null; S.extra = 0; S.oneSec = 0; if (S.pop) popClose(true); S.rows.forEach(r => { r._.nc = null; }); try { _open.apply(this, arguments); } finally { histReset(); }   // undo history always belongs to the song now open (a throw in an inner wrapper used to leave the old song on the undo stack)
+    render(); drawer(); if (window.BKB && BKB.pageOpened) BKB.pageOpened();
   };
   const _apply = rbApplyLook; rbApplyLook = function () { _apply.apply(this, arguments); if (S.rows.length) render(); };
   window.addEventListener('hashchange', () => { if (location.hash === '#book') drawer(); else { drawerOpen(false); moreOpen(false); menuClose(); if (S.rec) S.rec.mr.stop(); } });
