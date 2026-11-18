@@ -812,6 +812,8 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
 .tech-card h4 { margin: 0; font-size: .92rem; color: var(--led-txt); }
 .tech-card p { margin: 0; font-size: .85rem; line-height: 1.45; color: var(--muted); }
 .tech-card pre { margin: 0; font-family: var(--mono); font-size: .78rem; white-space: pre-wrap; background: var(--bg); padding: 6px 8px; border-radius: 6px; }
+/* Bennie 2026-11-18 ("the hooks and verses are empty"): in Bar Book the page tokens made this black on black; the card is always dark */
+.tech-card pre { background: rgb(255 255 255 / .06); color: var(--led-txt, #e8ebe9); }
 .tech-card .commit { margin-top: 2px; }
 .tech-card .tip { font-size: .78rem; }
 .tech-card .tsec { display: grid; gap: 4px; }
@@ -8604,6 +8606,125 @@ const TECH_TAG = { 'Straight 8ths': ['even, on the beat', 'flow'], '16ths': ['4 
 // ---- Flow Game techniques (Bennie 2026-11-18: "since the new levels with flow game haven't there been loads of new techniques?"):
 // every technique the Flow Game levels teach that the 18 above don't cover. Each one's example = the level's own 3 bars, drawn on the
 // grid (breakdownSvg), with Play it in the Flow Game and Insert the bars. Kept apart from TECHS (that list pairs with core TECH_LIST).
+// example songs for the Flow Game techniques (Bennie 2026-11-18: "when people want to write, they can just click on the technique"):
+// a 4-bar hook, an 8-bar verse and a 4-bar chorus each, original words, the same shape as the 18 above. Hyphens = syllable marks.
+const FG_SONGS = {
+"early": {
+"hook": "Jump the gun and get there first\nOut the gate before the bell\nNever wait until it bursts\nI'm already where it fell",
+"verse": "Clock is ticking but I'm early to the room\nSeen the ending way before you seen the start\nEvery rhyme I lay is landing just a hair too soon\nThat's the pressure leaning forward on the heart\nWhile you counting down to four I'm on the door\nHand already on the handle, foot inside\nLeaning in the pocket, pushing on the floor\nBeat is catching up to me, I'm on the ride",
+"chorus": "Jump the gun and get there first\nOut the gate before the bell\nLean it in and let it burst\nI'm already where it fell"
+},
+"jb1": {
+"hook": "And I'm in before the one, I'm already gone\nSo the downbeat hits and I'm holding it long\nAnd the count is behind me, I jumped it again\nSo you hear me arrive and you wonder just when",
+"verse": "And I came in early with a bag on my back\nSo the one never caught me, I was already packed\nAnd the drummer looked up like I skipped on the line\nBut I hold the first word till it lands on the time\nAnd the room got the feeling that something was off\nSo I lean on the downbeat and I'm letting it drop\nAnd the second bar starts with a breath in the gap\nThen I jump it again and I land it like that",
+"chorus": "And I'm in before the one, I'm already gone\nSo the downbeat hits and I'm holding it long\nAnd the count is behind me, I jumped it again\nSo you hear me arrive and you wonder just when"
+},
+"offeas": {
+"hook": "In between the kick, in between the snare\nI was never on it, I was always there\nStep around the beat like a puddle on the street\nEvery word is in the gaps, never on the feet",
+"verse": "When the drummer hits I'm already in the air\nI'm the little shuffle that you hear but can't compare\nNever on the one, never on the and\nI'm the shadow on the floor when the lights are in your hand\nTap your foot and I'm the half step to the side\nEvery syllable is sneaking where the drums don't hide\nIf you clap along you will never catch me there\nI was in between the kick and the snare",
+"chorus": "In between the kick, in between the snare\nI was never on it, I was always there\nStep around the beat like a puddle on the street\nEvery word is in the gaps, never on the feet"
+},
+"b1gal1": {
+"hook": "Run it up, take it back, hold it down, lock it in\nPick it up, set it off, make it loud, let it spin\nGallop on, gallop on, never mind, never stop\nHorses in the avenue, hooves on the block",
+"verse": "Saddle up, buckle in, every beat got a kick\nDa da da, da da da, I'm a horse on a brick\nOver it, under it, through the gate, out the yard\nClatter on the cobbles and I'm riding it hard\nEvery one, every two, every three, every four\nThree quick steps and a gap, then I'm back for some more\nHoofbeats in the speaker and the room in a race\nGallop on the one with the wind in my face",
+"chorus": "Run it up, take it back, hold it down, lock it in\nPick it up, set it off, make it loud, let it spin\nGallop on, gallop on, never mind, never stop\nHorses in the avenue, hooves on the block"
+},
+"b6dot": {
+"hook": "Slow, steady, drop, ready, go, heavy\nStep, wait, step, wait, cross the line, late\nDrift, then the drift comes home\nOne every three, now the beat is my own",
+"verse": "Walk, then the walk gets wide\nTalk, then the talk slips by\nEvery word a step behind the last\nPulling on the beat till the bar is past\nThree, three, three and it spills\nOver the line like water down the hills\nCount it in sixteenths, every third one lands\nThat's a dotted eighth sliding through your hands",
+"chorus": "Slow, steady, drop, ready, go, heavy\nStep, wait, step, wait, cross the line, late\nDrift, then the drift comes home\nOne every three, now the beat is my own"
+},
+"b7swh": {
+"hook": "Lazily and easily I'm swinging on the beat\nLong and short and long and short, the bounce is in my feet\nNever run it, bounce it, let it lean a little late\nShuffle in the hallway and the hallway feels great",
+"verse": "Merrily and steadily I'm rolling down the road\nEvery second syllable is leaning on the load\nDaddy had a record with a shuffle in the drum\nNow I'm talking like it, letting every pair come\nLong one, short one, like a heartbeat in a hurry\nNever rush it, never stiff, I don't worry\nSwing it like a porch chair moving in the breeze\nLong and short and long and short, I do it with ease",
+"chorus": "Lazily and easily I'm swinging on the beat\nLong and short and long and short, the bounce is in my feet\nNever run it, bounce it, let it lean a little late\nShuffle in the hallway and the hallway feels great"
+},
+"b1lazy": {
+"hook": "I take my time, the beat can wait for me\nI'm sitting back, I'm talking easily\nA little late, but never off the line\nThe click is fast, the story's taking time",
+"verse": "I walked in slow, the party already loud\nI found a seat, I didn't need the crowd\nThey rushing words like trains about to leave\nI let it hang a second, let it breathe\nA story tastes better when you let it steep\nI'm leaning back, the pocket's really deep\nYou hear the beat and then you hear me land\nA hair behind it, like I planned",
+"chorus": "I take my time, the beat can wait for me\nI'm sitting back, I'm talking easily\nA little late, but never off the line\nThe click is fast, the story's taking time"
+},
+"b6rub8": {
+"hook": "I start it right then I stretch it out so long\nThe middle drags but the ending isn't wrong\nPull it like a band and then let the band go back\nLand it on the four and the beat is right on track",
+"verse": "The verse begins on time like the morning train\nThen in the middle I'm dragging every word like a chain\nYou think I lost it, you think I fell behind\nBut I'm catching up, the four is on my mind\nI pull the bar like taffy in the heat\nThen snap it back together on the beat\nThat's the rubber band, the push and the pull\nStretched in the middle, but the end is full",
+"chorus": "I start it right then I stretch it out so long\nThe middle drags but the ending isn't wrong\nPull it like a band and then let the band go back\nLand it on the four and the beat is right on track"
+},
+"themiola": {
+"hook": "Mo-ney go-ing, com-ing, go-ing\nRun-ning twos a-cross the threes\nNev-er stop-ping, nev-er slow-ing\nWalk-ing on the trip-let keys",
+"verse": "Ev-ery sec-ond syl-la-ble is heav-y\nTwos a-gainst the threes and I'm read-y\nDrift-ing off the beat and com-ing home a-gain\nCount it in the trip-lets, feel it bend\nStress, then soft, then stress, then soft a-gain\nRoll-ing like a wheel in-side a wheel\nComes back to the one when it is time\nTwo a-gainst the three, that's how I feel",
+"chorus": "Mo-ney go-ing, com-ing, go-ing\nRun-ning twos a-cross the threes\nNev-er stop-ping, nev-er slow-ing\nWalk-ing on the trip-let keys"
+},
+"tshift": {
+"hook": "Same old rhythm but I'm moving the weight\nThree then two then two then two on the plate\nNothing changes but the place that I lean\nSame old words but now the middle is seen",
+"verse": "Rolling triplets and I'm leaning on one\nThen I lean on the third till it's done\nSame ten syllables, a different place\nWhere I push it like a hand on your face\nThree and two and two and two, here we go\nMove the stress and now the flow is a show\nNever change the dots, I change the push\nSame road, different pace in the rush",
+"chorus": "Same old rhythm but I'm moving the weight\nThree then two then two then two on the plate\nNothing changes but the place that I lean\nSame old words but now the middle is seen"
+},
+"b1four": {
+"hook": "So the ci-ty lights are wak-ing up the side-street\nIn the mid-dle of the night I hear the bass drum\nAnd the cor-ners of the room are get-ting smok-y\nEv-ery fourth one is the heav-y one I fall on",
+"verse": "Ev-ery trip-let gets a word but on-ly some land\nCount-ing fours a-cross the threes, it slides a-way\nOn the let and on the trip and on the one now\nNev-er sit-ting in the same place, that's the play\nRoll-ing on the stream with a stress that walks a-round\nLike a stair-case go-ing down a spi-ral stone\nIt will find the one a-gain when the bar is done\nThen I start it o-ver, roll-ing on my own",
+"chorus": "So the ci-ty lights are wak-ing up the side-street\nIn the mid-dle of the night I hear the bass drum\nAnd the cor-ners of the room are get-ting smok-y\nEv-ery fourth one is the heav-y one I fall on"
+},
+"gridsw": {
+"hook": "I'm in sixteenths, every slot is filled and tight and quick\nThen I roll it into triplets, let it swing\nBack to sixteenths, every word is like a drumstick\nFour then three then four, I switch the whole thing",
+"verse": "Started even, four a beat, I'm marching like a soldier\nThen the floor got round and every beat became a wheel\nRolling triplets, rolling triplets, rolling over\nThen I'm back in square sixteenths, the grid is real\nKeep the tempo, change the boxes underneath it\nFour and three and four, the beat don't even move\nIt's the floor that's changing shape, I learn to read it\nSwitch the grid and keep the groove",
+"chorus": "I'm in sixteenths, every slot is filled and tight and quick\nThen I roll it into triplets, let it swing\nBack to sixteenths, every word is like a drumstick\nFour then three then four, I switch the whole thing"
+},
+"b8phase": {
+"hook": "Long days, slow nights, quick, quick, quick\nCold hands, warm hearts, flip, flip, flip\nWide roads, small towns, trick, trick, trick\nOld scars, new starts, rip, rip, rip",
+"verse": "Big dreams, small rooms, run, run, run\nTwo jobs, one shot, done, done, done\nLate trains, cold tea, sun, sun, sun\nSame block, new eyes, one, one, one\nLong steps over three beats, then I hurry\nThree quick words on four and then I'm gone\nPhase one stretches out, phase two is in a flurry\nLong, long, long, long, quick, quick, on",
+"chorus": "Long days, slow nights, quick, quick, quick\nCold hands, warm hearts, flip, flip, flip\nWide roads, small towns, trick, trick, trick\nOld scars, new starts, rip, rip, rip"
+},
+"b7nine": {
+"hook": "[9/8] Rock it slow, rock it low, rock it home\nSway it left, sway it right, on my own\nOne two three, one two three, one two three\nNine is three times three, you see",
+"verse": "[9/8] Waltz me through the alley in the rain\nThree and three and three again\nSlower than a march but never late\nRocking like a boat that holds the weight\nCount it with your shoulders, not your feet\nNine eighths make a bar complete\nOne two three, the first one always strong\nRock it till the end of the song",
+"chorus": "[9/8] Rock it slow, rock it low, rock it home\nSway it left, sway it right, on my own\nOne two three, one two three, one two three\nNine is three times three, you see"
+},
+"meterflip": {
+"hook": "[5/4] Five beats wide, I take my time and then I go\n[3/4] Three beats now, I keep it short\n[6/8] Rock it in six, rolling in sixes\n[4/4] Back in four and I'm home in the court",
+"verse": "[5/4] Every bar a different size, I never sit still\n[3/4] Three is quick, a little step\n[6/8] Six is a swing, rolling and rolling\n[4/4] Four is the floor where I'm landing the rep\n[5/4] Count it out loud, five, then I flip it again\n[3/4] Three is a trip\n[6/8] Six is a dance and the dance is a circle\n[4/4] Four is the home where the hook will hit",
+"chorus": "[5/4] Five beats wide, I take my time and then I go\n[3/4] Three beats now, I keep it short\n[6/8] Rock it in six, rolling in sixes\n[4/4] Back in four and I'm home in the court"
+},
+"iso1": {
+"hook": "Took the long way home with the window down\nBroke the quiet street with a heavy sound\nHeld the money close in a paper bag\nCaught the evening bus with a broken tag",
+"verse": "Same old rhythm and the words are new\nEvery bar the same, but the story grew\nCame up out the dirt with a pen in hand\nWrote it on the wall where the old ones stand\nStill the same old shape but a different line\nLike a song you know with a different rhyme\nKeep the motif tight and the ear will learn\nThen the brand new words are the ones that burn",
+"chorus": "Took the long way home with the window down\nBroke the quiet street with a heavy sound\nHeld the money close in a paper bag\nCaught the evening bus with a broken tag"
+},
+"evolve4": {
+"hook": "Run it, run it\nRun it, run it, gun it, gun it\nRun it, run it, gun it, gun it, sun it, sun it\nGrowing every bar till the bar is overrun",
+"verse": "One step\nOne step, two step\nOne step, two step, new step, true step\nEvery bar I add a little piece to the plan\nStart it small then I build it as fast as I can\nOne more pair and one more pair and one more pair\nTill it runs across the bar line and lands over there\nThat's the pattern growing, watch it as it grows",
+"chorus": "Run it, run it\nRun it, run it, gun it, gun it\nRun it, run it, gun it, gun it, sun it, sun it\nGrowing every bar till the bar is overrun"
+},
+"cad4": {
+"hook": "I came in with nothing but a plan\nNow I'm standing tall where nobody can\nEvery line I write is in the box\nEvery bar I end is on the clock",
+"verse": "Started on the corner with a pen\nWrote it down and wrote it down again\nEvery single line is one bar long\nEvery single ending lands it strong\nFour of them together make a set\nThat's the cadence nobody forget\nLearn the shape before you break the rule\nFour lines, four landings, that's the school",
+"chorus": "I came in with nothing but a plan\nNow I'm standing tall where nobody can\nEvery line I write is in the box\nEvery bar I end is on the clock"
+},
+"b1heelmv": {
+"hook": "I keep it on the low and I take it slow\nI land it on the three, now I let it go\nThe rhyme is on the two and the rest is free\nI move the heel around, now you follow me",
+"verse": "The first bar puts the rhyme on the four like it should\nThe second moves it up, now it's on the three, it's good\nThe third one moves again, on the two, then I talk\nThe last one lands it early and I finish the walk\nSame rhyme sound every time but a new place to stand\nThe bar gets more room as I move it with my hand\nYou hear the end come early and the space after wide\nThat's the heel moving forward, that's the ride",
+"chorus": "I keep it on the low and I take it slow\nI land it on the three, now I let it go\nThe rhyme is on the two and the rest is free\nI move the heel around, now you follow me"
+},
+"b8answer": {
+"hook": "I said I'm gonna make it, they said no... yes\nThey said it's never happening, I said... next\nThey said you'll never leave the block... gone\nThey said who even are you now... known",
+"verse": "I asked the mirror who I am... me\nI asked the street what did it take... free\nI asked my mother was it worth it... yes\nI asked the city what is left... less\nI asked the beat to hold me up... done\nI asked the night to let me in... come\nI asked the crowd if they could hear... loud\nI asked myself if I was proud... proud",
+"chorus": "I said I'm gonna make it, they said no... yes\nThey said it's never happening, I said... next\nThey said you'll never leave the block... gone\nThey said who even are you now... known"
+},
+"b8chug": {
+"hook": "Running every sixteenth like a motor in my chest and it's racing\nFaster than the traffic on the highway and the walls are all shaking\nThen I. Drop. It. Down.\nHeavy. Like. The. Ground.",
+"verse": "Double time and every word is spilling off the edge of the table\nTalking like a wire and the wire got a spark on the cable\nEvery little syllable is jumping like it's late for a meeting\nRunning through the bar line and the bar line is losing the beating\nThen. I. Stop.\nBreak. It. Down.\nOne. Word. Each.\nHit. The. Ground.",
+"chorus": "Running every sixteenth like a motor in my chest and it's racing\nFaster than the traffic on the highway and the walls are all shaking\nThen I. Drop. It. Down.\nHeavy. Like. The. Ground."
+},
+"punch4": {
+"hook": "You talk a lot but never say a thing, you're a ghost\nYou chase the bag, I'm chasing what I need the most\nYou bought the chain to prove you made it, that's a loan\nI built the house and every brick is my own",
+"verse": "They set the table but they never brought the food\nThey told the story but they never set the mood\nThey had the keys and never found a door that's real\nI had the dream and then I made the dream a deal\nI let it ride on easy eighths and then I hit\nThe last word lands on four and then I quit\nThat little silence after is the punch\nIt hits the hardest when you hear the crunch",
+"chorus": "You talk a lot but never say a thing, you're a ghost\nYou chase the bag, I'm chasing what I need the most\nYou bought the chain to prove you made it, that's a loan\nI built the house and every brick is my own"
+},
+"b8mid": {
+"hook": "I take the night and make it bright with a light that I write\nThe crowd is loud, I make 'em proud, I'm the cloud in the sky\nThe game is cold, I'm getting bold, what I hold is the gold\nThe street is sweet when the beat is complete and I fly",
+"verse": "I came to claim the name, the flame is the same as the game\nThey stood and could, but never would, it was good for the fame\nI'm rhyming in the middle, it's a riddle, not a little\nEvery fiddle in the middle is a pickle that I tickle\nThe cluster hits in the center where the drummer is heavy\nI'm stacking sounds around the beat when the meter is ready\nNot only at the end, I bend it in the bend\nThe middle of the bar is where I send it, friend",
+"chorus": "I take the night and make it bright with a light that I write\nThe crowd is loud, I make 'em proud, I'm the cloud in the sky\nThe game is cold, I'm getting bold, what I hold is the gold\nThe street is sweet when the beat is complete and I fly"
+}
+};
 const FG_TECHS = [
   ['early', 'Anticipation', 'land early', 'flow', 'Say the rhyme word one 16th before beat 4 and let it push into the beat. Tap the 4 with your foot and land just ahead of it.'],
   ['jb1', 'Jump the one', 'in before the 1', 'flow', 'Start the bar on the a before the 1 and hold that word over the downbeat. Count 4-e-and-A, and the A is your first word.'],
@@ -8628,14 +8749,32 @@ const FG_TECHS = [
   ['b8chug', 'Double time, then breakdown', 'fast, then heavy', 'shape', 'Two bars of fast 16ths, then one heavy word per beat. Same tempo, a quarter of the syllables: the drop hits harder.'],
   ['punch4', 'Punch on 4', 'set it up, hit, stop', 'rhyme', 'Set the punchline up in easy 8ths, hit the last word on beat 4 and stop. The silence after it gives the punch room.'],
   ['b8mid', 'Rhymes in the middle', 'internal rhyme cluster', 'rhyme', 'Put a cluster of rhymes on beats 2 and 3, not only at the end. Hit each rhyme word a bit harder so the cluster pops.']
-].map(([lv, name, df, cat, how]) => ({ lv, name, df, cat, how }));
+].map(([lv, name, df, cat, how]) => ({ lv, name, df, cat, how, song: FG_SONGS[lv] || null }));
 function fgLevel(t) { const i = LADDER.findIndex(l => l.id === t.lv); return i < 0 ? null : { i, V: LADDER[i] }; }
 function fgCard(j, scroll) {
   const t = FG_TECHS[j], lv = t && fgLevel(t), card = $('wrTechCard'), pads = $('wrTech').querySelectorAll('.pad'), k = TECHS.length + j;
   techOn = k; pads.forEach((p, n) => p.setAttribute('aria-pressed', String(n === k)));
   card.replaceChildren(); card.hidden = !lv; if (!lv) { techOn = -1; return; }
   if (pads[k] && pads[k].hidden) wrTechFilter('all');
-  card.append(h('h4', '', t.name), h('p', '', lv.V.tip), h('p', 'tip', 'How: ' + t.how), h('p', 'tip', `From the Flow Game level "${lv.V.name}": its three bars on the grid. Big dots = the stressed syllables.`));
+  card.append(h('h4', '', t.name), h('p', '', lv.V.tip), h('p', 'tip', 'How: ' + t.how));
+  if (t.song) {
+    card.append(h('p', 'tip', 'Example song: keep the shape and the sounds, swap in your own words.'));
+    const plain = x => x.replace(/(\w)-(?=\w)/g, '$1');
+    const odd = x => /^\s*\[[^\]]*\/[^\]]*\]/m.test(x) && !/\[4\/4\][^\n]*\n?$/.test(x.trim()) ? x + '[4/4]\n' : x;   // an odd-meter example hands the bars after it back to 4/4
+    TECH_PARTS.forEach(([k, lab, n]) => {
+      if (!t.song[k]) return;
+      const sec = h('div', 'tsec'), top = h('div', 'tsec-h'), ins1 = h('button', 'mini', 'Insert');
+      ins1.type = 'button'; ins1.title = `Adds this ${lab.toLowerCase()} at the cursor under its own heading`;
+      ins1.addEventListener('click', () => wrInsertBlock(odd(`# ${lab} (${t.name}): ${t.df}\n${plain(t.song[k])}\n`)));
+      top.append(h('b', '', lab), h('span', '', `${t.song[k].split('\n').length} bars`), ins1); sec.append(top, h('pre', '', plain(t.song[k]))); card.append(sec);
+    });
+    const allB = h('button', 'cbtn', 'Insert the whole song'), r0 = h('div', 'commit'); allB.type = 'button';
+    allB.title = 'Adds the hook, verse and chorus at the cursor, each under its own heading. Then swap the words for yours.';
+    allB.addEventListener('click', () => wrInsertBlock(odd(TECH_PARTS.filter(([k]) => t.song[k]).map(([k, lab]) => `# ${lab} (${t.name}): ${t.df}\n${plain(t.song[k])}\n`).join('\n'))));
+    r0.append(allB); card.append(r0);
+    card.append(h('p', 'tip', `The rhythm, from the Flow Game level "${lv.V.name}":`));
+  }
+  if (!t.song) card.append(h('p', 'tip', `The rhythm, from the Flow Game level "${lv.V.name}". Big dots = the stressed syllables.`));
   lv.V.bars.forEach((b, n) => {
     const sec = h('div', 'tsec'), top = h('div', 'tsec-h'), play = h('button', 'mini', 'Play');
     play.type = 'button'; play.title = 'Play this bar in the Flow Game'; play.addEventListener('click', () => TG.playLevel(lv.i, n));
@@ -8643,7 +8782,7 @@ function fgCard(j, scroll) {
     try { const L = ladderBar(lv.i, n), w = breakdownSvg(L, 0, Math.min(3, L.pickup || 0), {}); w.classList.add('fg-svg'); sec.append(w); } catch (e) {}
     card.append(sec);
   });
-  const row = h('div', 'commit'), go = h('button', 'cbtn', 'Play it in the Flow Game'), ins = h('button', 'cbtn ghost', 'Insert the bars');
+  const row = h('div', 'commit'), go = h('button', 'cbtn', 'Play it in the Flow Game'), ins = h('button', 'cbtn ghost', 'Insert the level bars');
   go.type = ins.type = 'button'; go.addEventListener('click', () => TG.playLevel(lv.i, 0));
   ins.title = 'Adds the three bars at the cursor under their own heading. Then swap the words for yours.';
   ins.addEventListener('click', () => wrInsertBlock(`# ${t.name}: ${t.df}\n` + lv.V.bars.map(b => b.replace(/-/g, '')).join('\n') + '\n'));
@@ -10095,7 +10234,7 @@ function rbDouble(text) {
 function rbInput() {
   const p = rbPage(); if (!p || p.locked) return;
   p.text = $('rbText').value; p.updated = Date.now();
-  if (!$('rbTitle').value.trim() && p.text.trim()) { p.title = p.text.trim().split('\n')[0].slice(0, 40); }
+  if (!$('rbTitle').value.trim() && p.text.trim()) { const first = p.text.split('\n').find(l => l.trim() && !/^\s*#/.test(l) && !/^\s*\[[^\]]*\]\s*$/.test(l)); p.title = first ? first.replace(/^\s*\[[^\]]*\]\s*/, '').trim().slice(0, 40) : ''; }   // never a # note, a [Part] line or a [9/8] tag
   rbSave(); rbGrow(); RB.reveal = 1; rbReveal(); rbSchedule();
 }
 $('rbText').addEventListener('input', rbInput);
