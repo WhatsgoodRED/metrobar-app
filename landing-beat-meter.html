@@ -3691,7 +3691,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters"></div>
         <p class="tg-chb" id="tgChB"></p>
         <ol class="tg-lvs" id="tgLvs" role="tabpanel"></ol>
-        <h3 class="tg-h" id="tgSongsH" hidden>Your song cards</h3>
+        <h3 class="tg-h" id="tgSongsH" hidden>Song cards</h3>
         <div class="tg-songs" id="tgSongs" hidden></div>
         <h3 class="tg-h">Your bars</h3>
         <div class="tg-mine" id="tgMine"></div>
@@ -6987,11 +6987,25 @@ var LIB = (function () {
     if (!String(p.title || '').trim()) { const b = libBars(text)[0]; if (b) p.title = b.body.slice(0, 40); }
     L.save(); L.emit('text', src); return p;
   };
-  L.setCur = (id, src) => { if (!L.song(id) || L.cur === id) return; L.cur = id; store.set('metrobar.bookCur', id); L.emit('cur', src); };
+  L.setCur = (id, src) => { if (!L.song(id) || L.cur === id) return; L.cur = id; store.set('metrobar.bookCur', id); L.emit('cur', src); L.sweepSoon(); };
+  // Empty songs go by themselves (Bennie 2026-11-18: "if there's no bars, delete it"): a song with no title (or one that says
+  // Untitled) and no bars written is removed for good once you are on another song, and on load. The song you are on stays.
+  // Untitled WITH bars stays. Locked pages, drafts, covers and the Bar Book example are never touched. Purged (rbPurge) so the
+  // two-tab merge and the account sync drop it everywhere.
+  L.empty = p => !!p && !p.locked && !p.ppExample && !p.cover && !(p.drafts && Object.keys(p.drafts).length)
+    && (!String(p.title || '').trim() || /^untitled\b/i.test(String(p.title).trim())) && !libBars(p.text).some(b => b.body.trim());
+  L.sweep = () => {
+    const gone = L.pages.filter(p => p.id !== L.cur && L.empty(p)), binGone = L.bin.filter(L.empty);
+    if (!gone.length && !binGone.length) return 0;
+    L.pages = L.pages.filter(p => !gone.includes(p)); L.bin = L.bin.filter(p => !binGone.includes(p));
+    gone.concat(binGone).forEach(p => { if (typeof rbPurge === 'function') rbPurge(p.id); });
+    L.saveNow(); L.emit('ext', 'sweep'); return gone.length + binGone.length;
+  };
+  L.sweepSoon = () => { clearTimeout(L.swT); L.swT = setTimeout(() => { try { L.sweep(); } catch (e) { console.error(e); } }, 1500); };
   L.create = (text, title, src) => {
     const t = Date.now(), p = { id: 'b' + t.toString(36) + Math.random().toString(36).slice(2, 6), title: String(title || ''), text: String(text || ''), folder: '', locked: false, created: t, updated: t };
     if (!p.title.trim()) { const b = libBars(p.text)[0]; if (b) p.title = b.body.slice(0, 40); }
-    L.pages.unshift(p); L.cur = p.id; L.saveNow(); L.emit('cur', src); return p;
+    L.pages.unshift(p); L.cur = p.id; L.saveNow(); L.emit('cur', src); L.sweepSoon(); return p;
   };
   return L;
 })();
@@ -7018,6 +7032,7 @@ function libLoad() {
 }
 libLoad();
 window.LIB = LIB;
+addEventListener('load', () => LIB.sweepSoon());
 let fix = store.get('metrobar.fix', {});
 let practice = false, lines = [], total = 80, detected = null;
 
@@ -13375,8 +13390,13 @@ const TG = (() => {
   }
   // the song cards made in Bar Book (Create card): one big card per song
   function songCards() {
-    const box = $('tgSongs'), ids = store.get('metrobar.gameSongs', []).filter(id => LIB.song(id)); box.replaceChildren();
-    $('tgSongsH').hidden = box.hidden = !ids.length;
+    const box = $('tgSongs'), isEx = id => { const q = LIB.song(id); return q && (q.ppExample || q.title === 'Bar Book example'); };
+    const ids = store.get('metrobar.gameSongs', []).filter(id => LIB.song(id) && !isEx(id)); box.replaceChildren();
+    // the Bar Book example is a song card for everyone (Bennie 2026-11-18), always first
+    if (window.PP && PP.EXAMPLE) { const bars = libBars(PP.EXAMPLE).filter(x => x.body.trim()), b = h('button', 'tg-scard-b tg-scard-ex'); b.type = 'button';
+      b.append(h('b', '', 'Bar Book example'), h('span', '', `Example · ${bars.length} bars`), h('small', '', bars.slice(0, 2).map(x => x.body).join(' / ')));
+      b.addEventListener('click', () => songCard(PP.exampleSong())); box.append(b); }
+    $('tgSongsH').hidden = box.hidden = !box.children.length && !ids.length;
     ids.forEach(id => { const p = LIB.song(id), bars = libBars(p.text).filter(b => b.body.trim()), b = h('button', 'tg-scard-b'); b.type = 'button';
       b.append(h('b', '', p.title || (bars[0] ? bars[0].body.slice(0, 40) : 'Untitled')), h('span', '', `${bars.length} bar${bars.length === 1 ? '' : 's'}`), h('small', '', bars.slice(0, 2).map(x => x.body).join(' / ')));
       b.addEventListener('click', () => songCard(id)); box.append(b); });
@@ -15944,13 +15964,14 @@ Yeah, that's the pocket, that's the whole thing
 Count it in, lock it down, let the hook ring
 That's the Bar Book example, now you write your own
 Four bars, then sixteen, till the pocket feels like home`;
-  function example() {
+  function exampleSong() {   // the example in this library (made when missing); returns its id
     let p = LIB.pages.find(x => x.ppExample) || LIB.pages.find(x => x.title === EXAMPLE_TITLE);
-    if (!p) { p = LIB.create(EXAMPLE, EXAMPLE_TITLE, 'pp'); p.ppExample = true; LIB.saveNow(); }
-    PPZ.enter(p.id);
+    if (!p) { const was = LIB.cur; p = LIB.create(EXAMPLE, EXAMPLE_TITLE, 'pp'); p.ppExample = true; if (was && LIB.song(was)) LIB.cur = was; LIB.saveNow(); }
+    return p.id;
   }
+  function example() { PPZ.enter(exampleSong()); }
   $('ppExample').addEventListener('click', example);
-  return { beat, card, example, EXAMPLE, beatObj, beatInfo: () => ({ has: !!beatBuf, busy: BEAT.busy, name: BEAT.name || ($('beatBtn').title || ''), bpm: tempo() }) };
+  return { beat, card, example, exampleSong, EXAMPLE, beatObj, beatInfo: () => ({ has: !!beatBuf, busy: BEAT.busy, name: BEAT.name || ($('beatBtn').title || ''), bpm: tempo() }) };
 })();
 </script>
 <script>
