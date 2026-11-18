@@ -2209,6 +2209,20 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { dialog.tg[open], .tg-mark.tg-pop, .tg-verdict.tg-bump, .tg-pad.tg-hit { animation: none; } .tg-ring { display: none; } .tg-prog i, .tg-bar, .tg-b, .tg-sw > i, .tg-sw > i::after { transition: none; } }
 html.mo-off dialog.tg[open], html.mo-off .tg-mark.tg-pop, html.mo-off .tg-verdict.tg-bump, html.mo-off .tg-pad.tg-hit { animation: none; }
+/* phone round (Bennie 2026-11-18): only the bars, full screen; both rows always fit, portrait or tilted */
+dialog.tg.tg-full { width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; border-radius: 0; }
+dialog.tg.tg-full .tg-top, dialog.tg.tg-full .tg-deck > :not(.tg-go):not(.tg-beat), dialog.tg.tg-full #tgPad, dialog.tg.tg-full .tg-listen, dialog.tg.tg-full .tg-hint, dialog.tg.tg-full .tg-beat.tg-bmb { display: none !important; }
+dialog.tg.tg-full .tg-body { padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(44px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); overflow: hidden; height: 100dvh; display: grid; align-content: center; }
+dialog.tg.tg-full .tg-play { max-width: none; width: 100%; gap: 0; }
+dialog.tg.tg-full .tg-deck { padding: 0; border: 0; background: none; }
+dialog.tg.tg-full .tg-grid { border: 0; background: none; padding: 0; }
+dialog.tg.tg-full .tg-row { padding: 14px 0 0; }
+dialog.tg.tg-full .tg-row .bd svg { max-width: none !important; width: min(100%, calc((100dvh - 110px) / 2 * var(--ar, 3))) !important; height: auto; }
+dialog.tg.tg-full .tg-hud { min-height: 26px; margin-top: 0; }
+dialog.tg.tg-full #tgStop { position: fixed; z-index: 6; bottom: max(6px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--bg) 80%, transparent); }
+dialog.tg.tg-full .tg-beat:not(.tg-bmb) { position: fixed; z-index: 5; left: max(8px, env(safe-area-inset-left)); bottom: max(8px, env(safe-area-inset-bottom)); display: block; }
+dialog.tg.tg-full .tg-beat:not(.tg-bmb) .tg-binfo { display: none; }
+dialog.tg.tg-full .tg-beat:not(.tg-bmb) .tg-bmedia { width: 160px; height: 90px; min-height: 0; aspect-ratio: auto; }
 /* Start challenge (Bennie 2026-11-18): hold Space / long-press fills a bar on the pad; a round runs in focus mode (only grid, score, TAP) */
 .tg-pad { position: relative; overflow: hidden; }
 .tg-pad.tg-arm::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: currentColor; transform-origin: left; animation: tg-arm .45s linear forwards; }
@@ -13311,7 +13325,7 @@ const TG = (() => {
     const { L, pad, tg, zs } = o;
     {
       const wrap = breakdownSvg(L, 0, pad, { beatOff: p * L.lay.nb }), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, cw = bdCw(L.lay), padL = 6 + pad * cw, cy = 38;
-      svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.setAttribute('aria-label', `${p === 0 ? 'First' : p === 1 ? 'Second' : 'Overtime'} time: ${L.text}`);
+      svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.style.setProperty('--ar', (W / svg.viewBox.baseVal.height).toFixed(3)); svg.setAttribute('aria-label', `${p === 0 ? 'First' : p === 1 ? 'Second' : 'Overtime'} time: ${L.text}`);
       const dots = tg.map(x => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
@@ -13345,7 +13359,7 @@ const TG = (() => {
   function idleUi(txt) {
     const v = S.mode === 'voice'; $('tgPad').classList.remove('tg-run', 'tg-hit'); $('tgPadT').textContent = txt; $('tgStop').hidden = true; $('tgMeter').hidden = true;
     $('tgPadS').textContent = ''; idleHint();
-    $('tgPlay').classList.remove('tg-going'); dlg.classList.remove('tg-focus'); $('tgTempo').disabled = false; gbUi();
+    $('tgPlay').classList.remove('tg-going'); dlg.classList.remove('tg-focus'); fullOff(); $('tgTempo').disabled = false; gbUi();
   }
   function say(text, cls) { const v = $('tgVerdict'); v.textContent = text; v.className = 'tg-verdict' + (cls ? ' v-' + cls : ''); if (cls && !calmQ.matches) { v.classList.remove('tg-bump'); void v.offsetWidth; v.classList.add('tg-bump'); } }
   function msg(t) { const m = $('tgMsg'); m.textContent = t || ''; m.hidden = !t; }
@@ -13577,9 +13591,14 @@ const TG = (() => {
   }
 
   // ---- a round: one bar of count-in, then the bar twice
+  // Bennie 2026-11-18: on a phone the round takes the whole screen (fullscreen where the browser allows it) and shows only the bars:
+  // no TAP box, no score; you tap the pills' own boxes. Tilt the phone for bigger bars. The results come back after the round.
+  const phoneQ = matchMedia('(pointer: coarse)');
+  function fullOn() { if (!phoneQ.matches) return; dlg.classList.add('tg-full'); try { const f = dlg.requestFullscreen || dlg.webkitRequestFullscreen; if (f && !document.fullscreenElement) { const r = f.call(dlg, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } } catch (e) {} }
+  function fullOff() { dlg.classList.remove('tg-full'); try { if (document.fullscreenElement === dlg) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement === dlg) document.webkitExitFullscreen(); } catch (e) {} }
   async function start() {
     if (playing() || !cur || state === 'wait' || state === 'lock') return;
-    listenStop();
+    listenStop(); if (S.mode === 'tap' && !cur.calib) fullOn();   // while the tap still counts as a user gesture
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     ac.resume();
     if (S.mode === 'voice' && !mic) { state = 'wait'; const ok = await micOn(); state = 'idle'; if (!ok || !cur) return; }
@@ -13641,7 +13660,7 @@ const TG = (() => {
       rows.forEach((r, i) => { const on = i === b && (over ? R.ot : p < 2); r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
         if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - pass)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
       if (R.hold && now >= R.hold.x.rel - GAME.tap.good / 1000) holdEnd(true);
-      while (R.ot && R.passes < 66 && now > R.tPlay + (R.passes - 1) * R.barDur - 0.1) addPass(R.passes++);
+      while (R.ot && now > R.tPlay + (R.passes - 1) * R.barDur - 0.1) addPass(R.passes++);   // no cap: the loop runs until the first mistake (Bennie 2026-11-18)
       for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) {
         x.done = true; if (x.pass >= 2) { if (R.ot) { mark(x, 'miss', 0); otOver('Missed'); } continue; }
         R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud();
@@ -13653,6 +13672,7 @@ const TG = (() => {
   }
   // overtime: one more pass of the bar (targets, clicks without a beat, guide ticks) and the row it is drawn in
   function addPass(p) {
+    if (p > 6) R.targets = R.targets.filter(x => !x.done || x.pass >= p - 3);   // drop judged dots of old loop bars, so a long loop stays light
     const L = cur.L, lay = L.lay, t0 = R.tPlay + p * R.barDur;
     R.tg.forEach((x, k) => { const at = t0 + x.q * R.spq + (x.ms || 0) / 1000; R.targets.push({ t: at, p: p % 2, k, pass: p, land: x.land, done: false, win: R.wins[k], rel: R.holds && x.hold ? at + x.hold * lay.unit * R.spq : 0 }); });
     if (R.clicks) lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * R.spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06));
@@ -13885,7 +13905,7 @@ const TG = (() => {
   });
   document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ') holdStop('key', false); if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
   dlg.addEventListener('cancel', e => { if (playing() || state === 'lock') { e.preventDefault(); stopRound(); } else if (!$('tgPlay').hidden) { e.preventDefault(); home(); } });
-  dlg.addEventListener('close', () => { stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
+  dlg.addEventListener('close', () => { fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
   return { open, openFit, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
