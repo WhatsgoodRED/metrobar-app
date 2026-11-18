@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <script>
-/* The Highlight Zone (Barbook, menu "Rhyme") is a view of this page (Bennie 2026-11-14: "no separate HTML page loading in"; it was its
-   own page since 11-12). window.BBAPP = the Highlight Zone is showing; html.bb gives it its own shell (every bb style hangs on that
+/* Bar Book (Barbook, menu "Rhyme") is a view of this page (Bennie 2026-11-14: "no separate HTML page loading in"; it was its
+   own page since 11-12). window.BBAPP = Bar Book is showing; html.bb gives it its own shell (every bb style hangs on that
    class). bbLook() sets day/night, colour and paper from storage before paint. barbook.html and ?barbook still open it directly. */
 /* Motion (design pass 2026-11-14, "one moving thing per screen"): metrobar.motion = 'calm' (default: the beat tiles,
    the rail ball and the metronome's swing + glow move with the beat), 'full' (also the logo tiles and the live logo
@@ -28,7 +28,7 @@ window.bbLook = function () {
   try { r.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
 };
 /* Day/night for every page (Bennie 2026-11-14: "go to dark mode on every page"). One setting, metrobar.bookDay (true = day),
-   shared with the Highlight Zone. mbTheme() sets data-theme (light/dark) + bb-day before paint and syncs every .smt switch. */
+   shared with Bar Book. mbTheme() sets data-theme (light/dark) + bb-day before paint and syncs every .smt switch. */
 /* Not set yet = follow the phone/computer's own light or dark setting (HIG dark-mode: respond to the system choice); the switch overrides it. */
 window.mbSys = function () { try { return !matchMedia('(prefers-color-scheme: dark)').matches; } catch (e) { return true; } };
 window.mbDay = function () { try { var v = localStorage.getItem('metrobar.bookDay'); return v == null ? window.mbSys() : JSON.parse(v) !== false; } catch (e) { return true; } };
@@ -1909,7 +1909,7 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 html.mo-off .tg-ebtn .tg-edots i.on { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tg-ebtn .tg-edots i.on { animation: none !important; } .tg-ebtn { transition: none; } }
 @media (max-width: 560px) { .tg-ebtn { padding-inline: 10px; } .tg-edots { gap: 4px; } .tg-edots i { width: 8px; height: 8px; } .tg-edots i.on { width: 14px; height: 14px; } }
-/* Bar Book inside the Highlight Zone (html.pp-mode): the strip over the editor + Write's tools in the tools panel */
+/* Bar Book inside Bar Book (html.pp-mode): the strip over the editor + Write's tools in the tools panel */
 html.bb .pp-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 10px; margin: 0 0 8px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: 12px; font: 600 .8rem var(--body); }
 html.bb .pp-sbadge { font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: .72rem; text-transform: uppercase; padding: 6px 9px; border-radius: 4px; background: var(--accent); color: var(--on-accent, #fff); line-height: 1; }
 html.bb .pp-ssteps, html.bb .pp-shl { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
@@ -1918,7 +1918,10 @@ html.bb .pp-ssteps button b { display: inline-grid; place-items: center; width: 
 html.bb .pp-ssteps button[aria-current="step"], html.bb .pp-shl button[aria-pressed="true"] { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
 html.bb .pp-ssteps button:hover, html.bb .pp-shl button:hover { opacity: 1; }
 html.bb .pp-sbeat { border: 1px solid color-mix(in srgb, currentColor 18%, transparent); border-radius: 9px; padding: 6px 12px; min-height: 34px; background: transparent; color: inherit; font: 600 .8rem var(--body); cursor: pointer; max-width: 16rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-html.bb .pp-sbeat:not(.pp-sex)::before { content: '♫ '; }
+html.bb .pp-sbeat:not(.pp-sex):not(.pp-sdict)::before { content: '♫ '; }
+html.bb .pp-sdict { display: inline-flex; align-items: center; gap: 6px; }
+html.bb .pp-sdict[aria-pressed="true"] { background: var(--accent); color: var(--on-accent, #fff); border-color: var(--accent); }
+html.bb .pp-sdict[aria-disabled="true"] { opacity: .5; }
 html.bb .pp-ssp { flex: 1; }
 html.bb .pp-splay { border: 0; border-radius: 9px; padding: 8px 14px; min-height: 34px; background: var(--accent); color: var(--on-accent, #fff); font: 700 .8rem var(--body); cursor: pointer; }
 html.bb .pp-splay:active { transform: scale(.97); }
@@ -2481,9 +2484,9 @@ html.bb .rb-lib { position: static; display: flex; flex-direction: column; gap: 
 html.bb .rb-libh, html.bb .rb-lib > .rb-search, html.bb .rb-lib > .rb-fsel, html.bb .be-drh, html.bb .be-links > button:nth-of-type(n+4) { display: none; }
 .bs-brand { display: flex; align-items: center; gap: 4px; height: 60px; padding: 0 10px 0 16px; border-bottom: 1px solid var(--line); flex: none; }
 .bs-brand b { margin-right: auto; display: flex; align-items: center; gap: 10px; font: 700 1.05rem var(--body); letter-spacing: -.01em; }
-.bs-brand .bs-nm { display: grid; line-height: 1.05; white-space: nowrap; }   /* "The" small on top, "Highlight Zone" under it: fits the sidebar on one line */
+.bs-brand .bs-nm { display: grid; line-height: 1.05; white-space: nowrap; }   /* "The" small on top, "Bar Book" under it: fits the sidebar on one line */
 .bs-brand .bs-nm small { font-size: .62rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--muted, #8b8f93); }
-/* The Highlight Zone mark (2026-11-13, placeholder until Bennie picks one): lines of text with words lit in Jet Set-style colours */
+/* Bar Book mark (2026-11-13, placeholder until Bennie picks one): lines of text with words lit in Jet Set-style colours */
 .bs-mark { width: 26px; height: 26px; flex: none; border-radius: 7px; display: block; } .bs-mark svg { display: block; }
 .bs-ib { width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 9px; background: none; color: var(--muted); cursor: pointer; }
 .bs-ib:hover { color: var(--fg); background: var(--card2); }
@@ -3133,7 +3136,7 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
 .ai-pay .pack strong { font-size: 1.6rem; font-variant-numeric: tabular-nums; line-height: 1.1; } .ai-pay .pack small { color: #a3a7ab; font-size: .78rem; }
 .ai-pay .pack b { margin-top: 8px; font-size: .95rem; } .ai-pay .pack:hover { border-color: color-mix(in srgb, var(--accent) 60%, transparent); background: #1b1f21; }
 .ai-pay .pack.off { opacity: .5; pointer-events: none; }
-/* The Highlight Zone gate (Bennie 2026-11-13: Pro opens The Highlight Zone): a sheet over the page for Free or signed-out users.
+/* Bar Book gate (Bennie 2026-11-13: Pro opens Bar Book): a sheet over the page for Free or signed-out users.
    Songs stay in the browser and can always be downloaded; offline or no answer from the server = the page stays open. */
 .hz-gate { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; padding: 16px; background: #000c; backdrop-filter: blur(10px); }
 .hz-card { width: min(30rem, 100%); padding: 30px 28px 24px; border: 1px solid #ffffff1f; border-radius: 22px; background: #111315; color: #f2f2f2; box-shadow: 0 30px 90px #000a; }
@@ -3149,7 +3152,7 @@ dialog.ai-pay::backdrop { background: #000b; backdrop-filter: blur(6px); }
 @media (max-width: 1000px) { .hz-sample { left: 16px; transform: none; bottom: calc(16px + var(--bk-dock, 0px)); max-width: calc(100vw - 32px - 72px); } }
 .hz-card .hz-row > * { flex: 1 1 auto; padding: 10px 12px; border: 1px solid #ffffff24; border-radius: 12px; background: none; color: inherit; font: 500 .9rem var(--body); text-align: center; text-decoration: none; cursor: pointer; }
 /* Menu = four tiles exactly as wide as the 1 2 3 4 tiles under the wordmark (Bennie 2026-11-13): same width, same 6px gap,
-   same radius; the Highlight Zone tab is labelled "Rhyme" (the page keeps its title). Fonts unchanged (logo face tried and dropped). */
+   same radius; Bar Book tab is labelled "Rhyme" (the page keeps its title). Fonts unchanged (logo face tried and dropped). */
 header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: center; }
 @media (min-width: 701px) and (max-width: 1080px) { header > .views { width: min(31rem, 60vw); } }   /* tablets: same width as the logo there */
 .views, .views.ff-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 0; background: none; border-radius: 0; container-type: inline-size; }
@@ -3171,7 +3174,7 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 /* Studio tile + round Zone button (Bennie 2026-11-14): the fourth tile opens studio.html; The Zone moved to a round button
    right under Info (same .ibtn look and size). .hbtns = search | (Info over Zone). The button turns accent while you're on the Zone. */
 .hbtns { display: grid; grid-template-columns: auto auto auto; gap: 6px; align-items: start; }
-/* 2026-11-14 (later): Zone sits NEXT to Info; the day/night switch (#hdDay, same as the Highlight Zone's) sits under the three */
+/* 2026-11-14 (later): Zone sits NEXT to Info; the day/night switch (#hdDay, same as Bar Book's) sits under the three */
 .hbtns > #cmdkBtn { grid-row: 1; grid-column: 1; } .hbtns > #infoBtn { grid-row: 1; grid-column: 2; } .hbtns > #zoneBtn { grid-row: 1; grid-column: 3; }
 .hbtns > #hdDay { grid-row: 2; grid-column: 1 / -1; justify-self: end; width: 64px; height: 30px; margin: 2px 0 0; }
 #hdDay .smt-k { top: 4px; left: 4px; width: 22px; height: 22px; } #hdDay[aria-checked="true"] .smt-k { translate: 34px 0; }
@@ -3196,7 +3199,7 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 :is(.smt, #hdDay)[aria-checked="true"] .smt-k::before { opacity: 1; translate: 0 0; }
 :is(.smt, #hdDay)[aria-checked="true"] .smt-k::after { opacity: 1; scale: 1; transition-delay: calc(var(--smt-d) * .8); }
 :root[data-theme="dark"] .smt { box-shadow: inset 0 1px 3px #0008, 0 0 0 1px #ffffff1a; }
-/* phones: the Highlight Zone switch sits in the editor's top bar (moved there by script, class .smt-hb) */
+/* phones: Bar Book switch sits in the editor's top bar (moved there by script, class .smt-hb) */
 html.bb .be-head > #bsDay.smt-hb { display: block; position: relative; right: auto; bottom: auto; z-index: auto; width: 46px; height: 26px; margin: 0 2px; box-shadow: inset 0 1px 3px #0005, 0 0 0 1px #0002; }
 html.bb .be-head > #bsDay.smt-hb .smt-k { top: 3px; left: 3px; width: 20px; height: 20px; }
 html.bb .be-head > #bsDay.smt-hb[aria-checked="true"] .smt-k { translate: 20px 0; }
@@ -3266,10 +3269,10 @@ html.mo-off .ic, html.mo-off .ic * { translate: none !important; rotate: none !i
 /* Flow game and Advanced sit in the page column like every other box (Bennie 2026-11-13: same size as the 1 2 3 4 box,
    not the whole window); this undoes the old full-window break-out of #viewPractice > .adv / .tg-entry */
 #viewPractice > .adv, #viewPractice > .tg-entry { margin-inline: 0; }
-/* Highlight Zone DAY palette (hand-picked; the generated rules below map every other dark colour) */
+/* Bar Book DAY palette (hand-picked; the generated rules below map every other dark colour) */
 html.bb.bb-day[data-theme], html.bb.bb-day #viewBook, html.bb.bb-day #viewBook.rb-dark { --bg: #ffffff; --panel: #f7f8f9; --card2: #f1f2f4; --cell: #f1f2f4; --line: #e3e6e9; --fg: #15171a; --muted: #6b7178; --side: #fafafa; color-scheme: light; }
 html.bb.bb-day { --t-rec: #6b7178; --t-ad: #6b7178; --t-add: #8a9097; --t-rw: #0b97bd; --t-rhy: #c98a00; }
-/* ---- Highlight Zone polish (Bennie 2026-11-13) ---- */
+/* ---- Bar Book polish (Bennie 2026-11-13) ---- */
 /* Red (the default) = MetroBar's own look: its palette and IBM Plex Sans, day and night (html.bb-mb, set by setCol / boot) */
 html.bb.bb-mb[data-theme], html.bb.bb-mb #viewBook, html.bb.bb-mb #viewBook.rb-dark { --body: "IBM Plex Sans", system-ui, sans-serif;
   --bg: #111413; --panel: #1a1e1d; --card2: #222826; --cell: #252b29; --line: #2c3331; --fg: #e9ece8; --muted: #8e9893; --side: #141817; }
@@ -3307,7 +3310,7 @@ html.bb[data-paper="lined"] .be-row:not(.hd) .be-cell { background: linear-gradi
 .bs-paper { display: inline-flex; gap: 6px; flex-wrap: wrap; }
 .bs-paper button { height: 36px; padding: 0 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: var(--fg); font: 500 .9rem var(--body); cursor: pointer; }
 .bs-paper button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
-/* Highlight Zone logo (Bennie 2026-11-13): styled like the bar tool box (rounded tile, thin icon strokes) with a white border.
+/* Bar Book logo (Bennie 2026-11-13): styled like the bar tool box (rounded tile, thin icon strokes) with a white border.
    Night: black tile. Day: the tool box's light tile with the bar tools' own icon colours. Kept after HZ-DAY so the generator leaves it alone. */
 html.bb .bs-mark { border-radius: 8px; box-shadow: none !important; }
 html.bb .bs-mark .mk-bg { fill: #000; stroke: #fff; stroke-width: 1.5; }
@@ -3691,7 +3694,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
-    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#write"><span>Write</span></a><a href="#book" aria-label="The Highlight Zone" title="The Highlight Zone"><span>Rhyme</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
+    <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#book" title="Bar Book: write your songs, rhymes light up, then play them in the Game"><span>Bar Book</span></a><a href="#game" title="The Flow Game and Pocket Aim"><span>Game</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
       <div class="readout"><span class="ro-k">bar <b id="barNo">1</b>/<b id="barTot">4</b></span> · <span class="ro-k ro-bpm" id="roBpm" role="button" tabindex="0" title="Change the tempo"><b id="bpmOut">145</b> BPM</span> · <span id="state">stopped</span></div>
       <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg class="ic ic-find" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg class="ic ic-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg class="ic ic-ppl" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
@@ -4041,7 +4044,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
   <section class="rack fit" aria-label="Fit">
     <div class="rackbar"><h2>Fit <span class="steps">→ Flow → Practice</span></h2></div>
     <div class="fit-in">
-    <div class="lib-row" id="fitSong"><label for="fitSongSel">Song</label><select id="fitSongSel" aria-label="Song in the Fit box (the same song in Write and the Highlight Zone)"></select><button class="cbtn ghost" id="fitNew" type="button" title="Start a new song (it is a new song in Write and the Highlight Zone too)">+ New song</button><span class="lib-note">Same song in Write, the Highlight Zone and Bar Book</span></div>
+    <div class="lib-row" id="fitSong"><label for="fitSongSel">Song</label><select id="fitSongSel" aria-label="Song in the Fit box (the same song in Write and Bar Book)"></select><button class="cbtn ghost" id="fitNew" type="button" title="Start a new song (it is a new song in Write and Bar Book too)">+ New song</button><span class="lib-note">Same song in Write, Bar Book</span></div>
     <textarea id="lyrics" spellcheck="false" placeholder="One line per bar. Or paste free text and press Split into bars."></textarea>
     <div class="commit">
       <button class="cbtn pri" id="fitBtn">Fit</button>
@@ -4051,8 +4054,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <details class="fit-more"><summary class="cbtn ghost">More</summary><div class="fit-more-in">
       <button class="cbtn ghost" id="tplWrite" title="Put the template's lyric skeleton (section headings plus example bars) in the box">Lyric template</button>
       <button class="cbtn ghost" id="tplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my lyrics</button>
-      <button class="cbtn ghost" id="saveSong" title="This song in Write, the writing companion (the same song: changes show in both)">Open in Write</button>
-      <button class="cbtn ghost" id="bookCopy" title="This song in The Highlight Zone (the same song: changes show in both)">Open in Highlight Zone</button>
+      <button class="cbtn ghost" id="saveSong" title="This song in Bar Book (the same song: changes show in both)">Open in Bar Book</button>
+      <button class="cbtn ghost" id="bookCopy" title="This song in Bar Book (the same song: changes show in both)">Open in Bar Book</button>
       </div></details>
       <span class="det" id="tplMsg" role="status"></span>
     </div>
@@ -4180,7 +4183,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <button class="btn" id="wrTplWrite" title="Add the template's section headings and example bars at the end of the song">Lyric template</button>
         <button class="btn" id="wrTplPlace" title="Keep your bars and put the template's section headings between them, by bar count">Place my bars</button>
         <button class="btn tg" id="wrPlay" aria-pressed="false" title="Play the click (and the beat you loaded in MetroBar) while you write. Space does not work here, so use this button.">▶ Beat</button>
-        <button class="btn" id="wrToBook" title="This song in The Highlight Zone (the same song: changes show in both)">Open in Highlight Zone</button>
+        <button class="btn" id="wrToBook" title="This song in Bar Book (the same song: changes show in both)">Open in Bar Book</button>
         <button class="btn pri" id="wrPractice" title="Open this song in MetroBar: Fit, Compare and Practice it on the beat">Practice in MetroBar</button>
         <span class="wr-toast" id="wrMsg" role="status"></span>
       </div>
@@ -4275,13 +4278,13 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <p class="bk-msg" id="bkMsg" role="status"></p>
     </section>
     <div class="rb-top"><input id="rbTitle" placeholder="Untitled" aria-label="Page title" autocomplete="off"><input id="rbFolderIn" class="num-in" list="rbFolders" placeholder="Folder" aria-label="Folder" autocomplete="off"><datalist id="rbFolders"></datalist><span class="rb-stat" id="rbStat"></span><span class="wr-toast" id="rbMsg" role="status"></span><span class="rb-acts"><button class="btn rb-zenbtn" type="button" id="rbZen" aria-pressed="false" title="Focus: only your page and a live list of rhymes for the word you just wrote. Esc brings everything back."><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Focus</button><button class="btn tg" type="button" id="rbLock" aria-pressed="false" title="Lock this page so it can't be changed by accident">Lock</button><button class="btn pri" type="button" id="rbPost" title="Share this page in the Zone, the MetroBar community">Post to the Zone</button><button class="btn" type="button" id="rbToWrite" title="This song in Write, to count bars and practise it (the same song: changes show in both)">Open in Write</button><button class="btn" type="button" id="rbDel" title="Move this page to Recently deleted">Delete</button></span></div>
-    <aside class="rb-lib" id="rbLib" aria-label="The Highlight Zone songs">
-      <div class="rb-libh"><h2>The Highlight Zone</h2><button class="btn" type="button" id="rbNew" title="Start a new page">+ New</button></div>
-      <input id="rbSearch" class="num-in rb-search" type="search" placeholder="Search" aria-label="Search The Highlight Zone">
+    <aside class="rb-lib" id="rbLib" aria-label="Bar Book songs">
+      <div class="rb-libh"><h2>Bar Book</h2><button class="btn" type="button" id="rbNew" title="Start a new page">+ New</button></div>
+      <input id="rbSearch" class="num-in rb-search" type="search" placeholder="Search" aria-label="Search Bar Book">
       <label class="field rb-fsel">Folder <select id="rbFolder" class="num-in"><option value="">All</option></select></label>
       <ul id="rbList"></ul>
     </aside>
-    <section class="rb-main" aria-label="The Highlight Zone page">
+    <section class="rb-main" aria-label="Bar Book page">
       <div class="rb-view" data-rbv="write">
         <div class="rb-sug" id="rbSug" aria-label="Rhymes for the line above: click one to add it"></div>
         <div class="rb-ed" id="rbEd" data-rbtheme="white" data-rbfont="sans">
@@ -4308,7 +4311,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="rb-bh"><label class="field">Add <select id="rbStAdd" class="num-in"><option value="">a section…</option><option>Intro</option><option>Verse</option><option>Pre-hook</option><option>Hook</option><option>Bridge</option><option>Outro</option></select></label><span class="note">Click a section to write in it.</span></div>
         <div class="rb-st" id="rbSt"></div>
       </div>
-      <div class="rb-bar" role="toolbar" aria-label="The Highlight Zone tools">
+      <div class="rb-bar" role="toolbar" aria-label="Bar Book tools">
         <button class="btn tg" type="button" id="rbHi" aria-pressed="true" title="Colour words that really rhyme: each rhyme gets its own colour, used for nothing else on the page">Highlight</button>
         <button class="btn tg" type="button" id="rbSylBtn" aria-pressed="true" title="Show the syllable count and the rhyme letter (A, B…) at the end of each line">Syllables</button>
         <button class="btn tg" type="button" id="rbAuto" aria-pressed="false" title="Let the phone or browser correct spelling. Off by default so slang stays as you wrote it.">Autocorrect</button>
@@ -4366,9 +4369,9 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
       <h5 class="rb-eb">Your work</h5>
       <details id="rbBinBox"><summary>Recently deleted (<span id="rbBinN">0</span>)</summary><div id="rbBin"></div></details>
       <div class="row" style="gap:6px">
-        <button class="btn" type="button" id="rbImport" title="Open .txt files as pages, a lyrics export with many songs in one file, or a Highlight Zone backup (.json)">Import</button>
+        <button class="btn" type="button" id="rbImport" title="Open .txt files as pages, a lyrics export with many songs in one file, or a Bar Book backup (.json)">Import</button>
         <input type="file" id="rbImportFile" accept=".txt,.md,.json,text/plain,application/json" multiple hidden>
-        <button class="btn" type="button" id="rbBackup" title="Download everything in The Highlight Zone as one backup file (.json)">Backup</button>
+        <button class="btn" type="button" id="rbBackup" title="Download everything in Bar Book as one backup file (.json)">Backup</button>
       </div>
       <p class="note" id="rbSync" role="status">Saved in this browser as you type. Back it up now and then.</p>
       <button class="btn mini" type="button" id="rbSyncNow" hidden>Sync now</button>
@@ -5771,7 +5774,7 @@ function bookPaint(s, w) { s.style.setProperty('--h', w.h); s.style.setProperty(
 // Syllables per line (headings and blank lines count 0)
 function bookSyl(text, fix) { return String(text || '').split('\n').map(l => /^\s*#/.test(l) || /^\s*\[[^\]]*\]\s*$/.test(l) ? 0 : bookWords(l).reduce((a, w) => a + sylCount(w.k, fix || {}), 0)); }
 // ---- One song library (2026-11-17, Bennie: "my lyrics connected to each other everywhere, in every mode"). Write songs,
-// Highlight Zone pages, the Fit box and Practice bars are one list of songs, stored as the Barbook pages (metrobar.book,
+// Bar Book pages, the Fit box and Practice bars are one list of songs, stored as the Barbook pages (metrobar.book,
 // synced to the account). libMigrate folds the old stores in without losing a word: same id = newest edit wins, a copy with
 // exactly the same words is the same song, blank songs Write made on its own are dropped, purged stays purged.
 const libTrim = t => String(t || '').replace(/\r/g, '').split('\n').map(l => l.replace(/\s+$/, '')).join('\n').trim();
@@ -6945,8 +6948,8 @@ but I kept it moving, now everybody knows.` },
     { name: 'Triplets (3 per beat)', bars: 4, sub: 3, color: '--r4', drill: 'Three a beat, then back up to five: hear the difference.' }],
     lyrics: `Running through the numbers and the money and the city with the people` },
 };
-// ---- One shared set of templates (Bennie 2026-11-18): the artist structures (Highlight Zone), the MetroBar drills (TEMPLATES) and your own
-// templates (metrobar.bookTpls, made in the Highlight Zone) show up in Write, the Highlight Zone, MetroBar's Template select and Bar Book.
+// ---- One shared set of templates (Bennie 2026-11-18): the artist structures (Bar Book), the MetroBar drills (TEMPLATES) and your own
+// templates (metrobar.bookTpls, made in Bar Book) show up in Write, Bar Book, MetroBar's Template select and Bar Book.
 // A structure = parts + bar counts ([name, bars]); every one also exists as a TEMPLATES-style object (sections + lyric skeleton) via tplGet(id).
 const ARTIST_TPLS = [
   { id: 'b50', name: '50 Cent', note: 'Hook first. The catchy part opens the song, then 16-bar verses with the hook between them.', parts: [['Intro', 4], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Verse', 16], ['Hook', 8], ['Outro', 4]] },
@@ -8300,7 +8303,7 @@ const WR = { get songs() { return LIB.pages; }, set songs(v) { LIB.pages = v; },
 const now = () => Date.now();
 const newId = () => 's' + now().toString(36) + Math.floor(Math.random() * 1e6).toString(36);
 function wrSong() { return WR.songs.find(s => s.id === WR.cur) || null; }
-// one library (LIB): the two-tab merge is the Highlight Zone's rbMergeStored, saving is rbSaveNow (account sync included)
+// one library (LIB): the two-tab merge is Bar Book's rbMergeStored, saving is rbSaveNow (account sync included)
 function wrMerge() { if (typeof rbMergeStored === 'function') rbMergeStored(); return wrSong(); }
 function wrSave() {
   WR.timer = 0; let ok = true;
@@ -8335,7 +8338,7 @@ function wrList() {
     li.append(b); ul.append(li);
   });
   $('wrLibN').textContent = `(${WR.songs.length})`; $('wrBinN').textContent = WR.bin.length; const bin = $('wrBin'); bin.replaceChildren();
-  if (!WR.bin.length) bin.append(h('p', 'note', 'Nothing here. Deleted songs wait here (the same list as the Highlight Zone).'));
+  if (!WR.bin.length) bin.append(h('p', 'note', 'Nothing here. Deleted songs wait here (the same list as Bar Book).'));
   WR.bin.forEach(s => {
     const r = h('div', 'binrow'), rs = h('button', 'mini', 'Restore');
     rs.addEventListener('click', () => { WR.bin = WR.bin.filter(x => x !== s); delete s.deleted; s.updated = now(); WR.songs.unshift(s); WR.cur = s.id; wrSave(); wrOpen(); wrLibClose(); });
@@ -8762,7 +8765,7 @@ function wrDownload(name, text, type = 'text/plain') {
   const a = h('a'); a.href = URL.createObjectURL(new Blob([text], { type })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 const fileName = t => (t || 'untitled').replace(/[^\w\- ]+/g, '').trim().replace(/\s+/g, '-').toLowerCase() || 'untitled';
-// ---- the Fit box IS the song you're on (LIB.cur): typing here changes it in Write, the Highlight Zone, Practice and
+// ---- the Fit box IS the song you're on (LIB.cur): typing here changes it in Write, Bar Book, Practice and
 // ADVANCED Studio too (one library, Bennie 2026-11-17). The picker above the box chooses the song for every view.
 let fitDirty = false;
 function fitSongs() {
@@ -8790,14 +8793,19 @@ LIB.on((kind, src) => {
 $('lyrics').addEventListener('blur', () => { if (fitDirty) setTimeout(() => { if (document.activeElement !== $('lyrics')) fitFromLib(); }, 0); });
 $('fitSongSel').addEventListener('change', e => { fitToLib(); LIB.saveNow(); LIB.setCur(e.target.value, 'fit'); fitFromLib(); });
 $('fitNew').addEventListener('click', () => { fitToLib(); LIB.create('', '', 'fit'); fitFromLib(); $('lyrics').focus(); });
-$('saveSong').addEventListener('click', () => { fitToLib(); LIB.saveNow(); location.hash = '#write'; });
+$('saveSong').addEventListener('click', () => { fitToLib(); LIB.saveNow(); mwGo('#book'); });
 // ---- views
 function setView() {
-  const w = location.hash === '#write', b = location.hash === '#book', z = location.hash === '#zone', here = w ? '#write' : b ? '#book' : z ? '#zone' : '#practice';
+  // Bennie 2026-11-18: Write and Rhyme are merged into Bar Book (menu: MetroBar, Bar Book, Game, Studio). Old #write links land in Bar Book;
+  // #game is MetroBar with the Flow Game open on top.
+  if (location.hash === '#write') { history.replaceState(null, '', '#book'); }
+  const g = location.hash === '#game';
+  if (g) { setTimeout(() => { try { if (!$('tgDlg').open) TG.open(); } catch (e) { setTimeout(() => { try { if (location.hash === '#game' && !$('tgDlg').open) TG.open(); } catch (_) {} }, 400); } }, 0); }
+  const w = false, b = location.hash === '#book', z = location.hash === '#zone', here = g ? '#game' : w ? '#write' : b ? '#book' : z ? '#zone' : '#practice';
   bbMode(b);
   document.body.classList.toggle('write', w); document.body.classList.toggle('book', b); document.body.classList.toggle('zone', z);
   $('viewWrite').hidden = !w; $('viewBook').hidden = !b; $('viewZone').hidden = !z; $('viewPractice').hidden = w || b || z;
-  { const nm = w ? 'Write' : b ? 'The Highlight Zone' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
+  { const nm = g ? 'Game' : b ? 'Bar Book' : z ? 'The Zone' : 'MetroBar'; $('scrName').textContent = nm; document.title = nm === 'MetroBar' || window.BBAPP ? nm : nm + ' · MetroBar'; }
   document.querySelectorAll('.views a').forEach(a => a.setAttribute('aria-current', a.getAttribute('href') === here ? 'page' : 'false'));
   { const zb = $('zoneBtn'); if (zb) zb.setAttribute('aria-current', z ? 'page' : 'false'); }
   if (w) { wrOpen(); return; }
@@ -8808,8 +8816,8 @@ function setView() {
 window.addEventListener('hashchange', setView);
 // ---- Rhyme "makes way" (Bennie 2026-11-14): clicking Rhyme is a transition, not a page load. The screen splits: wordmark,
 // tiles 1 2, MetroBar + Write and the left boxes go left; tiles 3 4, Rhyme + The Zone, the readout and the right boxes go right
-// (per view, see mwGroups). All at once, all the way to the screen edge (a sliver stays), no fade while moving; then they fade, and the Highlight Zone rises in
-// front. The way back: the Highlight Zone sinks back and fades, and the boxes slide back into place from the edges. All in this
+// (per view, see mwGroups). All at once, all the way to the screen edge (a sliver stays), no fade while moving; then they fade, and Bar Book rises in
+// front. The way back: Bar Book sinks back and fades, and the boxes slide back into place from the edges. All in this
 // page (mwGo, bbMode), no page load. Reduced motion: plain switch both ways.
 const MW_EASE = 'cubic-bezier(.22,.88,.22,1)';
 const mwCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches || !Element.prototype.animate;
@@ -8825,7 +8833,7 @@ function mwGroups() {
   const kids = s => { const p = q(s); return p ? [...p.children] : []; };
   R.push(q('#intro')); L.push(q('#resume'));
   if (!$('viewWrite').hidden) {          // Write (Bennie 2026-11-14): dock box right; Rhymes/Stress/Flow/Aim/Place my bars/Beat left,
-    const rows = document.querySelectorAll('.wr-main > .row');   // Template/Lyric template/To Highlight Zone/Practice right; editor
+    const rows = document.querySelectorAll('.wr-main > .row');   // Template/Lyric template/To Bar Book/Practice right; editor
     L.push(q('#wrLib'), q('.wr-top'), q('.wr-ed'), q('#wrStats'), rows[1]); R.push(q('#wrDock'), q('#wrPanels'));   // + Duplicate row left, Techniques right
     if (rows[0]) [...rows[0].children].forEach(side);
   } else if (!$('viewZone').hidden) {    // The Zone: head items and loose buttons by side, posts alternate
@@ -8848,7 +8856,7 @@ const mwFrames = (el, dir, ref) => {
     { transform: `translateX(${dx}px)`, opacity: 1, offset: .62 },
     { transform: `translateX(${dx}px)`, opacity: .16, offset: 1 }];
 };
-// The Highlight Zone shell on/off, live (no page load). First visit boots its sidebar/top bar (BS) and templates (TPL); the Pro
+// Bar Book shell on/off, live (no page load). First visit boots its sidebar/top bar (BS) and templates (TPL); the Pro
 // gate checks on every visit and goes away when you leave. MetroBar's scroll position comes back when you return.
 let BB_SCROLL = 0;
 function bbMode(on) {
@@ -8864,10 +8872,10 @@ function bbMode(on) {
     scrollTo(0, BB_SCROLL);
   }
 }
-// mwGo(hash): switch view with the make-way motion when it crosses into or out of the Highlight Zone; other switches stay instant.
-// Into it: the boxes slide to the screen edges and fade (mwFrames), then the Highlight Zone rises in front. Out of it: it sinks back
+// mwGo(hash): switch view with the make-way motion when it crosses into or out of Bar Book; other switches stay instant.
+// Into it: the boxes slide to the screen edges and fade (mwFrames), then Bar Book rises in front. Out of it: it sinks back
 // and fades, then the boxes slide back from the edges (the tab pill waits under mw-run, then fades in).
-const MW_VIEWS = ['#practice', '#write', '#zone', '#book'];
+const MW_VIEWS = ['#practice', '#write', '#zone', '#book', '#game'];
 let mwBusy = false;
 function mwGo(hash) {
   const toBook = hash === '#book', r = document.documentElement;
@@ -8878,7 +8886,7 @@ function mwGo(hash) {
   const arrive = () => new Promise(res => { let d = false; const go = () => { if (!d) { d = true; res(); } }; addEventListener('hashchange', go, { once: true }); location.hash = hash; setTimeout(go, 200); });
   if (toBook && document.startViewTransition) {
     // Bennie 2026-11-14: "Rhyme should pop up right away, and the boxes moving away go after". The browser keeps a picture of
-    // every box (view-transition-name mw0, mw1, ...), the Highlight Zone opens behind them at once, and the pictures slide to
+    // every box (view-transition-name mw0, mw1, ...), Bar Book opens behind them at once, and the pictures slide to
     // the screen edges and fade over it. The real boxes are already gone, so nothing waits for the slide.
     const g = mwGroups(), fr = g.map(([el, dir]) => mwFrames(el, dir, el.mwRef));
     g.forEach(([el], i) => { el.style.viewTransitionName = 'mw' + i; });
@@ -8889,7 +8897,7 @@ function mwGo(hash) {
       const o = { duration: 640, easing: MW_EASE, fill: 'both' };   // Bennie 2026-11-14: "make it slower" (was 420 slide / 520 fade)
       g.forEach((_, i) => { const k = fr[i].map(f => ({ ...f })); k[2].opacity = 0;
         try { anims.push(r.animate(k, { ...o, delay: Math.min(i * 14, 110), pseudoElement: `::view-transition-old(mw${i})` })); } catch (e) {} });
-      // Bennie 2026-11-14: "fades in whilst the buttons are moving aside": the Highlight Zone fades in over the whole slide, the old page fades out under it
+      // Bennie 2026-11-14: "fades in whilst the buttons are moving aside": Bar Book fades in over the whole slide, the old page fades out under it
       const fade = { duration: 800, easing: 'cubic-bezier(.33,0,.2,1)', fill: 'both' };
       anims.push(r.animate([{ opacity: 0, transform: 'scale(.985)' }, { opacity: 1, transform: 'none' }], { ...fade, pseudoElement: '::view-transition-new(root)' }),
         r.animate([{ opacity: 1 }, { opacity: 0 }], { ...fade, pseudoElement: '::view-transition-old(root)' }));
@@ -8914,7 +8922,7 @@ function mwGo(hash) {
     });
   }
 }
-// every link to one of the four views goes through mwGo (MetroBar's tabs, the Highlight Zone's own nav, Back to MetroBar)
+// every link to one of the four views goes through mwGo (MetroBar's tabs, Bar Book's own nav, Back to MetroBar)
 document.addEventListener('click', e => {
   const a = e.target.closest && e.target.closest('a[href^="#"]');
   if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button) return;
@@ -9610,29 +9618,33 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!DictSR || !window.isSecureContext) {
     btn.setAttribute('aria-disabled', 'true');
     btn.title = !DictSR ? 'Dictation needs a browser with speech typing: Chrome, Edge or Safari. Firefox does not have it.' : 'Dictation needs http(s) or localhost, not a file:// page.';
-    btn.addEventListener('click', () => wrMsg(btn.title)); return;
+    btn.addEventListener('click', () => (location.hash === '#write' ? wrMsg : toast)(btn.title)); return;
   }
   // Spoken commands, said on their own: "new line"/"next bar", "new verse"/"new section" (blank line), "scratch that", "stop dictation".
   const CMD = [[/^(new|next) (line|bar)$/, 'nl'], [/^new (verse|section|paragraph)$/, 'sec'], [/^(scratch|delete|undo) that$/, 'undo'], [/^stop (dictation|dictating|listening)$/, 'stop']];
+  // Bar Book (2026-11-18): dictation types into the page you're on (#rbText); Write's pad is gone from the menu
+  const tgt = () => location.hash === '#write' ? $('wrText') : $('rbText');
+  const ins = t => { const ta = tgt(); if (ta.id === 'wrText') { wrInsert(t); return; } ta.setRangeText(t, ta.selectionStart, ta.selectionEnd, 'end'); ta.dispatchEvent(new Event('input', { bubbles: true })); };
+  const note = m => (location.hash === '#write' ? wrMsg : toast)(m);
   const say = (fin, interim) => { live.replaceChildren(); if (fin) live.append(h('b', '', fin + ' ')); live.append(interim || (fin ? '' : 'Listening… rap your bar, pause for the next one.')); };
   function put(text) {
-    const ta = $('wrText'), v = ta.value; let p = ta.selectionEnd;
+    const ta = tgt(), v = ta.value; let p = ta.selectionEnd;
     if (document.activeElement !== ta) p = ta.value.length;   // not in the pad: add at the end of the song
     ta.focus({ preventScroll: true }); ta.setSelectionRange(p, p);
     const before = v.slice(0, p), lineHas = /[^\n]$/.test(before);
     let t = text;
     if (pause.checked) { if (lineHas) t = '\n' + t; }
     else if (lineHas && !/\s$/.test(before)) t = ' ' + t;
-    const start = p; wrInsert(t); SPK.lastIns = { start, text: t, song: WR.cur };
+    const start = p; ins(t); SPK.lastIns = { start, text: t, song: WR.cur };
   }
   function cmd(c) {
-    const ta = $('wrText');
-    if (c === 'nl' || c === 'sec') { ta.focus({ preventScroll: true }); if (document.activeElement === ta) ta.setSelectionRange(ta.selectionEnd, ta.selectionEnd); wrInsert(c === 'sec' ? '\n\n' : '\n'); SPK.lastIns = null; return; }
+    const ta = tgt();
+    if (c === 'nl' || c === 'sec') { ta.focus({ preventScroll: true }); if (document.activeElement === ta) ta.setSelectionRange(ta.selectionEnd, ta.selectionEnd); ins(c === 'sec' ? '\n\n' : '\n'); SPK.lastIns = null; return; }
     if (c === 'undo') {
       const L = SPK.lastIns; if (!L || L.song !== WR.cur || ta.value.substr(L.start, L.text.length) !== L.text) { say('', 'Nothing to scratch.'); return; }
       ta.focus({ preventScroll: true }); ta.setSelectionRange(L.start, L.start + L.text.length);
       if (!document.execCommand || !document.execCommand('delete')) ta.setRangeText('', L.start, L.start + L.text.length, 'end');
-      wrInput(); SPK.lastIns = null; say('', 'Scratched the last bar.'); return;
+      if (ta.id === 'wrText') wrInput(); else ta.dispatchEvent(new Event('input', { bubbles: true })); SPK.lastIns = null; say('', 'Scratched the last bar.'); return;
     }
     if (c === 'stop') dictStop();
   }
@@ -9654,9 +9666,9 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
     };
     r.onerror = e => {
       SPK.err = e.error;
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { dictStop(); wrMsg('Dictation needs the microphone. Allow it in the address bar, then press Dictate again.'); }
-      else if (e.error === 'audio-capture') { dictStop(); wrMsg('No microphone found for dictation.'); }
-      else if (e.error === 'network') { dictStop(); wrMsg('Dictation could not reach the browser\'s speech service. Check the connection and try again.'); }
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') { dictStop(); note('Dictation needs the microphone. Allow it in the address bar, then press Dictate again.'); }
+      else if (e.error === 'audio-capture') { dictStop(); note('No microphone found for dictation.'); }
+      else if (e.error === 'network') { dictStop(); note('Dictation could not reach the browser\'s speech service. Check the connection and try again.'); }
     };
     r.onend = () => { if (SPK.on) { try { r.start(); } catch (e) { setTimeout(() => { if (SPK.on) try { r.start(); } catch (_) { dictStop(); } }, 300); } } };   // Chrome stops after silence: keep going until Stop
     return r;
@@ -9666,7 +9678,8 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
     SPK.rec = SPK.rec || make(); SPK.on = true; SPK.song = WR.cur; SPK.last = ''; SPK.err = '';
     try { SPK.rec.start(); } catch (e) {}
     btn.setAttribute('aria-pressed', 'true'); bar.hidden = false; bar.classList.remove('idle'); say('', '');
-    const ta = $('wrText'); if (document.activeElement !== ta) { ta.focus({ preventScroll: true }); ta.setSelectionRange(ta.value.length, ta.value.length); }
+    const ta = tgt(); if (document.activeElement !== ta && !(ta.id === 'rbText' && document.documentElement.classList.contains('bb-rows'))) { ta.focus({ preventScroll: true }); ta.setSelectionRange(ta.value.length, ta.value.length); }
+    if (ta.id === 'rbText' && document.activeElement !== ta) ta.setSelectionRange(ta.value.length, ta.value.length);
   };
   window.dictStop = function () {
     if (!SPK.on && bar.hidden) return; SPK.on = false;
@@ -9675,7 +9688,7 @@ const DictSR = window.SpeechRecognition || window.webkitSpeechRecognition;
   };
   btn.addEventListener('click', () => SPK.on ? dictStop() : dictStart());
   $('wrDictStop').addEventListener('click', () => { dictStop(); btn.focus({ preventScroll: true }); });
-  window.addEventListener('hashchange', () => { if (location.hash !== '#write') dictStop(); });
+  window.addEventListener('hashchange', () => { if (location.hash !== '#write' && location.hash !== '#book') dictStop(); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) dictStop(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && SPK.on) dictStop(); });
 })();
@@ -10149,7 +10162,7 @@ $('bookCopy').addEventListener('click', () => { fitToLib(); LIB.saveNow(); mwGo(
 window.addEventListener('hashchange', () => { if (location.hash !== '#book') rbFlush(); else rbSyncSoon(300); });
 window.addEventListener('load', () => rbSyncSoon(location.hash === '#book' ? 300 : 1500));
 window.addEventListener('focus', () => rbSyncSoon(500));
-setInterval(() => { if (!document.hidden) rbSyncSoon(0); }, 60000);   // every view shows the same songs now; off the Highlight Zone only when signed in
+setInterval(() => { if (!document.hidden) rbSyncSoon(0); }, 60000);   // every view shows the same songs now; off Bar Book only when signed in
 window.addEventListener('pagehide', rbFlush);
 window.addEventListener('resize', () => { if (location.hash === '#book') rbGrow(); });
 // repaint once the pronunciation dictionary is in (better vowels + the rhyme lists)
@@ -10493,7 +10506,7 @@ function aiWho() { $('rbAiWho').textContent = AI.prov === 'metrobar' ? (AIW.w ? 
 // ---- MetroBar AI credits (Bennie 2026-11-12): the key lives on the server (edge function "ai"), every account has a wallet.
 // Free: a few credits every month; Pro: lots; packs add bonus credits. 1 press = 1 credit, a failed answer is given back.
 var AIW = { w: null, t: 0 };
-// Plans (Bennie 2026-11-13): Free = MetroBar + 15 AI credits a month; Pro (€15/month) = + The Highlight Zone; Super Pro (€20/month) = everything in Pro + 800 AI credits a month.
+// Plans (Bennie 2026-11-13): Free = MetroBar + 15 AI credits a month; Pro (€15/month) = + Bar Book; Super Pro (€20/month) = everything in Pro + 800 AI credits a month.
 const planName = p => p === 'super' ? 'Super Pro' : p === 'pro' ? 'Pro' : 'Free';
 const planPaid = w => !!w && (w.plan === 'pro' || w.plan === 'super');
 async function aiWallet(force) {
@@ -10520,7 +10533,7 @@ function aiWalletShow() {
   const m = /[?&]paid=(pro|super|pack)\b/.exec(location.search); if (!m) return;
   history.replaceState(null, '', location.pathname + location.hash);
   const say = t => { if (typeof toast === 'function') toast(t, { ms: 7000 }); };
-  setTimeout(() => say(m[1] === 'super' ? 'Welcome to Super Pro. The Highlight Zone and your 800 AI credits are on their way.' : m[1] === 'pro' ? 'Welcome to Pro. The Highlight Zone opens in a moment.' : 'Thanks! Your AI credits are on their way.'), 1500);
+  setTimeout(() => say(m[1] === 'super' ? 'Welcome to Super Pro. Bar Book and your 800 AI credits are on their way.' : m[1] === 'pro' ? 'Welcome to Pro. Bar Book opens in a moment.' : 'Thanks! Your AI credits are on their way.'), 1500);
   [4000, 10000, 25000].forEach(ms => setTimeout(() => { if (typeof aiWallet === 'function') aiWallet(true); }, ms));
 })();
 function aiPay(kind) {
@@ -10536,11 +10549,11 @@ function aiPaywall(why) {
   const when = w ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';
   const btnFor = (plan, k, label) => cur === plan ? '<span class="cur">Your plan</span>' : `<a class="btn${plan === 'super' ? ' pri' : ''}" data-k="${k}">${label}</a>`;
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
-<h2>${why === 'zone' ? 'The Highlight Zone is part of Pro' : why === 'no_credits' ? 'You used all your AI credits' : 'Plans and AI credits'}</h2>
+<h2>${why === 'zone' ? 'Bar Book is part of Pro' : why === 'no_credits' ? 'You used all your AI credits' : 'Plans and AI credits'}</h2>
 <p class="pay-sub">${!w ? 'Sign in first, so your plan lands in your account.' : `${planName(cur)} · ${w.left} AI credits left. ${cur === 'super' ? `Your ${supN} come back on ${when}.` : `Your ${w.monthly} come back on ${when}.`}`}</p>
 <div class="plans">
  <div class="plan"><b>Free</b><strong>€0</strong><small>MetroBar, Write and The Zone</small><ul><li>${free} AI credits every month</li><li>Practice, Fit, flows, the Flow game</li></ul>${cur === 'free' ? '<span class="cur">Your plan</span>' : ''}</div>
- <div class="plan"><b>Pro</b><strong>${P.proPrice || '€15'}</strong><small>per month</small><ul><li>The Highlight Zone: your rhymes lit up, syllables, drafts, beats</li><li>${free} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('pro', 'pro', 'Get Pro')}</div>
+ <div class="plan"><b>Pro</b><strong>${P.proPrice || '€15'}</strong><small>per month</small><ul><li>Bar Book: your rhymes lit up, syllables, drafts, beats</li><li>${free} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('pro', 'pro', 'Get Pro')}</div>
  <div class="plan pro"><b>Super Pro</b><strong>${P.superPrice || '€20'}</strong><small>per month</small><ul><li>Everything in Pro</li><li>${supN} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('super', 'super', 'Get Super Pro')}</div>
 </div>
 ${packs.length ? `<h3 class="pay-h">Credit packs <small>one payment, never expire, on top of any plan</small></h3><div class="packs">${packs.map(k => `<a class="pack" data-k="${k.k}"><strong>${k.credits}</strong><small>AI credits</small><b>${k.price}</b></a>`).join('')}</div>` : ''}
@@ -10949,16 +10962,16 @@ ckDlg.innerHTML = '<div class="ck-top"><svg viewBox="0 0 24 24" aria-hidden="tru
   '<div class="ck-foot"><span><kbd>↑</kbd> <kbd>↓</kbd> move</span><span><kbd>Enter</kbd> open</span><span><kbd>⌫</kbd> back</span><span><kbd>Esc</kbd> close</span></div>';
 document.body.append(ckDlg);
 const ckIn = ckDlg.querySelector('.ck-in'), ckList = ckDlg.querySelector('.ck-list'), ckCrumb = ckDlg.querySelector('.ck-crumb');
-const goView = w => { const want = w ? '#write' : '#practice'; if ((location.hash || '#practice') !== want) location.hash = want; };
+const goView = w => { const want = w ? '#book' : '#practice'; if ((location.hash || '#practice') !== want) mwGo(want); };   // Write lives in Bar Book now
 const clickEl = id => { const el = $(id); if (el) { advReveal(el); el.click(); } };
 const showEl = el => { if (!el) return; advReveal(el); requestAnimationFrame(() => el.scrollIntoView({ block: 'center', behavior: calmQ.matches ? 'auto' : 'smooth' })); };
 function ckRoot() {
   const it = [], add = (group, label, run, o = {}) => it.push({ group, label, run, ...o });
   add('Go to', 'MetroBar (practice)', () => goView(false), { kw: 'practice metronome home' });
-  add('Go to', 'Write', () => goView(true), { kw: 'lyrics pad songs' });
-  add('Go to', 'The Highlight Zone', () => { mwGo('#book'); }, { kw: 'rhyme book rhymes notebook pages lyrics highlight' });
+  add('Go to', 'Game (Flow Game, Pocket Aim)', () => { mwGo('#game'); }, { kw: 'flow game pocket aim play levels tap' });
+  add('Go to', 'Bar Book', () => { mwGo('#book'); }, { kw: 'rhyme book rhymes notebook pages lyrics highlight write pad songs' });
   add('Go to', 'The Zone', () => { location.hash = '#zone'; }, { kw: 'community posts feed profile respect props' });
-  if ($('viewBook')) add('Go to', 'The Highlight Zone', () => { mwGo('#book'); }, { kw: 'rhyme book rhymers block book highlight' });
+  if ($('viewBook')) add('Go to', 'Bar Book', () => { mwGo('#book'); }, { kw: 'rhyme book rhymers block book highlight' });
   add('Actions', running ? 'Stop' : 'Start', () => { goView(false); running ? stop() : start(); }, { key: 'Space', kw: 'play start stop' });
   add('Actions', 'Tap tempo', () => { goView(false); tap(); }, { key: 'T', kw: 'tap bpm' });
   add('Actions', 'Load a beat', () => { goView(false); $('beatBtn').click(); }, { kw: 'mp3 wav audio file upload' });
@@ -10973,20 +10986,19 @@ function ckRoot() {
     if (name) add('Advanced', name, () => { goView(false); advReveal(r.querySelector('.rk-body') || r); if (r.classList.contains('fold') && !rackIsOpen(r)) rackOpen(r, true); showEl(r); }, { kw: 'advanced section ' + (sub ? sub.textContent : '') }); });
   [['tapTest', 'Tap test (on or off)'], ['countIn', 'Count-in bar (on or off)'], ['pmOn', 'Polymeter (on or off)']].forEach(([id, label]) => { if ($(id)) add('Advanced', label, () => { goView(false); const c = $(id); advReveal(c); c.click(); toast(`${label.split(' (')[0]} ${c.checked ? 'on' : 'off'}.`); }, { kw: 'toggle switch' }); });
   add('Advanced', 'Template', null, { page: 'tpl', kw: 'song shape radio freestyle' });
-  add('Write', 'New song', () => { goView(true); $('wrNew').click(); }, { kw: 'add create' });
-  add('Write', 'Open a song', null, { page: 'song', kw: 'songs library' });
-  add('Write', 'Technique', null, { page: 'tech', kw: 'drill monorhyme flow' });
-  if ($('wrDict')) add('Write', 'Dictate', () => { goView(true); $('wrDict').click(); }, { kw: 'speak voice speech mic' });
-  WR_PANELS.forEach(c => add('Write', `${c.dataset.tab} panel`, () => { goView(true); wrPanel(c.dataset.tab, true, true); }, { kw: 'tool open' }));
-  add('Write', 'Back up all songs', () => $('wrBackup').click(), { kw: 'backup export download json' });
+  add('Bar Book', 'New song', () => { PPZ.enter(); }, { kw: 'add create write blank' });
+  add('Bar Book', 'Open a song', null, { page: 'song', kw: 'songs library' });
+  add('Bar Book', 'Technique', null, { page: 'tech', kw: 'drill monorhyme flow' });
+  if ($('wrDict')) add('Bar Book', 'Dictate', () => { goView(true); setTimeout(() => $('wrDict').click(), 700); }, { kw: 'speak voice speech mic' });
+  add('Bar Book', 'Back up all songs', () => $('wrBackup').click(), { kw: 'backup export download json' });
   return it;
 }
 function ckPage(p) {
   if (p === 'tempo') { const cur = bpm(); return [60, 70, 80, 85, 90, 95, 100, 120, 130, 140, 145, 150, 160, 170].map(v => ({ group: 'Tempo', label: `${v} BPM`, key: v === cur ? 'now' : '', run: () => bpmSet(v) }))
     .concat([{ group: 'Tempo', label: `Half: ${Math.round(cur / 2)} BPM`, run: () => bpmSet(cur / 2), kw: 'half' }, { group: 'Tempo', label: `Double: ${cur * 2} BPM`, run: () => bpmSet(cur * 2), kw: 'double' }].filter(x => /\d+/.exec(x.label) && +/\d+(?= BPM)/.exec(x.label)[0] >= 60 && +/\d+(?= BPM)/.exec(x.label)[0] <= 200)); }
   if (p === 'tpl') return Object.entries(TEMPLATES).concat(tplOwn().map(t => [t.id, tplFromParts(t)])).map(([id, t]) => ({ group: 'Templates', label: t.name, run: () => { goView(false); $('tpl').value = id; $('tpl').dispatchEvent(new Event('change')); advReveal($('tpl')); } }));
-  if (p === 'song') return WR.songs.map(s => ({ group: 'Your songs', label: s.title || 'Untitled', kw: (s.text || '').slice(0, 120), run: () => { goView(true); wrFlush(); WR.cur = s.id; wrSave(); wrOpen(); } }));
-  if (p === 'tech') return TECHS.map((t, i) => ({ group: 'Techniques', label: t.name, kw: (t.what || '') + ' ' + ((TECH_TAG[t.name] || []).join(' ')), run: () => { goView(true); wrPanel('Techniques', true, true); wrTechShow(i, true); } }));
+  if (p === 'song') return WR.songs.map(s => ({ group: 'Your songs', label: s.title || 'Untitled', kw: (s.text || '').slice(0, 120), run: () => { LIB.setCur(s.id, 'ck'); goView(true); } }));
+  if (p === 'tech') return TECHS.map((t, i) => ({ group: 'Techniques', label: t.name, kw: (t.what || '') + ' ' + ((TECH_TAG[t.name] || []).join(' ')), run: () => { goView(true); setTimeout(() => { if (window.BBP) BBP.tab('tech', true); wrTechShow(i); }, 700); } }));
   return [];
 }
 const PAGE_NAME = { tempo: 'Tempo', tpl: 'Template', song: 'Songs', tech: 'Technique' };
@@ -11435,7 +11447,7 @@ async function znPost(body) {
   });
   by.append(znAvatar(p.user), who, resp);
   const acts = h('div', 'zn-acts');
-  acts.append(znBtn('Copy to Highlight Zone', 'btn', () => { if (typeof bookAdd === 'function') { bookAdd(p.title + ' (from the Zone)', p.body, 'From the Zone'); mwGo('#book'); } }));
+  acts.append(znBtn('Copy to Bar Book', 'btn', () => { if (typeof bookAdd === 'function') { bookAdd(p.title + ' (from the Zone)', p.body, 'From the Zone'); mwGo('#book'); } }));
   if (mine) {
     acts.append(znBtn('Edit', 'btn', () => { ZN.draft = { id: p.id, title: p.title, body: p.body }; znGo('compose'); }));
     // binDel returns its own bin button (tap bin, then ✓); it must be put on the page, not called from another button
@@ -11526,7 +11538,7 @@ async function znProfile(body) {
     li.setAttribute('aria-label', `${x.title}, ${x.respect_count || 0} Props!, ${znAgo(x.created_at)}${x.featured ? ', Featured' : ''}`);
     li.addEventListener('click', () => znGo('post', x.id)); li.addEventListener('keydown', e => { if (e.key === 'Enter') znGo('post', x.id); }); ul.append(li);
   }
-  wrap.append(top, idr, posts.length ? ul : h('p', 'zn-empty', me ? 'No posts yet. Post a page from the Highlight Zone.' : 'No posts yet.'));
+  wrap.append(top, idr, posts.length ? ul : h('p', 'zn-empty', me ? 'No posts yet. Post a page from Bar Book.' : 'No posts yet.'));
   body.replaceChildren(znBtn('← Feed', 'btn zn-back', () => znGo('feed')), wrap);
 }
 function znAuth(body) {
@@ -11914,7 +11926,7 @@ void main(){
   }
 
   // every row of options in the app gets the bubble: main tabs, rack/technique segments, The Zone feeds, Flow game "Play by", the beat
-  // source tabs, sign in / join, and the Highlight Zone's view tabs, rhyme mode, compare mode, paper and cards/list
+  // source tabs, sign in / join, and Bar Book's view tabs, rhyme mode, compare mode, paper and cards/list
   const NAVS = [['.views', 'aria-current', 'a'], ['.seg', 'aria-pressed', 'button'], ['.zn-seg', 'aria-selected', 'button'], ['.tg-seg', 'aria-pressed', 'button'], ['.tg-tabs', 'aria-selected', 'button'],
     ['.bk-tabs', 'aria-pressed', 'button'], ['.acct-tabs', 'aria-selected', 'button'], ['.rb-views', 'aria-selected', 'button'], ['.rb-seg', 'aria-pressed', 'button'],
     ['.bs-seg', 'aria-pressed', 'button'], ['.bs-paper', 'aria-pressed', 'button'], ['.bs-pair', 'aria-pressed', 'button']];
@@ -12232,12 +12244,12 @@ var BKB = (() => {
   async function search(q) {
     q = String(q || '').trim(); if (!q) { el('bkUrl').focus(); return; }
     if (ytParse(q)) { el('bkRes').replaceChildren(); useYt(q); return; } if (scParse(q)) { el('bkRes').replaceChildren(); useSc(q); return; }
-    if (S.tab === 'sc') { resMsg('SoundCloud has no open search for apps. Paste the link of a SoundCloud track here and it plays in The Highlight Zone. Or search on the YouTube tab.'); return; }
+    if (S.tab === 'sc') { resMsg('SoundCloud has no open search for apps. Paste the link of a SoundCloud track here and it plays in Bar Book. Or search on the YouTube tab.'); return; }
     if (S.tab === 'file') { S.tab = 'yt'; ui(); }
     const beat = /\bbeats?\b|instrumental/i.test(q) ? q : q + ' type beat', my = ++seq;
     resMsg('Searching for “' + beat + '”…');
     const list = await ytFind(beat); if (my !== seq) return;
-    if (list) resShow(list); else resMsg(navigator.onLine === false ? 'You are offline. Search needs the internet.' : 'Search is not reachable right now. Paste a YouTube or SoundCloud link here and it plays in The Highlight Zone.');
+    if (list) resShow(list); else resMsg(navigator.onLine === false ? 'You are offline. Search needs the internet.' : 'Search is not reachable right now. Paste a YouTube or SoundCloud link here and it plays in Bar Book.');
   }
   el('bkDl').addEventListener('click', () => {
     if (!url || (S.src !== 'file' && S.src !== 'mb')) return;
@@ -12274,7 +12286,7 @@ var BKB = (() => {
   if (window.ResizeObserver) new ResizeObserver(() => paint()).observe(dock);
   new MutationObserver(paint).observe(document.documentElement, { attributeFilter: ['style'] });
   // shortcut list
-  try { const dl = keysDlg.querySelector('dl'); dl.insertAdjacentHTML('beforeend', '<dt class="ksec">The Highlight Zone</dt><dd hidden></dd><dt><kbd>Alt</kbd> <kbd>P</kbd></dt><dd>Play / pause the beat (Option+P on a Mac)</dd>'); } catch {}
+  try { const dl = keysDlg.querySelector('dl'); dl.insertAdjacentHTML('beforeend', '<dt class="ksec">Bar Book</dt><dd hidden></dd><dt><kbd>Alt</kbd> <kbd>P</kbd></dt><dd>Play / pause the beat (Option+P on a Mac)</dd>'); } catch {}
   recentList();
   return { S, play, pause, toggle, useFile, useYt, useSc, playing, audio, open, song, pageOpened, ytApi, ytFind, loadScript };
 })();
@@ -12357,7 +12369,7 @@ var BE = (() => {
   // songs column: goal + streak, shortcuts, saved bars, recent songs, sync line
   const lib = $('rbLib'), shade = h('div', 'be-shade'); document.body.append(shade);
   const dr = h('div', 'be-dr'), goal = h('div', 'be-goal'), links = h('nav', 'be-links'), saved = h('div', 'be-saved'); saved.hidden = true;
-  links.setAttribute('aria-label', 'The Highlight Zone shortcuts');
+  links.setAttribute('aria-label', 'Bar Book shortcuts');
   const lBeat = btn('', IC.beat + '<span>Beat</span>'), lSaved = btn('', IC.save + '<span>Saved bars</span><small></small>'), lCheck = btn('', IC.check + '<span>Check your bars</span>');
   lSaved.setAttribute('aria-expanded', 'false'); links.append(lBeat, lSaved, saved, lCheck);
   const recH = h('h3', 'be-drh', 'Recent'), recList = h('ul'); recList.id = 'beRecent';
@@ -14268,7 +14280,7 @@ var BX = (() => {
     document.body.append(d); build(body, d); d.showModal(); return d;
   }
   const chip = (text, fn, cls) => { const c = h('button', 'be-chip' + (cls ? ' ' + cls : ''), text); c.type = 'button'; c.addEventListener('click', fn); return c; };
-  const fileName = (ext) => (((pg() || {}).title || 'Highlight Zone').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'Highlight Zone') + ext;
+  const fileName = (ext) => (((pg() || {}).title || 'Bar Book').replace(/[^\w\- ]+/g, '').trim().slice(0, 60) || 'Bar Book') + ext;
   function download(blob, name) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); }
   function lyricsText() {
     const p = pg(), v = t.value.replace(/\s+$/, ''); let out = [], first = true;
@@ -14281,7 +14293,7 @@ var BX = (() => {
   // ---- head buttons: Rhyme Finder + Share (next to ⋯)
   // Rhyme Finder (Bennie 2026-11-14: "make something creative that fits my template and my colors, next to Templates"):
   // a pill like Templates. Its icon is two bars whose last words rhyme: two red end dots joined by a link that draws
-  // itself on hover, the way the Highlight Zone pairs rhymes. Moved next to Templates by the TPL script.
+  // itself on hover, the way Bar Book pairs rhymes. Moved next to Templates by the TPL script.
   const RFI = '<svg class="ic ic-rf" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
     + '<path class="rf-l1" d="M2.5 6.5h10"/><path class="rf-l2" d="M2.5 17.5h8"/><path class="rf-ln" pathLength="1" d="M19.4 8.9c2.6 2 2.4 5.6-1.8 7.2"/>'
     + '<circle class="rf-a" cx="17" cy="6.5" r="3"/><circle class="rf-b" cx="15" cy="17.5" r="3"/></svg>';
@@ -14355,13 +14367,13 @@ var BX = (() => {
       }
       y += lh; if (y > H - pad - 60) break;
     }
-    x.fillStyle = '#8e9893'; x.font = '600 26px "IBM Plex Sans", system-ui, sans-serif'; x.fillText('Written in The Highlight Zone · MetroBar', pad, H - pad + 10);
+    x.fillStyle = '#8e9893'; x.font = '600 26px "IBM Plex Sans", system-ui, sans-serif'; x.fillText('Written in Bar Book · MetroBar', pad, H - pad + 10);
     const blob = await new Promise(ok => c.toBlob(ok, 'image/png')); if (!blob) { say('The card could not be drawn here.'); return; }
     const name = fileName('.png'), url = URL.createObjectURL(blob), file = typeof File === 'function' ? new File([blob], name, { type: 'image/png' }) : null;
     sheet('Share card', (b, d) => {
       const im = new Image(); im.src = url; im.alt = 'Share card preview'; b.append(im); const row = h('div', 'be-chips');
       const save = btn('btn pri', 'Save image'); save.addEventListener('click', () => { download(blob, name); say('Saved ' + name + '.'); }); row.append(save);
-      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { const sh = btn('btn', 'Share…'); sh.addEventListener('click', async () => { try { await navigator.share({ files: [file], title: p.title || 'The Highlight Zone' }); } catch (er) {} }); row.append(sh); }
+      if (file && navigator.canShare && navigator.canShare({ files: [file] })) { const sh = btn('btn', 'Share…'); sh.addEventListener('click', async () => { try { await navigator.share({ files: [file], title: p.title || 'Bar Book' }); } catch (er) {} }); row.append(sh); }
       b.append(row, h('p', 'note', 'Square-ish 1080 × 1350, the size feeds and stories like.')); d.addEventListener('close', () => URL.revokeObjectURL(url));
     }, 'bx-card');
   }
@@ -14475,7 +14487,7 @@ var BX = (() => {
   }
   const list = (b, items) => { const ul = h('ul'); items.forEach(([k, v]) => { const li = h('li'); if (k) li.append(h('b', '', k + ' ')); li.append(v); ul.append(li); }); b.append(ul); };
   r101.addEventListener('click', () => sheet('Rhymes 101', b => {
-    b.append(h('p', 'note', 'How The Highlight Zone picks the colours on your page.'));
+    b.append(h('p', 'note', 'How Bar Book picks the colours on your page.'));
     list(b, [['Same colour = same sound.', 'Words that rhyme share a colour. Each sound keeps its colour on the whole page, and a colour never goes to a different sound (16 colours in 3 shades).'],
       ['It listens, it doesn’t read.', 'Every word is split into its sounds with the CMU pronouncing dictionary, so “dirty, thirty, early” match and “cough, though” don’t.'],
       ['What counts as a rhyme.', 'Perfect rhymes, multi-syllable rhymes and close slants (same vowel, same kind of ending). Strict mode under ⋯ › Rhymes keeps only perfect and multi.'],
@@ -14495,7 +14507,7 @@ var BX = (() => {
       ['', 'Songs: Pin to top and a cover photo (⋯ › Song).']]);
     b.append(h('h5', '', 'Earlier'));
     list(b, [['', 'Editor with one row per bar, drafts, takes, ad-libs and a toolbar on the bar you’re on (11 Nov).'], ['', 'Beat panel: your file, YouTube or SoundCloud (11 Nov).'],
-      ['', 'Focus mode and the live rhyme list (10 Nov).'], ['', 'New rhyme highlight and the Rhyme map (10 Nov).'], ['', 'The Highlight Zone syncs to your Zone account (9 Nov).']]);
+      ['', 'Focus mode and the live rhyme list (10 Nov).'], ['', 'New rhyme highlight and the Rhyme map (10 Nov).'], ['', 'Bar Book syncs to your Zone account (9 Nov).']]);
   }, 'bx-new'));
 
   startSync();
@@ -14564,7 +14576,7 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   BE.drawerTg.title = 'Show the songs'; BE.drawerTg.addEventListener('click', e => { if (innerWidth > 1000) { e.stopImmediatePropagation(); nolib(false); } }, true);
 
   // ---- sidebar
-  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect class="mk-bg" x=".75" y=".75" width="24.5" height="24.5" rx="6.5"/><g fill="none" stroke-width="2" stroke-linecap="round"><path class="mk1" d="M7 8.5h4"/><path class="mk2" d="M13.5 8.5h5.5"/><path class="mk3" d="M7 13h7.5"/><path class="mk4" d="M17 13h2"/><path class="mk5" d="M7 17.5h2.5"/><path class="mk6" d="M12 17.5h5"/></g></svg></span><span class="bs-nm"><small>The</small>Highlight Zone</span>';
+  const brand = h('div', 'bs-brand'), bname = h('b'); bname.innerHTML = '<span class="bs-mark" aria-hidden="true"><svg viewBox="0 0 26 26" width="26" height="26"><rect class="mk-bg" x=".75" y=".75" width="24.5" height="24.5" rx="6.5"/><g fill="none" stroke-width="2" stroke-linecap="round"><path class="mk1" d="M7 8.5h4"/><path class="mk2" d="M13.5 8.5h5.5"/><path class="mk3" d="M7 13h7.5"/><path class="mk4" d="M17 13h2"/><path class="mk5" d="M7 17.5h2.5"/><path class="mk6" d="M12 17.5h5"/></g></svg></span><span class="bs-nm"><small>MetroBar</small>Bar Book</span>';
   const homeB = btn('bs-ib', I.home, 'Back to MetroBar', 'Back to MetroBar'), colB = btn('bs-ib', I.col, 'Hide the songs', 'Hide the songs'); colB.id = 'bsCol';
   const dayB = btn('smt', '<i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i>', '', ''); dayB.id = 'bsDay'; dayB.setAttribute('role', 'switch');
   dayB.dataset.dn = ''; dayB.setAttribute('aria-label', 'Night mode');
@@ -14585,7 +14597,7 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   const rech = h('div', 'bs-rech'); rech.append(h('span', '', 'Recent'));
   const newB = $('rbNew'); newB.innerHTML = IC.plus; newB.title = 'New song'; newB.setAttribute('aria-label', 'New song'); rech.append(newB);
   const foot = h('div', 'bs-foot'), nav = h('nav', 'bs-nav'); nav.setAttribute('aria-label', 'MetroBar');
-  nav.innerHTML = '<a href="#practice">MetroBar</a><a href="#write">Write</a><a href="#zone">The Zone</a>';
+  nav.innerHTML = '<a href="#practice">MetroBar</a><a href="#game">Game</a><a href="#zone">The Zone</a>';
   foot.append(BE.goal, BE.links, BE.syncLine, nav);
   lib.prepend(brand, all, rech, BE.recList, foot);
   nav.addEventListener('click', () => rbFlush());
@@ -14728,7 +14740,7 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   const vibeRow = toolRow(I.gear, 'Rhyme &amp; Vibe', '', settings);
   const r101 = toolRow(IC.bulb, 'Rhymes 101', 'Perfect, slant, multi: the short version', () => { actOpen(false); const b = [...BE.more.querySelectorAll('button')].find(z => z.textContent === 'Rhymes 101'); if (b) b.click(); });
   const firstTool = side.querySelector('.rb-tool'); firstTool.before(vibeRow); side.querySelector('.rb-tool[data-tool="topic"]').after(r101);
-  const work = h('div', 'bs-work'), wBin = btn('', I.bin + '<span>Recently deleted</span>'), wBack = btn('', I.dl + '<span>Backup</span>', 'Download everything in The Highlight Zone as one backup file'), wLoad = btn('', I.up + '<span>Load</span>', 'Open .txt files, a lyrics export or a Highlight Zone backup');
+  const work = h('div', 'bs-work'), wBin = btn('', I.bin + '<span>Recently deleted</span>'), wBack = btn('', I.dl + '<span>Backup</span>', 'Download everything in Bar Book as one backup file'), wLoad = btn('', I.up + '<span>Load</span>', 'Open .txt files, a lyrics export or a Bar Book backup');
   work.append(wBin, wBack, wLoad); $('rbBinBox').before(work);
   wBin.addEventListener('click', () => { const b = $('rbBinBox'); b.open = !b.open; if (b.open && !RB.bin.length) { b.open = false; say('Nothing in Recently deleted.'); } else if (b.open) b.scrollIntoView({ block: 'nearest' }); });
   wBack.addEventListener('click', () => $('rbBackup').click()); wLoad.addEventListener('click', () => $('rbImport').click());
@@ -14931,10 +14943,10 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   rhyApply(); ready = true; rbPaint(); sync();
   return { settings, library, check, place, actOpen, cmp, struct };
 })(); }
-if (window.BBAPP) bsBoot();   // opened straight into the Highlight Zone; otherwise bbMode boots it on the first visit
+if (window.BBAPP) bsBoot();   // opened straight into Bar Book; otherwise bbMode boots it on the first visit
 </script>
 <script>
-/* Templates (Bennie 2026-11-13): song STRUCTURE templates in The Highlight Zone, button next to the section pill. A template is only parts and
+/* Templates (Bennie 2026-11-13): song STRUCTURE templates in Bar Book, button next to the section pill. A template is only parts and
    bar counts (no lyrics). Built-in ones follow how well-known rappers usually lay out a song (hook first or not, how many verses, a bridge,
    a beat switch); people make their own (from scratch or from the song they are in). One template can be the favourite (★): every new song
    starts with its structure. Stored on this device: metrobar.bookTpls (own), metrobar.bookTplFav (id of the favourite). */
@@ -15312,7 +15324,7 @@ var FP = (function () {
   const loopAt = (s, n) => { const b = bar0(), D = beatBuf.duration; n = Math.max(1, Math.min(n, Math.floor((D - s) / b + 1e-6))); LP = { s, n, e: Math.min(D, s + n * b) }; };
   const save = () => { const o = S.list[S.cur]; S.list[S.cur] = { text: S.text, hits: S.hits, sub: S.sub }; if (o && o.src != null) S.list[S.cur].src = o.src; store.set('metrobar.fpad', { list: S.list, cur: S.cur, bpm: S.bpm, voice: S.voice, click: S.click, beat: S.beat, song: S.song || null }); };
   // ---- one library (Bennie 2026-11-17): every Pocket bar is a line of a song (S.song, bar.src = its line number), so typing
-  // here changes the song in Write, Fit and the Highlight Zone, and a change there shows here. Delete only takes a bar off the pad.
+  // here changes the song in Write, Fit and Bar Book, and a change there shows here. Delete only takes a bar off the pad.
   const host = () => (S.song && LIB.song(S.song)) || null;
   function linkPut(i) {
     const b = S.list[i]; if (!b) return; let sg = host();
@@ -15335,7 +15347,7 @@ var FP = (function () {
     const el = $f('fpSong'); if (!el) return; const sg = host(), b = S.list[S.cur];
     if (!sg) { el.textContent = 'Type a bar: it goes into the song you are on (' + ((LIB.song() || {}).title || 'a new song') + ').'; return; }
     const n = b && b.src != null ? libBars(sg.text).findIndex(r => r.i === b.src) : -1;
-    el.textContent = 'In your song “' + ((sg.title || '').trim() || 'Untitled') + '”' + (n >= 0 ? ', bar ' + (n + 1) : '') + '. Same bars in Write, Fit and the Highlight Zone.';
+    el.textContent = 'In your song “' + ((sg.title || '').trim() || 'Untitled') + '”' + (n >= 0 ? ', bar ' + (n + 1) : '') + '. Same bars in Write, Fit and Bar Book.';
   }
   // follow the library: the song you're on, and words changed somewhere else
   function sync(follow) {
@@ -15908,7 +15920,7 @@ registerProcessor('fp-cap', FpCap);`;
 })();
 </script>
 <script>
-/* The Highlight Zone gate (Bennie 2026-11-13): Pro (€15/month) or Super Pro opens The Highlight Zone (the Barbook page, window.BBAPP).
+/* Bar Book gate (Bennie 2026-11-13): Pro (€15/month) or Super Pro opens Bar Book (the Barbook page, window.BBAPP).
    Signed out = sign in; Free = the plans. The gate never hides anyone's songs: Download my songs is always there.
    No accounts configured, offline, or no answer from the server = no gate (never lock people out of their own lyrics by a network error). */
 var HZG = (function () {
@@ -15939,7 +15951,7 @@ var HZG = (function () {
     const v = document.getElementById('viewBook'); if (v) v.inert = true;
     if (!gate) { gate = document.createElement('div'); gate.className = 'hz-gate'; gate.setAttribute('role', 'dialog'); gate.setAttribute('aria-modal', 'true'); gate.setAttribute('aria-labelledby', 'hzT'); document.body.append(gate); }
     const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {};
-    gate.innerHTML = `<div class="hz-card"><h2 id="hzT">${done ? 'That was your free sample' : 'The Highlight Zone is part of Pro'}</h2>
+    gate.innerHTML = `<div class="hz-card"><h2 id="hzT">${done ? 'That was your free sample' : 'Bar Book is part of Pro'}</h2>
 <p>${mode === 'in' ? 'Sign in to open it. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.' : 'Your rhymes lit up, syllables per bar, drafts, beats and focus mode. Pro is ' + (P.proPrice || '€15') + ' a month; Super Pro (' + (P.superPrice || '€20') + ') adds ' + (P.superCredits || 800) + ' AI credits a month.'}</p>
 <button class="hz-go" type="button" data-a="${mode === 'in' ? 'in' : 'pay'}">${mode === 'in' ? 'Sign in' : 'See the plans'}</button>
 <div class="hz-row"><button type="button" data-a="dl">Download my songs</button><a href="#practice">Back to MetroBar</a></div></div>`;
@@ -15966,7 +15978,7 @@ var HZG = (function () {
 </script>
 <script>
 // ---- Bar Book (was Pocket Practice; Bennie 2026-11-18): the beat you uploaded for your song (MetroBar's own loader calls PP.beat()) and
-// Create card (the song becomes one big Flow Game card). Writing happens in the Highlight Zone editor (PPZ below). The old steps dialog is gone.
+// Create card (the song becomes one big Flow Game card). Writing happens in Bar Book editor (PPZ below). The old steps dialog is gone.
 var PP = (() => {
   const BEAT = { name: '', bpm: 0, first: 0, busy: false };
   const tempo = () => BEAT.bpm ? Math.round(BEAT.bpm * 10) / 10 : 0;
@@ -16070,8 +16082,8 @@ Four bars, then sixteen, till the pocket feels like home`;
 })();
 </script>
 <script>
-// ---- Bar Book writes in the Highlight Zone (Bennie 2026-11-18: "everything from the Highlight Zone and everything from Write combined,
-// set up the way the Highlight Zone is"). The Bars step opens the song in the Highlight Zone editor with html.pp-mode: a Bar Book strip on
+// ---- Bar Book writes in Bar Book (Bennie 2026-11-18: "everything from Bar Book and everything from Write combined,
+// set up the way Bar Book is"). The Bars step opens the song in Bar Book editor with html.pp-mode: a Bar Book strip on
 // top (steps, highlight, Play whole song) and Write's tools (Techniques, Technique check, Clichés, Checks, Stash, Streak, Tools) moved into the
 // tools panel as extra tools; leaving puts them back in Write. Write's analysis runs on the same song (one library) whenever the page changes.
 var PPZ = (() => {
@@ -16081,7 +16093,7 @@ var PPZ = (() => {
     ['Tools', 'Write tools', 'Does it rhyme, split sheet, royalties, titles', '<path d="M14 6l4 4-8 8H6v-4z"/>']];
   let on = false, strip = null, built = false, syncT = 0;
   const html = document.documentElement;
-  function wrSync() {   // Write's analysis on the song the Highlight Zone shows (no write-back: Write only reads here)
+  function wrSync() {   // Write's analysis on the song Bar Book shows (no write-back: Write only reads here)
     clearTimeout(syncT); syncT = 0; const p = LIB.song(); if (!p) return;
     const ta = $('wrText'); if (ta.value !== p.text) ta.value = p.text;
     try { wrAnalyse(); wrTechCheck(true); } catch (e) { console.error(e); }
@@ -16122,13 +16134,15 @@ var PPZ = (() => {
       + '<button type="button" class="pp-splay" title="Turn this song (done or half way) into one big card in the Flow Game">Create card</button><button type="button" class="pp-sx" aria-label="Leave Bar Book" title="Leave Bar Book">×</button>';
     strip.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => hlSet(b.dataset.hl)));
     strip.querySelector('.pp-sbeat').addEventListener('click', () => $('beatFile').click());
+    { const d = $('wrDict'); if (d) { d.className = 'pp-sbeat pp-sdict'; strip.querySelector('.pp-sbeat').after(d); } }
     strip.querySelector('.pp-splay').addEventListener('click', () => PP.card());
     strip.querySelector('.pp-sex').addEventListener('click', () => PP.example());
     strip.querySelector('.pp-sx').addEventListener('click', () => { exit(); mwGo('#practice'); });
   }
   function place() {
     const head = document.querySelector('.be-head'); if (!head) { setTimeout(place, 120); return; }
-    if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || strip.nextElementSibling !== head) head.before(strip);
+    if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || (strip.nextElementSibling !== head && strip.nextElementSibling !== $('wrDictBar'))) head.before(strip);
+    { const db = $('wrDictBar'); if (db && db.previousElementSibling !== strip) strip.after(db); }
     tools(); stripUi(); beatUi(); wrSync(); if (window.BBP) BBP.techSync();
     const want = store.get('metrobar.ppHl', 'stress'); if (want !== hlNow() || ($('bsFlowB') && $('bsFlowB').getAttribute('aria-pressed') !== 'true')) hlSet(want);
   }
@@ -16142,7 +16156,9 @@ var PPZ = (() => {
     if (location.hash === '#book') { try { bookOpen(); } catch (e) {} place(); } else mwGo('#book');
   }
   function exit() { if (!on) return; on = false; html.classList.remove('pp-mode'); try { sessionStorage.removeItem('metrobar.ppMode'); } catch (e) {} toolsBack(); if (strip) strip.remove(); }
-  addEventListener('hashchange', () => { const bk = location.hash === '#book'; if (on) { if (bk) setTimeout(place, 0); else exit(); } else if (bk) setTimeout(toolsIn, 300); else toolsBack(); });
+  // Bennie 2026-11-18: Write and Rhyme are merged into Bar Book: the page at #book is always Bar Book (strip, Write's tools, dictation)
+  function on1() { on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {} }
+  addEventListener('hashchange', () => { const bk = location.hash === '#book'; if (on) { if (bk) setTimeout(place, 0); else exit(); } else if (bk) { on1(); setTimeout(place, 0); } else toolsBack(); });
   // Bennie 2026-11-18 ("it took the techniques away, in Bar Book"): Write's tools (Techniques first) are in the editor every time
   // it shows, not only when it was opened through the Bar Book card
   function toolsIn() { if (location.hash !== '#book' || !$('rbSide')) return; tools(); wrSync(); if (window.BBP) BBP.techSync(); }
@@ -16158,7 +16174,7 @@ var PPZ = (() => {
     if (!t || /^\[[^\]]*\]$/.test(t)) { $('stashN').textContent = 'Click a bar first'; return; }
     if (!STASH.some(x => x.text === t)) STASH.unshift({ text: t, at: Date.now() }); STASH = STASH.slice(0, 300); stashSave(); toast('Stashed: ' + t.slice(0, 40));
   }, true);
-  try { if (sessionStorage.getItem('metrobar.ppMode') === '1' && location.hash === '#book') { on = true; html.classList.add('pp-mode'); setTimeout(place, 300); } } catch (e) {}
+  if (location.hash === '#book' || location.hash === '#write') { on1(); setTimeout(place, 300); }
   function beatUi() { if (!strip) return; const b = PP.beatInfo(), el = strip.querySelector('.pp-sbn'); el.textContent = b.busy ? 'Finding the tempo…' : b.has ? `${(b.name || 'Your beat').replace(/\.[a-z0-9]+$/i, '').slice(0, 24)}${b.bpm ? ' · ' + Math.round(b.bpm) + ' BPM' : ''}` : 'Upload a beat'; }
   return { enter, exit, beatUi, get on() { return on; }, sync: wrSync };
 })();
@@ -16167,6 +16183,8 @@ var PPZ = (() => {
 // ---- Bar Book writing (Bennie 2026-11-18): Play in the top row (the song opens as one big Flow Game card), the rhyme panel that
 // fills in as you type (Rhymes toggles it; phones keep the Rhyme Finder), and the Bar for bar switch next to High-Light: on = one row
 // per bar with numbers, tools and the syllable meter; off (default) = one big plain page. Settings metrobar.bookRhy / metrobar.bookRows.
+// the Game tab (#game) = MetroBar with the Flow Game dialog on top; closing it goes back to the MetroBar tab
+$('tgDlg').addEventListener('close', () => { if (location.hash === '#game') { history.replaceState(null, '', '#practice'); setView(); } });
 var BBP = (() => {
   const root = document.documentElement, ed = $('rbEd');
   const S = { rhy: store.get('metrobar.bookRhy', true) !== false, rows: store.get('metrobar.bookRows', false) === true, t: 0 };
