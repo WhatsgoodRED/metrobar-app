@@ -4593,6 +4593,9 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
 /* ---- CORE: pure functions (no DOM). Tested by core.test.js ---- */
 const ONES = ['zero','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
 const TENS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+// spoken syllables of every number word (the spelling rules miscount some: ninety, seventy, eleven …)
+const NUM_SYL = { zero: 2, one: 1, two: 1, three: 1, four: 1, five: 1, six: 1, seven: 2, eight: 1, nine: 1, ten: 1, eleven: 3, twelve: 1, thirteen: 2, fourteen: 2, fifteen: 2, sixteen: 2, seventeen: 3, eighteen: 2, nineteen: 2,
+  twenty: 2, thirty: 2, forty: 2, fifty: 2, sixty: 2, seventy: 3, eighty: 2, ninety: 2, hundred: 2, thousand: 2 };
 function numWords(n) {
   if (n < 20) return ONES[n];
   if (n < 100) return TENS[Math.floor(n / 10)] + (n % 10 ? ' ' + ONES[n % 10] : '');
@@ -4756,7 +4759,7 @@ function sylCount(key, fix) {
   if (hasKey(EXC, key)) return EXC[key];
   if (hasKey(EXC, k)) return EXC[k];
   if (DICT && !/\d/.test(k)) { const dv = dictVowels(key); if (dv && dv.length) return dv.length; }
-  if (/\d/.test(k)) return Math.max(1, k.replace(/\d+/g, m => ' ' + numWords(+m) + ' ').trim().split(/\s+/).reduce((a, w) => a + (hasKey(EXC, w) ? EXC[w] : rawCount(w)), 0));
+  if (/\d/.test(k)) return Math.max(1, k.replace(/\d+/g, m => ' ' + numWords(+m) + ' ').trim().split(/\s+/).reduce((a, w) => a + (hasKey(NUM_SYL, w) ? NUM_SYL[w] : hasKey(EXC, w) ? EXC[w] : rawCount(w)), 0));
   let m = key.match(/^(.+)n't$/);
   if (m && /^(is|was|does|did|could|would|should|has|have|had|are|were|must|need|might|ought)$/.test(m[1])) return rawCount(m[1]) + 1;
   m = key.match(/^(.*[aeiouy])in'$/);                       // goin', doin'
@@ -5017,7 +5020,7 @@ function analyseLine(text, fix, heel = 0, force = null, meter = '4/4') {   // he
     const key = cleanKey(raw); if (!/[a-z0-9]/.test(key)) continue;
     const n = sylCount(key, fix), st = wordStress(key, n), parts = splitSyl(key, n), wi = words.length;
     const pm = raw.match(/([.,;:!?…]+)["')\]]*$/);
-    words.push({ raw: raw.replace(/^[^\w']+|[^\w']+$/g, '') || raw, key, n, fixed: hasKey(fix, key), p: pm ? pm[1] : '', cap: /^["'(]*[A-Z]/.test(raw) });
+    words.push({ raw: raw.replace(/^[^\w']+|[^\w']+$/g, '') || raw, key, n, fixed: hasKey(fix, key), p: pm ? pm[1] : '', cap: /^["'(]*[A-Z]/.test(raw), dash: /[—–]$/.test(raw) ? 'stop' : /\w-$/.test(raw) ? 'split' : '' });   // raw above loses its end marks, so the dash is kept here
     for (let i = 0; i < n; i++) syl.push({ t: parts[i] || '', st: st[i], w: wi, si: i, key });
   }
   const N = syl.length;
@@ -5160,7 +5163,7 @@ function enjambment(lines) {
     const nw = next.words[0], nk = nw.key.replace(/'/g, ''), firstK = W[0].key.replace(/'/g, '');
     let S = 0; const why = [];
     const add = (v, t) => { S += v; why.push(t); };
-    if (/[.!?;:…]/.test(last.p) || /[—–-]$/.test(last.raw)) add(-3, 'the sentence stops at the bar line');
+    if (/[.!?;:…]/.test(last.p) || last.dash === 'stop') add(-3, 'the sentence stops at the bar line');
     else if (last.p === ',') add(-1, 'a comma at the bar line');
     if (ENJ.opener.has(nk)) add(-2, `the next bar opens with "${nw.raw}"`);
     const fnEnd = ENJ.det.has(lk) || ENJ.prep.has(lk) || ENJ.aux.has(lk) || ENJ.conj.has(lk);
@@ -5174,7 +5177,7 @@ function enjambment(lines) {
     else if (ENJ.conj.has(lk)) add(3, `the bar ends on "${last.raw}", which joins two clauses`);
     else if (ENJ.conjWeak.has(lk)) add(1, `the bar ends on "${last.raw}"`);
     else if (ENJ.subj.has(lk) && (ENJ.aux.has(nk) || /s$/.test(nk) && nk.length > 3)) add(2, `"${last.raw}" is the subject of the next bar's verb`);
-    if (/-$/.test(last.raw)) add(4, 'the word is split over the bar line');
+    if (last.dash === 'split') add(4, 'the word is split over the bar line');
     if (ENJ.noStart.has(nk) || nk === 'to' && next.words.length > 1) add(2, `the next bar cannot start with "${nw.raw}"`);
     if (C <= 0.9 && !nw.cap && !last.p) add(2, 'the next bar starts lower-case');
     if (P >= 0.2 && !last.p && next.words.slice(0, -1).some(w => /[.!?;]/.test(w.p))) add(2, 'the sentence closes inside the next bar');
@@ -5667,17 +5670,18 @@ function timeStretch(chs, sr, speed) {
   const corr = (a, b) => { let s = 0; for (let i = 0; i < L; i += 2) s += mono[a + i] * mono[b + i]; return s; };
   let prev = -1;
   for (let o = 0; o < outLen; o += Hs) {
-    const nominal = Math.min(n - N, Math.round(o * speed));
-    if (nominal < 0) break;
+    const nominal = Math.round(o * speed);   // the last windows run past the end (read as silence) instead of repeating the final 2048 samples
+    if (nominal >= n) break;
     let pos = nominal;
     if (prev >= 0 && prev + Hs + L < n) {   // the window that would naturally follow the last one: match it
       const ref = prev + Hs; let best = -Infinity;
-      const lo = Math.max(0, nominal - tol), hi = Math.min(n - N, nominal + tol);
+      const lo = Math.max(0, nominal - tol), hi = Math.max(lo, Math.min(n - L, nominal + tol));
       for (let c = lo; c <= hi; c += 4) { const v = corr(ref, c); if (v > best) { best = v; pos = c; } }
       for (let c = Math.max(lo, pos - 3), e = Math.min(hi, pos + 3); c <= e; c++) { const v = corr(ref, c); if (v > best) { best = v; pos = c; } }
     }
-    for (let k = 0; k < chs.length; k++) { const x = chs[k], y = out[k]; for (let i = 0; i < N; i++) y[o + i] += x[pos + i] * win[i]; }
-    for (let i = 0; i < N; i++) norm[o + i] += win[i];
+    const m = Math.min(N, n - pos);
+    for (let k = 0; k < chs.length; k++) { const x = chs[k], y = out[k]; for (let i = 0; i < m; i++) y[o + i] += x[pos + i] * win[i]; }
+    for (let i = 0; i < m; i++) norm[o + i] += win[i];
     prev = pos;
   }
   return out.map(y => { const r = y.subarray(0, outLen); for (let i = 0; i < outLen; i++) if (norm[i] > 1e-3) r[i] /= norm[i]; return r; });
@@ -7424,7 +7428,7 @@ window.addEventListener('resize', () => { waveOv = null; logoWave(); });
 function startBeat(at, songBar, rate) {   // (re)start the beat file at the right place for song bar `songBar`
   if (!beatBuf) return;
   const old = beatSrc, s = ctx.createBufferSource(), g = ctx.createGain();
-  const st = !trainerOn && speed !== 1 && $('keepPitch').checked && stretched.sp === speed && stretched.buf;   // play the pitch-kept copy at rate 1
+  const st = !trainerOn && speed !== 1 && bpm() === nativeBpm && $('keepPitch').checked && stretched.sp === speed && stretched.buf;   // play the pitch-kept copy at rate 1
   s.buffer = st ? stretched.buf : beatBuf; s.loop = true; s.playbackRate.value = st ? 1 : rate; g.gain.value = +$('beatVol').value;
   s.connect(g).connect(beatAnalyser());
   const d = beatBuf.duration;
@@ -7464,7 +7468,7 @@ function schedule() {
       if (counting) lastBar = -1;
       else {
         if (trainerOn && playedBars > 0 && playedBars % 4 === 0 && curBpm < trainerTarget) { curBpm = Math.min(trainerTarget, curBpm + 5); rateDirty = true; }
-        if (!beatSrc || bar !== lastBar + 1 || rateDirty) { startBeat(nextTime, bar, trainerOn ? curBpm / nativeBpm : speed); rateDirty = false; }
+        if (!beatSrc || bar !== lastBar + 1 || rateDirty) { startBeat(nextTime, bar, tempoNow() / nativeBpm); rateDirty = false; }   // the current tempo: a BPM change while playing reaches the beat at the next restart (loop too)
         lastBar = bar; playedBars++;
       }
     }
@@ -7636,7 +7640,7 @@ function stop() {
 $('go').addEventListener('click', () => running ? stop() : start());
 
 // ---- BPM field, detection, tap tempo
-function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); roll($('bpmOut'), bpm()); if (typeof bbShow === 'function' && beatBuf && !running) bbShow(); if (!running) metroWeight(bpm()); updateSpb(); persist(); if ($('infoDlg').open) studioRender(); }
+function setBpm(v) { $('bpm').value = Math.min(200, Math.max(60, Math.round(v))); if (typeof running !== 'undefined' && running) rateDirty = true; if (window.mbBpmChanged) mbBpmChanged(); roll($('bpmOut'), bpm()); if (typeof bbShow === 'function' && beatBuf && !running) bbShow(); if (!running) metroWeight(bpm()); updateSpb(); persist(); if ($('infoDlg').open) studioRender(); }
 function updateSpb() { const e = $('spb'); if (e) e.textContent = (240 / bpm()).toFixed(2); }
 $('minus').addEventListener('click', () => setBpm(bpm() - 1));
 $('plus').addEventListener('click', () => setBpm(bpm() + 1));
@@ -8130,6 +8134,18 @@ function enjSummary(ls) {
   else if (ls.length >= 8 && m.EA <= 0.4) tip = ' Almost nothing stops at a bar line: close a sentence on a rhyme at the end of each 4 bars (count 16) so it resolves.';
   return `Enjambment: ${Math.round(m.EA * 100)}% of bars end a sentence (${m.units} sentence${m.units > 1 ? 's' : ''} in ${ls.length} bars, ${m.oneBar} one-bar line${m.oneBar === 1 ? '' : 's'}). 4-bar groups in beats: ${m.groups.map(g => g.label + (g.resolves ? ' ✓' : ' …')).join(' | ')}. Style: ${m.style}. For scale: Kurtis Blow's "Basketball" (1+1+2) is 75%, Madvillain's "All Caps" 55% (Adams 2009).${tip}`;
 }
+// Fit re-renders replace every card: put the keyboard focus back on the same control (or its card) afterwards
+{ const inner = renderFit, sel = 'button, input, textarea, select, [tabindex]';
+  renderFit = function () {
+    const out = $('fitOut'), a = document.activeElement; let k = null;
+    if (a && a !== document.body && out.contains(a)) { const cards = [...out.querySelectorAll('article.line')], card = a.closest('article.line'); k = { id: a.id, ci: cards.indexOf(card), fi: card ? [...card.querySelectorAll(sel)].indexOf(a) : -1 }; }
+    inner();
+    if (!k) return;
+    const card = k.ci >= 0 ? out.querySelectorAll('article.line')[k.ci] : null;
+    const t = (k.id && document.getElementById(k.id)) || (card && k.fi >= 0 && card.querySelectorAll(sel)[k.fi]) || card;
+    if (t && t.focus && !t.contains(document.activeElement)) { if (t === card && !card.hasAttribute('tabindex')) card.tabIndex = -1; t.focus({ preventScroll: true }); }
+  };
+}
 function runFit() {
   if ($('lyrics').value.trim()) needDict();
   lines = analyseAll();
@@ -8231,6 +8247,8 @@ $('vocalFile').addEventListener('change', async e => {
   renderSong();
 });
 ['bpm', 'beatOffset'].forEach(id => $(id).addEventListener('change', () => { if (vocal) renderSong(); }));
+// Tap, templates and Use set the BPM without a change event: redraw the song breakdown for them too (once per frame)
+let songRedraw = 0; window.mbBpmChanged = () => { if (vocal && !songRedraw) songRedraw = requestAnimationFrame(() => { songRedraw = 0; if (vocal) renderSong(); }); };
 $('minus').addEventListener('click', () => { if (vocal) renderSong(); }); $('useDet').addEventListener('click', () => { if (vocal) renderSong(); }); $('plus').addEventListener('click', () => { if (vocal) renderSong(); });
 
 // ---- Practice
@@ -8242,7 +8260,7 @@ function enterPractice() {
 }
 // Pronunciation dictionary on first need (load speed #1): Fit with words, Write, Bar Book or a Zone post, not every page load.
 // loadDict sits in a later script, so until that has run this only leaves a note for it.
-function needDict() { if (window.mbDictReady) { if (DICTUI.state === 'off') (window.requestIdleCallback || (f => setTimeout(f, 50)))(loadDict); } else window.mbNeedDict = true; }
+function needDict() { if (window.mbDictReady) { if (DICTUI.state === 'off' || (DICTUI.state === 'failed' && location.protocol !== 'file:' && Date.now() - (DICTUI.failAt || 0) > 15000)) (window.requestIdleCallback || (f => setTimeout(f, 50)))(loadDict); } else window.mbNeedDict = true; }
 function runFit_if_needed() { if (!lines.length) { lines = analyseAll(); renderFit(); } }
 function exitPractice() {
   if (running) stop();
@@ -9374,7 +9392,8 @@ const DICTUI = { state: 'off', n: 0 };
 function dictNote() {
   const t = DICTUI.state === 'on' ? `Pronunciation dictionary on: ${DICTUI.n.toLocaleString('en')} words.`
     : DICTUI.state === 'loading' ? 'Loading the pronunciation dictionary…'
-    : DICTUI.state === 'failed' ? 'Pronunciation dictionary not loaded (it needs MetroBar opened from a web address, not a file). Using the spelling rules.'
+    : DICTUI.state === 'failed' ? (location.protocol === 'file:' ? 'Pronunciation dictionary not loaded (it needs MetroBar opened from a web address, not a file). Using the spelling rules.'
+      : 'Pronunciation dictionary not loaded yet (no connection?). Using the spelling rules; MetroBar tries again.')
     : 'Pronunciation dictionary off: using the spelling rules.';
   document.querySelectorAll('.dict-note').forEach(e => { if (DICTUI.state === 'loading') busy(e, t.replace(/…$/, '')); else e.textContent = t; });
 }
@@ -9383,12 +9402,14 @@ async function loadDict() {
   DICTUI.state = 'loading'; dictNote();
   try { const r = await fetch('cmudict.txt'); if (!r.ok) throw new Error('HTTP ' + r.status); DICTUI.n = setDict(await r.text()); DICTUI.state = DICTUI.n ? 'on' : 'failed'; }
   catch { DICTUI.state = 'failed'; }
+  if (DICTUI.state === 'failed') DICTUI.failAt = Date.now();
   dictNote();
   if (DICTUI.state !== 'on') return;
   if (lines.length) { const refit = () => { if ((practice && running) || editSrc != null) return setTimeout(refit, 1000); runFit(); }; refit(); }   // never stop a running Practice or drop an open bar edit: refit once they end
   WR.cache.clear(); if (!$('viewWrite').hidden) { wrAnalyse(); if (WR.word) wrRhymes(WR.word); }
 }
 window.mbDictReady = true; if (window.mbNeedDict) needDict();
+window.addEventListener('online', () => { if (DICTUI.state === 'failed') { DICTUI.failAt = 0; needDict(); } });   // back online: try the dictionary again
 
 // ---- "Why it rhymes": both words' sounds from the stressed vowel on, matching sounds marked
 const TIER_WHY = { perfect: 'every sound from the stressed vowel on is the same.', multi: 'two or more vowel sounds in a row match; the consonants between them differ.',
@@ -12205,7 +12226,7 @@ void main(){
     el.addEventListener('pointerleave', () => { s.mouse.on = false; loop(); });
     el.addEventListener('pointerdown', () => { if (calm()) return; s.sy.v -= .9; loop(); });
     measure();
-    return { measure, refresh: () => { s.tint = tintOf(el); draw(); } };
+    return { el, measure, refresh: () => { s.tint = tintOf(el); draw(); } };
   }
 
   // ---------- on/off switch: label.sw around a checkbox ----------
@@ -12294,7 +12315,7 @@ void main(){
     if (window.ResizeObserver) new ResizeObserver(() => { if (tr.clientWidth !== G.w || tr.clientHeight !== G.h) resize(); }).observe(tr);
     if (window.IntersectionObserver) new IntersectionObserver(([e]) => { s.visible = e.isIntersecting; if (s.visible) loop(); }).observe(tr);
     resize();
-    return { set: goTo, refresh: () => { s.tint = tintOf(label); draw(); } };
+    return { el: label, set: goTo, refresh: () => { s.tint = tintOf(label); draw(); } };
   }
 
   // ---------- a button that splashes: the press squashes it, then glass beads fly off and a ring runs out ----------
@@ -12337,6 +12358,7 @@ void main(){
   const ALL = NAVS.map(n => n[0]).concat(['label.sw', POPS]).join(',');
   function scan(root) {
     root = root || document;
+    for (let i = LIVE.length - 1; i >= 0; i--) if (LIVE[i].el && !LIVE[i].el.isConnected) LIVE.splice(i, 1);   // controls that left the page (re-rendered views) are dropped
     NAVS.forEach(([q, attr, it]) => root.querySelectorAll(q).forEach(el => { const o = nav(el, attr, it); if (o) LIVE.push(o); }));
     root.querySelectorAll('label.sw').forEach(el => { const o = sw(el); if (o) LIVE.push(o); });
     root.querySelectorAll(POPS).forEach(pop);
