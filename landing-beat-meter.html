@@ -10506,7 +10506,7 @@ function aiWho() { $('rbAiWho').textContent = AI.prov === 'metrobar' ? (AIW.w ? 
 // ---- MetroBar AI credits (Bennie 2026-11-12): the key lives on the server (edge function "ai"), every account has a wallet.
 // Free: a few credits every month; Pro: lots; packs add bonus credits. 1 press = 1 credit, a failed answer is given back.
 var AIW = { w: null, t: 0 };
-// Plans (Bennie 2026-11-13; 2026-11-18 writing is free): Free = all of MetroBar incl. Bar Book + 15 AI credits a month; Pro (€15/month) = 15 AI credits + supports MetroBar; Super Pro (€20/month) = 800 AI credits a month.
+// Plans (Bennie 2026-11-13; 2026-11-18 writing is free): Free = all of MetroBar incl. Bar Book + 15 AI credits a month; Pro (€15/month) = 400 AI credits a month (100 a day); Super Pro (€20/month) = 800 AI credits a month.
 const planName = p => p === 'super' ? 'Super Pro' : p === 'pro' ? 'Pro' : 'Free';
 const planPaid = w => !!w && (w.plan === 'pro' || w.plan === 'super');
 async function aiWallet(force) {
@@ -10545,7 +10545,7 @@ function aiPaywall(why) {
   const P = (window.ZONE_CONFIG && ZONE_CONFIG.pay) || {}, w = AIW.w, cur = w ? w.plan : '';
   let d = document.getElementById('aiPayDlg');
   if (!d) { d = document.createElement('dialog'); d.id = 'aiPayDlg'; d.className = 'ai-pay'; document.body.append(d); d.addEventListener('click', e => { if (e.target === d) d.close(); }); }
-  const free = P.freeCredits || 15, supN = P.superCredits || 800, packs = P.packs || [];
+  const free = P.freeCredits || 15, proN = P.proCredits || 400, supN = P.superCredits || 800, packs = P.packs || [];
   const when = w ? new Date(w.resets_at).toLocaleDateString(undefined, { day: 'numeric', month: 'long' }) : '';
   const btnFor = (plan, k, label) => cur === plan ? '<span class="cur">Your plan</span>' : `<a class="btn${plan === 'super' ? ' pri' : ''}" data-k="${k}">${label}</a>`;
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
@@ -10553,7 +10553,7 @@ function aiPaywall(why) {
 <p class="pay-sub">${!w ? 'Sign in first, so your plan lands in your account.' : `${planName(cur)} · ${w.left} AI credits left. ${cur === 'super' ? `Your ${supN} come back on ${when}.` : `Your ${w.monthly} come back on ${when}.`}`}</p>
 <div class="plans">
  <div class="plan"><b>Free</b><strong>€0</strong><small>All of MetroBar</small><ul><li>Bar Book: write as much as you want, rhymes lit up, syllables, drafts, beats</li><li>Practice, Fit, flows, the Game, The Zone</li><li>${free} AI credits every month</li></ul>${cur === 'free' ? '<span class="cur">Your plan</span>' : ''}</div>
- <div class="plan"><b>Pro</b><strong>${P.proPrice || '€15'}</strong><small>per month</small><ul><li>Back MetroBar while it grows</li><li>${free} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('pro', 'pro', 'Get Pro')}</div>
+ <div class="plan"><b>Pro</b><strong>${P.proPrice || '€15'}</strong><small>per month</small><ul><li>${proN} AI credits every month</li><li>Back MetroBar while it grows</li><li>Cancel any time</li></ul>${btnFor('pro', 'pro', 'Get Pro')}</div>
  <div class="plan pro"><b>Super Pro</b><strong>${P.superPrice || '€20'}</strong><small>per month</small><ul><li>Everything in Pro</li><li>${supN} AI credits every month</li><li>Cancel any time</li></ul>${btnFor('super', 'super', 'Get Super Pro')}</div>
 </div>
 ${packs.length ? `<h3 class="pay-h">Credit packs <small>one payment, never expire, on top of any plan</small></h3><div class="packs">${packs.map(k => `<a class="pack" data-k="${k.k}"><strong>${k.credits}</strong><small>AI credits</small><b>${k.price}</b></a>`).join('')}</div>` : ''}
