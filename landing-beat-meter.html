@@ -5684,7 +5684,7 @@ function vocalOnsets(chs, sr) {
     for (let i = o; i < e; i++) sum += y[i] * y[i]; pw[f] = sum / Math.max(1, e - o); }
   const db = new Float32Array(F); let mx = -200;
   for (let f = 0; f < F; f++) { const a = pw[Math.max(0, f - 1)], b = pw[f], c = pw[Math.min(F - 1, f + 1)]; db[f] = 10 * Math.log10((a + 2 * b + c) / 4 + 1e-10); mx = Math.max(mx, db[f]); }
-  const floor = mx - 25, minGap = Math.round(0.06 / 0.005);
+  const floor = mx - 25, minGap = Math.round(0.06 * sr / hop);
   let pk = [];
   for (let f = 1; f < F - 1; f++) if (db[f] > floor && db[f] >= db[f - 1] && db[f] > db[f + 1]) pk.push(f);
   // merge peaks without a real dip between them, or too close together: keep the louder one
@@ -5700,7 +5700,7 @@ function vocalOnsets(chs, sr) {
   return pk.map((f, k) => {
     let o = f; while (o > 0 && f - o < 20 && db[o - 1] >= db[f] - 6 && db[o - 1] <= db[o] + 0.5) o--;   // back to the rise
     let e = f; while (e < F - 1 && db[e] > db[f] - 10) e++;                                          // until it fades
-    return { t: o * 0.005, db: db[f], dur: (e - o) * 0.005 };
+    return { t: o * hop / sr, db: db[f], dur: (e - o) * hop / sr };   // hop is rounded to whole samples: use it, not 5 ms, or times drift (44.1 kHz)
   });
 }
 /* Quantize onsets to bars of the meter (16th grid), or a triplet / quintuplet grid when that fits clearly better (x/4 only).
@@ -11464,11 +11464,13 @@ function znSupabase(cfg) {
   return {
     demo: false,
     async session() { const id = await meId(); if (!id) return null; const p = chk(await sb.from('profiles').select('id,username,avatar_url,badge,bio').eq('id', id).maybeSingle()); if (p) { const { data } = await sb.auth.getSession(); p.email = (data.session && data.session.user.email) || ''; } return p; },
-    onAuth(cb) { sb.auth.onAuthStateChange(() => { setTimeout(cb, 0); }); }, // never await supabase inside the callback: it holds the auth lock and every later call would hang
+    onAuth(cb) { let last; sb.auth.onAuthStateChange((ev, s) => { const id = s && s.user ? s.user.id : null; if (id === last) return; last = id; setTimeout(cb, 0); }); }, // only when the signed-in user changes: supabase repeats SIGNED_IN on every tab refocus, which rebuilt the view and wiped typed text. Never await supabase inside the callback: it holds the auth lock and every later call would hang
     async signUp(email, pw, username) { const r = await sb.auth.signUp({ email, password: pw, options: { data: { username } } }); chk(r); return r.data.session ? 'in' : 'confirm'; },
     async signIn(email, pw) { chk(await sb.auth.signInWithPassword({ email, password: pw })); },
     async resetPw(email) { chk(await sb.auth.resetPasswordForEmail(email, { redirectTo: location.href.split('#')[0] + '#zone' })); },
     async signOut() { await sb.auth.signOut(); },
+    async recover(tok) { chk(await sb.auth.setSession(tok)); },   // the tokens from a password-reset link
+    async updatePw(pw) { chk(await sb.auth.updateUser({ password: pw })); },
     // EU withdrawal function (2026-11-13): the request is stored (table withdrawals, own rows only); returns the stored row as the receipt
     async withdraw(row) { const id = await meId(); if (!id) throw new Error('Sign in first.'); const r = await sb.from('withdrawals').insert(Object.assign({ user_id: id }, row)).select('id, created_at').single(); return chk(r); },
     // Barbook sync: the signed-in user's own pages (table book_pages, row level security = only you)
@@ -11658,7 +11660,7 @@ function znErr(e) { return (e && e.message) || String(e); }
 function znSay(t) { const b = $('znBanner'); b.textContent = t || ''; b.hidden = !t; }
 // ---- routing inside the tab
 function znGo(view, id, push = true) {
-  ZN.view = view; ZN.id = id;
+  ZN.view = view; ZN.id = id; if (ZN.recMsg) { ZN.recMsg = null; znSay(''); }
   if (push) { try { history.pushState({ zn: [view, id] }, '', '#zone'); } catch {} }
   znRender();
 }
@@ -11671,6 +11673,7 @@ async function zoneOpen() {
       catch (e) { znSay(znErr(e)); ZN.view = 'connect'; znRender(); return; }
     } else { ZN.view = 'connect'; znRender(); return; }
   }
+  if (ZN.recTok && ZN.api.recover) { const tok = ZN.recTok; ZN.recTok = null; try { await ZN.api.recover(tok); ZN.view = 'newpw'; } catch (e) { ZN.recMsg = 'That reset link no longer works. Ask for a new one under Forgot password.'; ZN.view = 'auth'; } }
   await znAuthChanged(true);
 }
 window.zoneOpen = zoneOpen;
@@ -11679,7 +11682,7 @@ async function znAuthChanged(first) {
   catch (e) { ZN.me = null; znSay(znErr(e)); }
   if (typeof aiWallet === 'function' && AI_PROV.metrobar) aiWallet(true);
   $('znMe').textContent = ZN.me ? '@' + ZN.me.username : 'Sign in';
-  znSay(ZN.api.demo ? 'Demo: made-up posts that live only in this tab. Nothing is saved or sent.' : '');
+  znSay(ZN.api.demo ? 'Demo: made-up posts that live only in this tab. Nothing is saved or sent.' : ZN.recMsg || '');   // recMsg: a reset-link problem, kept until you move on
   if (ZN.draft) { ZN.view = ZN.me ? 'compose' : 'auth'; if (!ZN.me) znSay('Sign in to post your page.'); }
   else if (ZN.view === 'connect' || (ZN.view === 'auth' && ZN.me)) ZN.view = 'feed';
   znRender();
@@ -11688,9 +11691,22 @@ async function znAuthChanged(first) {
 function znRender() {
   const body = $('znBody');
   document.querySelectorAll('.zn-seg button').forEach(b => b.setAttribute('aria-selected', String(ZN.view === 'feed' && b.dataset.feed === ZN.feed)));
-  const fn = { connect: znConnect, feed: znFeed, post: znPost, profile: znProfile, auth: znAuth, edit: znEdit, compose: znCompose }[ZN.view] || znFeed;
+  const fn = { connect: znConnect, feed: znFeed, post: znPost, profile: znProfile, auth: znAuth, edit: znEdit, compose: znCompose, newpw: znNewPw }[ZN.view] || znFeed;
   body.replaceChildren(h('p', 'zn-empty', 'Loading…'));
   Promise.resolve(fn(body)).catch(e => body.replaceChildren(h('p', 'zn-err', znErr(e))));
+}
+function znNewPw(body) {   // after a password-reset link: set the new password
+  if (!ZN.me) { znGo('auth', null, false); return; }
+  const f = h('form', 'zn-form'), err = h('p', 'zn-err'), l = h('label', '', 'New password (8+ characters)'), i = h('input', 'num-in');
+  i.type = 'password'; i.required = true; i.minLength = 8; i.autocomplete = 'new-password'; l.append(i);
+  const go = h('button', 'btn pri', 'Save new password'); go.type = 'submit';
+  f.append(h('h3', '', 'Choose a new password'), l, err, go);
+  f.onsubmit = async e => {
+    e.preventDefault(); err.textContent = ''; go.disabled = true;
+    try { await ZN.api.updatePw(i.value); znSay('Your password is changed.'); znGo('feed'); }
+    catch (er) { err.textContent = znErr(er); go.disabled = false; }
+  };
+  body.replaceChildren(f); i.focus();
 }
 function znNeedSignIn(why) { ZN.after = { view: ZN.view, id: ZN.id }; znSay(why || 'Sign in first.'); znGo('auth'); }
 // ---- views
@@ -11925,6 +11941,9 @@ $('rbPost').addEventListener('click', () => {
   location.hash = '#zone';
 });
 try { const zd = sessionStorage.getItem('metrobar.zoneDraft'); if (zd && !window.BBAPP) { sessionStorage.removeItem('metrobar.zoneDraft'); ZN.draft = JSON.parse(zd); ZN.view = 'compose'; } } catch (e) {}
+{ const q = new URLSearchParams(location.hash.split('#').pop());   // a password-reset link lands here with the tokens (or an error) in the hash
+  if (q.get('type') === 'recovery' && q.get('access_token') && q.get('refresh_token')) { ZN.recTok = { access_token: q.get('access_token'), refresh_token: q.get('refresh_token') }; history.replaceState(null, '', location.pathname + location.search + '#zone'); }
+  else if (q.get('error_description')) { history.replaceState(null, '', location.pathname + location.search + '#zone'); ZN.recMsg = q.get('error_description') + '. Ask for a new reset link under Forgot password.'; ZN.view = 'auth'; } }
 if (location.hash === '#zone') setView();
 </script>
 <script>
