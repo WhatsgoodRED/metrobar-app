@@ -4,7 +4,8 @@
 // pay: Stripe Payment Links for MetroBar AI (Stripe > Payment Links). Empty = the buttons say "Coming soon".
 window.ZONE_CONFIG = { url: 'https://uwxictlpfsgsgghnhdov.supabase.co', key: 'sb_publishable_eQsCNd0UmD4DH1i1gP_RWw_M0Ugs5pw',
   ai: true,
-  maintenance: false,  // true = everyone sees "Getting ready"; only a signed-in admin gets in. Off again 2026-11-16 (Bennie).
+  maintenance: true,   // true = "Getting ready" for everyone, except a signed-in admin or an account made before maintenanceSince; no new sign-ups. On again 2026-11-18 (Bennie: coming soon).
+  maintenanceSince: '2026-11-18T17:30:00Z',
   zoneLock: true,    // true = The Highlight Zone needs Pro or Super Pro (links below are LIVE since 2026-11-13).    // true once the edge function "ai" is deployed with its GEMINI_API_KEY secret (see zone/AI-SETUP.md)
   // Plans v2 (2026-11-13): Pro = The Highlight Zone, Super Pro = Pro + 800 AI credits; packs = one-off credits. Empty link = "Coming soon". LIVE links (2026-11-13); the sandbox test_ links stay in Stripe for testing.
   pay: { pro: 'https://buy.stripe.com/bJefZjdtk3uHgqccNJ1VK05', proPrice: '€15', super: 'https://buy.stripe.com/dRm3cx8909T52zm2951VK04', superPrice: '€20', superCredits: 800, proCredits: 400, freeCredits: 15,

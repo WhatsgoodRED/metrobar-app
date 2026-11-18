@@ -130,7 +130,7 @@ dialog h2 { margin: 0 0 10px; font-size: 1.1rem; }
 <body>
 <script>
 /* Maintenance curtain, same as landing-beat-meter.html (#mxGate): zone-config.js maintenance: true covers the page from the first paint;
-   a signed-in admin account (public.admins) gets through. Client-side curtain, not a lock. The owner signs in on the main page
+   a signed-in admin account (public.admins) or an account made before maintenanceSince gets through. Client-side curtain, not a lock. The owner signs in on the main page
    (same origin, same metrobar.zoneAuth), then comes back; the check reruns on focus. */
 (function () {
   var C = window.ZONE_CONFIG || {}; if (!C.maintenance) return;
@@ -141,21 +141,31 @@ dialog h2 { margin: 0 0 10px; font-size: 1.1rem; }
     '#mxGate .in { display: grid; gap: 14px; justify-items: center; max-width: 26rem; }' +
     '#mxGate .wm { font-family: Panchang, system-ui, sans-serif; font-weight: 605; font-variation-settings: "wght" 605; font-size: clamp(1.6rem, 8vw, 2.6rem); letter-spacing: 0; text-transform: uppercase; }' +
     '#mxGate .t { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 18rem; } #mxGate .t i { height: 8px; border-radius: 4px; background: #d3d6d1; } #mxGate .t i:last-child { background: #af0000; }' +
-    '#mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
+    '#mxGate .nt { color: #af0000; font-size: .9rem; } #mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
     '#mxGate a { margin-top: 10px; color: #5d636a; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; }' +
     'html.mx-ok #mxGate { display: none; }';
   document.head.appendChild(st);
   var g = document.createElement('div'); g.id = 'mxGate'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'MetroBar is under maintenance');
-  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><a href="landing-beat-meter.html">Owner sign in</a></div>';
+  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><p class="nt" hidden></p><a href="landing-beat-meter.html">Signed up already? Sign in</a></div>';
   document.body.appendChild(g);
-  var uid = function () { try { var j = JSON.parse(localStorage.getItem('metrobar.zoneAuth') || 'null'); return j && (j.user ? j.user.id : j.currentSession && j.currentSession.user && j.currentSession.user.id) || ''; } catch (e) { return ''; } };
-  var open = function () { de.classList.add('mx-ok'); };
+  /* Coming soon (Bennie 2026-11-18): an account made before ZONE_CONFIG.maintenanceSince gets through, so does an admin;
+     an account made later (or nobody signed in) sees the curtain. Sign-up is off while maintenance is on. */
+  var CUT = Date.parse(C.maintenanceSince || '') || 0;
+  var me = function () { try { var j = JSON.parse(localStorage.getItem('metrobar.zoneAuth') || 'null'); var u = j && (j.user || j.currentSession && j.currentSession.user); return u && u.id ? u : null; } catch (e) { return null; } };
+  var uid = function () { var u = me(); return u ? u.id : ''; };
+  var nt = g.querySelector('.nt');
+  var say = function (t) { nt.textContent = t || ''; nt.hidden = !t; };
+  var open = function (id) { de.classList.add('mx-ok'); say(''); try { sessionStorage.setItem('metrobar.mxOk', id); } catch (e) {} };
+  var shut = function (t) { de.classList.remove('mx-ok'); say(t); try { sessionStorage.removeItem('metrobar.mxOk'); } catch (e) {} };
   var check = function () {
-    var id = uid(); if (!id) { de.classList.remove('mx-ok'); return; } if (!C.url || !C.key) return;
-    try { if (sessionStorage.getItem('metrobar.mxOk') === id) open(); } catch (e) {}
-    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
+    var u = me(); if (!u) { shut(''); return; }
+    var made = Date.parse(u.created_at || '') || 0;
+    if (CUT && made && made < CUT) { open(u.id); return; }
+    try { if (sessionStorage.getItem('metrobar.mxOk') === u.id) de.classList.add('mx-ok'); } catch (e) {}
+    if (!C.url || !C.key) return;
+    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(u.id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
       .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (rows) { if (rows && rows.length) { open(); try { sessionStorage.setItem('metrobar.mxOk', id); } catch (e) {} } else { de.classList.remove('mx-ok'); try { sessionStorage.removeItem('metrobar.mxOk'); } catch (e) {} } })
+      .then(function (rows) { if (rows && rows.length) open(u.id); else shut('This account was made after sign-ups closed. It opens at launch.'); })
       .catch(function () {});
   };
   check();

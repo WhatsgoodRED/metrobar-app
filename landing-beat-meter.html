@@ -3653,7 +3653,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
 <body>
 <script>
 /* Maintenance (Bennie 2026-11-13: "under maintenance except for me" until launch). zone-config.js maintenance: true covers the whole
-   page from the first paint; a signed-in admin account (public.admins = the owner) gets through. Static site, so this is a curtain,
+   page from the first paint; a signed-in admin account (public.admins = the owner) or any account made before maintenanceSince
+   gets through (2026-11-18: coming soon for everyone who already signed up). Static site, so this is a curtain,
    not a lock: it keeps the public out of an unfinished product. Turn off with maintenance: false in zone-config.js. */
 (function () {
   var C = window.ZONE_CONFIG || {}; if (!C.maintenance) return;
@@ -3664,21 +3665,31 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     '#mxGate .in { display: grid; gap: 14px; justify-items: center; max-width: 26rem; }' +
     '#mxGate .wm { font-family: Panchang, system-ui, sans-serif; font-weight: 605; font-variation-settings: "wght" 605; font-size: clamp(1.6rem, 8vw, 2.6rem); letter-spacing: 0; text-transform: uppercase; }' +
     '#mxGate .t { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; width: 100%; max-width: 18rem; } #mxGate .t i { height: 8px; border-radius: 4px; background: #d3d6d1; } #mxGate .t i:last-child { background: #af0000; }' +
-    '#mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
+    '#mxGate .nt { color: #af0000; font-size: .9rem; } #mxGate h1 { margin: 6px 0 0; font-size: 1.15rem; } #mxGate p { margin: 0; color: #5d636a; }' +
     '#mxGate button { margin-top: 10px; border: 0; background: none; color: #5d636a; font: inherit; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }' +
     'html.mx-ok #mxGate { display: none; }';
   document.head.appendChild(st);
   var g = document.createElement('div'); g.id = 'mxGate'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-label', 'MetroBar is under maintenance');
-  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><button type="button">Owner sign in</button></div>';
+  g.innerHTML = '<div class="in"><div class="wm">MetroBar</div><div class="t"><i></i><i></i><i></i><i></i></div><h1>Getting ready</h1><p>MetroBar is being polished before launch. Check back soon.</p><p class="nt" hidden></p><button type="button">Signed up already? Sign in</button></div>';
   document.body.appendChild(g);
-  var uid = function () { try { var j = JSON.parse(localStorage.getItem('metrobar.zoneAuth') || 'null'); return j && (j.user ? j.user.id : j.currentSession && j.currentSession.user && j.currentSession.user.id) || ''; } catch (e) { return ''; } };
-  var open = function () { de.classList.add('mx-ok'); };
+  /* Coming soon (Bennie 2026-11-18): an account made before ZONE_CONFIG.maintenanceSince gets through, so does an admin;
+     an account made later (or nobody signed in) sees the curtain. Sign-up is off while maintenance is on. */
+  var CUT = Date.parse(C.maintenanceSince || '') || 0;
+  var me = function () { try { var j = JSON.parse(localStorage.getItem('metrobar.zoneAuth') || 'null'); var u = j && (j.user || j.currentSession && j.currentSession.user); return u && u.id ? u : null; } catch (e) { return null; } };
+  var uid = function () { var u = me(); return u ? u.id : ''; };
+  var nt = g.querySelector('.nt');
+  var say = function (t) { nt.textContent = t || ''; nt.hidden = !t; };
+  var open = function (id) { de.classList.add('mx-ok'); say(''); try { sessionStorage.setItem('metrobar.mxOk', id); } catch (e) {} };
+  var shut = function (t) { de.classList.remove('mx-ok'); say(t); try { sessionStorage.removeItem('metrobar.mxOk'); } catch (e) {} };
   var check = function () {
-    var id = uid(); if (!id || !C.url || !C.key) return;
-    try { if (sessionStorage.getItem('metrobar.mxOk') === id) open(); } catch (e) {}
-    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
+    var u = me(); if (!u) { shut(''); return; }
+    var made = Date.parse(u.created_at || '') || 0;
+    if (CUT && made && made < CUT) { open(u.id); return; }
+    try { if (sessionStorage.getItem('metrobar.mxOk') === u.id) de.classList.add('mx-ok'); } catch (e) {}
+    if (!C.url || !C.key) return;
+    fetch(C.url + '/rest/v1/admins?select=user_id&user_id=eq.' + encodeURIComponent(u.id), { headers: { apikey: C.key, Authorization: 'Bearer ' + C.key } })
       .then(function (r) { return r.ok ? r.json() : []; })
-      .then(function (rows) { if (rows && rows.length) { open(); try { sessionStorage.setItem('metrobar.mxOk', id); } catch (e) {} } else { de.classList.remove('mx-ok'); try { sessionStorage.removeItem('metrobar.mxOk'); } catch (e) {} } })
+      .then(function (rows) { if (rows && rows.length) open(u.id); else shut('This account was made after sign-ups closed. It opens at launch.'); })
       .catch(function () {});
   };
   check();
@@ -11691,7 +11702,7 @@ function znAuth(body) {
     if (mode !== 'reset') add('pw', 'Password (8+ characters)', 'password', { minLength: 8, autocomplete: mode === 'up' ? 'new-password' : 'current-password' });
     const go = h('button', 'btn pri', mode === 'in' ? 'Sign in' : mode === 'up' ? 'Create account' : 'Send reset link'); go.type = 'submit';
     const sw = h('div', 'row'); sw.style.gap = '6px';
-    if (mode !== 'up') sw.append(znBtn('New here? Join', 'btn', () => { mode = 'up'; draw(); }));
+    if (mode !== 'up' && !acctNoJoin()) sw.append(znBtn('New here? Join', 'btn', () => { mode = 'up'; draw(); }));
     if (mode !== 'in') sw.append(znBtn('I have an account', 'btn', () => { mode = 'in'; draw(); }));
     if (mode === 'in') sw.append(znBtn('Forgot password', 'btn', () => { mode = 'reset'; draw(); }));
     f.append(err, go, sw, h('p', 'note', 'Your lyrics stay in this browser until you post them. Posts in the Zone are public.'));
@@ -15214,14 +15225,16 @@ async function acctOpen(mode) {
   if (!ZN.me && !mode) { try { ZN.me = await api.session(); } catch (e) {} }
   ZN.me && !mode ? acctMine(d, api) : acctForm(d, api, mode || ACCT.mode);
 }
+const acctNoJoin = () => !!(window.ZONE_CONFIG && ZONE_CONFIG.maintenance); // coming soon: no new accounts (2026-11-18)
 function acctForm(d, api, mode) {
+  if (mode === 'up' && acctNoJoin()) mode = 'in';
   ACCT.mode = mode;
   const T = { in: ['Welcome back', 'Sign in to keep your songs in your account and use MetroBar AI.', 'Sign in'],
     up: ['Make your account', 'Free. Your songs sync to it, and you get 15 MetroBar AI credits every month.', 'Create account'],
     reset: ['Reset your password', 'We email you a link to set a new one.', 'Send reset link'] }[mode];
   d.innerHTML = `<form method="dialog"><button class="x" aria-label="Close">×</button></form>
 <h2>${T[0]}</h2><p class="acct-sub">${T[1]}</p>
-${mode === 'reset' ? '' : `<div class="acct-tabs" role="tablist"><button type="button" role="tab" data-m="in" aria-selected="${mode === 'in'}">Sign in</button><button type="button" role="tab" data-m="up" aria-selected="${mode === 'up'}">Join</button></div>`}
+${mode === 'reset' || acctNoJoin() ? '' : `<div class="acct-tabs" role="tablist"><button type="button" role="tab" data-m="in" aria-selected="${mode === 'in'}">Sign in</button><button type="button" role="tab" data-m="up" aria-selected="${mode === 'up'}">Join</button></div>`}
 <form class="acct-f" novalidate>
 ${mode === 'up' ? '<label>Username<input name="name" autocomplete="username" spellcheck="false" placeholder="3-20 letters, numbers, _ or ." pattern="[A-Za-z0-9_.]{3,20}" required></label>' : ''}
 <label>Email<input name="email" type="email" autocomplete="email" spellcheck="false" placeholder="you@example.com" required></label>
