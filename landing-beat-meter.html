@@ -12865,20 +12865,27 @@ var BE = (() => {
   function swapDrafts(a, b) { const p = page(); if (!p || !p.drafts) return; const x = p.drafts[a], y = p.drafts[b]; delete p.drafts[a]; delete p.drafts[b]; if (y) p.drafts[a] = y; if (x) p.drafts[b] = x;
     if (p.dpos) { const u = p.dpos[a], v = p.dpos[b]; delete p.dpos[a]; delete p.dpos[b]; if (v) p.dpos[a] = v; if (u) p.dpos[b] = u; } }
   // undo / redo for the whole page (2026-11-12): every change to the page text is recorded, typing bursts (<0.8 s apart) count as one step
-  S.und = []; S.red = []; S.lastV = t.value; S.lastT = 0; S.hist = false;
+  // Each step also keeps the page's drafts (bugs-write-hz #4): flipping a draft, Enter, merge, paste or a bar delete moves drafts too,
+  // so undo restores both. S.lastD = the drafts that belong to S.lastV; it is read a tick after each change, once draft moves have landed.
+  const dSnap = () => { const p = page(); return p ? JSON.stringify([p.drafts || {}, p.dpos || {}]) : null; };
+  const dPut = j => { const p = page(); if (!p || j == null) return; const [dr, dp] = JSON.parse(j); p.drafts = dr; if (Object.keys(dp).length) p.dpos = dp; else delete p.dpos; };
+  S.und = []; S.red = []; S.lastV = t.value; S.lastD = dSnap(); S.lastT = 0; S.hist = false;
   t.addEventListener('input', () => {
     if (S.hist) return; const v = t.value; if (v === S.lastV) return; const n = Date.now();
-    if (n - S.lastT > 800 || !S.und.length) { S.und.push(S.lastV); if (S.und.length > 200) S.und.shift(); }
+    if (n - S.lastT > 800 || !S.und.length) { S.und.push({ v: S.lastV, d: S.lastD }); if (S.und.length > 200) S.und.shift(); }
     S.lastT = n; S.lastV = v; S.red = []; histUi();
+    setTimeout(() => { if (t.value === v) S.lastD = dSnap(); }, 0);
   });
   function hist(d) {
     const from = d < 0 ? S.und : S.red, to = d < 0 ? S.red : S.und; if (!from.length || locked()) return;
-    const was = t.value, v = from.pop(); to.push(was); S.hist = true; t.value = v; t.dispatchEvent(new Event('input', { bubbles: true })); S.hist = false; S.lastV = v; S.lastT = 0;
+    const was = t.value, e = from.pop(), v = typeof e === 'string' ? e : e.v; to.push({ v: was, d: dSnap() });
+    if (typeof e !== 'string') dPut(e.d);
+    S.hist = true; t.value = v; t.dispatchEvent(new Event('input', { bubbles: true })); S.hist = false; S.lastV = v; S.lastD = dSnap(); S.lastT = 0;
     const a = was.split('\n'), b = v.split('\n'); let k = 0; while (k < a.length && k < b.length && a[k] === b[k]) k++;
     render(); focusRow(Math.min(k, S.L.length - 1)); histUi();
   }
   function histUi() { if (typeof undoBtn !== 'undefined') { undoBtn.disabled = !S.und.length; redoBtn.disabled = !S.red.length; } }
-  function histReset() { S.und = []; S.red = []; S.lastV = t.value; S.lastT = 0; histUi(); }
+  function histReset() { S.und = []; S.red = []; S.lastV = t.value; S.lastD = dSnap(); S.lastT = 0; histUi(); }
   const histKey = e => { if (!(e.metaKey || e.ctrlKey) || e.altKey) return false; const k = e.key.toLowerCase(); if (k === 'z') { e.preventDefault(); hist(e.shiftKey ? 1 : -1); return true; } if (k === 'y' && !e.shiftKey) { e.preventDefault(); hist(1); return true; } return false; };
 
   // ---- syllables, sections, colours
