@@ -1906,6 +1906,24 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 html.mo-off .tg-ebtn .tg-edots i.on { animation: none !important; }
 @media (prefers-reduced-motion: reduce) { .tg-ebtn .tg-edots i.on { animation: none !important; } .tg-ebtn { transition: none; } }
 @media (max-width: 560px) { .tg-ebtn { padding-inline: 10px; } .tg-edots { gap: 4px; } .tg-edots i { width: 8px; height: 8px; } .tg-edots i.on { width: 14px; height: 14px; } }
+/* Pocket Practice inside the Highlight Zone (html.pp-mode): the strip over the editor + Write's tools in the tools panel */
+html.bb .pp-strip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 8px 10px; margin: 0 0 8px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); border-radius: 12px; font: 600 .8rem var(--body); }
+html.bb .pp-sbadge { font-family: 'Panchang', var(--display); font-weight: 605; font-variation-settings: 'wght' 605; font-size: .72rem; text-transform: uppercase; padding: 6px 9px; border-radius: 4px; background: var(--accent); color: var(--on-accent, #fff); line-height: 1; }
+html.bb .pp-ssteps, html.bb .pp-shl { display: inline-flex; gap: 2px; padding: 2px; border-radius: 9px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+html.bb .pp-ssteps button, html.bb .pp-shl button { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: inherit; opacity: .7; font: inherit; padding: 5px 10px; min-height: 30px; border-radius: 7px; cursor: pointer; }
+html.bb .pp-ssteps button b { display: inline-grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; border: 1px solid currentColor; font-size: .62rem; }
+html.bb .pp-ssteps button[aria-current="step"], html.bb .pp-shl button[aria-pressed="true"] { opacity: 1; background: color-mix(in srgb, currentColor 14%, transparent); }
+html.bb .pp-ssteps button:hover, html.bb .pp-shl button:hover { opacity: 1; }
+html.bb .pp-ssp { flex: 1; }
+html.bb .pp-splay { border: 0; border-radius: 9px; padding: 8px 14px; min-height: 34px; background: var(--accent); color: var(--on-accent, #fff); font: 700 .8rem var(--body); cursor: pointer; }
+html.bb .pp-splay:active { transform: scale(.97); }
+html.bb .pp-sx { width: 32px; height: 32px; border-radius: 8px; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); background: transparent; color: inherit; font-size: 1.05rem; cursor: pointer; }
+html.bb .pp-strip button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html:not(.pp-mode) .pp-wt { display: none !important; }
+#rbSide .pp-wt .wr-card { display: block; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; max-width: 100%; }
+#rbSide .pp-wt .wr-card > h3 { display: none; }
+#rbSide .pp-wt .wr-card .btn { min-height: 32px; }
+@media (max-width: 640px) { html.bb .pp-shl, html.bb .pp-ssteps { order: 3; } html.bb .pp-ssteps button { padding: 5px 7px; } }
 /* ---- Pocket Practice (Bennie 2026-11-18): build your own song (structure, bars, highlight, beat) and play it in the Flow Game or keep it as a
    lyric sheet. Entry card = the Flow Game card's look; the dialog reuses dialog.tg. Classes pp-*. */
 #viewPractice > .pp-entry { margin-top: 18px; }
@@ -3746,6 +3764,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <nav class="tg-lnav" id="tgLnav" aria-label="Levels" hidden>
           <button class="tg-b tg-sq" id="tgPrevLv" type="button" aria-label="Previous level"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           <select class="tg-jump" id="tgJump" aria-label="Jump to any level"></select>
+          <button class="tg-b" id="tgWhole" type="button" hidden>Whole song</button>
           <button class="tg-b tg-sq" id="tgNextLv" type="button" aria-label="Next level"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
         </nav>
         <div class="tg-top">
@@ -3804,7 +3823,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
     <div class="tg-hd">
       <h2 id="ppTitle" class="pp-name">Pocket Practice</h2>
       <div class="pp-steps" role="tablist" aria-label="Pocket Practice steps">
-        <button type="button" role="tab" data-step="0" aria-selected="true"><b>1</b>Structure</button><button type="button" role="tab" data-step="1" aria-selected="false"><b>2</b>Bars</button><button type="button" role="tab" data-step="2" aria-selected="false"><b>3</b>Beat</button><button type="button" role="tab" data-step="3" aria-selected="false"><b>4</b>Finish</button>
+        <button type="button" role="tab" data-step="0" aria-selected="true"><b>1</b>Structure</button><button type="button" role="tab" data-step="1" aria-selected="false" title="Write the bars in the Highlight Zone editor"><b>2</b>Bars</button><button type="button" role="tab" data-step="2" aria-selected="false"><b>3</b>Beat</button><button type="button" role="tab" data-step="3" aria-selected="false"><b>4</b>Finish</button>
       </div>
       <span class="tg-sp"></span>
       <button class="tg-ib tg-x" id="ppClose" type="button" aria-label="Close Pocket Practice">×</button>
@@ -3824,7 +3843,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         <div class="pp-quick"><span>Start from</span><button class="tg-b" type="button" data-quick="verse">Verse first</button><button class="tg-b" type="button" data-quick="chorus">Chorus first</button><button class="tg-b" type="button" data-quick="clear">Empty</button><select id="ppTpl" class="pp-sel" aria-label="Start from a template: your own, artist structures or MetroBar drills"></select></div>
         <ol class="pp-order" id="ppOrder" aria-label="Your song, top to bottom"></ol>
         <p class="pp-sum" id="ppSum"></p>
-        <div class="pp-nav"><span></span><button class="tg-b tg-pri" type="button" data-go="1">Write the bars</button></div>
+        <div class="pp-nav"><span></span><button class="tg-b tg-pri" type="button" data-go="1">Write the bars in the Highlight Zone</button></div>
       </section>
 
       <section class="pp-pane" data-pane="1" aria-label="Write the bars" hidden>
@@ -3850,13 +3869,14 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
           <b id="ppBpm">–</b><span class="pp-u">BPM</span>
           <button class="tg-b tg-sq" type="button" id="ppDbl" title="Double the tempo">×2</button>
         </div>
-        <div class="pp-nav"><button class="tg-b" type="button" data-go="1">Bars</button><button class="tg-b tg-pri" type="button" data-go="3">Finish</button></div>
+        <div class="pp-nav"><button class="tg-b" type="button" data-go="1">Back to the bars</button><button class="tg-b tg-pri" type="button" data-go="3">Finish</button></div>
       </section>
 
       <section class="pp-pane" data-pane="3" aria-label="Finish your song" hidden>
         <p class="pp-lead" id="ppDoneLead"></p>
         <div class="pp-fin">
-          <button class="pp-card" type="button" id="ppPlayGame"><b>Play it in the Flow Game</b><span>Every bar of your song becomes a round: tap or rap the dots into your pocket, bar after bar, on your beat.</span></button>
+          <button class="pp-card" type="button" id="ppPlayWhole"><b>Play the whole song</b><span>Like Guitar Hero: every bar once, back to back, on your beat. Tap or rap the dots and hold the long pills, start to finish.</span></button>
+          <button class="pp-card" type="button" id="ppPlayGame"><b>Practise bar by bar</b><span>Every bar as its own Flow Game round, twice through, with the loop after it. Next bar moves on.</span></button>
           <button class="pp-card" type="button" id="ppSheetBtn"><b>Keep it as a lyric sheet</b><span>Your song, saved in your songs, as a clean sheet with the highlight. Print it, copy it or open it in Write.</span></button>
         </div>
         <div class="pp-sheet" id="ppSheet" hidden>
@@ -13510,7 +13530,8 @@ const TG = (() => {
       const o = document.createElement('option'); o.value = String(k); o.textContent = `${n}. ${L.text.slice(0, 48)}`; o.selected = k === cur.fit; g.append(o); });
   }
   function navUi() {
-    const sg = !!(cur && cur.song); $('tgPrevLv').setAttribute('aria-label', sg ? 'Previous bar' : 'Previous level'); $('tgNextLv').setAttribute('aria-label', sg ? 'Next bar' : 'Next level'); $('tgJump').setAttribute('aria-label', sg ? 'Jump to any bar of your song' : 'Jump to any level');
+    const sg = !!(cur && cur.song); $('tgWhole').hidden = !sg; if (sg) $('tgWhole').textContent = cur.whole ? 'Bar by bar' : 'Whole song';
+    ['tgPrevLv', 'tgNextLv', 'tgJump'].forEach(id => { $(id).hidden = !!(cur && cur.whole); }); $('tgPrevLv').setAttribute('aria-label', sg ? 'Previous bar' : 'Previous level'); $('tgNextLv').setAttribute('aria-label', sg ? 'Next bar' : 'Next level'); $('tgJump').setAttribute('aria-label', sg ? 'Jump to any bar of your song' : 'Jump to any level');
     if (sg) { $('tgLnav').hidden = false; navSong(); return; }
     const on = !!cur && cur.lv != null && !cur.calib; $('tgLnav').hidden = !on; if (!on) return;
     const pv = step(cur.lv, -1), nx = step(cur.lv, 1), sel = $('tgJump');
@@ -13524,7 +13545,7 @@ const TG = (() => {
   function lyricLines() {
     const box = $('tgLines'); box.replaceChildren(); let items = [];
     if (cur && cur.lv != null) items = LADDER[cur.lv].bars.map((b, i) => [barText(b), i === cur.bi, () => playLadder(cur.lv, i)]);
-    else if (cur && cur.fit != null) { for (let i = Math.max(0, cur.fit - 1); i < lines.length && items.length < 4; i++) if (lines[i].N) { const k = i; items.push([lines[i].text, i === cur.fit, () => playFit(k)]); } }
+    else if (cur && cur.fit != null && !cur.whole) { for (let i = Math.max(0, cur.fit - 1); i < lines.length && items.length < 4; i++) if (lines[i].N) { const k = i; items.push([lines[i].text, i === cur.fit, () => playFit(k)]); } }
     box.hidden = items.length < 2;
     items.forEach(([t, on, go]) => { const b = h('button', 'tg-ln', t); b.type = 'button'; if (on) b.setAttribute('aria-current', 'true'); b.addEventListener('click', () => { if (!playing() && !on) go(); }); box.append(b); });
   }
@@ -13538,13 +13559,33 @@ const TG = (() => {
       base: song ? Math.round(Math.min(200, Math.max(50, OWNB ? OWNB.bpm : songBpm || Math.min(bpm(), 90)))) : Math.min(bpm(), 90) });
   }
   let songBpm = 0;
-  function playSong(i, beat) { OWNB = beat && beat.buf ? beat : null; ownOff = false; songBpm = beat && beat.bpm ? beat.bpm : 0; open(); playFit(i, true); }
+  let songTitle = '';
+  function playSong(i, beat, o = {}) { OWNB = beat && beat.buf ? beat : null; ownOff = false; songBpm = beat && beat.bpm ? beat.bpm : 0; songTitle = o.title || ''; open(); if (o.whole) playWhole(i); else playFit(i, true); }
+  // the whole song in one run, like Guitar Hero: every bar once, back to back, scored as one (Bennie 2026-11-18)
+  function playWhole(i) {
+    const n = lines.filter((L, k) => k >= i && L.N).length; if (!n) return; const L = lines[i];
+    const secs = []; lines.forEach((x, k) => { if (k >= i && x.N && x.section && !secs.includes(x.section.name)) secs.push(x.section.name); });
+    setCur({ key: 'S:' + fitKey({ text: lines.filter(x => x.N).map(x => x.text).join('/'), flow: { id: 'song' } }), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, song: true, whole: true,
+      no: 'Whole song', name: songTitle || 'Your song', sub: `${n} bars${secs.length ? ' · ' + secs.slice(0, 6).join(', ') : ''} · ${by()}`,
+      tip: 'Your whole song in one run: every bar once, back to back, on your beat. The rows roll on as you go; hold the long pills.', base: Math.round(Math.min(200, Math.max(50, OWNB ? OWNB.bpm : songBpm || Math.min(bpm(), 90)))) });
+  }
   function playCal() {
     setCur({ key: null, calib: true, L: ladderBar(0, 0), name: 'Find your delay', sub: by(), base: 90,
       tip: S.mode === 'voice' ? 'Say a short "ta" on every click, eight times. MetroBar measures how late the mic hears you and sets the sound delay for voice.'
         : 'Tap on every click, eight times. MetroBar measures how late your taps arrive (Bluetooth headphones add delay) and sets the sound delay for tap.' });
   }
+  // whole song: the song's bars (from the first one with words), each drawn in its own row when it comes up
+  function songBars() { const out = []; for (let i = cur.fit; i < lines.length; i++) if (lines[i].N) { const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }); out.push({ L, li: i, tg: gameTargets(L) }); } return out; }
+  function songRow(bi, W) {
+    W = W || (R && R.song) || cur.W; const b = W[bi]; if (!b) return; const ri = bi % 2, old = rows[ri]; if (old && old.bar === bi) return;
+    const L = b.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), zs = b.tg.map((x, k) => [k ? x.slot : -99, k + 1 < b.tg.length ? b.tg[k + 1].slot : 99]);
+    const r = rowDraw(old.row, ri, { L, pad, tg: b.tg, zs }); r.bar = bi; rows[ri] = r;
+    const sec = L.section ? L.section.name + ' · ' : ''; r.row.querySelector('.tg-pass').textContent = `${sec}bar ${bi + 1} of ${W.length}`;
+  }
   function drawRows() {
+    if (cur.whole) { const box = $('tgRows'); box.replaceChildren(); rows = []; cur.W = songBars();
+      for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push({ row }); }
+      songRow(0, cur.W); if (cur.W.length > 1) songRow(1, cur.W); else rows.pop().row.remove(); lyricLines(); return; }
     const box = $('tgRows'), L = cur.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), tg = gameTargets(L); box.replaceChildren(); rows = [];
     // Bennie 2026-11-17: no tap badges; the only numbers are the count, 1 2 3 4 the first time and 5 6 7 8 the second (one 8-count, no gap).
     // On a touch screen you tap the pill's own spot: each target owns its stretch of the row, from its slot to the next target's
@@ -13570,7 +13611,7 @@ const TG = (() => {
       return { row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs, o, pass: p };
     }
   }
-  function resetRows() { rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  function resetRows() { if (cur && cur.whole) { drawRows(); return; } rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
@@ -13861,13 +13902,18 @@ const TG = (() => {
     if (lk) { state = 'wait'; at = await gbBar(lk, 3 * barDur + 0.4); state = 'idle'; if (!cur || !dlg.open || !ac) return; if (at == null) { idleUi('Start challenge'); msg('Lost the beat. Press Play again.'); return; } }
     resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
     const t0 = at != null ? at : ac.currentTime + 0.15, tPlay = t0 + barDur;
-    const tg = gameTargets(L), targets = [];
+    const tg = gameTargets(L), targets = [], W = cur.whole ? songBars() : null;
     // Bennie 2026-11-18: hold the long pills (2+ slots). Press scores as before; letting go any time from the pill's last slot on is a clean hold, earlier is a miss
     const holds = !voice && !cur.calib, rel = (x, at) => holds && x.hold ? at + x.hold * lay.unit * spq : 0;
-    for (let p = 0; p < 2; p++) tg.forEach((x, k) => { const at = tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p, k, pass: p, land: x.land, done: false, rel: rel(x, at) }); });
+    if (W) {   // whole song (Pocket Practice): every bar once, back to back, each on its own meter; rows roll on two at a time
+      let t = tPlay; W.forEach((b, bi) => { b.t = t; b.dur = b.L.lay.quarters * spq; t += b.dur;
+        b.tg.forEach((x, k) => { const at = b.t + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p: bi % 2, k, pass: bi % 2, bar: bi, land: x.land, done: false, rel: holds && x.hold ? at + x.hold * b.L.lay.unit * spq : 0 }); }); });
+      targets.sort((a, b) => a.t - b.t);
+    } else for (let p = 0; p < 2; p++) tg.forEach((x, k) => { const at = tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p, k, pass: p, land: x.land, done: false, rel: rel(x, at) }); });
     targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
     const wins = tg.map((x, k) => targets[tg.length + k].win);   // overtime passes use the 2nd pass's windows
-    for (let b = 0; b < (lk || MBB ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
+    if (W) { lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * spq, 600, 0.5, 0.06)); if (!lk && !MBB) W.forEach(b => b.L.lay.starts.forEach((s, q) => blip(b.t + s * b.L.lay.unit * spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06))); }
+    else for (let b = 0; b < (lk || MBB ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
     if (S.guide && !voice && !cur.calib) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
     if (MBB) mbPlay(ac, MBB, t0);   // the beat starts on a bar line together with the count-in
     const out = ac.outputLatency || ac.baseLatency || 0;
@@ -13876,6 +13922,7 @@ const TG = (() => {
       // overtime (Bennie 2026-11-17): the level's score locks at the end as before; the bar keeps looping and every clean hit after that adds
       // bonus points (perfect 2, good 1) until the first mistake: a miss, a way-off hit, or a tap with no dot / on the wrong spot
       n: targets.length + targets.filter(x => x.rel).length, hold: null, holds, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk && !MBB, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
+    if (W) { R.song = W; R.cur = -1; R.ot = false; R.otT = Infinity; R.end = W[W.length - 1].t + W[W.length - 1].dur + (voice ? 0.4 : 0.25); songRow(0); if (W.length > 1) songRow(1); }
     state = 'count';
     $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = voice ? 'Rap it' : 'Tap'; $('tgPadS').textContent = voice ? 'One syllable per dot' : 'Space · F · J';
     $('tgPlay').classList.add('tg-going'); $('tgTempo').disabled = true; dlg.classList.add('tg-focus'); dlg.querySelector('.tg-body').scrollTop = 0;   // focus: only the grid, the score and TAP
@@ -13892,11 +13939,19 @@ const TG = (() => {
       if (now >= R.tPlay - 0.02) { state = 'play'; say('Go', ''); }
       else { let q = -1; R.beats.forEach((b, i) => { if (now - R.t0 >= b) q = i; }); if (q >= 0 && $('tgVerdict').textContent !== String(q + 1)) say(String(q + 1), 'miss'); }
     }
-    if (state === 'play') {
+    if (state === 'play' && R.song) {
+      const W = R.song; let bi = W.findIndex(b => now < b.t + b.dur); if (bi < 0) bi = W.length - 1;
+      if (R.cur !== bi) { R.cur = bi; songRow(bi); if (bi + 1 < W.length) songRow(bi + 1); }
+      rows.forEach(r => { const on = r.bar === bi; r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
+        if (on) { const x = r.x0 + Math.min(1, Math.max(0, (now - W[bi].t) / W[bi].dur)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+    }
+    if (state === 'play' && !R.song) {
       const p = (now - R.tPlay) / R.barDur, pass = Math.max(0, Math.floor(p)), over = R.passes > 2 && pass >= 2, b = over ? pass % 2 : Math.min(1, pass);
       if (over && R.ot) rowOf(pass);
       rows.forEach((r, i) => { const on = i === b && (over ? R.ot : p < 2); r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
         if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - pass)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+    }
+    if (state === 'play') {
       if (R.hold && now >= R.hold.x.rel - GAME.tap.good / 1000) holdEnd(true);
       while (R.ot && now > R.tPlay + (R.passes - 1) * R.barDur - 0.1) addPass(R.passes++);   // no cap: the loop runs until the first mistake (Bennie 2026-11-18)
       for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) {
@@ -13923,7 +13978,7 @@ const TG = (() => {
     say(R.bonus ? `${why} · overtime +${R.bonus}` : why, 'miss'); hud();
   }
   function mark(x, grade, off) {
-    const d = (x.pass >= 2 ? rowOf(x.pass) : rows[x.p]).dots[x.k], col = grade === 'miss' ? 'var(--muted)' : `var(--tg-${grade})`;
+    const rr = x.bar != null ? rows.find(r => r.bar === x.bar) : x.pass >= 2 ? rowOf(x.pass) : rows[x.p], d = rr && rr.dots[x.k]; if (!d) return; const col = grade === 'miss' ? 'var(--muted)' : `var(--tg-${grade})`;
     if (grade === 'miss') { d.c.setAttribute('fill', 'var(--panel)'); d.c.setAttribute('stroke', col); d.c.setAttribute('stroke-width', 1.5); d.c.setAttribute('stroke-dasharray', '2 2'); d.c.setAttribute('opacity', 1); return; }
     d.c.setAttribute('fill', col); d.c.removeAttribute('stroke'); d.c.removeAttribute('stroke-dasharray'); d.c.setAttribute('opacity', 1);
     d.c.classList.remove('tg-pop'); void d.c.getBoundingClientRect(); d.c.classList.add('tg-pop');
@@ -13980,7 +14035,7 @@ const TG = (() => {
   }
   // holding a long pill: the press started it; letting go (same key / finger) early is a miss, holding to the pill's last slot is clean
   const otNow = () => (R.lock != null ? R.lock : gameAcc(R.score, R.strays, R.n, S.mode)) + R.bonus;   // the score so far: level + loop
-  function holdBar(x) { const d = (x.pass >= 2 ? rowOf(x.pass) : rows[x.p]).dots[x.k]; return d && d.hb; }
+  function holdBar(x) { const rr = x.bar != null ? rows.find(r => r.bar === x.bar) : x.pass >= 2 ? rowOf(x.pass) : rows[x.p], d = rr && rr.dots[x.k]; return d && d.hb; }
   function holdStart(x, src) {
     if (!x.rel || !R) return; if (R.hold) holdEnd(true); R.hold = { x, src: src || 'bot' };
     const b = holdBar(x); if (b) { b.removeAttribute('stroke-dasharray'); b.setAttribute('stroke', 'var(--tg-good)'); b.setAttribute('opacity', 0.35); }
@@ -14004,7 +14059,7 @@ const TG = (() => {
     news.replaceChildren(); alt.hidden = true; nx.hidden = true; main.dataset.d = 0; $('tgStop').hidden = true; $('tgMeter').hidden = true;
     const add = (t, up) => news.append(h('li', up ? 'tg-up' : '', t));
     $('tgAcc').textContent = String(acc + bonus); $('tgPerf').textContent = Q.perfect + ' of ' + n; $('tgStreak').textContent = Q.maxCombo; $('tgNew').textContent = '';
-    $('tgMiss').textContent = (n - Q.offs.length) + (Q.strays ? ` + ${Q.strays} extra` : ''); $('tgLive').textContent = String(acc + bonus);
+    $('tgMiss').textContent = (Q.targets.filter(x => x.pass < 2).length - Q.offs.length) + (Q.strays ? ` + ${Q.strays} extra` : ''); $('tgLive').textContent = String(acc + bonus);
     $('tgAvg').textContent = Q.offs.length ? f.avg === 0 ? 'on time' : Math.abs(f.avg) + ' ms ' + (f.avg > 0 ? 'late' : 'early') : 'no hits';
     last = { acc, bonus, score: acc + bonus, ot: Q.otEnd, avg: f.avg, perfect: Q.perfect, strays: Q.strays, maxCombo: Q.maxCombo, hits: Q.offs.length, n, mode: S.mode, tempo };
     if (cur.calib) {
@@ -14046,6 +14101,7 @@ const TG = (() => {
   }
   function nextItem() {
     if (!cur || cur.calib) return null;
+    if (cur.whole) return null;
     if (cur.fit != null) { for (let i = cur.fit + 1; i < lines.length; i++) if (lines[i].N) return { label: 'Next bar', go: () => playFit(i) }; return null; }
     if (cur.bi < 2) return { label: 'Next bar', go: () => playLadder(cur.lv, cur.bi + 1) };
     const nx = step(cur.lv, 1); if (nx < 0) return null;
@@ -14104,6 +14160,7 @@ const TG = (() => {
   $('tgTempo').addEventListener('input', () => { if (!playing() && !gbFixed()) setTempo(+$('tgTempo').value); });
   $('tgPrevLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, -1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, -1) : -1; if (lv >= 0) playLadder(lv, 0); });
   $('tgNextLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, 1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
+  $('tgWhole').addEventListener('click', () => { if (!cur || !cur.song || playing()) return; if (cur.whole) playFit(cur.fit, true); else { const k = lines.findIndex(L => L.N); playWhole(k < 0 ? cur.fit : k); } });
   $('tgJump').addEventListener('change', e => { if (cur && cur.song) { const k = +e.target.value; if (lines[k] && lines[k].N) playFit(k, true); return; } const lv = +e.target.value; if (lv >= 0 && lv < LADDER.length) playLadder(lv, 0); });
   $('tgPick').addEventListener('click', () => $('tgLvH').scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }));
   $('tgAll').addEventListener('click', home);
@@ -15885,12 +15942,10 @@ var PP = (() => {
   function textOf() {
     rowOf = []; const out = [];
     S.secs.forEach((s, k) => {
-      if (out.length) out.push('');
       out.push('[' + label(k) + ']'); rowOf[k] = [];
-      const b = s.bars.slice(); while (b.length && !b[b.length - 1].trim()) b.pop();
-      s.bars.forEach((t, i) => { rowOf[k][i] = i < b.length ? out.length + i : -1; });
-      b.forEach(t => out.push(t.replace(/\n/g, ' ')));
+      s.bars.forEach((t, i) => { rowOf[k][i] = out.length; out.push(String(t || '').replace(/\n/g, ' ')); });
     });
+    while (out.length && !out[out.length - 1].trim()) out.pop();
     return out.join('\n');
   }
   function fromSong(p) {
@@ -16056,7 +16111,7 @@ var PP = (() => {
   function finUi() {
     const w = written(), t = $('ppSongTitle').value.trim() || 'Your song';
     $('ppDoneLead').textContent = !S.secs.length ? 'Add some parts and bars first.' : `${t}: ${S.secs.length} part${S.secs.length > 1 ? 's' : ''}, ${w} of ${total()} bars written${beatBuf ? `, on ${BEAT.name || 'your beat'}` : ''}. It is saved in your songs, on every MetroBar screen.`;
-    $('ppPlayGame').disabled = !w;
+    $('ppPlayGame').disabled = $('ppPlayWhole').disabled = !w;
   }
   function sheet() {
     save(true); const pap = $('ppPaper'); pap.replaceChildren();
@@ -16069,16 +16124,18 @@ var PP = (() => {
     $('ppSheet').hidden = false; toast('Saved in your songs as a lyric sheet');
   }
   const plain = () => S.secs.filter(s => s.bars.some(b => b.trim())).map(s => '[' + label(S.secs.indexOf(s)) + ']\n' + s.bars.filter(b => b.trim()).join('\n')).join('\n\n');
-  function playGame() {
-    save(true); if (!S.id || !written()) return;
+  function playGame(whole) {
+    if (!dlg.open) { const p = LIB.song(); if (p) { fromSong(p); $('ppSongTitle').value = p.title || ''; } } else save(true);
+    if (!S.id || !written()) { toast('Write a bar first'); return; }
     beatStop(); LIB.setCur(S.id, 'pp'); fitFromLib(); if (!lines.length) runFit();
     const i = lines.findIndex(L => L.N); if (i < 0) { toast('No bars to play yet'); return; }
     const off = +$('beatOffset').value, bt = beatBuf && BEAT.bpm ? { id: (BEAT.name || 'beat') + ':' + beatBuf.length, buf: beatBuf, bpm: tempo(), down: isFinite(off) && off >= 0 ? off : BEAT.first, name: BEAT.name } : null;
-    dlg.close(); TG.playSong(i, bt || (tempo() ? { bpm: tempo() } : null));
+    if (dlg.open) dlg.close(); TG.playSong(i, bt || (tempo() ? { bpm: tempo() } : null), { whole: whole === true, title: (LIB.song(S.id) || {}).title || '' });
   }
 
   // ---- steps + open
   function go(n) {
+    if (n === 1) { if (!S.secs.length) { toast('Pick your parts first'); n = 0; } else { save(true); beatStop(); if (dlg.open) dlg.close(); PPZ.enter(S.id); return; } }
     step = n; if (n !== 2) beatStop();
     body.querySelectorAll('.pp-pane').forEach(p => { p.hidden = +p.dataset.pane !== n; });
     dlg.querySelectorAll('.pp-steps button').forEach(b => b.setAttribute('aria-selected', String(+b.dataset.step === n)));
@@ -16091,8 +16148,9 @@ var PP = (() => {
     const p = LIB.song(); load(p && p.pp ? p : null);
     if (!BEAT.name && beatBuf) BEAT.name = $('beatBtn').title || '';
     if (!BEAT.bpm && beatBuf && detected && detected.first != null) { BEAT.bpm = detected.bpm; BEAT.first = detected.first; }
-    step = S.secs.length ? (written() ? 1 : 1) : 0; if (!dlg.open) dlg.showModal(); render();
+    step = S.secs.length && written() ? 3 : 0; if (!dlg.open) dlg.showModal(); render();
   }
+  function openAt(n) { const p = LIB.song(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); load(p && (p.pp || PPZ.on) ? p : null); if (!dlg.open) dlg.showModal(); step = n; render(); }
   // palette + controls
   PARTS.forEach(([nm]) => { const b = h('button', '', nm); b.type = 'button'; b.onclick = () => addPart(nm); $('ppPal').append(b); });
   body.querySelectorAll('[data-quick]').forEach(b => b.addEventListener('click', () => {
@@ -16119,7 +16177,8 @@ var PP = (() => {
   $('ppBeatPlay').addEventListener('click', beatPlay);
   $('ppHalf').addEventListener('click', () => { if (tempo() / 2 >= 50) { BEAT.mult /= 2; beatUi(); } });
   $('ppDbl').addEventListener('click', () => { if (tempo() * 2 <= 200) { BEAT.mult *= 2; beatUi(); } });
-  $('ppPlayGame').addEventListener('click', playGame);
+  $('ppPlayGame').addEventListener('click', () => playGame(false));
+  $('ppPlayWhole').addEventListener('click', () => playGame(true));
   $('ppSheetBtn').addEventListener('click', sheet);
   $('ppCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(($('ppSongTitle').value.trim() ? $('ppSongTitle').value.trim() + '\n\n' : '') + plain()); toast('Lyrics copied'); } catch (e) { toast('Copy didn’t work here'); } });
   $('ppPrint').addEventListener('click', () => { document.body.classList.add('pp-printing'); window.print(); });
@@ -16129,7 +16188,88 @@ var PP = (() => {
   dlg.addEventListener('close', () => { beatStop(); if (saveT) save(true); });
   $('ppOpen').addEventListener('click', open);
   LIB.on((kind, src) => { if (src === 'pp' || !dlg.open || !S.id) return; if (kind === 'ext' || kind === 'text') { const p = LIB.song(S.id); if (p && p.text !== textOf() && !body.contains(document.activeElement)) { fromSong(p); render(); } } });
-  return { open, beat, get state() { return S; }, _text: textOf, go };
+  return { open, openAt, beat, play: playGame, get state() { return S; }, _text: textOf, go };
+})();
+</script>
+<script>
+// ---- Pocket Practice writes in the Highlight Zone (Bennie 2026-11-18: "everything from the Highlight Zone and everything from Write combined,
+// set up the way the Highlight Zone is"). The Bars step opens the song in the Highlight Zone editor with html.pp-mode: a Pocket Practice strip on
+// top (steps, highlight, Play whole song) and Write's tools (Techniques, Technique check, Clichés, Checks, Stash, Streak, Tools) moved into the
+// tools panel as extra tools; leaving puts them back in Write. Write's analysis runs on the same song (one library) whenever the page changes.
+var PPZ = (() => {
+  const W_TOOLS = [['Techniques', 'Techniques', 'All 18 techniques, with drills', '<path d="M4 6h16M4 12h10M4 18h7"/>'], ['Technique check', 'Technique check', 'Which techniques your bars use', '<path d="M5 12l4 4 10-10"/>'],
+    ['Cliché score', 'Cliché score', 'Lines everybody already wrote', '<path d="M12 4v9M12 17v.5"/><circle cx="12" cy="12" r="9"/>'], ['Checks', 'Checks', 'Section devices and your syllable aim', '<path d="M4 7h16M4 12h16M4 17h10"/>'],
+    ['Stash', 'Stash', 'Loose bars for later', '<path d="M4 7h16v12H4zM8 7V5h8v2"/>'], ['Streak', 'Streak', 'Days in a row you wrote', '<path d="M12 3c2 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 3-7 1 2 2 2 3 3 0-2 0-4 0-6z"/>'],
+    ['Tools', 'Write tools', 'Does it rhyme, split sheet, royalties, titles', '<path d="M14 6l4 4-8 8H6v-4z"/>']];
+  let on = false, strip = null, built = false, syncT = 0;
+  const html = document.documentElement;
+  function wrSync() {   // Write's analysis on the song the Highlight Zone shows (no write-back: Write only reads here)
+    clearTimeout(syncT); syncT = 0; const p = LIB.song(); if (!p) return;
+    const ta = $('wrText'); if (ta.value !== p.text) ta.value = p.text;
+    try { wrAnalyse(); wrTechCheck(true); } catch (e) { console.error(e); }
+  }
+  function tools() {
+    const side = $('rbSide'); if (!side) return;
+    if (!built) {
+      built = true; const hd = h('h5', 'rb-eb pp-wt', 'Write tools'); side.append(hd);
+      W_TOOLS.forEach(([tab, label, sub, ic]) => {
+        const box = h('div', 'rb-tool pp-wt'); box.dataset.tool = 'w:' + tab;
+        const b = h('button', 'rb-tbtn'); b.type = 'button';
+        b.innerHTML = `<span class="ti"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ic}</svg></span><span><b></b><small></small></span><span class="chev">›</span>`;
+        b.querySelector('b').textContent = label; b.querySelector('small').textContent = sub;
+        const body = h('div', 'rb-tbody'); body.hidden = true; box.append(b, body); side.append(box);
+        b.addEventListener('click', () => { rbTool(box.dataset.tool, !box.classList.contains('open')); if (box.classList.contains('open')) wrSync(); });
+      });
+    }
+    side.querySelectorAll('.pp-wt').forEach(e => { e.hidden = false; });
+    W_TOOLS.forEach(([tab]) => { const c = document.querySelector(`.wr-card[data-tab="${tab}"]`), box = side.querySelector(`.rb-tool[data-tool="w:${tab}"] .rb-tbody`); if (c && box && c.parentElement !== box) { c.dataset.ppHid = c.hidden ? '1' : ''; box.append(c); c.hidden = false; } });
+  }
+  function toolsBack() {
+    W_TOOLS.forEach(([tab]) => { const c = document.querySelector(`.wr-card[data-tab="${tab}"]`); if (c && c.parentElement && c.parentElement.classList.contains('rb-tbody')) { c.hidden = c.dataset.ppHid === '1'; $('wrPanels').append(c); } });
+    document.querySelectorAll('#rbSide .pp-wt').forEach(e => { e.hidden = true; });
+  }
+  function hlNow() { return RB.look.hi ? 'rhyme' : 'stress'; }
+  function hlSet(v) {
+    const fb = $('bsFlowB') || (BE && BE.flowBtn); if (fb && fb.getAttribute('aria-pressed') !== 'true') fb.click();
+    if ((v === 'rhyme') !== !!RB.look.hi && $('rbHi')) $('rbHi').click();
+    store.set('metrobar.ppHl', v); stripUi();
+  }
+  function stripUi() { if (!strip) return; strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === hlNow()))); }
+  function buildStrip() {
+    strip = h('div', 'pp-strip'); strip.setAttribute('role', 'region'); strip.setAttribute('aria-label', 'Pocket Practice');
+    strip.innerHTML = '<span class="pp-sbadge">Pocket Practice</span><nav class="pp-ssteps" aria-label="Pocket Practice steps"><button type="button" data-st="0"><b>1</b>Structure</button><button type="button" data-st="1" aria-current="step"><b>2</b>Bars</button><button type="button" data-st="2"><b>3</b>Beat</button><button type="button" data-st="3"><b>4</b>Finish</button></nav>'
+      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress">Stress</button><button type="button" data-hl="rhyme">Stress + rhyme</button></div><span class="pp-ssp"></span>'
+      + '<button type="button" class="pp-splay">Play whole song</button><button type="button" class="pp-sx" aria-label="Leave Pocket Practice" title="Leave Pocket Practice">×</button>';
+    strip.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => { const n = +b.dataset.st; if (n === 1) return; PP.openAt(n); }));
+    strip.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => hlSet(b.dataset.hl)));
+    strip.querySelector('.pp-splay').addEventListener('click', () => { rbFlush(); PP.play(true); });
+    strip.querySelector('.pp-sx').addEventListener('click', () => { exit(); mwGo('#practice'); });
+  }
+  function place() {
+    const head = document.querySelector('.be-head'); if (!head) { setTimeout(place, 120); return; }
+    if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || strip.nextElementSibling !== head) head.before(strip);
+    tools(); stripUi(); wrSync();
+    const want = store.get('metrobar.ppHl', 'stress'); if (want !== hlNow() || ($('bsFlowB') && $('bsFlowB').getAttribute('aria-pressed') !== 'true')) hlSet(want);
+  }
+  function enter(id) {
+    if (id) LIB.setCur(id, 'pp'); on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {}
+    if (location.hash === '#book') { try { bookOpen(); } catch (e) {} place(); } else mwGo('#book');
+  }
+  function exit() { if (!on) return; on = false; html.classList.remove('pp-mode'); try { sessionStorage.removeItem('metrobar.ppMode'); } catch (e) {} toolsBack(); if (strip) strip.remove(); }
+  addEventListener('hashchange', () => { if (!on) return; if (location.hash === '#book') setTimeout(place, 0); else exit(); });
+  // Write's tools follow the page as you type (the editor fires #rbText's input event)
+  document.addEventListener('input', e => { if (on && e.target && e.target.id === 'rbText') { clearTimeout(syncT); syncT = setTimeout(wrSync, 500); } }, true);
+  LIB.on((kind, src) => { if (on && (kind === 'cur' || kind === 'ext')) { clearTimeout(syncT); syncT = setTimeout(wrSync, 300); } });
+  // bars clicked in a Write tool jump to that bar in the editor; Stash takes the bar you are on
+  const goBar0 = wrGoBar; wrGoBar = function (r) { if (on) { rbGoLine(r.i); return; } return goBar0(r); };
+  $('stashAdd').addEventListener('click', e => {
+    if (!on) return; e.stopImmediatePropagation();
+    const L = BE.S.L || [], t = String(L[BE.S.cur] != null ? L[BE.S.cur] : '').trim();
+    if (!t || /^\[[^\]]*\]$/.test(t)) { $('stashN').textContent = 'Click a bar first'; return; }
+    if (!STASH.some(x => x.text === t)) STASH.unshift({ text: t, at: Date.now() }); STASH = STASH.slice(0, 300); stashSave(); toast('Stashed: ' + t.slice(0, 40));
+  }, true);
+  try { if (sessionStorage.getItem('metrobar.ppMode') === '1' && location.hash === '#book') { on = true; html.classList.add('pp-mode'); setTimeout(place, 300); } } catch (e) {}
+  return { enter, exit, get on() { return on; }, sync: wrSync };
 })();
 </script>
 </body>
