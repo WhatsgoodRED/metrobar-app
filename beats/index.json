@@ -1,0 +1,149 @@
+[
+ {
+  "file": "beats/boombap-110.mp3",
+  "style": "Boom bap",
+  "bpm": 110.07,
+  "down": 0.372,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-120.mp3",
+  "style": "Boom bap",
+  "bpm": 119.966,
+  "down": 0.356,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-130.mp3",
+  "style": "Boom bap",
+  "bpm": 129.991,
+  "down": 0.332,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-70.mp3",
+  "style": "Boom bap",
+  "bpm": 70.002,
+  "down": 0.052,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-75.mp3",
+  "style": "Boom bap",
+  "bpm": 75.942,
+  "down": 0.356,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-80.mp3",
+  "style": "Boom bap",
+  "bpm": 79.991,
+  "down": 2.994,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-85.mp3",
+  "style": "Boom bap",
+  "bpm": 85.076,
+  "down": 1.829,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-90.mp3",
+  "style": "Boom bap",
+  "bpm": 90.998,
+  "down": 2.03,
+  "dur": 60
+ },
+ {
+  "file": "beats/boombap-95.mp3",
+  "style": "Boom bap",
+  "bpm": 94.941,
+  "down": 0.05,
+  "dur": 60
+ },
+ {
+  "file": "beats/lofi-100.mp3",
+  "style": "Lo-fi",
+  "bpm": 99.99,
+  "down": 0.338,
+  "dur": 60
+ },
+ {
+  "file": "beats/lofi-110.mp3",
+  "style": "Lo-fi",
+  "bpm": 109.998,
+  "down": 0.14,
+  "dur": 60
+ },
+ {
+  "file": "beats/lofi-120.mp3",
+  "style": "Lo-fi",
+  "bpm": 119.952,
+  "down": 0.244,
+  "dur": 60
+ },
+ {
+  "file": "beats/lofi-130.mp3",
+  "style": "Lo-fi",
+  "bpm": 129.974,
+  "down": 1.255,
+  "dur": 60
+ },
+ {
+  "file": "beats/lofi-80.mp3",
+  "style": "Lo-fi",
+  "bpm": 81.09,
+  "down": 1.252,
+  "dur": 60
+ },
+ {
+  "file": "beats/lofi-85.mp3",
+  "style": "Lo-fi",
+  "bpm": 85.037,
+  "down": 2.029,
+  "dur": 60
+ },
+ {
+  "file": "beats/trap-110.mp3",
+  "style": "Trap",
+  "bpm": 109.924,
+  "down": 0.342,
+  "dur": 60
+ },
+ {
+  "file": "beats/trap-120.mp3",
+  "style": "Trap",
+  "bpm": 119.878,
+  "down": 1.888,
+  "dur": 60
+ },
+ {
+  "file": "beats/trap-130.mp3",
+  "style": "Trap",
+  "bpm": 129.937,
+  "down": 1.833,
+  "dur": 60
+ },
+ {
+  "file": "beats/trap-75.mp3",
+  "style": "Trap",
+  "bpm": 74.98,
+  "down": 1.926,
+  "dur": 60
+ },
+ {
+  "file": "beats/trap-80.mp3",
+  "style": "Trap",
+  "bpm": 80.283,
+  "down": 1.785,
+  "dur": 60
+ },
+ {
+  "file": "beats/trap-85.mp3",
+  "style": "Trap",
+  "bpm": 85.042,
+  "down": 1.298,
+  "dur": 60
+ }
+]

@@ -2209,6 +2209,21 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { dialog.tg[open], .tg-mark.tg-pop, .tg-verdict.tg-bump, .tg-pad.tg-hit { animation: none; } .tg-ring { display: none; } .tg-prog i, .tg-bar, .tg-b, .tg-sw > i, .tg-sw > i::after { transition: none; } }
 html.mo-off dialog.tg[open], html.mo-off .tg-mark.tg-pop, html.mo-off .tg-verdict.tg-bump, html.mo-off .tg-pad.tg-hit { animation: none; }
+/* Start challenge (Bennie 2026-11-18): hold Space / long-press fills a bar on the pad; a round runs in focus mode (only grid, score, TAP) */
+.tg-pad { position: relative; overflow: hidden; }
+.tg-pad.tg-arm::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: currentColor; transform-origin: left; animation: tg-arm .45s linear forwards; }
+@keyframes tg-arm { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+dialog.tg.tg-focus .tg-hd, dialog.tg.tg-focus .tg-lnav, dialog.tg.tg-focus .tg-crumb, dialog.tg.tg-focus .tg-lines, dialog.tg.tg-focus .tg-beat.tg-bmb, dialog.tg.tg-focus #tgMsg { display: none !important; }
+dialog.tg.tg-focus .tg-top { justify-content: center; }
+dialog.tg.tg-focus .tg-row .bd svg { max-width: none !important; }
+dialog.tg.tg-focus .tg-play { max-width: 1180px; gap: 14px; }
+dialog.tg.tg-focus .tg-pad.tg-run { min-height: clamp(150px, 26vh, 240px); }
+.tg-beat.tg-bmb { grid-template-columns: minmax(0, 1fr); }
+.tg-beat.tg-bmb .tg-bmedia { display: none; }
+.tg-nudge { align-items: center; } .tg-nudge span { font-size: .78rem; color: var(--muted); }
+.tg-nudge[hidden] { display: none; }
+@media (max-width: 700px) { dialog.tg.tg-focus .tg-body { padding-top: 14px; } .tg-beat.tg-bmb { grid-template-columns: minmax(0, 1fr); } .tg-beat.tg-bmb .tg-binfo > * { grid-column: 1 / -1; } }
+@media (prefers-reduced-motion: reduce) { .tg-pad.tg-arm::after { animation: none; transform: none; } }
 /* ---- Flow game = Bennie's Lovable mock "In The Pocket" (2026-11-18): its cards and layout in MetroBar colours, own code. No big headlines
    anywhere (Bennie: "big headlines are terrible"): the name "Flow Game" is never bigger than the MetroBar wordmark, titles stay small.
    Grid card = pocketSvg: accent dots = rap it, dark dots = rests, accent triangles = stress, brackets = syllables per stress, light strip. */
@@ -3651,10 +3666,11 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
           <div class="tg-beat" id="tgBeat" hidden>
             <div class="tg-bmedia"><div class="tg-bbox" id="tgYtBox"><div id="tgYt"></div></div><div class="tg-bbox" id="tgSc" hidden></div><span class="tg-bph" id="tgBph">The beat starts when you press Play</span></div>
             <div class="tg-binfo">
-              <label class="tg-sw"><input type="checkbox" id="tgBeatOn"><i aria-hidden="true"></i><b>Beat</b><span>A different beat on every level, from YouTube or SoundCloud</span></label>
+              <label class="tg-sw"><input type="checkbox" id="tgBeatOn"><i aria-hidden="true"></i><b>Beat</b><span>MetroBar's own beats, locked to the grid at the level's tempo. YouTube or SoundCloud as a backup</span></label>
               <p class="tg-bname" id="tgBeatName"></p>
               <p class="tg-bst" id="tgBeatSt" aria-live="polite"></p>
-              <div class="tg-bacts"><button class="tg-b" id="tgBeatNew" type="button">Another beat</button><button class="tg-b" id="tgBeatTap" type="button" hidden>Tap it in again</button><button class="tg-b" id="tgBeatOwn" type="button" hidden>Level's own beat</button></div>
+              <div class="tg-bacts"><button class="tg-b" id="tgBeatNew" type="button">Next beat</button><button class="tg-b" id="tgBeatYt" type="button">Find one on YouTube</button><button class="tg-b" id="tgBeatTap" type="button" hidden>Tap it in again</button><button class="tg-b" id="tgBeatOwn" type="button" hidden>MetroBar beat</button></div>
+              <div class="tg-bacts tg-nudge" id="tgNudge" hidden><span>Off the grid?</span><button class="tg-b" id="tgNudgeE" type="button" title="The beat's kick comes before the dots: move the grid 10 ms earlier">Beat early</button><button class="tg-b" id="tgNudgeL" type="button" title="The beat's kick comes after the dots: move the grid 10 ms later">Beat late</button></div>
               <form class="tg-blink" id="tgBeatLink" autocomplete="off"><input id="tgBeatUrl" type="text" inputmode="url" placeholder="Paste a YouTube or SoundCloud link" aria-label="YouTube or SoundCloud link for this level"><button class="tg-b" type="submit">Use</button></form>
             </div>
           </div>
@@ -13250,7 +13266,7 @@ const TG = (() => {
     $('tgSong').hidden = o.fit == null; $('tgSong').textContent = 'Song tempo ' + bpm();
     if (gbFixed()) tempo = Math.round(gbTempo());
     if (o.calib) gbPause(); else if (GBS.on && (GB.yt || GB.sc) && GB.key !== gbKey(gbPick())) gbLoad(gbPlaying());
-    drawRows(); idleUi(o.calib ? 'Start' : 'Play'); showRec(false); bpmShow(); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–';
+    drawRows(); idleUi(o.calib ? 'Start' : 'Start challenge'); showRec(false); bpmShow(); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–';
     $('tgPad').focus({ preventScroll: true }); dlg.querySelector('.tg-body').scrollTop = 0;
   }
   // level nav on the play screen: previous / next level in play order and a picker for any level of any chapter
@@ -13325,10 +13341,11 @@ const TG = (() => {
     const e = $('tgRec'); if (!cur || cur.calib) { e.textContent = ''; return; }
     const b = S.best[S.mode][cur.key]; e.textContent = b ? `${isNew ? 'New record' : 'Record'} by ${by()}: ${b} BPM` : 'No record yet. Three stars sets one.';
   }
+  function idleHint() { const touch = matchMedia('(pointer: coarse)').matches; $('tgHint').textContent = (touch ? 'Hold or tap Start challenge' : 'Hold Space or click Start challenge') + (S.mode === 'voice' ? ' · rap every dot into the mic, headphones on' : ' · tap every dot, hold the long pills'); }
   function idleUi(txt) {
     const v = S.mode === 'voice'; $('tgPad').classList.remove('tg-run', 'tg-hit'); $('tgPadT').textContent = txt; $('tgStop').hidden = true; $('tgMeter').hidden = true;
-    $('tgPadS').textContent = ''; $('tgHint').textContent = v ? 'Space to start · rap every dot into the mic, headphones on' : 'Space to start · tap every dot, hold the long pills';
-    $('tgPlay').classList.remove('tg-going'); $('tgTempo').disabled = false; gbUi();
+    $('tgPadS').textContent = ''; idleHint();
+    $('tgPlay').classList.remove('tg-going'); dlg.classList.remove('tg-focus'); $('tgTempo').disabled = false; gbUi();
   }
   function say(text, cls) { const v = $('tgVerdict'); v.textContent = text; v.className = 'tg-verdict' + (cls ? ' v-' + cls : ''); if (cls && !calmQ.matches) { v.classList.remove('tg-bump'); void v.offsetWidth; v.classList.add('tg-bump'); } }
   function msg(t) { const m = $('tgMsg'); m.textContent = t || ''; m.hidden = !t; }
@@ -13367,20 +13384,45 @@ const TG = (() => {
     tstraight: ['QyFpzWCgjO8', 80, 'Memphis'], themiola: ['jMeDA3UbTFU', 80, 'Hip hop'], tshift: ['RURVNMgxiQc', 80, 'Dark trap'], tlong: ['XYqbPJIJ9gI', 80, 'Piano'],
     tskip: ['qO4ZHvWjOWo', 80, 'Chill hip hop'], tafter: ['ElmhIXr08Vk', 80, 'Jazzy trap'] };
   const GBS = Object.assign({ on: true, pick: {}, lock: {} }, store.get('metrobar.gameBeat', {}) || {});
+  // MetroBar's own beats (Bennie 2026-11-18: "it needs to search for beats with the bpm of the challenge ... otherwise it sounds off").
+  // Instrumentals made for the game at exact tempos (tools/beats: made with ACE-Step, tempo + first bar line measured once into
+  // beats/index.json). The page decodes them itself, so they play on the game's own audio clock, stretched with the pitch kept to the
+  // tempo you play at, starting on a bar line: nothing to guess or tap in. 4/4 levels only (other meters play to clicks).
+  const MB_STYLES = ['Boom bap', 'Trap', 'Lo-fi'], MB = { list: null, buf: {}, st: {} };
+  async function mbList() { if (MB.list && MB.list.length) return MB.list; try { const r = await fetch('beats/index.json', { cache: 'no-cache' }); MB.list = r.ok ? await r.json() : []; } catch (e) { MB.list = []; } return MB.list; }
+  const mbFor = (style, bpm, list) => { const c = list.filter(x => x.style === style), pool = c.length ? c : list; return pool.reduce((a, x) => (!a || Math.abs(x.bpm - bpm) < Math.abs(a.bpm - bpm) ? x : a), null); };
+  async function mbReady(style, bpm) {
+    const x = mbFor(style, bpm, await mbList()); if (!x) return null;
+    let buf = MB.buf[x.file];
+    if (!buf) { const r = await fetch(x.file); if (!r.ok) return null; buf = MB.buf[x.file] = await new OfflineAudioContext(2, 1, 44100).decodeAudioData(await r.arrayBuffer()); }
+    const rate = bpm / x.bpm; let b = buf, down = x.down, bar = 240 / x.bpm, pr = rate;
+    if (Math.abs(rate - 1) > 0.015) {   // more than 1.5 % off: stretch it, pitch kept (cached per tempo)
+      const k = x.file + '@' + rate.toFixed(4);
+      if (!MB.st[k]) { const chs = []; for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
+        const out = await coreJob('timeStretch', chs, buf.sampleRate, rate), nb = new AudioBuffer({ length: out[0].length, numberOfChannels: out.length, sampleRate: buf.sampleRate });
+        out.forEach((y, c) => nb.copyToChannel(y, c)); MB.st[k] = nb; }
+      b = MB.st[k]; down /= rate; bar /= rate; pr = 1;
+    }
+    const n = Math.max(1, Math.floor((b.duration - down - 0.05) / bar));
+    return { x, buf: b, rate: pr, down, end: down + n * bar };
+  }
+  function mbPlay(ctx, B, at) { const src = ctx.createBufferSource(), g = ctx.createGain(); g.gain.value = 0.8; src.buffer = B.buf; src.playbackRate.value = B.rate; src.loop = true; src.loopStart = B.down; src.loopEnd = B.end; src.connect(g).connect(ctx.destination); src.start(at, B.down); return src; }
+  const mbFits = () => !!cur && !!cur.L && cur.L.lay.quarters === 4;
   const gbKeep = () => store.set('metrobar.gameBeat', GBS);
   const GB = { src: '', key: '', yt: null, ytSt: -1, sc: null, scUrl: '', scOn: false, dur: 0, smp: [], taps: [], want: false, err: 0, seen: [] };
   const gbLv = () => !cur || cur.calib ? null : cur.lv != null ? LADDER[cur.lv].id : 'fit';
   const gbUse = () => GBS.on && !!gbLv();
   function gbPick() {
     const id = gbLv(); if (!id) return null; if (GBS.pick[id]) return GBS.pick[id];
-    const d = GB_LIST[id] || GB_LIST.space; return { kind: 'yt', id: d[0], bpm: d[1], label: d[2] };
+    return { kind: 'mb', style: MB_STYLES[(cur && cur.lv != null ? cur.lv : 0) % MB_STYLES.length] };   // default: a MetroBar beat, the style changes level by level
   }
-  const gbKey = p => p ? (p.kind === 'sc' ? 'sc:' + p.url : 'yt:' + p.id) : '';
+  const gbKey = p => p ? (p.kind === 'mb' ? 'mb:' + p.style : p.kind === 'sc' ? 'sc:' + p.url : 'yt:' + p.id) : '';
   const gbLock = () => GBS.lock[gbKey(gbPick())] || null;
   const titleBpm = t => { const m = /(\d{2,3})\s*bpm/i.exec(t || '') || /bpm\s*[:\-]?\s*(\d{2,3})/i.exec(t || ''); const b = m ? +m[1] : 0; return b >= 50 && b <= 200 ? b : 0; };
   function gbTempo() {   // the tempo the game plays at: the tapped one, else the title's, halved or doubled to sit near the level's own
+    const p = gbPick(); if (!p || p.kind === 'mb') return 0;   // a MetroBar beat follows your tempo
     const lk = gbLock(); if (lk) return lk.bpm;
-    const p = gbPick(); let b = p && p.bpm || 0; if (!b) return 0;
+    let b = p.bpm || 0; if (!b) return 0;
     const lb = cur && cur.lv != null ? LADDER[cur.lv].bpm : 90; if (b > lb * 1.45) b /= 2; else if (b < lb / 1.45) b *= 2; return b;
   }
   const gbFixed = () => gbUse() && !!gbTempo();
@@ -13405,11 +13447,12 @@ const TG = (() => {
   });
   function gbErr(code) {
     GB.err++; const p = gbPick();
-    if (p && !p.own && GB.err <= 3) { msg('That beat can’t play here. Finding another one…'); gbAnother(); return; }
+    if (p && !p.own && GB.err <= 3) { msg('That beat can’t play here. Trying the next one…'); ytNext(); return; }
     msg(code === 101 || code === 150 ? 'The owner doesn’t allow this video outside YouTube. Try another link.' : 'That beat couldn’t play. Try another one or turn Beat off.');
   }
   async function gbLoad(play) {
     const p = gbPick(); if (!p) return false; const key = gbKey(p); GB.want = play;
+    if (p.kind === 'mb') { gbPause(); GB.src = 'mb'; GB.key = key; gbUi(); return true; }   // played by the round itself (start, listen)
     if (window.BKB && BKB.playing && BKB.playing()) BKB.pause();
     if (p.kind === 'sc') {
       try { await BKB.loadScript('https://w.soundcloud.com/player/api.js', () => !!(window.SC && SC.Widget)); } catch (e) { msg('Couldn’t reach SoundCloud. Check the connection, or turn Beat off.'); return false; }
@@ -13477,24 +13520,33 @@ const TG = (() => {
   function gbUi() {
     const row = $('tgBeat'), use = !!gbLv(); row.hidden = !use; if (!use) return;
     $('tgBeatOn').checked = GBS.on; row.classList.toggle('tg-boff', !GBS.on);
-    const p = gbPick(), lk = gbLock(), b = gbTempo(), id = gbLv();
-    $('tgBeatName').textContent = `${p.label}${b ? ' · ' + Math.round(b) + ' BPM' : ''} · ${p.kind === 'sc' ? 'SoundCloud' : 'YouTube'}`;
-    $('tgBeatSt').textContent = !GBS.on ? 'Off: you play to the clicks, at any tempo.' : state === 'lock' ? 'Tap along with the beat.'
-      : lk ? 'Tapped in. Every round starts on the beat’s next bar; the beat sets the tempo.' : 'Every round starts on the beat’s next bar. Off the grid? Tap it in.';
-    $('tgBeatTap').hidden = !GBS.on; $('tgBeatTap').textContent = lk ? 'Tap it in again' : 'Tap it in'; $('tgBeatOwn').hidden = !GBS.pick[id] || !GB_LIST[id];
+    const p = gbPick(), lk = gbLock(), b = gbTempo(), id = gbLv(), mb = p.kind === 'mb'; row.classList.toggle('tg-bmb', mb);
+    $('tgBeatName').textContent = mb ? `${p.style} · MetroBar beat · ${tempo} BPM` : `${p.label}${b ? ' · ' + Math.round(b) + ' BPM' : ''} · ${p.kind === 'sc' ? 'SoundCloud' : 'YouTube'}`;
+    $('tgBeatSt').textContent = !GBS.on ? 'Off: you play to the clicks, at any tempo.' : mb ? (mbFits() ? 'Made for MetroBar and locked to the grid at the tempo you play: nothing to tap in. Next beat changes the style.' : 'This level isn’t in 4/4, so it plays to the clicks.')
+      : state === 'lock' ? 'Tap along with the beat.' : lk ? 'Tapped in. Every round starts on the beat’s next bar; the beat sets the tempo. Still off? Nudge it.' : 'Every round starts on the beat’s next bar. Off the grid? Tap it in, or nudge it.';
+    $('tgBeatTap').hidden = !GBS.on || mb; $('tgBeatTap').textContent = lk ? 'Tap it in again' : 'Tap it in'; $('tgBeatOwn').hidden = !GBS.on || mb;
+    $('tgBeatNew').hidden = !GBS.on || !mb; $('tgBeatYt').hidden = !GBS.on; $('tgBeatYt').textContent = mb ? 'Find one on YouTube' : 'Next YouTube beat'; $('tgNudge').hidden = !GBS.on || mb;
     const fx = gbFixed(); if (!playing() && state !== 'lock') ['tgTempo', 'tgSlow', 'tgFast'].forEach(i => { $(i).disabled = fx; });
   }
-  async function gbAnother() {
-    const id = gbLv(); if (!id || !GBS.on) return; const p = gbPick(), lb = cur.lv != null ? LADDER[cur.lv].bpm : 90;
-    const style = p.own ? (GB_LIST[id] || GB_LIST.space)[2] : p.label;
-    const used = new Set(Object.values(GB_LIST).map(x => x[0]).concat(Object.values(GBS.pick).map(x => x.id).filter(Boolean), GB.seen));
-    $('tgBeatSt').textContent = 'Looking for another ' + style.toLowerCase() + ' beat…';
-    const list = BKB.ytFind ? await BKB.ytFind(`${lb} bpm ${style.toLowerCase()} type beat`) : null;
-    if (!list) { gbUi(); msg('Beat search isn’t reachable right now. Paste a YouTube or SoundCloud link instead.'); return; }
-    const fine = x => !used.has(x.id) && (!x.dur || (x.dur > 60 && x.dur < 900));
-    const r = list.find(x => fine(x) && titleBpm(x.title)) || list.find(fine);
-    if (!r) { gbUi(); msg('No new beat found. Paste a link instead.'); return; }
-    GB.seen.push(r.id); GBS.pick[id] = { kind: 'yt', id: r.id, bpm: titleBpm(r.title), label: style }; gbKeep(); msg(''); gbSwitch();
+  function mbNext() { const id = gbLv(); if (!id || playing()) return; const p = gbPick(), i = p.kind === 'mb' ? MB_STYLES.indexOf(p.style) : -1; GBS.pick[id] = { kind: 'mb', style: MB_STYLES[(i + 1) % MB_STYLES.length] }; gbKeep(); msg(''); gbSwitch(); }
+  // YouTube backup: only beats whose title says the tempo you play at (or half / double it); Next walks through what was found
+  async function ytNext() {
+    const id = gbLv(); if (!id || !GBS.on || playing()) return; const want = Math.round(tempo), style = (GB_LIST[id] || GB_LIST.space)[2], q = want + ':' + style;
+    if (GB.resQ !== q) {
+      $('tgBeatSt').textContent = `Searching YouTube for ${want} BPM beats…`;
+      const list = BKB.ytFind ? await BKB.ytFind(`${want} bpm ${style.toLowerCase()} type beat instrumental`) : null;
+      if (!list) { gbUi(); msg('Beat search isn’t reachable right now. Use a MetroBar beat, or paste a YouTube or SoundCloud link.'); return; }
+      GB.res = list.filter(x => { const b = titleBpm(x.title); return (b === want || b === want * 2 || b * 2 === want) && (!x.dur || (x.dur > 60 && x.dur < 900)); }); GB.resQ = q; GB.resI = -1;
+    }
+    if (!GB.res.length) { gbUi(); msg(`No YouTube beat titled ${want} BPM turned up. Use a MetroBar beat, or paste a link.`); return; }
+    GB.resI = (GB.resI + 1) % GB.res.length; const r = GB.res[GB.resI];
+    GBS.pick[id] = { kind: 'yt', id: r.id, bpm: titleBpm(r.title), label: style }; gbKeep(); msg(`YouTube beat ${GB.resI + 1} of ${GB.res.length} at ${want} BPM.`); gbSwitch();
+  }
+  // nudge a YouTube / SoundCloud beat: moves its grid 10 ms (kept per beat, used from the next round on)
+  function gbNudge(ms) {
+    const p = gbPick(); if (!p || p.kind === 'mb' || playing()) return; const k = gbKey(p), lk = GBS.lock[k] || { v0: 0, bpm: gbTempo(), guess: true }; if (!lk.bpm) return;
+    lk.v0 = Math.round((lk.v0 + ms / 1000) * 1000) / 1000; GBS.lock[k] = lk; gbKeep(); gbUi();
+    $('tgBeatSt').textContent = `Grid moved ${Math.abs(ms)} ms ${ms > 0 ? 'later' : 'earlier'} (${Math.round(lk.v0 * 1000)} ms in total). Play to check.`;
   }
   function gbSwitch() { const was = gbPlaying() || !!GB.yt || !!GB.sc; stopRound(); if (was && GBS.on) gbLoad(gbPlaying()); gbTempoSync(); }
   function lockBegin() {
@@ -13531,19 +13583,25 @@ const TG = (() => {
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     ac.resume();
     if (S.mode === 'voice' && !mic) { state = 'wait'; const ok = await micOn(); state = 'idle'; if (!ok || !cur) return; }
-    const beat = gbUse() && !cur.calib; let lk = null, bx = tempo, at = null;
-    if (beat) {
+    const beat = gbUse() && !cur.calib, mbk = beat && gbPick().kind === 'mb'; let lk = null, bx = tempo, at = null, MBB = null;
+    if (mbk) {
+      if (mbFits()) {
+        gbPause(); state = 'wait'; $('tgPadT').textContent = 'Beat'; $('tgPadS').textContent = 'Loading the beat…';
+        MBB = await mbReady(gbPick().style, tempo); state = 'idle'; if (!cur || !dlg.open || !ac) return;
+        if (!MBB) { idleUi('Start challenge'); msg('The MetroBar beats couldn’t load. Check the connection, or turn Beat off.'); return; }
+      }
+    } else if (beat) {
       state = 'wait'; $('tgPadT').textContent = 'Beat'; $('tgPadS').textContent = 'Starting the beat…';
       const ok = await gbLoad(true) && await gbReady(); state = 'idle';
       if (!cur || !dlg.open) return;
-      if (!ok) { idleUi('Play'); msg('The beat didn’t start. Press play on the video once, or turn Beat off.'); return; }
+      if (!ok) { idleUi('Start challenge'); msg('The beat didn’t start. Press play on the video once, or turn Beat off.'); return; }
       // Bennie 2026-11-17: Play never asks for tap-in taps. Tapped in = that grid; else the title's BPM from the video's start; else clicks over the beat
       lk = gbLock(); if (!lk && GB.wantLock) { GB.wantLock = false; $('tgRes').hidden = true; $('tgPad').hidden = false; lockBegin(); return; }
       if (!lk && gbTempo()) lk = { v0: 0, bpm: gbTempo(), guess: true };
       if (lk) { bx = lk.bpm; tempo = Math.round(bx); bpmShow(); }
     }
     const L = cur.L, lay = L.lay, spq = 60 / bx, barDur = lay.quarters * spq, voice = S.mode === 'voice', maxWin = voice ? 0.16 : 0.14;
-    if (lk) { state = 'wait'; at = await gbBar(lk, 3 * barDur + 0.4); state = 'idle'; if (!cur || !dlg.open || !ac) return; if (at == null) { idleUi('Play'); msg('Lost the beat. Press Play again.'); return; } }
+    if (lk) { state = 'wait'; at = await gbBar(lk, 3 * barDur + 0.4); state = 'idle'; if (!cur || !dlg.open || !ac) return; if (at == null) { idleUi('Start challenge'); msg('Lost the beat. Press Play again.'); return; } }
     resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
     const t0 = at != null ? at : ac.currentTime + 0.15, tPlay = t0 + barDur;
     const tg = gameTargets(L), targets = [];
@@ -13552,17 +13610,18 @@ const TG = (() => {
     for (let p = 0; p < 2; p++) tg.forEach((x, k) => { const at = tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p, k, pass: p, land: x.land, done: false, rel: rel(x, at) }); });
     targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
     const wins = tg.map((x, k) => targets[tg.length + k].win);   // overtime passes use the 2nd pass's windows
-    for (let b = 0; b < (lk ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
+    for (let b = 0; b < (lk || MBB ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
     if (S.guide && !voice && !cur.calib) targets.forEach(x => blip(x.t, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
+    if (MBB) mbPlay(ac, MBB, t0);   // the beat starts on a bar line together with the count-in
     const out = ac.outputLatency || ac.baseLatency || 0;
     R = { t0, tPlay, barDur, spq, slot: lay.unit * spq, targets, maxWin, end: tPlay + 2 * barDur + (voice ? 0.4 : 0.25), perf0: performance.now(), ctx0: ac.currentTime, out, lat: out + (voice ? 0 : S.lag.tap / 1000),
       grace: voice ? 0.12 : 0, beats: lay.starts.map(s => s * lay.unit * spq), combo: 0, maxCombo: 0, strays: 0, score: 0, offs: [], perfect: 0, judged: 0,
       // overtime (Bennie 2026-11-17): the level's score locks at the end as before; the bar keeps looping and every clean hit after that adds
       // bonus points (perfect 2, good 1) until the first mistake: a miss, a way-off hit, or a tap with no dot / on the wrong spot
-      n: targets.length + targets.filter(x => x.rel).length, hold: null, holds, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
+      n: targets.length + targets.filter(x => x.rel).length, hold: null, holds, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk && !MBB, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
     state = 'count';
     $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = voice ? 'Rap it' : 'Tap'; $('tgPadS').textContent = voice ? 'One syllable per dot' : 'Space · F · J';
-    $('tgPlay').classList.add('tg-going'); $('tgTempo').disabled = true;
+    $('tgPlay').classList.add('tg-going'); $('tgTempo').disabled = true; dlg.classList.add('tg-focus'); dlg.querySelector('.tg-body').scrollTop = 0;   // focus: only the grid, the score and TAP
     $('tgStop').hidden = false; $('tgMeter').hidden = !voice;
     say('Listen', ''); $('tgCombo').textContent = '0'; $('tgLive').textContent = '–';
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
@@ -13645,13 +13704,15 @@ const TG = (() => {
     if (!LS) return; cancelAnimationFrame(LS.raf); try { LS.a.close(); } catch (e) {} LS = null;
     rows.forEach(r => { r.head.setAttribute('opacity', 0); r.row.classList.remove('tg-now'); }); $('tgListen').setAttribute('aria-pressed', 'false');
   }
-  function listen() {
+  async function listen() {
     if (LS) { listenStop(); return; } if (!cur || playing() || state === 'wait' || state === 'lock') return;
-    const a = new (window.AudioContext || window.webkitAudioContext)(), L = cur.L, lay = L.lay, spq = 60 / tempo, barDur = lay.quarters * spq, t0 = a.currentTime + 0.12, tPlay = t0 + barDur;
-    for (let b = 0; b < 2; b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.45 : 0.24, 0.06, 'sine', a));
+    const a = new (window.AudioContext || window.webkitAudioContext)(); LS = { a, raf: 0 }; $('tgListen').setAttribute('aria-pressed', 'true');
+    let B = null; if (gbUse() && !cur.calib && gbPick().kind === 'mb' && mbFits()) { $('tgHint').textContent = 'Loading the beat…'; B = await mbReady(gbPick().style, tempo); idleHint(); if (!LS || LS.a !== a) return; }
+    const L = cur.L, lay = L.lay, spq = 60 / tempo, barDur = lay.quarters * spq, t0 = a.currentTime + 0.12, tPlay = t0 + barDur;
+    if (B) mbPlay(a, B, t0);
+    for (let b = 0; b < (B ? 1 : 2); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.45 : 0.24, 0.06, 'sine', a));
     gameTargets(L).forEach(x => blip(tPlay + x.q * spq + (x.ms || 0) / 1000, x.land ? 1600 : x.st ? 2000 : 2400, x.st || x.land ? 0.24 : 0.12, 0.04, 'triangle', a));
-    $('tgListen').setAttribute('aria-pressed', 'true'); const r = rows[0];
-    LS = { a, raf: 0 };
+    const r = rows[0];
     const tick = () => { if (!LS) return; const now = a.currentTime - (a.outputLatency || 0), p = (now - tPlay) / barDur;
       if (p > 1.05) { listenStop(); return; }
       const on = p >= 0; r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
@@ -13676,7 +13737,7 @@ const TG = (() => {
   function stopRound() {
     listenStop(); cancelAnimationFrame(raf); const was = playing() || state === 'lock'; GB.taps = []; GB.retry = 0;
     if (was && ac) { ac.close(); ac = null; if (mic) { mic.stream.getTracks().forEach(t => t.stop()); mic = null; } }   // drops every click still scheduled
-    R = null; state = 'idle'; if (was) { resetRows(); idleUi('Play'); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–'; }
+    R = null; state = 'idle'; if (was) { resetRows(); idleUi('Start challenge'); say('Ready', ''); $('tgCombo').textContent = '–'; $('tgLive').textContent = '–'; }
   }
   function finish() {
     const Q = R, n = Q.n, acc = gameAcc(Q.score, Q.strays, n, S.mode), bonus = Q.bonus, stars = gameStars(acc), f = gameFeel(Q.offs), news = $('tgNews'), main = $('tgMain'), alt = $('tgAlt'), nx = $('tgNext');
@@ -13734,6 +13795,10 @@ const TG = (() => {
     return { label: (newCh ? 'Next chapter: ' + GAME_CHAPTERS[POS[nx].c].name : 'Next level: ' + LADDER[nx].name), go: () => playLadder(nx, 0) };
     return null;
   }
+  // Bennie 2026-11-18: hold Space (or long-press the pad) to start, so a stray key can't; a click on Start challenge starts at once
+  let HG = null;
+  function holdGo(src) { if (HG || playing() || !cur || state === 'wait' || state === 'lock') return; const pad = $('tgPad'); pad.classList.add('tg-arm'); HG = { src, tm: setTimeout(() => { HG = null; pad.classList.remove('tg-arm'); primary(); }, 450) }; }
+  function holdStop(src, go) { if (!HG || HG.src !== src) return; clearTimeout(HG.tm); HG = null; $('tgPad').classList.remove('tg-arm'); if (go) primary(); else if (src === 'key') $('tgHint').textContent = 'Keep holding Space to start'; }
   function primary() { if (playing() || !cur) return; if (state === 'done') setTempo(tempo + (+$('tgMain').dataset.d || 0)); start(); }
 
   // ---- controls
@@ -13785,7 +13850,10 @@ const TG = (() => {
   $('tgPick').addEventListener('click', () => $('tgLvH').scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }));
   $('tgAll').addEventListener('click', home);
   $('tgBeatOn').addEventListener('change', () => { GBS.on = $('tgBeatOn').checked; gbKeep(); stopRound(); if (!GBS.on) gbPause(); else if (GB.yt || GB.sc) gbLoad(false); gbTempoSync(); });
-  $('tgBeatNew').addEventListener('click', () => { if (!playing()) gbAnother(); });
+  $('tgBeatNew').addEventListener('click', mbNext);
+  $('tgBeatYt').addEventListener('click', ytNext);
+  $('tgNudgeE').addEventListener('click', () => gbNudge(-10));
+  $('tgNudgeL').addEventListener('click', () => gbNudge(10));
   $('tgBeatOwn').addEventListener('click', () => { const id = gbLv(); if (!id || playing()) return; delete GBS.pick[id]; gbKeep(); gbSwitch(); });
   $('tgBeatTap').addEventListener('click', () => { if (playing()) return; delete GBS.lock[gbKey(gbPick())]; gbKeep(); gbTempoSync(); GB.wantLock = true; start(); });
   $('tgBeatLink').addEventListener('submit', e => {
@@ -13801,7 +13869,9 @@ const TG = (() => {
   $('tgMain').addEventListener('click', primary);
   $('tgAlt').addEventListener('click', () => { if (!playing()) start(); });
   $('tgNext').addEventListener('click', () => { const to = nextItem(); if (to) to.go(); });
-  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'lock') lockTap(e.timeStamp); else if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false, undefined, 'p' + e.pointerId); } else primary(); });
+  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'lock') lockTap(e.timeStamp); else if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false, undefined, 'p' + e.pointerId); } else holdGo('p' + e.pointerId); });
+  $('tgPad').addEventListener('pointerup', e => holdStop('p' + e.pointerId, true));   // a click starts at once, a long press starts on its own
+  $('tgPad').addEventListener('pointercancel', e => holdStop('p' + e.pointerId, false));
   $('tgPad').addEventListener('click', e => { if (e.detail === 0 && !playing()) primary(); });   // Enter on the pad, or a screen reader's press
   $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false, spotAt(e) || { p: -1, k: -1 }, 'p' + e.pointerId); } });
   ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, e => { if (R && R.hold) release(heard(e.timeStamp), 'p' + e.pointerId); }));
@@ -13811,9 +13881,9 @@ const TG = (() => {
     const k = e.key.toLowerCase(), on = playing();
     if (state === 'lock' && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); lockTap(e.timeStamp); return; }
     if (on && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); if (S.mode === 'tap') hit(heard(e.timeStamp), false, undefined, 'k' + k); }
-    else if (!on && k === ' ' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); primary(); }
+    else if (!on && k === ' ' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); holdGo('key'); }
   });
-  document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
+  document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ') holdStop('key', false); if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
   dlg.addEventListener('cancel', e => { if (playing() || state === 'lock') { e.preventDefault(); stopRound(); } else if (!$('tgPlay').hidden) { e.preventDefault(); home(); } });
   dlg.addEventListener('close', () => { stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
