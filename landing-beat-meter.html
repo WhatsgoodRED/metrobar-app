@@ -3592,8 +3592,8 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
           <ol class="tg-how">
             <li><b>Count the grid</b>Every beat splits in four: 1 e + a. The triplet levels split it in three: 1 trip let.</li>
             <li><b>Dots = rap it</b>Each dot and pill on the top lane is one syllable to tap. Empty slots are rests.</li>
-            <li><b>Big dots = stress</b>Hit the stressed syllables harder. Stars at 50, 75 and 90%.</li>
-            <li><b>Red box = land</b>The rhyme lands in the red box.</li>
+            <li><b>Big dots = stress</b>Hit the stressed syllables harder. Score 0-100, stars at 50, 75 and 90.</li>
+            <li><b>Red box = land</b>The rhyme lands in the red box. Then the bar loops: every clean tap +10, in the pocket +15, until your first mistake.</li>
           </ol>
         </section>
         <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
@@ -3615,7 +3615,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
         </nav>
         <div class="tg-top">
           <div class="tg-crumb"><span class="tg-kick" id="tgSub"></span><b id="tgName"></b></div>
-          <dl class="tg-sc"><div><dt>Combo</dt><dd id="tgCombo">–</dd></div><div><dt>Accuracy</dt><dd id="tgLive">–</dd></div><div><dt>Best</dt><dd id="tgBest">–</dd></div></dl>
+          <dl class="tg-sc"><div><dt>Combo</dt><dd id="tgCombo">–</dd></div><div><dt>Score</dt><dd id="tgLive">–</dd></div><div><dt>Best</dt><dd id="tgBest">–</dd></div></dl>
         </div>
         <div class="tg-card tg-grid">
           <div class="tg-rows" id="tgRows"></div>
@@ -6390,12 +6390,12 @@ function gameTargets(L) {
   return out;
 }
 // Tap: within 40 ms perfect, 85 good. Voice is judged wider: an onset detector hears where a syllable starts getting loud, not where you feel it.
-const GAME = { tap: { perfect: 40, good: 85, stray: 0.25 }, voice: { perfect: 55, good: 110, stray: 0 }, pts: { perfect: 1, good: 0.6, ok: 0.25 }, stars: [50, 75, 90], clear: 6 };
+const GAME = { tap: { perfect: 40, good: 85, stray: 0.25 }, voice: { perfect: 55, good: 110, stray: 0 }, pts: { perfect: 1, good: 0.6, ok: 0.25 }, ot: { perfect: 15, good: 10 }, stars: [50, 75, 90], clear: 6 };
 function gameGrade(absMs, mode) { const g = GAME[mode] || GAME.tap; return absMs <= g.perfect ? 'perfect' : absMs <= g.good ? 'good' : 'ok'; }
 function gameAcc(pts, strays, n, mode) { return n ? Math.max(0, Math.round(100 * (pts - (GAME[mode] || GAME.tap).stray * strays) / n)) : 0; }
 function gameStars(acc) { return GAME.stars.filter(v => acc >= v).length; }
 // overtime (after the level's score has locked): each clean hit adds points, perfect 2, good 1; a way-off hit ends overtime, so it adds none
-function gameBonus(offs, mode) { return (offs || []).reduce((a, o) => { const g = gameGrade(Math.abs(o), mode); return a + (g === 'perfect' ? 2 : g === 'good' ? 1 : 0); }, 0); }
+function gameBonus(offs, mode) { return (offs || []).reduce((a, o) => { const g = gameGrade(Math.abs(o), mode); return a + (g === 'perfect' ? GAME.ot.perfect : g === 'good' ? GAME.ot.good : 0); }, 0); }   // Bennie 2026-11-18: every clean loop tap 10, in the pocket 15
 function gameFeel(offs) {
   if (offs.length < 4) return { avg: 0, feel: '' };
   const avg = Math.round(offs.reduce((a, b) => a + b, 0) / offs.length);
@@ -13156,14 +13156,14 @@ const TG = (() => {
     let me = null, rows = [], admin = false;
     try { me = await api.session(); rows = await api.gameBoard(S.mode, w.bar, w.date); admin = me ? await api.isAdmin() : false; } catch (e) { if (tok === zTok) note.textContent = 'The board could not be loaded. ' + zHint(e); return; }
     if (tok !== zTok) return;
-    note.textContent = (rows.length ? `${rows.length} ${rows.length === 1 ? 'rhymer' : 'rhymers'} on the ${by()} board this week. Points = (accuracy + overtime) × tempo: keep going clean after the level ends to climb.` : `Nobody is on the ${by()} board yet this week. The first clean run takes S.`)
+    note.textContent = (rows.length ? `${rows.length} ${rows.length === 1 ? 'rhymer' : 'rhymers'} on the ${by()} board this week. Points = (level score + loop) × tempo: keep tapping clean after the level, +10 a tap, +15 in the pocket.` : `Nobody is on the ${by()} board yet this week. The first clean run takes S.`)
       + (me ? '' : ' Sign in to the Zone to post your own runs.') + (api.demo ? ' Demo: made-up scores that live only in this tab.' : '');
     if (!me) { const a = h('div', 'tg-acts'); a.append(goZone()); box.append(a); }
     if (!rows.length) return;
     const ol = h('ol', 'tg-board'), mine = me ? rows.findIndex(r => r.user_id === me.id) : -1, show = rows.slice(0, 10); if (mine >= 10) show.push(rows[mine]);
     show.forEach(r => {
       const li = h('li', me && r.user_id === me.id ? 'tg-me' : ''), tier = h('span', 'tg-tier', r.tier), pts = h('span', 'tg-pts'), ra = h('span', 'tg-ra'); tier.dataset.t = r.tier; tier.title = 'Tier ' + r.tier;
-      pts.append(h('b', '', String(r.points)), ` · ${r.bpm} BPM · ${r.acc}%${r.bonus ? ' +' + r.bonus : ''}`);
+      pts.append(h('b', '', String(r.points)), ` · ${r.bpm} BPM · ${r.acc}${r.bonus ? ' + ' + r.bonus : ''}`);
       const mk = (label, fn) => { const x = h('button', 'tg-b', label); x.type = 'button'; x.addEventListener('click', fn); ra.append(x); };
       if (!me || r.user_id !== me.id) mk('Beat it', () => { playLadder(w.lv, w.i); setTempo(r.bpm); });
       if (me && r.user_id !== me.id && !admin) mk('Report', async () => { const why = prompt('What is wrong with this score?', ''); if (why == null) return; try { await api.gameReport(r.id, why.slice(0, 300)); toast('Reported. An admin will look at it.'); } catch (e) { toast(zHint(e)); } });
@@ -13328,7 +13328,7 @@ const TG = (() => {
   function msg(t) { const m = $('tgMsg'); m.textContent = t || ''; m.hidden = !t; }
   function hud() {
     $('tgCombo').textContent = String(R.combo);
-    $('tgLive').textContent = R.lock != null ? `${R.lock}%${R.bonus ? ' +' + R.bonus : ''}` : (R.judged ? gameAcc(R.score, R.strays, R.judged, S.mode) : 100) + '%';
+    $('tgLive').textContent = R.lock != null ? String(R.lock + R.bonus) : String(R.judged ? gameAcc(R.score, R.strays, R.judged, S.mode) : 100);
   }
 
   // ---- sound and the microphone
@@ -13578,7 +13578,7 @@ const TG = (() => {
         x.done = true; if (x.pass >= 2) { if (R.ot) { mark(x, 'miss', 0); otOver('Missed'); } continue; }
         R.judged++; R.combo = 0; mark(x, 'miss', 0); say('Missed', 'miss'); hud();
       }
-      if (now >= R.end && !R.lock) { R.lock = gameAcc(R.score, R.strays, R.n, S.mode); if (R.ot) { say(`${R.lock}% locked · keep going`, 'good'); hud(); } }
+      if (now >= R.end && !R.lock) { R.lock = gameAcc(R.score, R.strays, R.n, S.mode); if (R.ot) { say(`${R.lock} · keep going`, 'good'); hud(); } }
       if (R.lock != null && !R.ot) return finish();
     }
     raf = requestAnimationFrame(frame);
@@ -13616,10 +13616,10 @@ const TG = (() => {
       if (spot && (spot.p !== best.p || spot.k !== best.k)) { blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); otOver('Wrong spot'); return; }
       const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode); best.done = true; mark(best, grade, off);
       if (grade === 'ok') { otOver(Math.round(a) + ' ms off'); return; }
-      R.bonus += grade === 'perfect' ? 2 : 1; R.bOffs.push(Math.round(off)); if (grade === 'perfect') R.bPerf++;
+      R.bonus += GAME.ot[grade]; R.bOffs.push(Math.round(off)); if (grade === 'perfect') R.bPerf++;
       R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo);
       if (!voice) blip(ac.currentTime, grade === 'perfect' ? (best.land ? 1760 : 1320) : 990, grade === 'perfect' ? 0.3 : 0.22, 0.07, 'triangle');
-      say(`+${grade === 'perfect' ? 2 : 1} · overtime +${R.bonus}`, grade); hud(); return;
+      say(`+${GAME.ot[grade]} · ${R.lock + R.bonus}`, grade); hud(); return;
     }
     if (best && spot && (spot.p !== best.p || spot.k !== best.k)) { R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('Wrong spot', 'miss'); hud(); return; }
     if (!best) { if (voice) return; R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('No dot there', 'miss'); hud(); return; }
@@ -13661,8 +13661,8 @@ const TG = (() => {
     if (Q.passes > 2 && ac) { ac.close(); ac = null; if (mic) { mic.stream.getTracks().forEach(t => t.stop()); mic = null; } }   // drops the overtime clicks still scheduled
     news.replaceChildren(); alt.hidden = true; nx.hidden = true; main.dataset.d = 0; $('tgStop').hidden = true; $('tgMeter').hidden = true;
     const add = (t, up) => news.append(h('li', up ? 'tg-up' : '', t));
-    $('tgAcc').textContent = acc + '%' + (bonus ? ' +' + bonus : ''); $('tgPerf').textContent = Q.perfect + ' of ' + n; $('tgStreak').textContent = Q.maxCombo; $('tgNew').textContent = '';
-    $('tgMiss').textContent = (n - Q.offs.length) + (Q.strays ? ` + ${Q.strays} extra` : ''); $('tgLive').textContent = acc + '%';
+    $('tgAcc').textContent = String(acc + bonus); $('tgPerf').textContent = Q.perfect + ' of ' + n; $('tgStreak').textContent = Q.maxCombo; $('tgNew').textContent = '';
+    $('tgMiss').textContent = (n - Q.offs.length) + (Q.strays ? ` + ${Q.strays} extra` : ''); $('tgLive').textContent = String(acc + bonus);
     $('tgAvg').textContent = Q.offs.length ? f.avg === 0 ? 'on time' : Math.abs(f.avg) + ' ms ' + (f.avg > 0 ? 'late' : 'early') : 'no hits';
     last = { acc, bonus, score: acc + bonus, ot: Q.otEnd, avg: f.avg, perfect: Q.perfect, strays: Q.strays, maxCombo: Q.maxCombo, hits: Q.offs.length, n, mode: S.mode, tempo };
     if (cur.calib) {
@@ -13677,8 +13677,8 @@ const TG = (() => {
       const rec = stars === 3 && tempo > wasRec; if (rec) S.best[S.mode][cur.key] = tempo;
       if (stars > was || rec) keep();
       const top = S.top[S.mode][cur.key] || 0, topNew = acc + bonus > top; if (topNew) { S.top[S.mode][cur.key] = acc + bonus; keep(); }
-      if (Q.passes > 2) add(bonus ? `Overtime +${bonus}: ${Q.bOffs.length} clean ${Q.bOffs.length === 1 ? 'hit' : 'hits'} after the level, ended by ${otWhy(Q.otEnd)}. Board score ${acc + bonus}${topNew && top ? ' (new best)' : ''}.`
-        : `No overtime points: ${otWhy(Q.otEnd)} right after the level. Keep going clean after the end to add to ${acc}.`, bonus > 0 && topNew);
+      if (Q.passes > 2) add(bonus ? `${acc} from the level + ${bonus} from the loop: ${Q.bOffs.length} clean ${Q.bOffs.length === 1 ? 'tap' : 'taps'} (${Q.bPerf} in the pocket), ended by ${otWhy(Q.otEnd)}.${topNew && top ? ' New best.' : ''}`
+        : `No loop points: ${otWhy(Q.otEnd)} right after the level. Keep tapping clean after the level: every tap +10, in the pocket +15.`, bonus > 0 && topNew);
       if (stars > was) $('tgNew').textContent = 'New best'; else if (rec) $('tgNew').textContent = 'New record'; bestShow();
       $('tgResT').textContent = !Q.offs.length ? 'Nothing landed' : stars === 3 ? f.feel === 'Locked in' || !f.feel ? 'Locked in' : f.feel + ', and clean' : f.feel || 'Keep going';
       starEl(stars, $('tgResStars')).hidden = false;
