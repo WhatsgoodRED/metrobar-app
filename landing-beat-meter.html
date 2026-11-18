@@ -15962,6 +15962,7 @@ var HZG = (function () {
     gate.querySelector('.hz-go').focus();
   }
   async function check() {
+    return shut();   // Bennie 2026-11-18: "make writing free": Bar Book replaced Write, so writing has no gate and no 8-bar sample (AI credits stay paid)
     if (!(window.ZONE_CONFIG && ZONE_CONFIG.zoneLock) || typeof znCfg !== 'function' || !znCfg() || !ZONE_CONFIG.ai || typeof rbSyncApi !== 'function') return shut();   // zoneLock in zone-config.js: on once people can really pay (Stripe live)
     let api, uid;
     try { api = await rbSyncApi(); if (!api) return shut(); uid = await api.userId(); } catch (e) { return shut(); }
@@ -15970,7 +15971,7 @@ var HZG = (function () {
     if (!w) return shut();                     // signed in but no answer (offline / server): stay open
     planPaid(w) ? shut() : sample('pay');
   }
-  document.addEventListener('aiwallet', () => { const w = AIW.w; if (!w || !window.BBAPP) return; planPaid(w) ? shut() : sample('pay'); });   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
+  document.addEventListener('aiwallet', () => { if (window.BBAPP) shut(); });   // writing is free (2026-11-18)   // signed in / paid / plan ended: follow the wallet (no fetch here: aiWallet fires this event)
   const go = () => setTimeout(() => { if (window.BBAPP) check(); }, 300);
   if (window.BBAPP) document.readyState === 'loading' ? addEventListener('DOMContentLoaded', go) : go();
   return { go, shut };
