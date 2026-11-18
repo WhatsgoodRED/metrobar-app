@@ -3592,7 +3592,7 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
           <ol class="tg-how">
             <li><b>Count the grid</b>Every beat splits in four: 1 e + a. The triplet levels split it in three: 1 trip let.</li>
             <li><b>Dots = rap it</b>Each dot and pill on the top lane is one syllable to tap. Empty slots are rests.</li>
-            <li><b>Big dots = stress</b>Hit the stressed syllables harder. Score 0-100, stars at 50, 75 and 90.</li>
+            <li><b>Big dots = stress</b>Hit the stressed syllables harder. Hold the long pills down until their last slot. Score 0-100, stars at 50, 75 and 90.</li>
             <li><b>Red box = land</b>The rhyme lands in the red box. Then the bar loops: every clean tap +10, in the pocket +15, until your first mistake.</li>
           </ol>
         </section>
@@ -6380,7 +6380,8 @@ function gameTargets(L) {
     if (F.swing && lay.sub === 4 && i % 2) q += (F.swing - 0.5) * 2 * lay.unit;
     if (F.swing8 && lay.sub === 4 && i === 2) q += (F.swing8 - 0.5) * 4 * lay.unit;
     if (F.drift) q += (F.drift[k] || 0) * 0.25;
-    out.push({ slot: s, q, ms: F.late || 0, st: !!L.syl[v].st, land: s === L.landSlot }); k++;
+    let nx = s + 1; while (nx < L.slots.length && L.slots[nx] < 0) nx++; const gap = nx - s - 1;
+    out.push({ slot: s, q, ms: F.late || 0, st: !!L.syl[v].st, land: s === L.landSlot, hold: L.syl[v].st && gap >= 2 ? Math.min(gap, 3) : 0 }); k++;   // hold = a long pill: slots after this one to keep holding
   });
   // pickups as targets (level flag pickups): they sound in the last beat of the count-in, and before pass 2 at the end of pass 1
   if (L.pickTargets && L.pickupSyl && L.pickupSyl.length) {
@@ -13295,14 +13296,15 @@ const TG = (() => {
       const dots = tg.map(x => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
-        g.append(c, tick); svg.append(g); return { c, tick, g, cx, cy, r, cw };
+        const hb = x.hold ? sv('line', { x1: cx, x2: cx + x.hold * cw, y1: cy, y2: cy, 'stroke-width': 7, 'stroke-linecap': 'round', opacity: 0, class: 'tg-hb' }) : null;
+        if (hb) g.append(hb); g.append(c, tick); svg.append(g); return { c, tick, g, cx, cy, r, cw, hb };
       });
       const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
       row.replaceChildren(h('span', 'tg-pass', p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`), wrap); row.classList.toggle('tg-ot', p > 1);
       return { row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs, o, pass: p };
     }
   }
-  function resetRows() { rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  function resetRows() { rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
@@ -13322,7 +13324,7 @@ const TG = (() => {
   }
   function idleUi(txt) {
     const v = S.mode === 'voice'; $('tgPad').classList.remove('tg-run', 'tg-hit'); $('tgPadT').textContent = txt; $('tgStop').hidden = true; $('tgMeter').hidden = true;
-    $('tgPadS').textContent = ''; $('tgHint').textContent = v ? 'Space to start · rap every dot into the mic, headphones on' : 'Space to start · tap every dot';
+    $('tgPadS').textContent = ''; $('tgHint').textContent = v ? 'Space to start · rap every dot into the mic, headphones on' : 'Space to start · tap every dot, hold the long pills';
     $('tgPlay').classList.remove('tg-going'); $('tgTempo').disabled = false; gbUi();
   }
   function say(text, cls) { const v = $('tgVerdict'); v.textContent = text; v.className = 'tg-verdict' + (cls ? ' v-' + cls : ''); if (cls && !calmQ.matches) { v.classList.remove('tg-bump'); void v.offsetWidth; v.classList.add('tg-bump'); } }
@@ -13542,7 +13544,9 @@ const TG = (() => {
     resetRows(); $('tgRes').hidden = true; $('tgPad').hidden = false; msg('');
     const t0 = at != null ? at : ac.currentTime + 0.15, tPlay = t0 + barDur;
     const tg = gameTargets(L), targets = [];
-    for (let p = 0; p < 2; p++) tg.forEach((x, k) => targets.push({ t: tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000, p, k, pass: p, land: x.land, done: false }));
+    // Bennie 2026-11-18: hold the long pills (2+ slots). Press scores as before; letting go any time from the pill's last slot on is a clean hold, earlier is a miss
+    const holds = !voice && !cur.calib, rel = (x, at) => holds && x.hold ? at + x.hold * lay.unit * spq : 0;
+    for (let p = 0; p < 2; p++) tg.forEach((x, k) => { const at = tPlay + p * barDur + x.q * spq + (x.ms || 0) / 1000; targets.push({ t: at, p, k, pass: p, land: x.land, done: false, rel: rel(x, at) }); });
     targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(maxWin, gap * 0.5); });
     const wins = tg.map((x, k) => targets[tg.length + k].win);   // overtime passes use the 2nd pass's windows
     for (let b = 0; b < (lk ? 1 : 3); b++) lay.starts.forEach((s, q) => blip(t0 + b * barDur + s * lay.unit * spq, b === 0 ? 600 : q === 0 ? 1000 : 800, b === 0 || q === 0 ? 0.5 : 0.28, 0.06));
@@ -13552,7 +13556,7 @@ const TG = (() => {
       grace: voice ? 0.12 : 0, beats: lay.starts.map(s => s * lay.unit * spq), combo: 0, maxCombo: 0, strays: 0, score: 0, offs: [], perfect: 0, judged: 0,
       // overtime (Bennie 2026-11-17): the level's score locks at the end as before; the bar keeps looping and every clean hit after that adds
       // bonus points (perfect 2, good 1) until the first mistake: a miss, a way-off hit, or a tap with no dot / on the wrong spot
-      n: targets.length, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
+      n: targets.length + targets.filter(x => x.rel).length, hold: null, holds, otT: tPlay + 2 * barDur, passes: 2, tg, wins, clicks: !lk, guide: S.guide && !voice && !cur.calib, ot: !cur.calib, lock: null, bonus: 0, bOffs: [], bPerf: 0, otEnd: '' };
     state = 'count';
     $('tgPad').classList.add('tg-run'); $('tgPadT').textContent = voice ? 'Rap it' : 'Tap'; $('tgPadS').textContent = voice ? 'One syllable per dot' : 'Space · F · J';
     $('tgPlay').classList.add('tg-going'); $('tgTempo').disabled = true;
@@ -13574,6 +13578,7 @@ const TG = (() => {
       if (over && R.ot) rowOf(pass);
       rows.forEach((r, i) => { const on = i === b && (over ? R.ot : p < 2); r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
         if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - pass)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+      if (R.hold && now >= R.hold.x.rel - GAME.tap.good / 1000) holdEnd(true);
       while (R.ot && R.passes < 66 && now > R.tPlay + (R.passes - 1) * R.barDur - 0.1) addPass(R.passes++);
       for (const x of R.targets) if (!x.done && now > x.t + x.win + R.grace) {
         x.done = true; if (x.pass >= 2) { if (R.ot) { mark(x, 'miss', 0); otOver('Missed'); } continue; }
@@ -13587,12 +13592,12 @@ const TG = (() => {
   // overtime: one more pass of the bar (targets, clicks without a beat, guide ticks) and the row it is drawn in
   function addPass(p) {
     const L = cur.L, lay = L.lay, t0 = R.tPlay + p * R.barDur;
-    R.tg.forEach((x, k) => R.targets.push({ t: t0 + x.q * R.spq + (x.ms || 0) / 1000, p: p % 2, k, pass: p, land: x.land, done: false, win: R.wins[k] }));
+    R.tg.forEach((x, k) => { const at = t0 + x.q * R.spq + (x.ms || 0) / 1000; R.targets.push({ t: at, p: p % 2, k, pass: p, land: x.land, done: false, win: R.wins[k], rel: R.holds && x.hold ? at + x.hold * lay.unit * R.spq : 0 }); });
     if (R.clicks) lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * R.spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06));
     if (R.guide) R.tg.forEach(x => blip(t0 + x.q * R.spq + (x.ms || 0) / 1000, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
   }
   function rowOf(pass) { const i = pass % 2; if (rows[i].pass !== pass) rows[i] = rowDraw(rows[i].row, pass, rows[i].o); return rows[i]; }
-  const otWhy = w => !w || w === 'Stopped' ? 'Stop' : w === 'Missed' ? 'a missed dot' : w === 'No dot there' ? 'a tap with no dot' : w === 'Wrong spot' ? 'a tap on the wrong spot' : 'a hit ' + w;
+  const otWhy = w => !w || w === 'Stopped' ? 'Stop' : w === 'Missed' ? 'a missed dot' : w === 'No dot there' ? 'a tap with no dot' : w === 'Wrong spot' ? 'a tap on the wrong spot' : w === 'Let go early' ? 'letting go of a long pill too early' : 'a hit ' + w;
   function otOver(why) {
     if (!R || !R.ot) return; R.ot = false; R.otEnd = why;
     say(R.bonus ? `${why} · overtime +${R.bonus}` : why, 'miss'); hud();
@@ -13606,7 +13611,7 @@ const TG = (() => {
     if (grade !== 'ok' && !calmQ.matches) { const ring = sv('circle', { class: 'tg-ring', cx: d.cx, cy: d.cy, r: d.r, stroke: col, 'stroke-width': 2 }); d.g.append(ring); setTimeout(() => ring.remove(), 500); }
   }
   // t = the moment of the tap or the syllable, already brought back to the click's own clock
-  function hit(t, voice, spot) {
+  function hit(t, voice, spot, src) {
     if (!R || !playing() || voice !== (S.mode === 'voice')) return;
     if (!voice) { const pad = $('tgPad'); pad.classList.remove('tg-hit'); void pad.offsetWidth; pad.classList.add('tg-hit'); }
     if (t < Math.min(R.tPlay, R.targets.length ? R.targets[0].t : R.tPlay) - R.maxWin) return;   // joining in with the count-in is free (pickup dots excepted)
@@ -13617,17 +13622,17 @@ const TG = (() => {
       if (spot && (spot.p !== best.p || spot.k !== best.k)) { blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); otOver('Wrong spot'); return; }
       const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode); best.done = true; mark(best, grade, off);
       if (grade === 'ok') { otOver(Math.round(a) + ' ms off'); return; }
-      R.bonus += GAME.ot[grade]; R.bOffs.push(Math.round(off)); if (grade === 'perfect') R.bPerf++;
+      R.bonus += GAME.ot[grade]; R.bOffs.push(Math.round(off)); if (grade === 'perfect') R.bPerf++; holdStart(best, src);
       R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo);
       if (!voice) blip(ac.currentTime, grade === 'perfect' ? (best.land ? 1760 : 1320) : 990, grade === 'perfect' ? 0.3 : 0.22, 0.07, 'triangle');
-      say(`+${GAME.ot[grade]} · ${R.lock + R.bonus}`, grade); hud(); return;
+      say(`+${GAME.ot[grade]} · ${otNow()}`, grade); hud(); return;
     }
     if (best && spot && (spot.p !== best.p || spot.k !== best.k)) { R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('Wrong spot', 'miss'); hud(); return; }
     if (!best) { if (voice) return; R.strays++; R.combo = 0; blip(ac.currentTime, 170, 0.25, 0.07, 'triangle'); say('No dot there', 'miss'); hud(); return; }
     const off = (t - best.t) * 1000, a = Math.abs(off), grade = gameGrade(a, S.mode);
     best.done = true; R.judged++; R.offs.push(off); R.score += GAME.pts[grade]; if (grade === 'perfect') R.perfect++;
     R.combo = grade === 'ok' ? 0 : R.combo + 1; R.maxCombo = Math.max(R.maxCombo, R.combo);
-    mark(best, grade, off);
+    mark(best, grade, off); holdStart(best, src);
     if (!voice) blip(ac.currentTime, grade === 'perfect' ? (best.land ? 1760 : 1320) : grade === 'good' ? 990 : 620, grade === 'perfect' ? 0.3 : 0.22, best.land && grade === 'perfect' ? 0.16 : 0.07, 'triangle');
     say(grade === 'perfect' ? 'Perfect' : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early'), grade); hud();
   }
@@ -13651,6 +13656,20 @@ const TG = (() => {
       LS.raf = requestAnimationFrame(tick); };
     LS.raf = requestAnimationFrame(tick);
   }
+  // holding a long pill: the press started it; letting go (same key / finger) early is a miss, holding to the pill's last slot is clean
+  const otNow = () => (R.lock != null ? R.lock : gameAcc(R.score, R.strays, R.n, S.mode)) + R.bonus;   // the score so far: level + loop
+  function holdBar(x) { const d = (x.pass >= 2 ? rowOf(x.pass) : rows[x.p]).dots[x.k]; return d && d.hb; }
+  function holdStart(x, src) {
+    if (!x.rel || !R) return; if (R.hold) holdEnd(true); R.hold = { x, src: src || 'bot' };
+    const b = holdBar(x); if (b) { b.removeAttribute('stroke-dasharray'); b.setAttribute('stroke', 'var(--tg-good)'); b.setAttribute('opacity', 0.35); }
+  }
+  function holdEnd(clean) {
+    const H = R && R.hold; if (!H) return; R.hold = null; const x = H.x, b = holdBar(x);
+    if (b) { b.setAttribute('stroke', clean ? 'var(--tg-perfect)' : 'var(--muted)'); b.setAttribute('opacity', clean ? 0.9 : 0.8); if (!clean) b.setAttribute('stroke-dasharray', '3 3'); }
+    if (x.pass >= 2) { if (!R.ot) return; if (clean) { R.bonus += GAME.ot.good; R.bOffs.push(Math.round(GAME.tap.perfect + 10)); say(`Held +${GAME.ot.good} · ${otNow()}`, 'good'); } else otOver('Let go early'); hud(); return; }
+    R.judged++; if (clean) { R.score += GAME.pts.perfect; R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo); say('Held', 'perfect'); } else { R.combo = 0; say('Let go early', 'miss'); } hud();
+  }
+  function release(t, src) { if (!R || !R.hold || R.hold.src !== src) return; holdEnd(t >= R.hold.x.rel - GAME.tap.good / 1000); }
   function stopRound() {
     listenStop(); cancelAnimationFrame(raf); const was = playing() || state === 'lock'; GB.taps = []; GB.retry = 0;
     if (was && ac) { ac.close(); ac = null; if (mic) { mic.stream.getTracks().forEach(t => t.stop()); mic = null; } }   // drops every click still scheduled
@@ -13678,7 +13697,7 @@ const TG = (() => {
       const rec = stars === 3 && tempo > wasRec; if (rec) S.best[S.mode][cur.key] = tempo;
       if (stars > was || rec) keep();
       const top = S.top[S.mode][cur.key] || 0, topNew = acc + bonus > top; if (topNew) { S.top[S.mode][cur.key] = acc + bonus; keep(); }
-      if (Q.passes > 2) add(bonus ? `${acc} from the level + ${bonus} from the loop: ${Q.bOffs.length} clean ${Q.bOffs.length === 1 ? 'tap' : 'taps'} (${Q.bPerf} in the pocket), ended by ${otWhy(Q.otEnd)}.${topNew && top ? ' New best.' : ''}`
+      if (Q.passes > 2) add(bonus ? `${acc} from the level + ${bonus} from the loop: ${Q.bOffs.length} clean ${Q.bOffs.length === 1 ? 'tap or hold' : 'taps and holds'} (${Q.bPerf} in the pocket), ended by ${otWhy(Q.otEnd)}.${topNew && top ? ' New best.' : ''}`
         : `No loop points: ${otWhy(Q.otEnd)} right after the level. Keep tapping clean after the level: every tap +10, in the pocket +15.`, bonus > 0 && topNew);
       if (stars > was) $('tgNew').textContent = 'New best'; else if (rec) $('tgNew').textContent = 'New record'; bestShow();
       $('tgResT').textContent = !Q.offs.length ? 'Nothing landed' : stars === 3 ? f.feel === 'Locked in' || !f.feel ? 'Locked in' : f.feel + ', and clean' : f.feel || 'Keep going';
@@ -13779,14 +13798,16 @@ const TG = (() => {
   $('tgMain').addEventListener('click', primary);
   $('tgAlt').addEventListener('click', () => { if (!playing()) start(); });
   $('tgNext').addEventListener('click', () => { const to = nextItem(); if (to) to.go(); });
-  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'lock') lockTap(e.timeStamp); else if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false); } else primary(); });
+  $('tgPad').addEventListener('pointerdown', e => { e.preventDefault(); if (state === 'lock') lockTap(e.timeStamp); else if (playing()) { if (S.mode === 'tap') hit(heard(e.timeStamp), false, undefined, 'p' + e.pointerId); } else primary(); });
   $('tgPad').addEventListener('click', e => { if (e.detail === 0 && !playing()) primary(); });   // Enter on the pad, or a screen reader's press
-  $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false, spotAt(e) || { p: -1, k: -1 }); } });
+  $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false, spotAt(e) || { p: -1, k: -1 }, 'p' + e.pointerId); } });
+  ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, e => { if (R && R.hold) release(heard(e.timeStamp), 'p' + e.pointerId); }));
+  document.addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (R && R.hold && (k === ' ' || k === 'f' || k === 'j')) release(heard(e.timeStamp), 'k' + k); });
   document.addEventListener('keydown', e => {   // on the document: focus falls to the page when the focused button hides
     if (!dlg.open || e.repeat || e.metaKey || e.ctrlKey || e.altKey || $('tgPlay').hidden) return;
     const k = e.key.toLowerCase(), on = playing();
     if (state === 'lock' && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); lockTap(e.timeStamp); return; }
-    if (on && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); if (S.mode === 'tap') hit(heard(e.timeStamp), false); }
+    if (on && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); if (S.mode === 'tap') hit(heard(e.timeStamp), false, undefined, 'k' + k); }
     else if (!on && k === ' ' && !['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) { e.preventDefault(); primary(); }
   });
   document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
@@ -13795,7 +13816,7 @@ const TG = (() => {
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
   return { open, openFit, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
-    week, tap: t => hit(t, false), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
+    week, tap: (t, src) => hit(t, false, undefined, src), rel: (t, src) => release(t, src), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
 <script>
