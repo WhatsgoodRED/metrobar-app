@@ -2,6 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
+<link rel="preload" href="zone-config.js" as="script">
 <script>
 /* Bar Book (Barbook, menu "Rhyme") is a view of this page (Bennie 2026-11-14: "no separate HTML page loading in"; it was its
    own page since 11-12). window.BBAPP = Bar Book is showing; html.bb gives it its own shell (every bb style hangs on that
@@ -7359,7 +7360,7 @@ function showBar(barIdx, tp) {
   mapCells.forEach((c, i) => { c.classList.toggle('done', !counting && i < barIdx); c.classList.toggle('cur', i === barIdx); });
   renderTiles(barIdx); paintMarks(barIdx);
 }
-buildMap(); showBar(0);
+// (no buildMap/showBar here: restore() ends in applyTemplate > applyPm, which builds the map once)
 
 // ---- audio: lookahead scheduler on Web Audio time (25 ms interval, 120 ms lookahead)
 let landTimes = [], tapOffs = [];
@@ -7400,7 +7401,14 @@ function logoWave() {
       waveLive.top = Math.max(r, waveLive.top * 0.997); waveLive.h.push(r); waveLive.h.shift();
     }
     vals = waveLive.h.map(v => Math.min(1, Math.pow(v / waveLive.top, 1.5)));
-  } else { if (!waveOv || waveOv.length !== n) waveOv = waveOverview(beatBuf, n); vals = waveOv; waveLive = null; }
+  } else {
+    if (!waveOv || waveOv.length !== n) waveOv = waveOverview(beatBuf, n); vals = waveOv; waveLive = null;
+    // the still waveform is the same picture every frame: draw it only when something it shows changed (load speed #5)
+    const k = [w, hgt, dpr, !!(running && beatSrc), cs.getPropertyValue('--fg'), cs.getPropertyValue('--accent')].join('|');
+    if (logoWave.ov === waveOv && logoWave.k === k && cv.width) return;
+    logoWave.ov = waveOv; logoWave.k = k;
+  }
+  if (waveLive) logoWave.ov = null;
   c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, hgt);
   c.fillStyle = cs.getPropertyValue('--fg').trim() || '#111413';
   const accent = cs.getPropertyValue('--accent').trim() || '#af0000', mid = hgt / 2;
@@ -8118,6 +8126,7 @@ function enjSummary(ls) {
   return `Enjambment: ${Math.round(m.EA * 100)}% of bars end a sentence (${m.units} sentence${m.units > 1 ? 's' : ''} in ${ls.length} bars, ${m.oneBar} one-bar line${m.oneBar === 1 ? '' : 's'}). 4-bar groups in beats: ${m.groups.map(g => g.label + (g.resolves ? ' ✓' : ' …')).join(' | ')}. Style: ${m.style}. For scale: Kurtis Blow's "Basketball" (1+1+2) is 75%, Madvillain's "All Caps" 55% (Adams 2009).${tip}`;
 }
 function runFit() {
+  if ($('lyrics').value.trim()) needDict();
   lines = analyseAll();
   renderFit(); persist(); if (vocal) renderSong();
   $('fitBtn').classList.toggle('pri', !lines.length); $('practiceBtn').classList.toggle('pri', !!lines.length);
@@ -8226,6 +8235,9 @@ function enterPractice() {
   if (!lines.length) { $('fitSum').textContent = 'Type lyrics first, then Fit.'; return; }
   practice = true; applyPm(); $('tele').hidden = false; $('practiceBtn').textContent = 'Exit practice'; showBar(loopRange().lo);
 }
+// Pronunciation dictionary on first need (load speed #1): Fit with words, Write, Bar Book or a Zone post, not every page load.
+// loadDict sits in a later script, so until that has run this only leaves a note for it.
+function needDict() { if (window.mbDictReady) { if (DICTUI.state === 'off') (window.requestIdleCallback || (f => setTimeout(f, 50)))(loadDict); } else window.mbNeedDict = true; }
 function runFit_if_needed() { if (!lines.length) { lines = analyseAll(); renderFit(); } }
 function exitPractice() {
   if (running) stop();
@@ -8373,7 +8385,7 @@ $('tplPlace').addEventListener('click', () => {
 // ---- PWA (needs http(s): file:// cannot register a service worker)
 try { if (!localStorage.getItem('metrobar.introSeen')) $('intro').hidden = false; } catch (e) { $('intro').hidden = false; }
 $('introClose').addEventListener('click', () => { $('intro').hidden = true; try { localStorage.setItem('metrobar.introSeen', '1'); } catch (e) {} });
-if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) navigator.serviceWorker.register('sw.js').catch(() => {});
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));   // after load: the first-visit precache does not compete with the page's own files
 </script>
 <script>
 /* ---- Write: the writing companion. A song library saved in this browser, an editor that colours rhymes and counts syllables
@@ -8524,6 +8536,7 @@ function wrLine(body, meter) {
   return L;
 }
 function wrAnalyse() {
+  needDict();
   const text = $('wrText').value; WR.rows = wrParse(text);
   WR.bars = WR.rows.filter(r => r.kind === 'bar').map(r => { r.L = wrLine(r.body, r.meter); return r; });
   const ls = WR.bars.map(r => r.L);
@@ -9152,6 +9165,7 @@ const mwFrames = (el, dir, ref) => {
 // gate checks on every visit and goes away when you leave. MetroBar's scroll position comes back when you return.
 let BB_SCROLL = 0;
 function bbMode(on) {
+  if (on) needDict();
   const r = document.documentElement;
   if (!!window.BBAPP === on) return;
   if (on) {
@@ -9364,7 +9378,7 @@ async function loadDict() {
   if (lines.length) { const refit = () => { if ((practice && running) || editSrc != null) return setTimeout(refit, 1000); runFit(); }; refit(); }   // never stop a running Practice or drop an open bar edit: refit once they end
   WR.cache.clear(); if (!$('viewWrite').hidden) { wrAnalyse(); if (WR.word) wrRhymes(WR.word); }
 }
-window.addEventListener('load', () => (window.requestIdleCallback || (f => setTimeout(f, 800)))(loadDict));
+window.mbDictReady = true; if (window.mbNeedDict) needDict();
 
 // ---- "Why it rhymes": both words' sounds from the stressed vowel on, matching sounds marked
 const TIER_WHY = { perfect: 'every sound from the stressed vowel on is the same.', multi: 'two or more vowel sounds in a row match; the consonants between them differ.',
@@ -9651,6 +9665,8 @@ function markDay() {
   d.push(t); store.set('metrobar.days', d.slice(-800)); streakRender();
 }
 function streakRender() {
+  const card = $('wrStreak').closest('.wr-card');
+  if (card && card.hidden) { if (!streakRender.mo) { streakRender.mo = new MutationObserver(() => { if (!card.hidden) streakRender(); }); streakRender.mo.observe(card, { attributes: true, attributeFilter: ['hidden'] }); } return; }   // closed: build the 26-week calendar when it opens
   let d = store.get('metrobar.days', null);
   if (!d) { const w = store.get('metrobar.wroteOn', ''); d = w ? [w] : []; store.set('metrobar.days', d); }
   const s = writeStreak(d, today()), box = $('wrStreak'), dots = calRender(d);   // practice calendar: 26 weeks of writing + bars played
@@ -9897,7 +9913,7 @@ function drillList(t, i) {
   reset.addEventListener('click', () => { const m = store.get('metrobar.drills', {}); delete m[t.name]; store.set('metrobar.drills', m); paint(true); head(); drillPadMark(i); });
   head(); paint(false); box.append(hd, ul, reset); return box;
 }
-stepsBuild(); TECHS.forEach((t, i) => drillPadMark(i)); streakRender();
+stepsBuild(); TECHS.forEach((t, i) => drillPadMark(i));
 </script>
 <script>
 // ---- Dictation in Write: the browser's own speech recognition (Web Speech API), English, no key, no backend of ours.
@@ -11948,6 +11964,7 @@ function znEdit(body) {
   body.replaceChildren(znBtn('← Profile', 'btn zn-back', () => znGo('profile', me.username)), f);
 }
 function znCompose(body) {
+  needDict();
   if (!ZN.me) return znNeedSignIn('Sign in to post.');
   const d = ZN.draft || { title: '', body: '' }, f = h('form', 'zn-form'), err = h('p', 'zn-err');
   f.style.maxWidth = 'none';

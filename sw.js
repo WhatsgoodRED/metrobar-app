@@ -1,5 +1,5 @@
 // Minimal offline cache for MetroBar: the one HTML file, manifest, icons; fonts (fonts/) are cached when first fetched.
-const CACHE = 'metrobar-v207';
+const CACHE = 'metrobar-v208';
 const FILES = ['./', './index.html', './landing-beat-meter.html', './barbook.html', './studio.html', './flow-advanced.html', './fonts/jost.css', './manifest.json', './app-shell.js', './icon-192.png', './icon-512.png', './cmudict.txt', './fonts/Panchang-Variable.woff2', './fonts/fonts.css', './zone-config.js',
   './fonts/g/instrument-sans-400-latin-e190a6.woff2', './fonts/g/ibm-plex-mono-400-latin-171e02.woff2', './fonts/g/big-shoulders-display-700-latin-48e1b4.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
@@ -24,7 +24,10 @@ self.addEventListener('fetch', e => {
       net.then(r => { clearTimeout(t); fin(r); }, () => { clearTimeout(t); cached().then(r => r ? fin(r) : (done || no(new TypeError('offline')))); });
     })); return;   // ignoreSearch: Barbook opens the page with ?barbook
   }
+  // The dictionary and fonts never change under one CACHE number (a bump refreshes them), so a hit is served as is: no refetch, no rewrite
+  const fixed = u.pathname.endsWith('/cmudict.txt') || u.pathname.includes('/fonts/');
   e.respondWith(caches.match(e.request).then(hit => {
+    if (hit && fixed) return hit;
     const net = fetch(e.request).then(save).catch(() => hit);
     return hit || net;
   }));
