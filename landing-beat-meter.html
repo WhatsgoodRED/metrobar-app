@@ -1002,6 +1002,11 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 .rb-ed[data-rbtheme="night"], .rb-ed[data-rbtheme="studio"], .rb-ed[data-rbtheme="chalk"], .rb-ed[data-rbtheme="dark"], #viewBook.rb-dark .rb-fams { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 24%; }
 .rb-ed[data-rbtheme="night"] .rb-w, .rb-ed[data-rbtheme="studio"] .rb-w, .rb-ed[data-rbtheme="chalk"] .rb-w, .rb-ed[data-rbtheme="dark"] .rb-w { box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -2px 0 var(--c), 0 6px 12px -6px color-mix(in srgb, var(--c) 70%, transparent); }
 /* spotlight: one rhyme sound lit (caret in it, or pinned in the Rhyme map), the rest step back */
+/* Bar Book highlight modes (RB.hl, rbSylMarks): paint only, nothing that changes the size of the letters */
+.rb-ov .rb-s.st { box-shadow: inset 0 -3px 0 var(--bd-syl); }
+.rb-ov .rb-s.rh { box-shadow: inset 0 -2px 0 var(--rc); }
+.rb-ov .rb-s.rh.st { box-shadow: inset 0 -2px 0 var(--rc), inset 0 -5px 0 var(--bd-syl); }
+.rb-ov .rb-s.mu { outline: 1px dashed var(--rc, var(--muted)); outline-offset: 0; border-radius: 3px; }
 .rb-ov.rb-foc .rb-w:not(.lit) { opacity: .3; }
 .rb-ov.rb-foc .rb-w.lit { --rb-ta: 36%; }
 .rb-ov.rb-foc .rb-k.on:not(.lit) { opacity: .35; }
@@ -10198,18 +10203,52 @@ function rbReveal() {
   const d = bot > hi ? bot - hi : top < lo ? top - lo : 0; if (Math.abs(d) < 1) return;
   if (sc) sc.scrollTop += d; else window.scrollBy(0, d);
 }
+// Syllable marks for the Bar Book page (Bennie 2026-11-18: "if I click stress, it doesn't highlight anything"; bring back the old
+// Write tab's colours): RB.hl 'stress' | 'rhyme' = stressed syllables underlined (blue), 'write' = Write's own colours
+// (rhymeMap: every rhyme sound by vowel, multis dashed) + stress. Per line an array of class names per character, same token
+// and syllable split as wrPaint, so the marks sit on the right letters. No RB.hl = no marks.
+function rbSylMarks(text) {
+  const mode = RB.hl || ''; if (!mode) return null;
+  const rows = wrParse(text), bars = rows.filter(r => r.kind === 'bar'), out = [];
+  bars.forEach(r => { try { r.L = wrLine(r.body, r.meter); } catch (e) { r.L = null; } });
+  const ok = bars.filter(r => r.L);
+  let rh = null; if (mode === 'write' && ok.length) { try { rh = rhymeMap(ok.map(r => r.L)); } catch (e) { rh = null; } }
+  ok.forEach(r => {
+    const L = r.L, li = ok.indexOf(r), arr = new Array(r.line.length).fill(''), re = /[^\s—–\/-]+/g; let m, wi = 0;
+    while ((m = re.exec(r.body))) {
+      const raw = m[0], key = cleanKey(raw.replace(/[’‘]/g, "'"));
+      if (!/[a-z0-9]/.test(key) || wi >= L.words.length) continue;
+      const sy = L.syl.map((x, si) => ({ x, si })).filter(o => o.x.w === wi); let pos = r.off + m.index;
+      paintPieces(raw, sy.map(o => o.x.t || '')).forEach(pc => {
+        const o = pc.k >= 0 ? sy[pc.k] : null;
+        if (o) {
+          const gi = rh && rh.syl[li] ? rh.syl[li][o.si] : null, mu = rh && rh.multi[li] && rh.multi[li].includes(o.si);
+          const cls = [gi != null ? rhCls(gi) : '', mu ? 'mu' : '', o.x.st ? 'st' : ''].filter(Boolean).join(' ');
+          for (let k = 0; k < pc.t.length; k++) arr[pos + k] = cls;
+        }
+        pos += pc.t.length;
+      });
+      wi++;
+    }
+    out[r.i] = arr;
+  });
+  return out;
+}
 function rbPaint() {
   const text = $('rbText').value, rows = bookHighlight(text, fix), syl = bookSyl(text, fix), ov = $('rbOv'), frag = document.createDocumentFragment();
-  const abc = schemeLetters(text); let bars = 0, sylT = 0;
+  const abc = schemeLetters(text); let bars = 0, sylT = 0, marks = null;
+  try { marks = rbSylMarks(text); } catch (e) { console.warn('Bar Book marks', e); marks = null; }
   text.split('\n').forEach((line, i) => {
     const ln = h('span', 'rb-ln' + (/^\s*\[[^\]]*\]\s*$/.test(line) ? ' rb-hd' : '')); let c = 0;
+    const mk = marks && marks[i] && marks[i].length === line.length ? marks[i] : null;
+    const run = (el, a, b) => { if (!mk) { if (b > a) el.append(line.slice(a, b)); return; } let x = a; while (x < b) { const k = mk[x] || ''; let y = x + 1; while (y < b && (mk[y] || '') === k) y++; el.append(k ? h('span', 'rb-s ' + k, line.slice(x, y)) : line.slice(x, y)); x = y; } };
     if (syl[i]) { bars++; sylT += syl[i]; }
     for (const w of rows[i]) {
       if (!w.c) continue;
-      if (w.a > c) ln.append(line.slice(c, w.a));
-      const s = h('span', 'rb-w', line.slice(w.a, w.b)); bookPaint(s, w); s.dataset.c = w.c; ln.append(s); c = w.b;
+      run(ln, c, w.a);
+      const s = h('span', 'rb-w'); run(s, w.a, w.b); bookPaint(s, w); s.dataset.c = w.c; ln.append(s); c = w.b;
     }
-    ln.append(line.slice(c) || '​');
+    if (c < line.length) run(ln, c, line.length); else ln.append('​');
     if (syl[i]) ln.append(h('span', 'rb-n', String(syl[i])));
     if (abc[i]) { const k = h('span', 'rb-k', abc[i]), end = rows[i][rows[i].length - 1]; if (end && end.c) { bookPaint(k, end); k.classList.add('on'); k.dataset.c = end.c; } ln.append(k); }
     frag.append(ln);
@@ -16346,17 +16385,22 @@ var PPZ = (() => {
     W_TOOLS.forEach(([tab]) => { const c = document.querySelector(`.wr-card[data-tab="${tab}"]`); if (c && c.parentElement && (c.parentElement.classList.contains('rb-tbody') || c.parentElement.id === 'bbTechBox')) { c.hidden = c.dataset.ppHid === '1'; $('wrPanels').append(c); } });
     document.querySelectorAll('#rbSide .pp-wt').forEach(e => { e.hidden = true; });
   }
-  function hlNow() { return RB.look.hi ? 'rhyme' : 'stress'; }
+  function hlNow() { return RB.hl === 'write' ? 'write' : RB.look.hi ? 'rhyme' : 'stress'; }
+  // Stress = stressed syllables underlined on the page (and the meter with Bar for bar on); Stress + rhyme = Bar Book's rhyme
+  // colours on top; Write = the old Write tab's colours (every rhyme sound by vowel, multis dashed) + stress (rbSylMarks)
   function hlSet(v) {
+    v = ['stress', 'rhyme', 'write'].includes(v) ? v : 'stress';
     const fb = $('bsFlowB') || (BE && BE.flowBtn); if (fb && fb.getAttribute('aria-pressed') !== 'true') fb.click();
+    RB.hl = v;
     if ((v === 'rhyme') !== !!RB.look.hi && $('rbHi')) $('rbHi').click();
+    rbPaint();
     store.set('metrobar.ppHl', v); stripUi();
   }
   function stripUi() { if (!strip) return; strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === hlNow()))); }
   function buildStrip() {
     strip = h('div', 'pp-strip'); strip.setAttribute('role', 'region'); strip.setAttribute('aria-label', 'Bar Book');
     strip.innerHTML = '<span class="pp-sbadge">Bar Book</span>'
-      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress">Stress</button><button type="button" data-hl="rhyme">Stress + rhyme</button></div>'
+      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress" title="Underline the stressed syllables in every bar">Stress</button><button type="button" data-hl="rhyme" title="Bar Book colours: only words that really rhyme, one colour per rhyme sound, plus the stressed syllables">Stress + rhyme</button><button type="button" data-hl="write" title="The Write tab colours: every rhyme sound by vowel (slant rhymes too), multis dashed, plus the stressed syllables">Write</button></div>'
       + '<button type="button" class="pp-sbeat" title="Upload the beat you rap on: the card plays your song on it"><span class="pp-sbn">Upload a beat</span></button><span class="pp-ssp"></span>'
       + '<button type="button" class="pp-sbeat pp-sex" title="Open the Bar Book example: a finished 64-bar song">Example</button>'
       + '<button type="button" class="pp-splay" title="Turn this song (done or half way) into one big card in the Flow Game">Create card</button><button type="button" class="pp-sx" aria-label="Leave Bar Book" title="Leave Bar Book">×</button>';
@@ -16372,7 +16416,7 @@ var PPZ = (() => {
     if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || (strip.nextElementSibling !== head && strip.nextElementSibling !== $('wrDictBar'))) head.before(strip);
     { const db = $('wrDictBar'); if (db && db.previousElementSibling !== strip) strip.after(db); }
     tools(); stripUi(); beatUi(); wrSync(); if (window.BBP) BBP.techSync();
-    const want = store.get('metrobar.ppHl', 'stress'); if (want !== hlNow() || ($('bsFlowB') && $('bsFlowB').getAttribute('aria-pressed') !== 'true')) hlSet(want);
+    const want = store.get('metrobar.ppHl', 'stress'); if (want !== hlNow() || RB.hl !== want || ($('bsFlowB') && $('bsFlowB').getAttribute('aria-pressed') !== 'true')) hlSet(want);
   }
   function blank() {   // a blank page: the empty one Bar Book made last time, else a new one (no pile of empty songs)
     let p = LIB.pages.find(x => x.ppBlank && !String(x.text || '').trim());
