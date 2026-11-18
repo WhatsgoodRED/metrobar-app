@@ -805,6 +805,9 @@ input[type=color] { width: 44px; height: 30px; padding: 2px; border: 1px solid v
 .pad[aria-pressed="true"] .nm { color: var(--led-txt); }
 .pad[aria-pressed="true"]::after { background: var(--led); box-shadow: 0 0 6px 1px var(--led-ring); }
 .pad[hidden] { display: none; }
+.tech-card .fg-svg { margin: 4px 0 2px; overflow-x: auto; }
+.tech-card .fg-svg svg { display: block; max-width: 100%; height: auto; }
+.pad.fg .nm::after { content: ' ●'; font-size: .6em; color: var(--accent); vertical-align: middle; }
 .tech-card { display: grid; gap: 6px; border: 1px solid var(--rail); border-radius: 8px; background: var(--well); padding: 10px 12px; }
 .tech-card h4 { margin: 0; font-size: .92rem; color: var(--led-txt); }
 .tech-card p { margin: 0; font-size: .85rem; line-height: 1.45; color: var(--muted); }
@@ -8583,12 +8586,62 @@ const TECH_TAG = { 'Straight 8ths': ['even, on the beat', 'flow'], '16ths': ['4 
   'Displacement': ['shift the line', 'flow'], 'Pickups': ['lead into beat 1', 'flow'], 'Multisyllable rhymes': ['two vowels rhyme', 'rhyme'], 'Monorhyme run': ['one end sound', 'rhyme'],
   'Chant': ['4 bars, twice', 'shape'], 'Fixed end tag': ['same tag every bar', 'rhyme'], 'Space': ['leave air', 'shape'], 'Enjambment': ['run over the bar', 'shape'],
   '7/8 (odd meter)': ['odd meter, 2+2+3', 'meter'], 'Polymeter': ['3 beats over 4', 'meter'] };
+
+// ---- Flow Game techniques (Bennie 2026-11-18: "since the new levels with flow game haven't there been loads of new techniques?"):
+// every technique the Flow Game levels teach that the 18 above don't cover. Each one's example = the level's own 3 bars, drawn on the
+// grid (breakdownSvg), with Play it in the Flow Game and Insert the bars. Kept apart from TECHS (that list pairs with core TECH_LIST).
+const FG_TECHS = [
+  ['early', 'Anticipation', 'land early', 'flow', 'Say the rhyme word one 16th before beat 4 and let it push into the beat. Tap the 4 with your foot and land just ahead of it.'],
+  ['jb1', 'Jump the one', 'in before the 1', 'flow', 'Start the bar on the a before the 1 and hold that word over the downbeat. Count 4-e-and-A, and the A is your first word.'],
+  ['offeas', 'Only the e and the a', 'around the beat', 'flow', 'Clap the beat and the and, then fit every syllable in the gaps between your claps. Nothing lands on a clap.'],
+  ['b1gal1', 'Gallop', 'da-da-da, gap', 'flow', 'Three quick syllables and a gap in every beat, like a horse: da-da-da, da-da-da. Lean on the first of the three.'],
+  ['b6dot', 'Dotted 8ths', 'one every three 16ths', 'flow', 'Put a word every three 16ths: it drifts against the beat and only lines up again after three beats. Count 1-e-and-a and tap every third.'],
+  ['b7swh', 'Swing', 'long-short pairs', 'feel', 'Say the 16ths in pairs, the first long and the second short, like a shuffle (2 to 1). Bounce it, never run it.'],
+  ['b1lazy', 'Behind the beat', 'lay it back', 'feel', 'Keep the rhythm but sit every word a hair after the click, never a whole 16th. Talk it like a story, relaxed.'],
+  ['b6rub8', 'Rubato', 'stretch, then catch up', 'feel', 'Pull the middle of the bar late like a rubber band, then catch up so the last word still lands right on beat 4.'],
+  ['themiola', 'Hemiola', 'twos against threes', 'meter', 'On triplets, stress every second syllable: twos against threes. The stress walks off the beat and comes back home.'],
+  ['tshift', 'Shifting stress', 'same rhythm, new stress', 'meter', 'Keep the same triplet rhythm but move the stresses: 3 + 2 + 2 + 2 instead of 3 + 3 + 3. Only the weight changes.'],
+  ['b1four', 'Fours over triplets', 'stress every 4th', 'meter', 'Fill every triplet slot and stress every fourth syllable. Each stress lands on a different part of the beat.'],
+  ['gridsw', 'Switch the grid', '16ths, triplets, 16ths', 'meter', 'Bar one in 16ths (4 a beat), bar two in triplets (3 a beat), then back. Keep the beat steady while the grid changes under it.'],
+  ['b8phase', 'Two phases', 'long, then quick', 'meter', 'Four long syllables over three beats, then three quick ones on beat 4. Rhyme the first with the third, the second with the fourth.'],
+  ['b7nine', '9/8 sway', 'three groups of three', 'meter', 'Count ONE two three, ONE two three, ONE two three. Rock with it like a slow waltz and land on the last group.'],
+  ['meterflip', 'Meter switch', 'every bar a new length', 'meter', 'Five beats, then three, then a six-eight: the pulse stays, the bar line moves. Count each bar out loud first.'],
+  ['iso1', 'Flow motif', 'same rhythm, new words', 'shape', 'Pick one rhythm and keep it for three bars: only the words change. The ear hears the motif and the new words pop.'],
+  ['evolve4', 'Evolving pattern', 'the idea grows', 'shape', 'Start with four quick syllables, then add a pair every time. The pattern runs over the bar lines and lands after four bars.'],
+  ['cad4', 'Four-bar cadence', 'four lines, one shape', 'shape', 'Four lines, every one lands on beat 4. Learn this plain shape first: every other cadence builds on it.'],
+  ['b1heelmv', 'Move the heel', 'land on 4, 3, then 2', 'shape', 'Same rhyme sound, a new landing every bar: beat 4, then beat 3, then beat 2. The bar gets more room after the rhyme each time.'],
+  ['b8answer', 'Answer back', 'line, gap, one word', 'shape', 'Say the line, stop on beat 3, then answer yourself with one word on beat 4. The gap before the answer is part of the bar.'],
+  ['b8chug', 'Double time, then breakdown', 'fast, then heavy', 'shape', 'Two bars of fast 16ths, then one heavy word per beat. Same tempo, a quarter of the syllables: the drop hits harder.'],
+  ['punch4', 'Punch on 4', 'set it up, hit, stop', 'rhyme', 'Set the punchline up in easy 8ths, hit the last word on beat 4 and stop. The silence after it gives the punch room.'],
+  ['b8mid', 'Rhymes in the middle', 'internal rhyme cluster', 'rhyme', 'Put a cluster of rhymes on beats 2 and 3, not only at the end. Hit each rhyme word a bit harder so the cluster pops.']
+].map(([lv, name, df, cat, how]) => ({ lv, name, df, cat, how }));
+function fgLevel(t) { const i = LADDER.findIndex(l => l.id === t.lv); return i < 0 ? null : { i, V: LADDER[i] }; }
+function fgCard(j, scroll) {
+  const t = FG_TECHS[j], lv = t && fgLevel(t), card = $('wrTechCard'), pads = $('wrTech').querySelectorAll('.pad'), k = TECHS.length + j;
+  techOn = k; pads.forEach((p, n) => p.setAttribute('aria-pressed', String(n === k)));
+  card.replaceChildren(); card.hidden = !lv; if (!lv) { techOn = -1; return; }
+  if (pads[k] && pads[k].hidden) wrTechFilter('all');
+  card.append(h('h4', '', t.name), h('p', '', lv.V.tip), h('p', 'tip', 'How: ' + t.how), h('p', 'tip', `From the Flow Game level "${lv.V.name}": its three bars on the grid. Big dots = the stressed syllables.`));
+  lv.V.bars.forEach((b, n) => {
+    const sec = h('div', 'tsec'), top = h('div', 'tsec-h'), play = h('button', 'mini', 'Play');
+    play.type = 'button'; play.title = 'Play this bar in the Flow Game'; play.addEventListener('click', () => TG.playLevel(lv.i, n));
+    top.append(h('b', '', 'Bar ' + (n + 1)), h('span', '', b.replace(/-/g, '')), play); sec.append(top);
+    try { const L = ladderBar(lv.i, n), w = breakdownSvg(L, 0, Math.min(3, L.pickup || 0), {}); w.classList.add('fg-svg'); sec.append(w); } catch (e) {}
+    card.append(sec);
+  });
+  const row = h('div', 'commit'), go = h('button', 'cbtn', 'Play it in the Flow Game'), ins = h('button', 'cbtn ghost', 'Insert the bars');
+  go.type = ins.type = 'button'; go.addEventListener('click', () => TG.playLevel(lv.i, 0));
+  ins.title = 'Adds the three bars at the cursor under their own heading. Then swap the words for yours.';
+  ins.addEventListener('click', () => wrInsertBlock(`# ${t.name}: ${t.df}\n` + lv.V.bars.map(b => b.replace(/-/g, '')).join('\n') + '\n'));
+  row.append(go, ins); card.append(row);
+  if (scroll) { wrPanel('Techniques', true); if (pads[k]) pads[k].scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }
+}
 let techOn = -1;
 function wrTechs() {
   const box = $('wrTech'), filt = h('div', 'seg'), pads = h('div', 'pads'), card = h('div', 'tech-card');
   card.id = 'wrTechCard'; card.hidden = true; card.setAttribute('aria-live', 'polite');
   filt.setAttribute('role', 'group'); filt.setAttribute('aria-label', 'Show techniques');
-  [['all', 'All'], ['flow', 'Flow'], ['meter', 'Meter'], ['rhyme', 'Rhyme'], ['shape', 'Shape']].forEach(([k, l]) => {
+  [['all', 'All'], ['flow', 'Flow'], ['meter', 'Meter'], ['rhyme', 'Rhyme'], ['shape', 'Shape'], ['feel', 'Feel'], ['game', 'Flow Game']].forEach(([k, l]) => {
     const b = h('button', '', l); b.type = 'button'; b.dataset.k = k; b.setAttribute('aria-pressed', String(k === 'all')); b.addEventListener('click', () => wrTechFilter(k)); filt.append(b); });
   TECHS.forEach((t, i) => {
     const [df, cat] = TECH_TAG[t.name] || ['', 'flow'], p = h('button', 'pad');
@@ -8596,13 +8649,17 @@ function wrTechs() {
     p.append(h('span', 'nm', t.name.replace(/ \(.*\)$/, '')), h('span', 'df', df));
     p.addEventListener('click', () => wrTechShow(techOn === i ? -1 : i)); pads.append(p);
   });
+  FG_TECHS.forEach((t, j) => {
+    const p = h('button', 'pad fg'); p.type = 'button'; p.dataset.cat = t.cat; p.dataset.fg = '1'; p.setAttribute('aria-pressed', 'false'); p.title = t.how;
+    p.append(h('span', 'nm', t.name), h('span', 'df', t.df)); p.addEventListener('click', () => wrTechShow(techOn === TECHS.length + j ? -1 : TECHS.length + j)); pads.append(p);
+  });
   box.append(filt, pads, card);
   if (typeof drillPadMark === 'function') TECHS.forEach((t, i) => drillPadMark(i));
 }
 function wrTechFilter(k) {
   const box = $('wrTech');
   box.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.k === k)));
-  box.querySelectorAll('.pad').forEach(p => { p.hidden = k !== 'all' && p.dataset.cat !== k; });
+  box.querySelectorAll('.pad').forEach(p => { p.hidden = k !== 'all' && (k === 'game' ? !p.dataset.fg : p.dataset.cat !== k); });
   const on = box.querySelectorAll('.pad')[techOn]; if (on && on.hidden) wrTechShow(-1);
 }
 // each drill is a whole song: a 4-bar hook, an 8-bar verse and a 4-bar chorus that show the technique, so you only swap the words
@@ -8615,6 +8672,12 @@ function techText(t, keys) {
 }
 // a drill always goes in on its own lines: with the cursor inside a bar it lands under that bar, never splitting it
 function wrInsertBlock(text) {
+  if (window.PPZ && PPZ.on) {   // in Bar Book the techniques sit next to your page: the bars go into that page, under the line you're on
+    const t = $('rbText'); if (t.readOnly) { toast('This page is locked'); return; }
+    const v = t.value; let q = t.selectionEnd || v.length; q = v.indexOf('\n', q); if (q < 0) q = v.length;
+    const add = (q > 0 && v[q - 1] !== '\n' ? '\n' : '') + text.replace(/\n+$/, '');
+    t.setRangeText(add, q, q, 'end'); t.dispatchEvent(new Event('input', { bubbles: true })); try { bookOpen(); } catch (e) {} toast('Added to your page'); return;
+  }
   const ta = $('wrText'), v = ta.value; let p = ta.selectionEnd;
   if (ta.selectionStart !== p || (p > 0 && v[p - 1] !== '\n')) { p = v.indexOf('\n', p); if (p < 0) p = v.length; }
   ta.focus(); ta.setSelectionRange(p, p);
@@ -8623,7 +8686,7 @@ function wrInsertBlock(text) {
   wrInsert(text);
 }
 function wrTechShow(i, scroll) {
-  try { wrTechCard(i, scroll); } catch (e) { console.error('technique card', e); techOn = -1; const c = $('wrTechCard'); if (c) { c.replaceChildren(); c.hidden = true; } }
+  try { if (i >= TECHS.length) fgCard(i - TECHS.length, scroll); else wrTechCard(i, scroll); } catch (e) { console.error('technique card', e); techOn = -1; const c = $('wrTechCard'); if (c) { c.replaceChildren(); c.hidden = true; } }
 }
 function wrTechCard(i, scroll) {
   techOn = i; const pads = $('wrTech').querySelectorAll('.pad'), card = $('wrTechCard');
@@ -14172,7 +14235,7 @@ const TG = (() => {
   dlg.addEventListener('close', () => { fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
-  return { open, openFit, playSong, songCard, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
+  return { open, openFit, playSong, songCard, playLevel: (lv, i) => { open(); playLadder(lv, i || 0); }, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
     week, tap: (t, src) => hit(t, false, undefined, src), rel: (t, src) => release(t, src), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
@@ -16001,7 +16064,7 @@ Four bars, then sixteen, till the pocket feels like home`;
 // top (steps, highlight, Play whole song) and Write's tools (Techniques, Technique check, Clichés, Checks, Stash, Streak, Tools) moved into the
 // tools panel as extra tools; leaving puts them back in Write. Write's analysis runs on the same song (one library) whenever the page changes.
 var PPZ = (() => {
-  const W_TOOLS = [['Techniques', 'Techniques', 'All 18 techniques, with drills', '<path d="M4 6h16M4 12h10M4 18h7"/>'], ['Technique check', 'Technique check', 'Which techniques your bars use', '<path d="M5 12l4 4 10-10"/>'],
+  const W_TOOLS = [['Techniques', 'Techniques', 'All 41 techniques, with drills and Flow Game levels', '<path d="M4 6h16M4 12h10M4 18h7"/>'], ['Technique check', 'Technique check', 'Which techniques your bars use', '<path d="M5 12l4 4 10-10"/>'],
     ['Cliché score', 'Cliché score', 'Lines everybody already wrote', '<path d="M12 4v9M12 17v.5"/><circle cx="12" cy="12" r="9"/>'], ['Checks', 'Checks', 'Section devices and your syllable aim', '<path d="M4 7h16M4 12h16M4 17h10"/>'],
     ['Stash', 'Stash', 'Loose bars for later', '<path d="M4 7h16v12H4zM8 7V5h8v2"/>'], ['Streak', 'Streak', 'Days in a row you wrote', '<path d="M12 3c2 4 6 5 6 10a6 6 0 0 1-12 0c0-3 2-4 3-7 1 2 2 2 3 3 0-2 0-4 0-6z"/>'],
     ['Tools', 'Write tools', 'Does it rhyme, split sheet, royalties, titles', '<path d="M14 6l4 4-8 8H6v-4z"/>']];
