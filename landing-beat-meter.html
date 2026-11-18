@@ -1459,15 +1459,16 @@ body.write { padding-bottom: var(--sheet-pad, 0px); }
 .ff-nav { position: relative; isolation: isolate; }
 .ff-nav > .ff-cv { position: absolute; z-index: -1; pointer-events: none; }
 .ff-nav > :not(.ff-cv) { position: relative; }
-.ff-nav > [aria-pressed="true"], .ff-nav > [aria-current="page"], .ff-nav > [aria-selected="true"] { background: transparent !important; box-shadow: none !important; color: var(--on-accent, #fff) !important; border-color: transparent !important; }
-.ff-nav > [aria-pressed="true"] *, .ff-nav > [aria-current="page"] *, .ff-nav > [aria-selected="true"] * { color: inherit !important; }
-.ff-nav > [aria-pressed="true"]:hover, .ff-nav > [aria-current="page"]:hover, .ff-nav > [aria-selected="true"]:hover { background: transparent !important; }
+html:not(.ff-lost) .ff-nav > [aria-pressed="true"], html:not(.ff-lost) .ff-nav > [aria-current="page"], html:not(.ff-lost) .ff-nav > [aria-selected="true"] { background: transparent !important; box-shadow: none !important; color: var(--on-accent, #fff) !important; border-color: transparent !important; }
+html:not(.ff-lost) .ff-nav > [aria-pressed="true"] *, html:not(.ff-lost) .ff-nav > [aria-current="page"] *, html:not(.ff-lost) .ff-nav > [aria-selected="true"] * { color: inherit !important; }
+html:not(.ff-lost) .ff-nav > [aria-pressed="true"]:hover, html:not(.ff-lost) .ff-nav > [aria-current="page"]:hover, html:not(.ff-lost) .ff-nav > [aria-selected="true"]:hover { background: transparent !important; }
 .ff-nav > :not(.ff-cv) { transition: color .22s; }
 .views.ff-nav { align-items: center; }
 @media (max-width: 700px) { .views.ff-nav a { white-space: nowrap; padding-inline: 9px; } }
-.sw .track.ff-track { width: 44px; height: 24px; border-radius: 999px; isolation: isolate; overflow: visible; }
-.sw .track.ff-track::after { display: none; }
-.sw .track.ff-track > canvas { position: absolute; pointer-events: none; z-index: 1; }
+html:not(.ff-lost) .sw .track.ff-track { width: 44px; height: 24px; border-radius: 999px; isolation: isolate; overflow: visible; }
+html:not(.ff-lost) .sw .track.ff-track::after { display: none; }
+html:not(.ff-lost) .sw .track.ff-track > canvas { position: absolute; pointer-events: none; z-index: 1; }
+html.ff-lost .ff-nav > .ff-cv, html.ff-lost .ff-track > canvas { display: none; }   /* WebGL lost: plain controls until it comes back */
 .sw input:checked + .track.ff-track { background: color-mix(in srgb, var(--accent) 14%, var(--sw-off)); border-color: color-mix(in srgb, var(--accent) 70%, var(--sw-off-bd)); }
 .ff-pop-clip { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; z-index: 0; }
 .ff-pop-ring { position: absolute; border-radius: 50%; pointer-events: none;
@@ -4658,6 +4659,7 @@ function rhymeTail(key, ph0) {
       } else cs.push(x.p);
     }
     seg.push({ c: cs.join(' '), say: cs.map(c => SAY[c] || c.toLowerCase()).join('') });
+    if (!seg.some(s => s.v != null)) return null;   // no vowel (skrrt, mmm): nothing to rhyme on
     return { key, seg, dict: true };
   }
   // no dictionary entry: spelling rules
@@ -4673,6 +4675,7 @@ function rhymeTail(key, ph0) {
     trail = rv ? m[3].slice(1) : m[3];
   }
   seg.push({ c: fold(trail), say: trail.replace(/e$/, '') });
+  if (!seg.some(s => s.v != null)) return null;   // no vowel (skrrt, brr, psst): nothing to rhyme on, and no false 'perfect' rhymes
   return { key, seg, dict: false };
 }
 const vowSegs = t => t.seg.filter(s => s.v != null), conSegs = t => t.seg.filter(s => s.c != null);
@@ -5514,8 +5517,8 @@ function detectBpm(chs, sr) {
   const on = new Float32Array(F); let mean = 0;
   for (let f = 1; f < F; f++) { on[f] = Math.max(0, e[f] - e[f - 1]); mean += on[f]; }
   mean /= F;
-  const x = on.map(v => v - mean), L = 410, ac = new Float64Array(L + 2);
-  for (let l = 0; l <= L; l++) { let s = 0; for (let i = 0; i + l < F; i++) s += x[i] * x[i + l]; ac[l] = s / (F - l); }
+  const x = on.map(v => v - mean), L = 1700, ac = new Float64Array(L + 2);   // lags up to 16 beats at 60 BPM, for the fine pass below
+  for (let l = 0; l <= L; l++) { let s = 0; for (let i = 0; i + l < F; i++) s += x[i] * x[i + l]; ac[l] = F > l ? s / (F - l) : 0; }
   const at = v => { const i = Math.floor(v), fr = v - i; return ac[i] * (1 - fr) + ac[i + 1] * fr; };
   // strongest autocorrelation peak between 60 and 200 BPM (supported by its 8th-note half and bar-double lags), then refine with a comb
   let pk = 30, pv = -Infinity;   // pk in (fractional) frames
@@ -5528,6 +5531,14 @@ function detectBpm(chs, sr) {
     const T = 6000 / b; let s = 0;
     for (let k = 1; k <= 4; k++) s += at(k * T);
     if (s > bs) { bs = s; best = b; }
+  }
+  { // fine pass over 16 beats: 4 beats can't tell 139 from 139.5 (lags are whole 10 ms frames), 16 can
+    const b0 = best; let fs = -Infinity;
+    for (let b = b0 - 0.8; b <= b0 + 0.8; b += 0.01) {
+      const T = 6000 / b, K = Math.min(16, Math.floor(Math.min(L, F - 1) / T)); if (K < 4) break;
+      let s = 0; for (let k = 1; k <= K; k++) s += at(k * T);
+      if (s > fs) { fs = s; best = b; }
+    }
   }
   let bpm = best;
   while (bpm < 80 && bpm * 2 <= 200) bpm *= 2;     // resolve octave errors toward 80-180
@@ -5855,6 +5866,7 @@ function bookHighlight(text, fix) {
   const hit = new Set();
   for (let i = 0; i < items.length; i++) for (let j = i + 1; j < items.length; j++) {
     const x = items[i], y = items[j];
+    if (pos[y.li][0] !== pos[x.li][0] || pos[y.li][1] - pos[x.li][1] > 2) break;   // items run in line order: nothing later can be near (was quadratic in page length)
     if (!near(x, y) || x.k === y.k || x.ws.some(w => y.ws.includes(w))) continue;
     if ((x.ph || y.ph) && !(lastOf(x) && lastOf(y))) continue;   // phrases only count line end to line end
     if (x.ph && y.ph) continue;   // two phrases: their last words already decide
@@ -6011,8 +6023,8 @@ function schemeLetters(text) {
 // sounds match a word or phrase: "pocket" -> rocket, locket, "stop it", "drop it". Classic = the consonants after the first matched
 // vowel match too; vowel = only the vowels match (assonance, the rap kind). Needs the pronunciation dictionary (setDict).
 const DR_SOFT = { AH: 'ə', IH: 'ə', ER: 'er' };
-function drVowels(key) {   // [{v, c}] per syllable: v = vowel class (unstressed schwas folded to ə), c = consonants after it
-  const ph = dictPhones(key); if (!ph) return null;
+function drVowels(key, ph0) {   // [{v, c}] per syllable: v = vowel class (unstressed schwas folded to ə), c = consonants after it; ph0 = phones already parsed
+  const ph = ph0 || dictPhones(key); if (!ph) return null;
   const out = [];
   ph.forEach((x, i) => {
     if (x.s != null) { const nextR = ph[i + 1] && ph[i + 1].p === 'R' && !(ph[i + 2] && ph[i + 2].s != null);
@@ -6046,7 +6058,7 @@ function doubleRhymes(text, opt = {}) {
   for (const [w, raw] of DICT) {
     i++;
     if (w === me || w.length > 16 || !/^[a-z][a-z']*[a-z]$/.test(w) || /'s$/.test(w)) continue;
-    const vs = drVowels(w); if (!vs) continue;
+    const vs = drVowels(w, parsePhones(raw)); if (!vs) continue;   // parse here: going through dictPhones would memoise the whole dictionary (60+ MB)
     if (vs.length >= k && drKey(vs.slice(-k)) === want && vs[vs.length - k].st !== false && (i < DICT_COMMON || words.length < 12)) {
       if (words.length < max * 2) words.push({ w, kind: kind(vs.slice(-k)), syl: vs.length, r: i, rare: i >= DICT_COMMON });
     }
@@ -6943,6 +6955,11 @@ function toast(text, o = {}) {
     box.addEventListener('focusout', e => { if (!box.contains(e.relatedTarget)) { delete box.dataset.open; toastLayout(); } });
     document.body.append(box);
   }
+  { // a modal dialog makes the rest of the page inert: show the toast (and its Undo) inside the top one, back to body when it closes
+    const dlg = [...document.querySelectorAll('dialog')].filter(d => d.open && d.matches(':modal')).pop(), host = dlg || document.body;
+    if (box.parentNode !== host) host.append(box);
+    if (dlg && !dlg.dataset.tst) { dlg.dataset.tst = '1'; dlg.addEventListener('close', () => { const b = document.getElementById('toasts'); if (b && dlg.contains(b)) document.body.append(b); }); }
+  }
   const el = document.createElement('div'); el.className = 'tt enter' + (o.undo ? '' : ' ok'); el.setAttribute('role', 'status');
   const t = document.createElement('span'); t.className = 'tt-t'; t.textContent = text; el.append(t);
   const T = { el, left: o.ms || (o.undo ? 7000 : 3500), t0: 0, iv: 0 };
@@ -7551,6 +7568,8 @@ const logoEls = [...document.querySelectorAll('#logo .logo-sub i')];
 })();
 function draw() {
   const now = ctx.currentTime - (ctx.outputLatency || ctx.baseLatency || 0);   // what the ear hears now, so the eye lands with the click
+  { let due = 0; while (due < queue.length && queue[due].t <= now) due++;   // back from a hidden tab: skip the missed steps, start at the bar playing now
+    if (due > 64) { let k = due - 1; while (k > 0 && queue[k].step !== 0) k--; queue.splice(0, k); } }
   while (queue.length && queue[0].t <= now) {
     const q = queue.shift(), b = q.beat;
     if (q.sub === 0) { pend = { t: q.t, dur: q.bd, side: ++pendN % 2 ? 1 : -1, glow: q.bar < 0 ? 0.45 : b === 0 ? 1 : 0.6 }; metroWeight(q.tp);
@@ -7632,7 +7651,7 @@ $('beatFile').addEventListener('change', async e => {
   $('beatBtn').textContent = 'Change beat'; $('beatBtn').title = f.name;
   ctx = ctx || new (window.AudioContext || window.webkitAudioContext)();
   detected = null; $('keyInfo').textContent = ''; $('keyNotes').hidden = true; $('useDet').hidden = $('halfDet').hidden = $('dblDet').hidden = true;
-  try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); }
+  try { beatBuf = await ctx.decodeAudioData(await f.arrayBuffer()); stretched = { sp: 1, buf: null }; stretchJob++; }   // a new beat: drop the old beat's pitch-kept copy and any stretch still running for it
   catch { beatBuf = null; logoWave(); bbShow(); $('det').textContent = 'Could not read that file'; if (window.PP) PP.beat(null); return; }
   waveOv = null; logoWave(); beatSkip = 0; bbShow();
   busy($('det'), 'Finding the BPM'); orbSet('think');
@@ -7659,11 +7678,11 @@ $('beatFile').addEventListener('change', async e => {
 async function makeStretch() {
   rateDirty = true;
   if (!beatBuf || speed === 1 || !$('keepPitch').checked || stretched.sp === speed) { $('speedInfo').textContent = ''; return; }
-  const job = ++stretchJob, sp = speed; busy($('speedInfo'), 'keeping pitch');
+  const job = ++stretchJob, sp = speed, src = beatBuf; busy($('speedInfo'), 'keeping pitch');
   await new Promise(r => setTimeout(r, 30));
   const chs = []; for (let c = 0; c < beatBuf.numberOfChannels; c++) chs.push(beatBuf.getChannelData(c));
   const out = await coreJob('timeStretch', chs, beatBuf.sampleRate, sp);
-  if (job !== stretchJob) return;   // speed changed again meanwhile
+  if (job !== stretchJob || src !== beatBuf) return;   // speed or beat changed meanwhile
   const b = ctx.createBuffer(out.length, out[0].length, beatBuf.sampleRate); out.forEach((y, c) => b.copyToChannel(y, c));
   stretched = { sp, buf: b }; rateDirty = true; $('speedInfo').textContent = '';
 }
@@ -7955,6 +7974,7 @@ function renderRhymes(out) {
   out.appendChild(box);
 }
 function renderFit() {
+  if (editSrc !== editNew) editNew = null;   // a new bar counts as new only while it is the one being edited (else Esc could delete a real bar)
   const out = $('fitOut'); out.replaceChildren();
   rhymes = $('rhymesOn').checked ? rhymeMap(lines) : { groups: [], syl: lines.map(() => []), endRhyme: [], multi: lines.map(() => []) }; renderRhymes(out);
   if (lines.length) out.append(bdKey());
@@ -8274,6 +8294,7 @@ document.addEventListener('keydown', e => {
   if (/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName) && document.activeElement.type !== 'checkbox' && document.activeElement.type !== 'range') return;
   if (e.code === 'KeyT' && !e.metaKey && !e.ctrlKey) { e.preventDefault(); tap(); return; }
   if (e.code === 'Escape' && running) { stop(); return; }
+  if (e.code === 'Space' && document.activeElement.matches('input[type=checkbox]:focus-visible')) return;   // a keyboard-focused switch: Space toggles it (after a mouse click, Space still starts)
   if (e.code === 'Space' && running && $('tapTest').checked) { e.preventDefault(); tapLanding(); return; }
   if (e.code === 'Space' && document.activeElement.tagName !== 'BUTTON') {
     e.preventDefault();
@@ -9333,7 +9354,7 @@ async function loadDict() {
   catch { DICTUI.state = 'failed'; }
   dictNote();
   if (DICTUI.state !== 'on') return;
-  if (lines.length) runFit();
+  if (lines.length) { const refit = () => { if ((practice && running) || editSrc != null) return setTimeout(refit, 1000); runFit(); }; refit(); }   // never stop a running Practice or drop an open bar edit: refit once they end
   WR.cache.clear(); if (!$('viewWrite').hidden) { wrAnalyse(); if (WR.word) wrRhymes(WR.word); }
 }
 window.addEventListener('load', () => (window.requestIdleCallback || (f => setTimeout(f, 800)))(loadDict));
@@ -11632,7 +11653,8 @@ function znAgo(iso) {
 }
 function znAvatar(u, big) {
   u = u || {}; const el = h('span', 'zn-av' + (big ? ' big' : ''));
-  if (u.avatar_url && /^(https:|blob:)/.test(u.avatar_url)) { const i = h('img', 'zn-av' + (big ? ' big' : '')); i.src = u.avatar_url; i.alt = ''; i.loading = 'lazy'; return i; }
+  const own = typeof znCfg === 'function' && znCfg() ? znCfg().url.replace(/\/$/, '') + '/storage/v1/object/public/avatars/' : null;   // only our own avatar storage: any other URL could be a tracking pixel
+  if (u.avatar_url && (/^blob:/.test(u.avatar_url) || (own && u.avatar_url.startsWith(own)))) { const i = h('img', 'zn-av' + (big ? ' big' : '')); i.src = u.avatar_url; i.alt = ''; i.loading = 'lazy'; return i; }
   el.textContent = (u.username || '?')[0].toUpperCase(); el.setAttribute('aria-hidden', 'true'); return el;
 }
 function znName(u) {
@@ -12007,7 +12029,8 @@ void main(){
       const loc = g.getAttribLocation(pr, 'a'); g.enableVertexAttribArray(loc); g.vertexAttribPointer(loc, 2, g.FLOAT, false, 0, 0);
       const u = {}; ['uRes', 'uDpr', 'uTime', 'uBlob', 'uSy', 'uSpk', 'uMag', 'uTint', 'uFill', 'uCorner'].forEach(n => { u[n] = g.getUniformLocation(pr, n); });
       g.enable(g.SCISSOR_TEST);
-      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); GL = null; });
+      cv.addEventListener('webglcontextlost', e => { e.preventDefault(); GL = null; document.documentElement.classList.add('ff-lost'); });
+      cv.addEventListener('webglcontextrestored', () => { GL = null; tried = false; document.documentElement.classList.remove('ff-lost'); requestAnimationFrame(() => LIVE.forEach(o => o.refresh && o.refresh())); });
       GL = { g, u, cv };
     } catch (e) { GL = null; }
     return GL;
@@ -12083,7 +12106,7 @@ void main(){
       if (s.sats.length) still = false;
       if (s.moving && still) { s.moving = false; still = false; }
       s.mouse.s += ((s.mouse.on ? 1 : 0) - s.mouse.s) * Math.min(1, dt * 7);
-      if (s.mouse.on || s.mouse.s > .01) still = false;
+      if (Math.abs((s.mouse.on ? 1 : 0) - s.mouse.s) > .01) still = false;   // settled under a resting pointer = stop drawing (pointermove restarts the loop)
       return still;
     }
     function loop() {
@@ -12172,7 +12195,7 @@ void main(){
       if (s.sats.length) still = false;
       if (s.moving && still) { s.moving = false; still = false; }
       s.mouse.s += ((s.mouse.on ? 1 : 0) - s.mouse.s) * Math.min(1, dt * 7);
-      if (s.mouse.on || s.mouse.s > .01) still = false;
+      if (Math.abs((s.mouse.on ? 1 : 0) - s.mouse.s) > .01) still = false;   // settled under a resting pointer = stop drawing (pointermove restarts the loop)
       return still;
     }
     function loop() {
