@@ -2,7 +2,7 @@
 <html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
 <title>MetroBar Studio</title>
 <meta name="theme-color" content="#eef0ec">
 <meta name="description" content="MetroBar Studio: record vocal takes over your beat, mix and export a WAV, all in the browser.">
@@ -10,7 +10,11 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MetroBar">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-192.png">
+<script src="app-shell.js"></script><!-- full-screen app shell: standalone class, keyboard/visible height, rotation, Add to Home Screen hint -->
 <style>
 /* MetroBar Studio (step 1): vocal recording over a beat. Own vanilla code, no frameworks, no CDN; idea from the vocal-recording
    part of Lemon Studio (a desktop app), nothing copied. Colours = MetroBar's light page + the dark analysis-card set for the lanes. */
@@ -124,6 +128,11 @@ dialog h2 { margin: 0 0 10px; font-size: 1.1rem; }
 }
 @media (hover: none) { .btn:hover { background: #f7f8f5; } .btn.pri:hover { background: var(--accent); } }
 @media (prefers-reduced-motion: reduce) { .btn.rec.live { animation: none; } * { transition: none !important; } }
+/* Full-screen app (2026-11-18): opened from the home screen the page runs under the status bar, notch and home bar
+   (black-translucent), so the content keeps to the safe area and the status bar gets a strip in the page colour */
+html { overscroll-behavior: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+body { overscroll-behavior: none; padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+body::before { content: ""; position: fixed; z-index: 85; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); pointer-events: none; }
 </style>
 <script src="zone-config.js"></script>
 </head>
