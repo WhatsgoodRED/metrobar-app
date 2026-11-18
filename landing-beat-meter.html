@@ -1924,7 +1924,6 @@ html.bb .pp-splay { border: 0; border-radius: 9px; padding: 8px 14px; min-height
 html.bb .pp-splay:active { transform: scale(.97); }
 html.bb .pp-sx { width: 32px; height: 32px; border-radius: 8px; border: 1px solid color-mix(in srgb, currentColor 18%, transparent); background: transparent; color: inherit; font-size: 1.05rem; cursor: pointer; }
 html.bb .pp-strip button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-html:not(.pp-mode) .pp-wt { display: none !important; }
 
 /* Bar Book writing (Bennie 2026-11-18): Bar for bar off = one big plain pad from under the title to the bottom; the rhyme panel
    (#rbZl, the Focus list) docks on the right and fills in as you type; Play in the top row launches the song in the Flow Game */
@@ -1939,6 +1938,18 @@ html.bb #rbEd:not(.be-on) > #rbText { min-height: calc(100dvh - 170px) !importan
   html.bb.bb-rhy .rb-zl { grid-row: 1; grid-column: -2; min-height: 0; height: 100dvh; overflow: auto; scrollbar-width: thin; align-content: start; }
   html.bb.bb-rhy body:not(.rb-zen) .rb-zlh { display: none; }
 }
+html.bb .bb-ptabs { display: none; }
+@media (min-width: 1001px) {
+  html.bb.bb-rhy body:not(.rb-zen) .bb-ptabs { display: flex; gap: 2px; padding: 3px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); position: sticky; top: 0; z-index: 2; }
+  .bb-ptabs button { flex: 1; min-height: 32px; border: 0; border-radius: 8px; background: transparent; color: var(--muted); font: 700 .8rem var(--body); cursor: pointer; }
+  .bb-ptabs button[aria-selected="true"] { background: var(--fg); color: var(--bg); }
+  .bb-ptabs button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  html.bb.bb-rhy #rbZl[data-tab="tech"] .rb-zlq, html.bb.bb-rhy #rbZl[data-tab="tech"] .rb-zlo { display: none; }
+  html.bb.bb-rhy #rbZl:not([data-tab="tech"]) .bb-techbox { display: none; }
+  body.rb-zen .bb-techbox { display: none; }
+}
+.bb-techbox .wr-card { display: block; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; max-width: 100%; }
+.bb-techbox .wr-card > h3, .bb-techbox .wr-card > .wr-x { display: none; }
 html.bb .be-play { display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 0 16px; border: 0; border-radius: 999px; background: var(--accent); color: var(--on-accent, #fff); font: 700 .86rem var(--body); cursor: pointer; }
 html.bb .be-play svg { width: 14px; height: 14px; fill: currentColor; }
 html.bb .be-play:active { transform: scale(.97); }
@@ -7012,7 +7023,7 @@ var LIB = (function () {
   L.setText = (id, text, src) => {
     const p = L.song(id); text = String(text == null ? '' : text); if (!p || p.text === text) return p;
     p.text = text; p.updated = Date.now();
-    if (!String(p.title || '').trim()) { const b = libBars(text)[0]; if (b) p.title = b.body.slice(0, 40); }
+    if (!String(p.title || '').trim()) { const b = libBars(text).find(x => x.body.trim() && !/^\s*#/.test(x.body)); if (b) p.title = b.body.slice(0, 40); }
     L.save(); L.emit('text', src); return p;
   };
   L.setCur = (id, src) => { if (!L.song(id) || L.cur === id) return; L.cur = id; store.set('metrobar.bookCur', id); L.emit('cur', src); L.sweepSoon(); };
@@ -7032,7 +7043,7 @@ var LIB = (function () {
   L.sweepSoon = () => { clearTimeout(L.swT); L.swT = setTimeout(() => { try { L.sweep(); } catch (e) { console.error(e); } }, 1500); };
   L.create = (text, title, src) => {
     const t = Date.now(), p = { id: 'b' + t.toString(36) + Math.random().toString(36).slice(2, 6), title: String(title || ''), text: String(text || ''), folder: '', locked: false, created: t, updated: t };
-    if (!p.title.trim()) { const b = libBars(p.text)[0]; if (b) p.title = b.body.slice(0, 40); }
+    if (!p.title.trim()) { const b = libBars(p.text).find(x => x.body.trim() && !/^\s*#/.test(x.body)); if (b) p.title = b.body.slice(0, 40); }
     L.pages.unshift(p); L.cur = p.id; L.saveNow(); L.emit('cur', src); L.sweepSoon(); return p;
   };
   return L;
@@ -16092,7 +16103,7 @@ var PPZ = (() => {
     W_TOOLS.forEach(([tab]) => { const c = document.querySelector(`.wr-card[data-tab="${tab}"]`), box = side.querySelector(`.rb-tool[data-tool="w:${tab}"] .rb-tbody`); if (c && box && c.parentElement !== box) { c.dataset.ppHid = c.hidden ? '1' : ''; box.append(c); c.hidden = false; } });
   }
   function toolsBack() {
-    W_TOOLS.forEach(([tab]) => { const c = document.querySelector(`.wr-card[data-tab="${tab}"]`); if (c && c.parentElement && c.parentElement.classList.contains('rb-tbody')) { c.hidden = c.dataset.ppHid === '1'; $('wrPanels').append(c); } });
+    W_TOOLS.forEach(([tab]) => { const c = document.querySelector(`.wr-card[data-tab="${tab}"]`); if (c && c.parentElement && (c.parentElement.classList.contains('rb-tbody') || c.parentElement.id === 'bbTechBox')) { c.hidden = c.dataset.ppHid === '1'; $('wrPanels').append(c); } });
     document.querySelectorAll('#rbSide .pp-wt').forEach(e => { e.hidden = true; });
   }
   function hlNow() { return RB.look.hi ? 'rhyme' : 'stress'; }
@@ -16118,7 +16129,7 @@ var PPZ = (() => {
   function place() {
     const head = document.querySelector('.be-head'); if (!head) { setTimeout(place, 120); return; }
     if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || strip.nextElementSibling !== head) head.before(strip);
-    tools(); stripUi(); beatUi(); wrSync();
+    tools(); stripUi(); beatUi(); wrSync(); if (window.BBP) BBP.techSync();
     const want = store.get('metrobar.ppHl', 'stress'); if (want !== hlNow() || ($('bsFlowB') && $('bsFlowB').getAttribute('aria-pressed') !== 'true')) hlSet(want);
   }
   function blank() {   // a blank page: the empty one Bar Book made last time, else a new one (no pile of empty songs)
@@ -16131,9 +16142,13 @@ var PPZ = (() => {
     if (location.hash === '#book') { try { bookOpen(); } catch (e) {} place(); } else mwGo('#book');
   }
   function exit() { if (!on) return; on = false; html.classList.remove('pp-mode'); try { sessionStorage.removeItem('metrobar.ppMode'); } catch (e) {} toolsBack(); if (strip) strip.remove(); }
-  addEventListener('hashchange', () => { if (!on) return; if (location.hash === '#book') setTimeout(place, 0); else exit(); });
+  addEventListener('hashchange', () => { const bk = location.hash === '#book'; if (on) { if (bk) setTimeout(place, 0); else exit(); } else if (bk) setTimeout(toolsIn, 300); else toolsBack(); });
+  // Bennie 2026-11-18 ("it took the techniques away, in Bar Book"): Write's tools (Techniques first) are in the editor every time
+  // it shows, not only when it was opened through the Bar Book card
+  function toolsIn() { if (location.hash !== '#book' || !$('rbSide')) return; tools(); wrSync(); if (window.BBP) BBP.techSync(); }
+  if (location.hash === '#book') setTimeout(toolsIn, 600);
   // Write's tools follow the page as you type (the editor fires #rbText's input event)
-  document.addEventListener('input', e => { if (on && e.target && e.target.id === 'rbText') { clearTimeout(syncT); syncT = setTimeout(wrSync, 500); } }, true);
+  document.addEventListener('input', e => { if ((on || location.hash === '#book') && e.target && e.target.id === 'rbText') { clearTimeout(syncT); syncT = setTimeout(wrSync, 500); } }, true);
   LIB.on((kind, src) => { if (on && (kind === 'cur' || kind === 'ext')) { clearTimeout(syncT); syncT = setTimeout(wrSync, 300); } });
   // bars clicked in a Write tool jump to that bar in the editor; Stash takes the bar you are on
   const goBar0 = wrGoBar; wrGoBar = function (r) { if (on) { rbGoLine(r.i); return; } return goBar0(r); };
@@ -16172,6 +16187,7 @@ var BBP = (() => {
     S.rhy = !!on; if (user) store.set('metrobar.bookRhy', S.rhy); root.classList.toggle('bb-rhy', S.rhy);
     const rf = $('beRf'); if (rf) rf.setAttribute('aria-pressed', String(S.rhy && innerWidth > 1000));
     if (S.rhy) { ZEN.w = '\u0000'; rbZenWord(true, false); }
+    techSync();
   }
   const isPad = el => el && el.tagName === 'TEXTAREA' && (el.id === 'rbText' || el.classList.contains('be-in'));
   document.addEventListener('input', e => { if (!isPad(e.target) || !rhyOn() || ZEN.on) return; clearTimeout(S.t); S.t = setTimeout(() => rbZenWord(false, false), 280); }, true);
@@ -16181,14 +16197,35 @@ var BBP = (() => {
     rf.title = 'Rhymes: a panel next to your page that fills in as you type (Ctrl/⌘+J opens the Rhyme Finder)';
     rf.addEventListener('click', e => { if (innerWidth <= 1000) return; e.stopImmediatePropagation(); e.preventDefault(); rhy(!S.rhy, true); }, true);
   }
+  // the side panel has two tabs (Bennie 2026-11-18): Rhymes (fills in as you type) and Techniques (Write's Techniques card, all 41
+  // with their examples, moved in here; back in the Actions panel / Write when you switch tabs or leave)
+  S.tab = store.get('metrobar.bookPanel', 'rhy') === 'tech' ? 'tech' : 'rhy';
+  const zl = $('rbZl'), tabs = h('div', 'bb-ptabs'), techBox = h('div', 'bb-techbox'); techBox.id = 'bbTechBox'; tabs.setAttribute('role', 'tablist'); tabs.setAttribute('aria-label', 'Side panel');
+  [['rhy', 'Rhymes'], ['tech', 'Techniques']].forEach(([k, l]) => { const b = h('button', '', l); b.type = 'button'; b.dataset.k = k; b.setAttribute('role', 'tab'); b.addEventListener('click', () => tab(k, true)); tabs.append(b); });
+  zl.prepend(tabs); zl.append(techBox);
+  const techCard = () => document.querySelector('.wr-card[data-tab="Techniques"]');
+  function techSync() {
+    const c = techCard(); if (!c) return;
+    if (S.tab === 'tech' && rhyOn() && location.hash === '#book') { if (c.parentElement !== techBox) { c.dataset.ppHid = c.dataset.ppHid || (c.hidden ? '1' : ''); techBox.append(c); } c.hidden = false; }
+    else if (c.parentElement === techBox) { const home = document.querySelector('.rb-tool[data-tool="w:Techniques"] .rb-tbody'); if (home && location.hash === '#book') home.append(c); else { c.hidden = c.dataset.ppHid === '1'; $('wrPanels').append(c); } }
+  }
+  function tab(k, user) {
+    S.tab = k; if (user) store.set('metrobar.bookPanel', k); zl.dataset.tab = k;
+    tabs.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.k === k)));
+    if (k === 'tech' && !S.rhy) rhy(true, user);
+    techSync(); if (k === 'rhy') { ZEN.w = '\u0000'; rbZenWord(true, false); }
+  }
+  addEventListener('hashchange', () => { if (location.hash !== '#book') techSync(); });
+  techBox.addEventListener('click', e => { if (e.target.closest('.pad')) setTimeout(() => { const c = $('wrTechCard'); if (c && !c.hidden) c.scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }); }, 60); });
   function boot() {
     if (!BE.flowBtn.parentElement) { setTimeout(boot, 200); return; }
+    tab(S.tab);
     BE.flowBtn.after(rowsB); wireRf(); placePlay(); rows(S.rows); rhy(S.rhy);
   }
   setTimeout(boot, 0);
   addEventListener('hashchange', () => { if (location.hash === '#book') [300, 1200].forEach(ms => setTimeout(() => { wireRf(); placePlay(); rhy(S.rhy); }, ms)); });
   addEventListener('resize', () => { const rf = $('beRf'); if (rf) rf.setAttribute('aria-pressed', String(S.rhy && innerWidth > 1000)); });
-  return { rows, rhy, get state() { return S; } };
+  return { rows, rhy, tab, techSync, get state() { return S; } };
 })();
 </script>
 </body>
