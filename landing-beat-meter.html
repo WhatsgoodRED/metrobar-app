@@ -2008,6 +2008,20 @@ html:not(.pp-mode) .pp-wt { display: none !important; }
 .pp-card:hover { border-color: var(--accent); box-shadow: 0 12px 34px -18px color-mix(in srgb, var(--accent) 60%, transparent); }
 .pp-card:active { transform: scale(.985); }
 .pp-card:disabled { opacity: .5; cursor: not-allowed; }
+.pp-map { display: grid; gap: 10px; }
+.pp-mapbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; position: sticky; top: -6px; z-index: 2; padding: 8px 0; background: var(--bg); }
+.pp-mapbar b { font-size: .95rem; } .pp-mapbar > span:not(.tg-sp) { font-size: .84rem; color: var(--muted); }
+#ppMap { display: grid; gap: 14px; }
+.pp-mg { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13.5rem), 1fr)); gap: 8px; }
+.pp-mh { grid-column: 1 / -1; justify-self: start; font: 700 .76rem var(--body); letter-spacing: .08em; text-transform: uppercase; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+.pp-mh:hover { border-color: var(--accent); }
+.pp-mb { position: relative; display: block; padding: 8px 8px 4px 26px; border: 1px solid var(--line); border-radius: 12px; background: var(--tg-card); color: var(--fg); cursor: pointer; text-align: left; font: inherit; min-width: 0; }
+.pp-mb svg { display: block; width: 100%; height: auto; }
+.pp-mn { position: absolute; left: 8px; top: 9px; font: 700 .72rem var(--mono, monospace); color: var(--muted); }
+.pp-mb:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.pp-mb[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent); }
+.pp-mb[aria-pressed="true"] .pp-mn { color: var(--accent-text, var(--accent)); }
+.pp-mb:focus-visible, .pp-mh:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
 .pp-shbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .pp-paper { background: #fff; color: #15181a; border-radius: 12px; padding: clamp(18px, 4vw, 40px); border: 1px solid var(--line); --rb-cs: 82%; --rb-cl: 43%; --rb-ta: 17%; }
 .pp-paper h1 { margin: 0 0 4px; font: 700 1.3rem var(--body); }
@@ -3879,6 +3893,11 @@ html.bb.bb-day .be-secm .nf-ico { background:radial-gradient(120% 120% at 30% 15
           <button class="pp-card" type="button" id="ppPlayGame"><b>Practise bar by bar</b><span>Every bar as its own Flow Game round, twice through, with the loop after it. Next bar moves on.</span></button>
           <button class="pp-card" type="button" id="ppSheetBtn"><b>Keep it as a lyric sheet</b><span>Your song, saved in your songs, as a clean sheet with the highlight. Print it, copy it or open it in Write.</span></button>
         </div>
+        <section class="pp-map" id="ppMapBox" aria-label="Your song in play form">
+          <div class="pp-mapbar"><b>Pick what to practise</b><span id="ppSelTxt">Click a bar for its 4 bars, click another to stretch it, or click a part's name.</span><span class="tg-sp"></span>
+            <button class="tg-b" type="button" id="ppSelClear" hidden>Clear</button><button class="tg-b tg-pri" type="button" id="ppSelPlay" disabled>Play selection</button></div>
+          <div id="ppMap"></div>
+        </section>
         <div class="pp-sheet" id="ppSheet" hidden>
           <div class="pp-shbar"><button class="tg-b" type="button" id="ppPrint">Print</button><button class="tg-b" type="button" id="ppCopy">Copy lyrics</button><button class="tg-b" type="button" id="ppToWrite">Open in Write</button></div>
           <article class="pp-paper" id="ppPaper"></article>
@@ -13560,13 +13579,15 @@ const TG = (() => {
   }
   let songBpm = 0;
   let songTitle = '';
-  function playSong(i, beat, o = {}) { OWNB = beat && beat.buf ? beat : null; ownOff = false; songBpm = beat && beat.bpm ? beat.bpm : 0; songTitle = o.title || ''; open(); if (o.whole) playWhole(i); else playFit(i, true); }
+  function playSong(i, beat, o = {}) { OWNB = beat && beat.buf ? beat : null; ownOff = false; songBpm = beat && beat.bpm ? beat.bpm : 0; songTitle = o.title || ''; open(); if (o.whole) playWhole(i, o.to); else playFit(i, true); }
   // the whole song in one run, like Guitar Hero: every bar once, back to back, scored as one (Bennie 2026-11-18)
-  function playWhole(i) {
-    const n = lines.filter((L, k) => k >= i && L.N).length; if (!n) return; const L = lines[i];
-    const secs = []; lines.forEach((x, k) => { if (k >= i && x.N && x.section && !secs.includes(x.section.name)) secs.push(x.section.name); });
-    setCur({ key: 'S:' + fitKey({ text: lines.filter(x => x.N).map(x => x.text).join('/'), flow: { id: 'song' } }), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, song: true, whole: true,
-      no: 'Whole song', name: songTitle || 'Your song', sub: `${n} bars${secs.length ? ' · ' + secs.slice(0, 6).join(', ') : ''} · ${by()}`,
+  function playWhole(i, to) {
+    const end = to != null ? to : lines.length - 1, inR = (x, k) => k >= i && k <= end && x.N;
+    const n = lines.filter(inR).length; if (!n) return; const L = lines[i];
+    const secs = []; lines.forEach((x, k) => { if (inR(x, k) && x.section && !secs.includes(x.section.name)) secs.push(x.section.name); });
+    const all = to == null || lines.slice(end + 1).every(x => !x.N) && lines.slice(0, i).every(x => !x.N);
+    setCur({ key: 'S:' + fitKey({ text: lines.filter(inR).map(x => x.text).join('/'), flow: { id: 'song' } }), L: Object.assign({}, L, { rh: [], enj: null, dev: null, ghostTo: 0 }), fit: i, to: all ? null : end, song: true, whole: true,
+      no: all ? 'Whole song' : n + (n === 1 ? ' bar' : ' bars'), name: songTitle || 'Your song', sub: `${n} bars${secs.length ? ' · ' + secs.slice(0, 6).join(', ') : ''} · ${by()}`,
       tip: 'Your whole song in one run: every bar once, back to back, on your beat. The rows roll on as you go; hold the long pills.', base: Math.round(Math.min(200, Math.max(50, OWNB ? OWNB.bpm : songBpm || Math.min(bpm(), 90)))) });
   }
   function playCal() {
@@ -13575,12 +13596,13 @@ const TG = (() => {
         : 'Tap on every click, eight times. MetroBar measures how late your taps arrive (Bluetooth headphones add delay) and sets the sound delay for tap.' });
   }
   // whole song: the song's bars (from the first one with words), each drawn in its own row when it comes up
-  function songBars() { const out = []; for (let i = cur.fit; i < lines.length; i++) if (lines[i].N) { const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }); out.push({ L, li: i, tg: gameTargets(L) }); } return out; }
+  function songBars() { const out = [], end = cur.to != null ? Math.min(cur.to, lines.length - 1) : lines.length - 1; for (let i = cur.fit; i <= end; i++) if (lines[i].N) { const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }); out.push({ L, li: i, tg: gameTargets(L) }); } return out; }
   function songRow(bi, W) {
     W = W || (R && R.song) || cur.W; const b = W[bi]; if (!b) return; const ri = bi % 2, old = rows[ri]; if (old && old.bar === bi) return;
     const L = b.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), zs = b.tg.map((x, k) => [k ? x.slot : -99, k + 1 < b.tg.length ? b.tg[k + 1].slot : 99]);
     const r = rowDraw(old.row, ri, { L, pad, tg: b.tg, zs }); r.bar = bi; rows[ri] = r;
-    const sec = L.section ? L.section.name + ' · ' : ''; r.row.querySelector('.tg-pass').textContent = `${sec}bar ${bi + 1} of ${W.length}`;
+    const sec = L.section ? L.section.name + ' · ' : '', abs = lines.slice(0, b.li + 1).filter(x => x.N).length;
+    r.row.querySelector('.tg-pass').textContent = `${sec}bar ${abs} · ${bi + 1} of ${W.length}`;
   }
   function drawRows() {
     if (cur.whole) { const box = $('tgRows'); box.replaceChildren(); rows = []; cur.W = songBars();
@@ -16112,6 +16134,38 @@ var PP = (() => {
     const w = written(), t = $('ppSongTitle').value.trim() || 'Your song';
     $('ppDoneLead').textContent = !S.secs.length ? 'Add some parts and bars first.' : `${t}: ${S.secs.length} part${S.secs.length > 1 ? 's' : ''}, ${w} of ${total()} bars written${beatBuf ? `, on ${BEAT.name || 'your beat'}` : ''}. It is saved in your songs, on every MetroBar screen.`;
     $('ppPlayGame').disabled = $('ppPlayWhole').disabled = !w;
+    if (w) { save(true); mapRender(); } else $('ppMap').replaceChildren();
+  }
+  // ---- the song in play form: every bar drawn like the Flow Game, grouped by part; select a stretch and play just that
+  let SEL = null;   // { a, b } = first and last line index (Fit lines)
+  function prepLines() { if (!S.id) return false; LIB.setCur(S.id, 'pp'); fitFromLib(); if (!lines.length) runFit(); return lines.some(L => L.N); }
+  const nBars = (a, b) => lines.filter((L, k) => k >= a && k <= b && L.N).length;
+  function selTxt() {
+    if (!SEL) { $('ppSelTxt').textContent = 'Click a bar for its 4 bars, click another to stretch it, or click a part’s name.'; $('ppSelPlay').disabled = true; $('ppSelClear').hidden = true; $('ppSelPlay').textContent = 'Play selection'; return; }
+    const n = nBars(SEL.a, SEL.b), no = k => lines.slice(0, k + 1).filter(L => L.N).length;
+    $('ppSelTxt').textContent = n === 1 ? `Bar ${no(SEL.a)}` : `Bars ${no(SEL.a)} to ${no(SEL.b)}`; $('ppSelPlay').disabled = !n; $('ppSelClear').hidden = false; $('ppSelPlay').textContent = `Play ${n} bar${n === 1 ? '' : 's'}`;
+    $('ppMap').querySelectorAll('.pp-mb').forEach(b => { const k = +b.dataset.li; b.setAttribute('aria-pressed', String(k >= SEL.a && k <= SEL.b)); });
+  }
+  function chunkOf(k) {   // the 4-bar group (counted inside its part) that bar k sits in
+    const L = lines[k], same = lines.map((x, i) => [x, i]).filter(([x]) => x.N && x.section === L.section).map(([, i]) => i), p = same.indexOf(k), s0 = p - p % 4;
+    return { a: same[s0], b: same[Math.min(same.length - 1, s0 + 3)] };
+  }
+  function mapRender() {
+    const box = $('ppMap'); box.replaceChildren(); SEL = null;
+    if (!prepLines()) { box.append(h('p', 'pp-lead', 'Write some bars first: they show up here in play form.')); selTxt(); return; }
+    let grp = null, sec = undefined, no = 0;
+    lines.forEach((L, k) => {
+      if (!L.N) return; no++;
+      if (L.section !== sec || !grp) { sec = L.section; grp = h('div', 'pp-mg'); const hb = h('button', 'pp-mh', sec ? sec.name : 'Bars'); hb.type = 'button';
+        const ks = lines.map((x, i) => [x, i]).filter(([x]) => x.N && x.section === sec).map(([, i]) => i); hb.title = `Select the whole ${sec ? sec.name : 'part'} (${ks.length} bars)`;
+        hb.onclick = () => { SEL = { a: ks[0], b: ks[ks.length - 1] }; selTxt(); }; grp.append(hb); box.append(grp); }
+      const b = h('button', 'pp-mb'); b.type = 'button'; b.dataset.li = k; b.setAttribute('aria-pressed', 'false'); b.setAttribute('aria-label', `Bar ${no}: ${L.text}`);
+      let svg = null; try { svg = breakdownSvg(Object.assign({}, L, { enj: null, dev: null, ghostTo: 0 }), k); } catch (e) {}
+      b.append(h('span', 'pp-mn', String(no))); if (svg) b.append(svg); else b.append(h('span', '', L.text));
+      b.onclick = () => { const c = chunkOf(k); if (!SEL) SEL = c; else if (k >= SEL.a && k <= SEL.b && SEL.a === c.a && SEL.b === c.b) SEL = null; else SEL = { a: Math.min(SEL.a, k), b: Math.max(SEL.b, k) }; selTxt(); };
+      grp.append(b);
+    });
+    selTxt();
   }
   function sheet() {
     save(true); const pap = $('ppPaper'); pap.replaceChildren();
@@ -16124,13 +16178,13 @@ var PP = (() => {
     $('ppSheet').hidden = false; toast('Saved in your songs as a lyric sheet');
   }
   const plain = () => S.secs.filter(s => s.bars.some(b => b.trim())).map(s => '[' + label(S.secs.indexOf(s)) + ']\n' + s.bars.filter(b => b.trim()).join('\n')).join('\n\n');
-  function playGame(whole) {
+  function playGame(whole, range) {
     if (!dlg.open) { const p = LIB.song(); if (p) { fromSong(p); $('ppSongTitle').value = p.title || ''; } } else save(true);
     if (!S.id || !written()) { toast('Write a bar first'); return; }
     beatStop(); LIB.setCur(S.id, 'pp'); fitFromLib(); if (!lines.length) runFit();
     const i = lines.findIndex(L => L.N); if (i < 0) { toast('No bars to play yet'); return; }
     const off = +$('beatOffset').value, bt = beatBuf && BEAT.bpm ? { id: (BEAT.name || 'beat') + ':' + beatBuf.length, buf: beatBuf, bpm: tempo(), down: isFinite(off) && off >= 0 ? off : BEAT.first, name: BEAT.name } : null;
-    if (dlg.open) dlg.close(); TG.playSong(i, bt || (tempo() ? { bpm: tempo() } : null), { whole: whole === true, title: (LIB.song(S.id) || {}).title || '' });
+    if (dlg.open) dlg.close(); TG.playSong(range ? range.a : i, bt || (tempo() ? { bpm: tempo() } : null), { whole: whole === true, to: range ? range.b : null, title: (LIB.song(S.id) || {}).title || '' });
   }
 
   // ---- steps + open
@@ -16179,6 +16233,8 @@ var PP = (() => {
   $('ppDbl').addEventListener('click', () => { if (tempo() * 2 <= 200) { BEAT.mult *= 2; beatUi(); } });
   $('ppPlayGame').addEventListener('click', () => playGame(false));
   $('ppPlayWhole').addEventListener('click', () => playGame(true));
+  $('ppSelPlay').addEventListener('click', () => { if (SEL) playGame(true, SEL); });
+  $('ppSelClear').addEventListener('click', () => { SEL = null; $('ppMap').querySelectorAll('.pp-mb').forEach(b => b.setAttribute('aria-pressed', 'false')); selTxt(); });
   $('ppSheetBtn').addEventListener('click', sheet);
   $('ppCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText(($('ppSongTitle').value.trim() ? $('ppSongTitle').value.trim() + '\n\n' : '') + plain()); toast('Lyrics copied'); } catch (e) { toast('Copy didn’t work here'); } });
   $('ppPrint').addEventListener('click', () => { document.body.classList.add('pp-printing'); window.print(); });
