@@ -3271,6 +3271,10 @@ header > .views { grid-column: 1 / -1; width: min(100%, 31rem); justify-self: ce
 /* The active tab's bubble is red (Bennie 2026-11-14, twice: "should be red"); the design pass had made it ink. Never make it black again. */
 @media (max-width: 700px) { .views a, .views a[aria-current="page"], .views.ff-nav a { padding: 8px 2px; } }
 @media (max-width: 360px) { .views a, .views a[aria-current="page"], .views.ff-nav a { white-space: normal; line-height: 1.15; padding-block: 6px; } }
+/* The decorative 1-2-3-4 tiles under the wordmark are gone (Bennie 2026-11-19: "they have no function"); the menu takes their
+   place: 6px under the logo tile, like the tiles sat (header gap is 12px) */
+body:not(.book) header > .views { margin-top: -6px; }
+@media (min-width: 1081px) { body:not(.book) header { position: relative; } body:not(.book) header > .hright { position: absolute; top: var(--hr-top, 0px); right: 16px; } body:not(.book) header > .logo { align-self: start; } }   /* the taller right column (day/night + racks switch) no longer pushes the logo down */
 /* Studio tile + round Zone button (Bennie 2026-11-14): the fourth tile opens studio.html; The Zone moved to a round button
    right under Info (same .ibtn look and size). .hbtns = search | (Info over Zone). The button turns accent while you're on the Zone. */
 .hbtns { display: grid; grid-template-columns: auto auto auto; gap: 6px; align-items: start; }
@@ -3897,7 +3901,6 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
   <header>
     <div class="logo" id="logo" role="img" aria-label="MetroBar">
       <div class="logo-tile"><span class="wm">MetroBar</span><canvas class="lwave" id="logoWave" aria-hidden="true"></canvas></div>
-      <div class="logo-sub" aria-hidden="true"><i>1</i><i>2</i><i>3</i><i class="a">4</i></div>
     </div>
     <h1 class="sr-only" id="scrName">MetroBar</h1>
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#book" title="Bar Book: write your songs, rhymes light up, then play them in the Game"><span>Bar Book</span></a><a href="#game" title="The Flow Game and Pocket Aim"><span>Game</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
@@ -9247,6 +9250,7 @@ function mwGroups() {
   const L = [], R = [], q = s => document.querySelector(s);
   const sub = document.querySelectorAll('.logo-sub i'), nav = document.querySelectorAll('.views a');
   L.push(q('.logo-tile'), sub[0], sub[1], nav[0], nav[1]); R.push(sub[2], sub[3], nav[2], nav[3], q('header .hright'));
+  for (const A of [L, R]) for (let i = A.length - 1; i >= 0; i--) if (!A[i]) A.splice(i, 1);
   // the liquid-glass pill under the current tab (.ff-cv canvas) goes with that tab
   const cur = [...nav].findIndex(a => a.getAttribute('aria-current') === 'page'), pill = q('.views > .ff-cv'); if (pill && nav[cur]) pill.mwRef = nav[cur]; (cur > 1 ? R : L).push(pill);
   // below the header, per view. Boxes with a wrapper move whole; loose buttons go to the side of the screen they sit on.
