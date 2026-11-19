@@ -2066,7 +2066,8 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
   html.bb .pp-strip > * { flex-shrink: 0; }
   html.bb .pp-strip > .pp-sbeat.pp-has { flex: 0 1 auto; min-width: 0; max-width: none; display: inline-flex; align-items: center; gap: 4px; overflow: hidden; }   /* Bennie 2026-11-19: the beat name stays on phones, cut with … when tight */
   html.bb .pp-strip:has(.pp-has) .pp-sbadge { display: none; }   /* room for the beat name */
-  html.bb .pp-sbeat.pp-has .pp-sbn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  html.bb .pp-sbeat.pp-has .pp-sbn { display: flex; min-width: 0; white-space: nowrap; }
+  html.bb .pp-sbeat.pp-has .pp-sbnm { min-width: 0; overflow: hidden; text-overflow: ellipsis; } html.bb .pp-sbeat.pp-has .pp-sbpm { flex: none; }
   html.bb .pp-sbeat:not(.pp-sex):not(.pp-sdict)::before { content: '♫'; }
   html.bb .pp-sbeat:not(.pp-sex) { padding: 6px 10px; min-width: 36px; }
   html.bb .pp-sdict { font-size: 0; gap: 0; } html.bb .pp-sdict svg { width: 16px; height: 16px; }
@@ -16955,7 +16956,10 @@ var PPZ = (() => {
     if (!STASH.some(x => x.text === t)) STASH.unshift({ text: t, at: Date.now() }); STASH = STASH.slice(0, 300); stashSave(); toast('Stashed: ' + t.slice(0, 40));
   }, true);
   if (location.hash === '#book' || location.hash === '#write') { on1(); setTimeout(place, 300); }
-  function beatUi() { if (!strip) return; const b = PP.beatInfo(), el = strip.querySelector('.pp-sbn'); el.parentElement.classList.toggle('pp-has', !!(b.has || b.busy)); el.textContent = b.busy ? 'Finding the tempo…' : b.has ? `${(b.name || 'Your beat').replace(/\.[a-z0-9]+$/i, '').slice(0, 24)}${b.bpm ? ' · ' + Math.round(b.bpm) + ' BPM' : ''}` : 'Upload a beat'; }
+  function beatUi() { if (!strip) return; const b = PP.beatInfo(), el = strip.querySelector('.pp-sbn'); el.parentElement.classList.toggle('pp-has', !!(b.has || b.busy)); if (b.busy || !b.has) { el.textContent = b.busy ? 'Finding the tempo…' : 'Upload a beat'; return; }
+    // name and BPM in two spans: on phones the name shrinks with … and the BPM always stays (Bennie 2026-11-19)
+    const nm = h('span', 'pp-sbnm', (b.name || 'Your beat').replace(/\.[a-z0-9]+$/i, '').slice(0, 24)); el.replaceChildren(nm);
+    if (b.bpm) el.append(h('span', 'pp-sbpm', ' · ' + Math.round(b.bpm) + ' BPM')); }
   return { enter, exit, beatUi, get on() { return on; }, sync: wrSync };
 })();
 </script>
