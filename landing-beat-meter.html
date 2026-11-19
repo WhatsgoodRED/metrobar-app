@@ -1944,6 +1944,8 @@ html:not(.rk-off) #viewPractice > .adv, #viewPractice > .tg-entry:has(> .tg-ebtn
 #advTg.adv-rack, #viewPractice .tg-ebtn.vr { position: relative; width: calc(100% - 2 * var(--rail)); margin-inline: auto; border-radius: 0; box-shadow: none; overflow: visible; transform: none; }
 #advTg.adv-rack:hover, #viewPractice .tg-ebtn.vr:hover { transform: none; box-shadow: none; filter: brightness(1.03); }
 #advTg.adv-rack .adv-v, #viewPractice .tg-ebtn.vr .vr-v { border-radius: 0; }
+/* Flow Game rack art has ~89px black bands top and bottom baked in (1024x1536): crop them so it sits flush like Bar Book (2026-11-19) */
+#tgOpen .vr-v { aspect-ratio: 1024 / 1358; object-fit: cover; object-position: 50% 50%; }
 #advTg.adv-rack::before, #advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::before, #viewPractice .tg-ebtn.vr::after {
   content: ""; position: absolute; top: 0; bottom: 0; width: calc(var(--rail) + 8px); z-index: -1; pointer-events: none;
   /* black 19" rack: outer side panel + inner rail with square cage-nut holes; the rack ears overlap the rail by 8px */
