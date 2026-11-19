@@ -2307,13 +2307,17 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-row .bd svg { margin-inline: auto; display: block; }
 .tg-pass { position: absolute; top: 4px; left: 8px; font: 600 .66rem var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
 .tg-row.tg-now .tg-pass { color: var(--tg-at); }
-/* Long track (2026-11-19): both passes side by side, one line 1-8; on phones each pass keeps a readable width and the line slides with the playhead */
-.tg-rows.tg-long { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+/* Long track (2026-11-19): both passes in ONE svg on one line, 1-8; on phones the line keeps a readable width and slides with the playhead */
+.tg-rows.tg-long { display: block; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
 .tg-rows.tg-long::-webkit-scrollbar { display: none; }
-.tg-rows.tg-long .tg-row:first-child { border-radius: 12px 0 0 12px; }
-.tg-rows.tg-long .tg-row + .tg-row { border-top: 0; border-left: 1px dashed var(--line); border-radius: 0 12px 12px 0; }
+.tg-row.tg-lrow { padding-inline: 0; }
+.tg-row.tg-lrow.tg-now, .tg-row.tg-lrow { background: none; }
+.tg-half { position: absolute; top: 0; bottom: 0; width: 50%; border-radius: 12px; pointer-events: none; transition: background .2s; }
+.tg-half + .tg-half { border-left: 1px dashed var(--line); border-radius: 0 12px 12px 0; }
+.tg-half.tg-now { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.tg-half.tg-now .tg-pass { color: var(--tg-at); }
 .tg-rows.tg-long .tg-row .bd svg { max-width: none !important; width: 100% !important; height: auto; }
-@media (max-width: 640px) { .tg-rows.tg-long { grid-auto-columns: minmax(300px, 88%); } }
+@media (max-width: 640px) { .tg-row.tg-lrow { width: max(600px, 176%); } }
 .tg-mark { transform-box: fill-box; transform-origin: center; }
 .tg-mark.tg-pop { animation: tg-pop .22s ease-out; }
 /* tap numbers on the pills (Bennie 2026-11-17): blue count on, red landings count on their own, the next one is ringed */
@@ -11916,6 +11920,7 @@ function znSupabase(cfg) {
       const q = () => sb.from('game_board').select('id,user_id,username,badge,bpm,acc,bonus,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100);
       const r = await q(); if (!r.error || !/bonus/.test(r.error.message || '')) return chk(r);
       return chk(await sb.from('game_board').select('id,user_id,username,badge,bpm,acc,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100)); },
+    async gameMine(id) { const r = await sb.from('game_scores').select('mode,bar,stars').eq('user_id', id).limit(5000); return r.error ? [] : r.data || []; },
     async gameOf(id) { const r = await sb.from('profiles').select('game_stars,game_level').eq('id', id).maybeSingle(); return r.error ? null : r.data; },
     async gameHide(id, on) { chk(await sb.rpc('zone_game_hide', { p: id, on_: on })); },
     async gameReport(id, reason) { chk(await sb.from('reports').insert({ score_id: id, reason })); },
@@ -14238,13 +14243,31 @@ const TG = (() => {
       li.append(hd, h('p', 'tg-lt', V.tip), mn, bars); ol.append(li);
     });
   }
+  // Bennie 2026-11-19: "if I press play, it should just start playing by the level that I'm at with that account": the furthest level
+  // played in play order (the next one once it's cleared), at its first bar without 3 stars. Signed in, the account's Zone scores
+  // (game_scores, own rows) top up the stars kept on this device first, so a new device starts where the account is.
+  function myLevel() {
+    let k = -1; ORDER.forEach((lv, i) => { if (lvStars(lv) > 0) k = i; });
+    if (k < 0) return [ORDER[0] || 0, 0];
+    let lv = ORDER[k]; if (lvStars(lv) >= GAME.clear && k + 1 < ORDER.length) lv = ORDER[k + 1];
+    return [lv, lvNext(lv)];
+  }
+  let accDone = false;
+  async function accSync() {
+    try {
+      const api = await zApi(false); if (!api || !api.gameMine) return false; const me = await api.session(); if (!me || !me.id) return false;
+      const rows = await api.gameMine(me.id); let ch = false;
+      rows.forEach(r => { const m = S.stars[r.mode]; if (m && (m[r.bar] || 0) < r.stars) { m[r.bar] = r.stars; ch = true; } });
+      if (ch) keep(); return ch;
+    } catch (e) { return false; }
+  }
   function home() {
     gbPause();
     stopRound(); cur = null; $('tgHome').hidden = false; $('tgPlay').hidden = true; dlg.querySelector('.tg-body').scrollTop = 0; $('tgBack').hidden = true; $('tgTitle').textContent = 'Flow game';
     const r = rankLine(), lo = GAME_RANKS[r.rk.tier][0], hi = r.rk.next ? lo + (r.t - lo) + r.rk.need : lo;
     $('tgRankL').textContent = S.mode === 'voice' ? 'Voice rank' : 'Tap rank'; $('tgRank').textContent = r.rk.name; $('tgRankS').textContent = r.text;
     $('tgProg').style.width = (hi > lo ? Math.round(100 * (r.t - lo) / (hi - lo)) : 100) + '%';
-    const [nl, ni] = nextUp(); $('tgGo').lastChild.textContent = 'Play'; $('tgGo').title = `Play level ${lvNo(nl)}.${ni + 1}`; $('tgGo').onclick = () => playLadder(nl, ni);   // Bennie 2026-11-17: just "Play"
+    const [nl, ni] = myLevel(); $('tgGo').lastChild.textContent = 'Play'; $('tgGo').title = `Play level ${lvNo(nl)}.${ni + 1}`; $('tgGo').onclick = () => playLadder(nl, ni);   // Bennie 2026-11-17: just "Play"
     try { $('tgDemo').replaceChildren(mini(ladderBar(nl, ni))); } catch (e) { $('tgDemo').hidden = true; }
     $('tgHeroK').textContent = `${LADDER.length} levels · ${CHS.length} chapters`;
     $('tgLvH').firstChild.textContent = `${LADDER.length} levels in ${CHS.length} chapters `;
@@ -14388,7 +14411,8 @@ const TG = (() => {
     // Bennie 2026-11-18: tap anywhere in the pill's own section (its bar/beat line up to the next pill), top to bottom of the row; the time of the tap is what scores
     const zs = tg.map((x, k) => [k ? x.slot : -99, k + 1 < tg.length ? tg[k + 1].slot : 99]);
     box.classList.toggle('tg-long', LONG); box.scrollLeft = 0;
-    for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push(rowDraw(row, p, { L, pad, tg, zs })); }
+    if (LONG) { const row = h('div', 'tg-row tg-lrow'); box.append(row); rows = longDraw(row, { L, pad, tg, zs }); }
+    else for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push(rowDraw(row, p, { L, pad, tg, zs })); }
     lyricLines();
   }
   // one pass of the bar in its row; pass 2, 3 ... (overtime) reuse rows 0 / 1 with the count running on (9 10 11 12, 13 ...)
@@ -14416,7 +14440,21 @@ const TG = (() => {
     const b = r.svg.getBoundingClientRect(), px = b.left - box.getBoundingClientRect().left + box.scrollLeft + x * b.width / r.W;
     box.scrollLeft = Math.max(0, px - box.clientWidth * 0.35);
   }
-  function resetRows() { $('tgRows').scrollLeft = 0; if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  // Bennie 2026-11-19 ("it has a jump or lag in between, like another image is loading; make one image out of it"): in Long track both
+  // passes are ONE svg (the 2nd drawing moved right by its width), each half a see-through box (.tg-half) for the highlight and label.
+  // Overtime never redraws it: the halves are cleared and relabelled, so nothing reloads mid-round.
+  function longDraw(row, o) {
+    const [A, B] = [0, 1].map(p => rowDraw(document.createElement('div'), p, o)), W = A.W, svg = A.svg, H = svg.viewBox.baseVal.height;
+    svg.setAttribute('viewBox', `0 0 ${2 * W} ${H}`); svg.setAttribute('width', 2 * W); svg.style.setProperty('--ar', (2 * W / H).toFixed(3));
+    svg.setAttribute('aria-label', `First and second time: ${o.L.text}`);
+    const g = sv('g', { transform: `translate(${W} 0)` }); g.append(...B.svg.childNodes); svg.append(g); svg.append(B.head);   // the playheads stay on top, in whole-image units
+    const halves = [0, 1].map(i => { const el = h('div', 'tg-half'); el.style.left = (50 * i) + '%'; el.append(h('span', 'tg-pass', i ? '2nd time' : '1st time')); return el; });
+    row.replaceChildren(svg.parentNode, ...halves);
+    A.head.remove(); svg.append(A.head);
+    return [A, B].map((r, i) => Object.assign(r, { row: halves[i], svg, W: 2 * W, x0: r.x0 + i * W, long: true }));
+  }
+  function relabel(r, p) { r.pass = p; r.row.querySelector('.tg-pass').textContent = p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`; r.row.classList.toggle('tg-ot', p > 1); }
+  function resetRows() { $('tgRows').scrollLeft = 0; if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } rows.forEach((r, i) => { if (r.pass !== i) { if (r.long) relabel(r, i); else rows[i] = r = rowDraw(r.row, i, r.o); } r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
@@ -14806,7 +14844,7 @@ const TG = (() => {
     if (R.clicks) lay.starts.forEach((s, q) => blip(t0 + s * lay.unit * R.spq, q === 0 ? 1000 : 800, q === 0 ? 0.5 : 0.28, 0.06));
     if (R.guide) R.tg.forEach(x => blip(t0 + x.q * R.spq + (x.ms || 0) / 1000, x.land ? 1600 : 2400, x.land ? 0.22 : 0.1, 0.03));
   }
-  function rowOf(pass) { const i = pass % 2; if (rows[i].pass !== pass) rows[i] = rowDraw(rows[i].row, pass, rows[i].o); return rows[i]; }
+  function rowOf(pass) { const i = pass % 2; if (rows[i].pass !== pass) { if (rows[i].long) { rowClear(rows[i]); relabel(rows[i], pass); } else rows[i] = rowDraw(rows[i].row, pass, rows[i].o); } return rows[i]; }
   const otWhy = w => !w || w === 'Stopped' ? 'Stop' : w === 'Missed' ? 'a missed dot' : w === 'No dot there' ? 'a tap with no dot' : w === 'Wrong spot' ? 'a tap on the wrong spot' : w === 'Let go early' ? 'letting go of a long pill too early' : 'a hit ' + w;
   function otOver(why) {
     if (!R || !R.ot) return; R.ot = false; R.otEnd = why;
@@ -14962,7 +15000,10 @@ const TG = (() => {
     $('tgLag').value = S.lag[S.mode]; lagShow();
   }
   function lagShow() { $('tgLag').value = S.lag[S.mode]; $('tgLagOut').textContent = S.lag[S.mode] + ' ms'; lagFill(); }
-  function open() { if (running) stop(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); if (!dlg.open) dlg.showModal(); advTab(false); modeUi(); home(); }
+  function open() { if (running) stop(); document.querySelectorAll('dialog[open]').forEach(d => { if (d !== dlg) d.close(); }); if (!dlg.open) dlg.showModal(); advTab(false); modeUi(); home();
+    // straight into your level; Back (or All levels) shows the level tiles
+    const [lv, i] = myLevel(); playLadder(lv, i); const auto = cur;
+    if (!accDone) accSync().then(ch => { accDone = true; if (ch && dlg.open && cur === auto && !playing()) { const [l2, i2] = myLevel(); if (l2 !== lv || i2 !== i) playLadder(l2, i2); } }); }
   // ADVANCED tab: flow-advanced.html (Lovable's In The Pocket, built by tools/flow-advanced) in an iframe, loaded on first use
   function advPause() { const f = $('tgAdvP').querySelector('iframe'); try { if (f && f.contentWindow) f.contentWindow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); } catch (e) {} }
   function advTab(on) {
