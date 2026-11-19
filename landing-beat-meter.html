@@ -2084,6 +2084,16 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 /* the song card (Bar Book): all bars in one card, part names between them; hold + drag picks a part */
 .tg-sbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 0 10px; position: sticky; top: 0; z-index: 3; background: inherit; }
 .tg-sbar[hidden] { display: none; }
+/* Tap-in before the song card runs: 3 2 1 Go, one tap / click / key each */
+.tg-tapin { position: absolute; inset: 0; z-index: 40; display: grid; place-content: center; justify-items: center; gap: 14px; cursor: pointer; touch-action: none; user-select: none; -webkit-user-select: none;
+  background: color-mix(in srgb, var(--bg, #000) 62%, transparent); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transition: opacity .25s ease; }
+.tg-tapin.tg-out { opacity: 0; pointer-events: none; transition-delay: .35s; }
+.tg-tin { font: 800 clamp(5rem, 22vw, 9rem)/1 'Big Shoulders Display', var(--display, sans-serif); color: var(--accent); }
+.tg-tin.tg-pop { animation: tgTiPop .35s cubic-bezier(.34, 1.5, .5, 1); } .tg-go .tg-tin { color: var(--fg); }
+.tg-tis { font: 600 .9rem var(--body); opacity: .75; text-align: center; padding: 0 16px; }
+.tg-tid { display: flex; gap: 10px; } .tg-tid i { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--accent); } .tg-tid i.on { background: var(--accent); }
+@keyframes tgTiIn { from { opacity: 0; } } @keyframes tgTiPop { from { transform: scale(1.35); } }
+@media (prefers-reduced-motion: reduce) { .tg-tapin, .tg-tin.tg-pop { animation: none; } }
 /* Hit choice on the song card (Bennie 2026-11-19): All / Stress / Rhymes; the other syllables stay drawn but faded and are not scored */
 .tg-hit { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 10px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
 .tg-hitl { font: 600 .7rem var(--mono, ui-monospace, monospace); letter-spacing: .08em; text-transform: uppercase; opacity: .6; padding: 0 6px 0 8px; }
@@ -14599,8 +14609,25 @@ const TG = (() => {
   const phoneQ = matchMedia('(pointer: coarse)');
   function fullOn() { if (!phoneQ.matches) return; dlg.classList.add('tg-full'); try { const f = dlg.requestFullscreen || dlg.webkitRequestFullscreen; if (f && !document.fullscreenElement) { const r = f.call(dlg, { navigationUI: 'hide' }); if (r && r.catch) r.catch(() => {}); } } catch (e) {} }
   function fullOff() { dlg.classList.remove('tg-full'); try { if (document.fullscreenElement === dlg) document.exitFullscreen().catch(() => {}); else if (document.webkitFullscreenElement === dlg) document.webkitExitFullscreen(); } catch (e) {} }
+  // Tap-in (Bennie 2026-11-19: "dont have it start right away"): the song card waits for 3 taps (anywhere, a click or any key):
+  // 3, 2, 1, then Go and the run starts on the third. Esc backs out.
+  let tapIn = null;
+  function tapInOpen() {
+    const ov = h('div', 'tg-tapin'); ov.setAttribute('role', 'dialog'); ov.setAttribute('aria-live', 'assertive'); ov.setAttribute('aria-label', 'Tap three times to start');
+    ov.innerHTML = '<b class="tg-tin">3</b><span class="tg-tis">Tap anywhere, click or press a key</span><span class="tg-tid"><i></i><i></i><i></i></span>';
+    dlg.append(ov); let n = 0;
+    const done = go => { document.removeEventListener('keydown', key, true); tapIn = null; ov.classList.add('tg-out'); setTimeout(() => ov.remove(), go ? 650 : 200); };
+    const step = () => { n++; ov.querySelectorAll('.tg-tid i').forEach((d, i) => d.classList.toggle('on', i < n)); const b = ov.querySelector('.tg-tin');
+      b.textContent = n >= 3 ? 'Go' : String(3 - n); b.classList.remove('tg-pop'); void b.offsetWidth; b.classList.add('tg-pop');
+      if (n >= 3) { ov.classList.add('tg-go'); done(true); tapIn = 'go'; start(); tapIn = null; } };
+    const key = e => { if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return; e.preventDefault(); e.stopImmediatePropagation(); if (e.key === 'Escape') { done(false); return; } step(); };
+    ov.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); step(); });
+    document.addEventListener('keydown', key, true);
+    ov._done = done; tapIn = ov;
+  }
   async function start() {
     if (playing() || !cur || state === 'wait' || state === 'lock') return;
+    if (cur.whole && !cur.calib && tapIn !== 'go') { if (!tapIn) tapInOpen(); return; }
     listenStop(); if (S.mode === 'tap' && !cur.calib) fullOn();   // while the tap still counts as a user gesture
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     ac.resume();
@@ -14958,7 +14985,7 @@ const TG = (() => {
   });
   document.addEventListener('keyup', e => { if (dlg.open && e.key === ' ') holdStop('key', false); if (dlg.open && e.key === ' ' && e.target.tagName === 'BUTTON' && !$('tgPlay').hidden) e.preventDefault(); });   // Space is the tap key here, never a button press
   dlg.addEventListener('cancel', e => { if (playing() || state === 'lock') { e.preventDefault(); stopRound(); } else if (!$('tgPlay').hidden) { e.preventDefault(); home(); } });
-  dlg.addEventListener('close', () => { fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
+  dlg.addEventListener('close', () => { if (tapIn && tapIn._done) tapIn._done(false); fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
   return { open, openFit, playSong, songCard, playLevel: (lv, i) => { open(); playLadder(lv, i || 0); }, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
