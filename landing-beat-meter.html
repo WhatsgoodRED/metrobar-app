@@ -1926,25 +1926,33 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
    1-2-3-4 tile box): Advanced, Bar Book, Flow Game and Studio stack flush between two rack rails (::before/::after of each
    rack button, so they run on as one rail), a cap on top of Advanced and a foot under Studio. Open Advanced = a drawer
    pulled out between the rails. */
-#viewPractice { --rail: 30px; --rk-gap: 20px; }
+#viewPractice { --rail: 26px; --rk-gap: 20px; }
 #viewPractice > .adv, #viewPractice > .tg-entry:has(> .tg-ebtn.vr) { position: relative; margin-top: 0; }
 #viewPractice > .tg-entry:has(> .tg-ebtn.vr) { margin-top: calc(-1 * var(--rk-gap, 0px)); }
 #advTg.adv-rack, #viewPractice .tg-ebtn.vr { position: relative; width: calc(100% - 2 * var(--rail)); margin-inline: auto; border-radius: 0; box-shadow: none; overflow: visible; transform: none; }
 #advTg.adv-rack:hover, #viewPractice .tg-ebtn.vr:hover { transform: none; box-shadow: none; filter: brightness(1.03); }
 #advTg.adv-rack .adv-v, #viewPractice .tg-ebtn.vr .vr-v { border-radius: 0; }
 #advTg.adv-rack::before, #advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::before, #viewPractice .tg-ebtn.vr::after {
-  content: ""; position: absolute; top: 0; bottom: 0; width: var(--rail); pointer-events: none;
-  background: radial-gradient(circle at 50% 50%, #2b2d2c 0 3.2px, #8d8f8c 3.6px 4.6px, transparent 5px) 0 6px / 100% 22px repeat-y,
-    linear-gradient(90deg, #8e908c, #e6e6e2 22%, #f2f2ee 45%, #c9cac6 78%, #7d7f7b); }
-#advTg.adv-rack::before, #viewPractice .tg-ebtn.vr::before { left: calc(-1 * var(--rail)); box-shadow: inset -1px 0 0 rgba(0,0,0,.25); }
-#advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::after { right: calc(-1 * var(--rail)); box-shadow: inset 1px 0 0 rgba(0,0,0,.25); }
-#viewPractice > .adv::before, #viewPractice > .st-entry::after { content: ""; position: absolute; left: 0; right: 0; height: 14px; pointer-events: none; z-index: 1;
-  background: linear-gradient(180deg, #f0f0ec, #c4c5c1 55%, #8a8c88); border-radius: 6px; box-shadow: 0 2px 6px rgba(0,0,0,.25); }
-#viewPractice > .adv::before { top: -14px; }
-#viewPractice > .st-entry::after { bottom: -14px; box-shadow: 0 10px 22px -10px rgba(17,20,19,.6); }
-#viewPractice > .adv { margin-top: 14px; }
-#viewPractice > .st-entry { margin-bottom: 14px; }
-@media (max-width: 560px) { #viewPractice { --rail: 12px; } #advTg.adv-rack::before, #advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::before, #viewPractice .tg-ebtn.vr::after { background-size: 100% 16px, auto; } }
+  content: ""; position: absolute; top: 0; bottom: 0; width: calc(var(--rail) + 8px); z-index: -1; pointer-events: none;
+  /* black 19" rack: outer side panel + inner rail with square cage-nut holes; the rack ears overlap the rail by 8px */
+  background:
+    linear-gradient(180deg, #000 0 7px, transparent 7px) var(--hole-x) 0 / 7px 22px repeat-y,
+    linear-gradient(180deg, transparent 0 7px, rgba(255,255,255,.06) 7px 8px, transparent 8px) var(--hole-x) 0 / 7px 22px repeat-y,
+    linear-gradient(90deg, var(--rk-l)); background-size: 7px 22px, 7px 22px, auto; }
+#advTg.adv-rack::before, #viewPractice .tg-ebtn.vr::before { left: calc(-1 * var(--rail)); --hole-x: calc(var(--rail) - 15px);
+  --rk-l: #050505, #1d1e1e 18%, #2a2b2b 40%, #111 46%, #2f3030 52%, #222 100%; }
+#advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::after { right: calc(-1 * var(--rail)); --hole-x: 12px;
+  --rk-l: #222, #2f3030 48%, #111 54%, #2a2b2b 60%, #1d1e1e 82%, #050505; }
+#advTg.adv-rack .adv-v, #viewPractice .tg-ebtn.vr .vr-v { position: relative; z-index: 1; }
+#advTg.adv-rack .adv-c { z-index: 2; }
+#advTg.adv-rack, #viewPractice .tg-ebtn.vr { isolation: isolate; }
+#viewPractice > .adv::before, #viewPractice > .st-entry::after { content: ""; position: absolute; left: 0; right: 0; height: 16px; pointer-events: none; z-index: 1;
+  background: linear-gradient(180deg, #3a3b3b, #1a1b1b 40%, #0b0b0b); border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
+#viewPractice > .adv::before { top: -16px; }
+#viewPractice > .st-entry::after { bottom: -16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 24px -12px rgba(0,0,0,.6); }
+#viewPractice > .adv { margin-top: 16px; }
+#viewPractice > .st-entry { margin-bottom: 16px; }
+@media (max-width: 560px) { #viewPractice { --rail: 12px; } #advTg.adv-rack::before, #viewPractice .tg-ebtn.vr::before { --hole-x: 3px; } #advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::after { --hole-x: 10px; } }
 
 .tg-ebtn { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 12px; width: 100%; padding: 20px 16px 22px; text-align: center; cursor: pointer;
   color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
