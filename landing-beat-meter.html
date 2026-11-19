@@ -2084,6 +2084,12 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 /* the song card (Bar Book): all bars in one card, part names between them; hold + drag picks a part */
 .tg-sbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 0 0 10px; position: sticky; top: 0; z-index: 3; background: inherit; }
 .tg-sbar[hidden] { display: none; }
+/* Hit choice on the song card (Bennie 2026-11-19): All / Stress / Rhymes; the other syllables stay drawn but faded and are not scored */
+.tg-hit { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: 10px; border: 1px solid color-mix(in srgb, currentColor 16%, transparent); }
+.tg-hitl { font: 600 .7rem var(--mono, ui-monospace, monospace); letter-spacing: .08em; text-transform: uppercase; opacity: .6; padding: 0 6px 0 8px; }
+.tg-hit button { border: 0; background: transparent; color: inherit; font: 600 .8rem var(--body); padding: 6px 10px; min-height: 30px; border-radius: 8px; cursor: pointer; opacity: .7; }
+.tg-hit button[aria-checked="true"] { background: var(--accent); color: var(--on-accent, #fff); opacity: 1; }
+.tg-hit button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .tg-sbar #tgSHint { font-size: .84rem; color: var(--muted); }
 .tg-play.tg-going .tg-sbar { display: none; }
 dialog.tg-scard .tg-rows { display: grid; gap: 4px; }
@@ -4064,7 +4070,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
           <dl class="tg-sc"><div><dt>Combo</dt><dd id="tgCombo">–</dd></div><div><dt>Score</dt><dd id="tgLive">–</dd></div><div><dt>Best</dt><dd id="tgBest">–</dd></div></dl>
         </div>
         <div class="tg-card tg-grid">
-          <div class="tg-sbar" id="tgSBar" hidden><span id="tgSHint"></span><span class="tg-sp"></span><button class="tg-b" type="button" id="tgSClear" hidden>Clear</button><button class="tg-b" type="button" id="tgSLoop" disabled>Loop</button><button class="tg-b tg-pri" type="button" id="tgSFrom">Play from bar 1</button></div>
+          <div class="tg-sbar" id="tgSBar" hidden><span id="tgSHint"></span><span class="tg-sp"></span><span class="tg-hit" id="tgHit" role="radiogroup" aria-label="What to hit"><span class="tg-hitl">Hit</span><button type="button" role="radio" data-hit="all" title="Every syllable is a dot to tap">All</button><button type="button" role="radio" data-hit="st" title="Only the stressed syllables; rap the rest">Stress</button><button type="button" role="radio" data-hit="rh" title="Only the rhyme words (Bar Book colours) and the last word of each bar">Rhymes</button></span><button class="tg-b" type="button" id="tgSClear" hidden>Clear</button><button class="tg-b" type="button" id="tgSLoop" disabled>Loop</button><button class="tg-b tg-pri" type="button" id="tgSFrom">Play from bar 1</button></div>
           <div class="tg-rows" id="tgRows"></div>
           <div class="tg-hud"><span class="tg-verdict" id="tgVerdict" aria-live="polite">Ready</span></div>
         </div>
@@ -8032,12 +8038,14 @@ function breakdownSvg(L, li, padSlots = 0, opts = {}) {
     const hold = y.st && gap >= 2 ? Math.min(gap, 3) : 0, land = s === L.landSlot, r = y.st ? 6 : 4.5;
     const fill = land ? 'var(--land)' : 'var(--bd-syl)';
     if (hold) covered = s + hold;
-    if (hold) svg.append(sv('rect', { x: x - r, y: yRap - r, width: hold * cw + 2 * r, height: 2 * r, rx: r, fill }));
-    else svg.append(sv('circle', { cx: x, cy: yRap, r, fill, opacity: y.st || land ? 1 : .75 }));
+    const dim = opts.only && !opts.only.has(v);   // song card Hit choice: syllables you don't tap are drawn faded
+    const pe = hold ? sv('rect', { x: x - r, y: yRap - r, width: hold * cw + 2 * r, height: 2 * r, rx: r, fill }) : sv('circle', { cx: x, cy: yRap, r, fill, opacity: y.st || land ? 1 : .75 });
+    if (dim) pe.setAttribute('opacity', .22); svg.append(pe);
     const sameWord = v + 1 < L.N && L.syl[v + 1].w === y.w;
     const avail = cw * (1 + Math.min(gap, 2));
-    svg.append(fit(y.t + (sameWord ? '-' : ''), x, avail,
-      { 'font-weight': y.st ? 700 : 400, fill: land ? 'var(--land)' : 'var(--bd-ink)' }));
+    const te = fit(y.t + (sameWord ? '-' : ''), x, avail,
+      { 'font-weight': y.st ? 700 : 400, fill: land ? 'var(--land)' : 'var(--bd-ink)' });
+    if (dim && te) te.setAttribute('opacity', .38); svg.append(te);
     if (L.dev && L.slotMs) {   // where the voice really started: a tick left (early) or right (late) of the dot
       const dx = Math.max(-0.5, Math.min(0.5, L.dev[s] / L.slotMs)) * cw;
       svg.append(sv('line', { x1: x + dx, x2: x + dx, y1: yRap - 13, y2: yRap - 8, stroke: Math.abs(L.dev[s]) > 25 ? 'var(--land)' : 'var(--fg)', 'stroke-width': 1.5 }));
@@ -14259,10 +14267,28 @@ const TG = (() => {
   }
   // the song card (Bennie 2026-11-18: "one big card with all the bars placed under it"): every bar of the song is a row of the card,
   // part names between them; hold a bar and drag to pick a part, then play from it or loop it
-  function songBars() { const out = []; for (let i = 0; i < lines.length; i++) if (lines[i].N) { const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }); out.push({ L, li: i, tg: gameTargets(L) }); } return out; }
+  // Hit choice (Bennie 2026-11-19: "it makes me hit all of it"): all = every syllable; st = only stressed ones; rh = only rhyme words
+  // (same rhyme finder as Bar Book's colours) plus each bar's landing. The rest is drawn faded and not scored. metrobar.gameHit, default st.
+  let HIT = ['all', 'st', 'rh'].includes(store.get('metrobar.gameHit', 'st')) ? store.get('metrobar.gameHit', 'st') : 'st';
+  function songBars() {
+    const rm = HIT === 'rh' ? (() => { try { return rhymeMap(lines); } catch (e) { return null; } })() : null, out = [];
+    for (let i = 0; i < lines.length; i++) if (lines[i].N) {
+      const L = Object.assign({}, lines[i], { rh: [], enj: null, dev: null, ghostTo: 0 }), all = gameTargets(L);
+      if (HIT === 'all') { out.push({ L, li: i, tg: all }); continue; }
+      const rs = rm && rm.syl[i] ? rm.syl[i] : [], keep = x => { const v = L.slots[x.slot]; return HIT === 'st' ? x.st : (v >= 0 && rs[v] != null) || x.land; };
+      const tg = all.filter(keep), only = new Set(tg.map(x => L.slots[x.slot]).filter(v => v >= 0));
+      out.push({ L, li: i, tg, only });
+    }
+    if (HIT !== 'all' && !out.some(b => b.tg.length)) return out.map(b => ({ L: b.L, li: b.li, tg: gameTargets(b.L) }));   // nothing to hit: back to every syllable
+    return out;
+  }
+  function hitUi() { document.querySelectorAll('#tgHit [data-hit]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.hit === HIT))); }
+  document.querySelectorAll('#tgHit [data-hit]').forEach(b => b.addEventListener('click', () => {
+    if (!cur || !cur.whole || playing() || HIT === b.dataset.hit) return; HIT = b.dataset.hit; store.set('metrobar.gameHit', HIT); hitUi(); drawRows(); }));
+  hitUi();
   function songRowDraw(row, bi, W) {
     const b = W[bi], L = b.L, pad = Math.min(L.pickTargets ? 4 : 3, L.pickup || 0), zs = b.tg.map((x, k) => [k ? x.slot : -99, k + 1 < b.tg.length ? b.tg[k + 1].slot : 99]);
-    const r = rowDraw(row, 0, { L, pad, tg: b.tg, zs }); r.bar = bi; r.row.querySelector('.tg-pass').textContent = String(bi + 1); return r;
+    const r = rowDraw(row, 0, { L, pad, tg: b.tg, zs, only: b.only }); r.bar = bi; r.row.querySelector('.tg-pass').textContent = String(bi + 1); return r;
   }
   function rowClear(r) { r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }
   function selPaint() {
@@ -14289,7 +14315,7 @@ const TG = (() => {
   function rowDraw(row, p, o) {
     const { L, pad, tg, zs } = o;
     {
-      const wrap = breakdownSvg(L, 0, pad, { beatOff: p * L.lay.nb }), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, cw = bdCw(L.lay), padL = 6 + pad * cw, cy = 38;
+      const wrap = breakdownSvg(L, 0, pad, { beatOff: p * L.lay.nb, only: o.only }), svg = wrap.firstChild, W = svg.viewBox.baseVal.width, cw = bdCw(L.lay), padL = 6 + pad * cw, cy = 38;
       svg.style.maxWidth = Math.round(W * 1.4) + 'px'; svg.style.setProperty('--ar', (W / svg.viewBox.baseVal.height).toFixed(3)); svg.setAttribute('aria-label', `${p === 0 ? 'First' : p === 1 ? 'Second' : 'Overtime'} time: ${L.text}`);
       const dots = tg.map(x => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
