@@ -9736,20 +9736,6 @@ document.querySelectorAll('.adv-in > .rack').forEach((r, i) => {
   const open = i === 0; tg.setAttribute('aria-expanded', String(open)); body.hidden = !open;
   tg.addEventListener('click', () => (rackIsOpen(r) ? rackClose(r) : rackOpen(r, true)));
 });
-// Black racks in dark mode (Bennie 2026-11-19): a rack listed here has media/<name>-dark.webm/.mp4/.jpg; swapped on every theme change
-const RK_DARK = ['advanced-rack', 'sound-rack', 'polymeter-rack', 'fit-rack', 'practice-rack'];
-function rkDarkApply() {
-  const dk = document.documentElement.getAttribute('data-theme') === 'dark';
-  document.querySelectorAll('video.vr-v, video.adv-v').forEach(v => {
-    const m = (v.getAttribute('poster') || '').match(/^media\/(.+?)(-dark)?\.jpg$/);
-    if (!m || !RK_DARK.includes(m[1]) || !!m[2] === dk) return;
-    const n = 'media/' + m[1] + (dk ? '-dark' : ''), was = !v.paused;
-    v.poster = n + '.jpg'; v.querySelectorAll('source').forEach(s => { s.src = n + s.src.slice(s.src.lastIndexOf('.')); });
-    v.load(); if (was) v.play().catch(() => {});
-  });
-}
-rkDarkApply();
-new MutationObserver(rkDarkApply).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
 // ---- First-run guide: Show me points at each control; the example runs the whole loop once
 function spot(id) {
