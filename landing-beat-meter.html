@@ -1940,7 +1940,11 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
    pulled out between the rails. */
 #viewPractice { --rail: 26px; --rk-gap: 20px; }
 html:not(.rk-off) #viewPractice > .adv, #viewPractice > .tg-entry:has(> .tg-ebtn.vr) { position: relative; margin-top: 0; }
-/* Bennie 2026-11-19: an equal gap (the .vp 20px grid gap) between Advanced, Bar Book, Flow Game and Studio, no longer stacked flush */
+/* Bennie 2026-11-19: an equal gap between Advanced, Bar Book, Flow Game and Studio, but the rack sides run on through it and the
+   gap between the rails is black (empty rack space): the section pulls up over the .vp grid gap and pads it back in, the rails reach up into it */
+#viewPractice > .tg-entry:has(> .tg-ebtn.vr) { margin-top: calc(-1 * var(--rk-gap, 0px)); padding-top: var(--rk-gap); }
+#viewPractice > .tg-entry:has(> .tg-ebtn.vr)::before { content: ""; position: absolute; top: 0; height: var(--rk-gap); left: var(--rail); right: var(--rail); background: #050505; pointer-events: none; }
+#viewPractice > .tg-entry .tg-ebtn.vr::before, #viewPractice > .tg-entry .tg-ebtn.vr::after { top: calc(-1 * var(--rk-gap)); }
 #advTg.adv-rack, #viewPractice .tg-ebtn.vr { position: relative; width: calc(100% - 2 * var(--rail)); margin-inline: auto; border-radius: 0; box-shadow: none; overflow: visible; transform: none; }
 #advTg.adv-rack:hover, #viewPractice .tg-ebtn.vr:hover { transform: none; box-shadow: none; filter: brightness(1.03); }
 #advTg.adv-rack .adv-v, #viewPractice .tg-ebtn.vr .vr-v { border-radius: 0; }
