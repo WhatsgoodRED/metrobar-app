@@ -14619,7 +14619,8 @@ const TG = (() => {
     ov.innerHTML = '<b class="tg-tin">3</b><span class="tg-tis">Tap anywhere, click or press a key</span><span class="tg-tid"><i></i><i></i><i></i></span>';
     dlg.append(ov); let n = 0;
     const done = go => { document.removeEventListener('keydown', key, true); tapIn = null; ov.classList.add('tg-out'); setTimeout(() => ov.remove(), go ? 650 : 200); };
-    const step = () => { n++; ov.querySelectorAll('.tg-tid i').forEach((d, i) => d.classList.toggle('on', i < n)); const b = ov.querySelector('.tg-tin');
+    const click = () => { try { if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' }); ac.resume(); blip(ac.currentTime + 0.01, n >= 3 ? 1000 : 800, 0.5, 0.06); } catch (e) {} };   // a click on every tap, the count-in's sound (Go = the 1's)
+    const step = () => { n++; click(); ov.querySelectorAll('.tg-tid i').forEach((d, i) => d.classList.toggle('on', i < n)); const b = ov.querySelector('.tg-tin');
       b.textContent = n >= 3 ? 'Go' : String(3 - n); b.classList.remove('tg-pop'); void b.offsetWidth; b.classList.add('tg-pop');
       if (n >= 3) { ov.classList.add('tg-go'); done(true); tapIn = 'go'; start(); tapIn = null; } };
     const key = e => { if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return; e.preventDefault(); e.stopImmediatePropagation(); if (e.key === 'Escape') { done(false); return; } step(); };
