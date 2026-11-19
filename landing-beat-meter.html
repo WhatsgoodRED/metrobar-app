@@ -14629,7 +14629,7 @@ const TG = (() => {
   }
   async function start() {
     if (playing() || !cur || state === 'wait' || state === 'lock') return;
-    if (cur.whole && !cur.calib && tapIn !== 'go') { if (!tapIn) tapInOpen(); return; }
+    if (!cur.calib && tapIn !== 'go') { if (!tapIn) tapInOpen(); return; }   // every level and the song card (Bennie 2026-11-19)
     listenStop(); if (S.mode === 'tap' && !cur.calib) fullOn();   // while the tap still counts as a user gesture
     if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)({ latencyHint: 'interactive' });
     ac.resume();
@@ -14900,7 +14900,7 @@ const TG = (() => {
     $('tgTabGame').setAttribute('aria-selected', String(!on)); $('tgTabAdv').setAttribute('aria-selected', String(on));
     $('tgBodyP').hidden = on; $('tgAdvP').hidden = !on;
     if (!on) { advPause(); return; }
-    stopRound();
+    stopRound(); try { gbPause(); } catch (e) {}   // the Flow Game's beat stops: Pocket Aim plays its own
     let f = $('tgAdvP').querySelector('iframe');
     if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Pocket Aim'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
     setTimeout(() => { try { f.focus(); } catch (e) {} }, 0);
