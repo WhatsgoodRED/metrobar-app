@@ -15017,7 +15017,7 @@ const TG = (() => {
   function holdEnd(clean) {
     const H = R && R.hold; if (!H) return; R.hold = null; const x = H.x, b = holdBar(x);
     if (b) { b.setAttribute('stroke', clean ? 'var(--tg-perfect)' : 'var(--muted)'); b.setAttribute('opacity', clean ? 0.9 : 0.8); if (!clean) b.setAttribute('stroke-dasharray', '3 3'); }
-    if (x.pass >= 2) { if (!R.ot) return; if (clean) { R.bonus += GAME.ot.good; R.bOffs.push(Math.round(GAME.tap.perfect + 10)); say(`Held +${GAME.ot.good} · ${otNow()}`, 'good'); } else otOver('Let go early'); hud(); return; }
+    if (x.pass >= 2) { if (!R.ot) return; if (clean) { R.bonus += GAME.ot.good; R.bOffs.push(Math.round(GAME.tap.perfect + 10)); say(`Held +${GAME.ot.good} · ${otNow()}`, 'good'); } else say('Let go early · no hold bonus', 'ok'); hud(); return; }   // Bennie 2026-11-19: a hit dot that's let go early no longer ends the loop, it only misses the hold bonus
     R.judged++; if (clean) { R.score += GAME.pts.perfect; R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo); say('Held', 'perfect'); } else { R.combo = 0; say('Let go early', 'miss'); } hud();
   }
   function release(t, src) { if (!R || !R.hold || R.hold.src !== src) return; holdEnd(t >= R.hold.x.rel - GAME.tap.good / 1000); }
