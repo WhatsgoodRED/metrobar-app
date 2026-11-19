@@ -14106,7 +14106,7 @@ const TG = (() => {
   const dlg = $('tgDlg'), STAR = 'M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z';
   const raw = store.get('metrobar.game', {}) || {}, two = o => ({ tap: Object.assign({}, o && o.tap), voice: Object.assign({}, o && o.voice) });
   const S = { stars: two(raw.stars), best: two(raw.best), top: two(raw.top), lag: Object.assign({ tap: 0, voice: 30 }, raw.lag), guide: raw.guide !== false, mode: raw.mode === 'voice' ? 'voice' : 'tap' };
-  const keep = () => store.set('metrobar.game', S);
+  const keep = () => { store.set('metrobar.game', S); fgPushSoon(); };
   let cur = null, tempo = 90, state = 'idle', R = null, raf = 0, fails = 0, rows = [], ac = null, mic = null, last = null;
   const playing = () => state === 'count' || state === 'play';
   const starsOf = k => S.stars[S.mode][k] || 0;
@@ -14256,13 +14256,31 @@ const TG = (() => {
     return [lv, lvNext(lv)];
   }
   let accDone = false;
+  // Bennie 2026-11-19 "sync the flow game stars to my account too": stars, BPM records and top scores (S.stars/best/top, per
+  // mode) live in the account's user_state row 'flowGame' too; both sides merge to the highest value per bar. Pulled when the game
+  // opens (once per page load), pushed 3 s after any change.
+  const fgParts = ['stars', 'best', 'top'];
+  function fgMerge(into, from) { let ch = false;
+    fgParts.forEach(k => ['tap', 'voice'].forEach(m => { const a = into[k][m], b = from && from[k] && from[k][m]; if (!b) return;
+      for (const id in b) { const v = b[id]; if (typeof v === 'number' && !(typeof a[id] === 'number' && a[id] >= v)) { a[id] = v; ch = true; } } }));
+    return ch; }
+  const fgOut = () => { const o = {}; fgParts.forEach(k => { o[k] = { tap: S[k].tap, voice: S[k].voice }; }); return o; };
+  let fgT = 0, fgBusy = false;
+  function fgPushSoon() { clearTimeout(fgT); fgT = setTimeout(() => accSync(), 3000); }
   async function accSync() {
+    if (fgBusy) { fgPushSoon(); return false; } fgBusy = true;
     try {
-      const api = await zApi(false); if (!api || !api.gameMine) return false; const me = await api.session(); if (!me || !me.id) return false;
-      const rows = await api.gameMine(me.id); let ch = false;
-      rows.forEach(r => { const m = S.stars[r.mode]; if (m && (m[r.bar] || 0) < r.stars) { m[r.bar] = r.stars; ch = true; } });
-      if (ch) keep(); return ch;
-    } catch (e) { return false; }
+      const api = await zApi(false); if (!api) return false; const me = await api.session(); if (!me || !me.id) return false;
+      let ch = false;
+      if (api.gameMine) (await api.gameMine(me.id)).forEach(r => { const m = S.stars[r.mode]; if (m && (m[r.bar] || 0) < r.stars) { m[r.bar] = r.stars; ch = true; } });
+      if (api.stateGet) {
+        const row = await api.stateGet('flowGame'), srv = (row && row.value) || null;
+        if (fgMerge(S, srv)) ch = true;
+        const e = () => ({ tap: {}, voice: {} }), acct = { stars: e(), best: e(), top: e() }; fgMerge(acct, srv);   // what the account has
+        if (!srv || fgMerge(acct, fgOut())) await api.statePut('flowGame', fgOut());   // this device has something higher: send it
+      }
+      if (ch) store.set('metrobar.game', S); return ch;
+    } catch (e) { return false; } finally { fgBusy = false; }
   }
   function home() {
     gbPause();
