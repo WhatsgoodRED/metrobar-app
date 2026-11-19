@@ -13173,6 +13173,9 @@ var BE = (() => {
     while (S.rows.length < L.length) { const r = rowEl(); rowsBox.append(r); S.rows.push(r); }
     while (S.rows.length > L.length) S.rows.pop().remove();
     if (S.cur >= L.length) S.cur = L.length - 1;
+    // Bar for bar off (no .be-on): the rows are hidden, so don't repaint them; that full repaint ran twice on every Bar Book
+    // entry and froze the page for seconds (Bennie 2026-11-19: "it keeps hanging"). rows(true) calls render() again.
+    if (!ed.classList.contains('be-on')) { S.rows.forEach((r, i) => { r.dataset.i = i; }); info(); secLabel(); return; }
     S.rows.forEach((r, i) => upd(r, i, L, C));
     extras(); oneSync(); place(); focusMarks(); info(); secLabel(); ghost(); if (S.find) findRun(false);
   }
