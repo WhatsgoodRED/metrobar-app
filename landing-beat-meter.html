@@ -1005,15 +1005,17 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 .rb-ed[data-rbtheme="night"] .rb-w, .rb-ed[data-rbtheme="studio"] .rb-w, .rb-ed[data-rbtheme="chalk"] .rb-w, .rb-ed[data-rbtheme="dark"] .rb-w { box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -2px 0 var(--c), 0 6px 12px -6px color-mix(in srgb, var(--c) 70%, transparent); }
 /* spotlight: one rhyme sound lit (caret in it, or pinned in the Rhyme map), the rest step back */
 /* Bar Book highlight switches (RB.hlSt / RB.hlRh, rbSylMarks): paint only, nothing that changes the size of the letters */
-:is(.rb-ov, .be-mir) .rb-s.st { box-shadow: inset 0 -3px 0 var(--bd-syl); }
+/* Stress (Bennie 2026-11-19): a black line with a small gap under the letters (dark page themes: the page ink) */
+:is(.rb-ov, .be-mir) .rb-s.st { text-decoration: underline 2.5px var(--rb-stc, #000); text-underline-offset: 7px; text-decoration-skip-ink: none; }
+.rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-stc: var(--rb-fg); }
 :is(.rb-ov, .be-mir) .rb-s.rh { box-shadow: inset 0 -2px 0 var(--rc); }
-:is(.rb-ov, .be-mir) .rb-s.rh.st { box-shadow: inset 0 -2px 0 var(--rc), inset 0 -5px 0 var(--bd-syl); }
+:is(.rb-ov, .be-mir) .rb-s.rh.st { box-shadow: inset 0 -2px 0 var(--rc); }
 :is(.rb-ov, .be-mir) .rb-s.mu { outline: 1px dashed var(--rc, var(--muted)); outline-offset: 0; border-radius: 3px; }
 /* Vowels switch (RB.hlVw, Bennie 2026-11-19): only the vowel letters of a stressed syllable whose vowel sound comes back within
    2 bars, one fixed colour per vowel sound (--vh), a solid block with a bar on TOP, so it never reads as the rhyme tint (light
    whole word + line under it) or the stress line (blue, under). All three stack. */
 :is(.rb-ov, .be-mir) .rb-s.vw { --vc: hsl(var(--vh, 0) 90% var(--rb-vl, 50%)); background: color-mix(in srgb, var(--vc) var(--rb-va, 58%), transparent); box-shadow: inset 0 4px 0 var(--vc); border-radius: 3px; }
-:is(.rb-ov, .be-mir) .rb-s.vw.st { box-shadow: inset 0 4px 0 var(--vc), inset 0 -3px 0 var(--bd-syl); }
+:is(.rb-ov, .be-mir) .rb-s.vw.st { box-shadow: inset 0 4px 0 var(--vc); }
 .rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-vl: 62%; --rb-va: 64%; }
 .vw-a { --vh: 2; } .vw-ar { --vh: 18; } .vw-eh { --vh: 34; } .vw-air { --vh: 48; } .vw-ih { --vh: 62; } .vw-eer { --vh: 80; }
 .vw-ee { --vh: 98; } .vw-er { --vh: 122; } .vw-ay { --vh: 146; } .vw-uh { --vh: 168; } .vw-u { --vh: 186; } .vw-oo { --vh: 204; }
