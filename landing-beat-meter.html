@@ -1012,9 +1012,9 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 /* Vowels switch (RB.hlVw, Bennie 2026-11-19): only the vowel letters of a stressed syllable whose vowel sound comes back within
    2 bars, one fixed colour per vowel sound (--vh), a solid block with a bar on TOP, so it never reads as the rhyme tint (light
    whole word + line under it) or the stress line (blue, under). All three stack. */
-:is(.rb-ov, .be-mir) .rb-s.vw { --vc: hsl(var(--vh, 0) 78% var(--rb-vl, 46%)); background: color-mix(in srgb, var(--vc) var(--rb-va, 34%), transparent); box-shadow: inset 0 3px 0 var(--vc); border-radius: 3px; }
-:is(.rb-ov, .be-mir) .rb-s.vw.st { box-shadow: inset 0 3px 0 var(--vc), inset 0 -3px 0 var(--bd-syl); }
-.rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-vl: 64%; --rb-va: 42%; }
+:is(.rb-ov, .be-mir) .rb-s.vw { --vc: hsl(var(--vh, 0) 90% var(--rb-vl, 50%)); background: color-mix(in srgb, var(--vc) var(--rb-va, 58%), transparent); box-shadow: inset 0 4px 0 var(--vc); border-radius: 3px; }
+:is(.rb-ov, .be-mir) .rb-s.vw.st { box-shadow: inset 0 4px 0 var(--vc), inset 0 -3px 0 var(--bd-syl); }
+.rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-vl: 62%; --rb-va: 64%; }
 .vw-a { --vh: 2; } .vw-ar { --vh: 18; } .vw-eh { --vh: 34; } .vw-air { --vh: 48; } .vw-ih { --vh: 62; } .vw-eer { --vh: 80; }
 .vw-ee { --vh: 98; } .vw-er { --vh: 122; } .vw-ay { --vh: 146; } .vw-uh { --vh: 168; } .vw-u { --vh: 186; } .vw-oo { --vh: 204; }
 .vw-oh { --vh: 222; } .vw-or { --vh: 240; } .vw-aw { --vh: 258; } .vw-ow { --vh: 280; } .vw-eye { --vh: 304; } .vw-oy { --vh: 330; }
