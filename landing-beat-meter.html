@@ -2255,6 +2255,9 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-tile b { font-family: var(--tg-h); font-weight: 800; font-size: 1.7rem; line-height: 1; }
 .tg-tile .tg-stars svg { width: 11px; height: 11px; }
 .tg-tile.tg-done { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.tg-tile.tg-lock { opacity: .45; cursor: not-allowed; }
+.tg-tile.tg-lock:hover { border-color: var(--line); }
+.tg-tile .tg-lk { width: 12px; height: 12px; fill: var(--muted); }
 .tg-tile.tg-up { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--tg-card)); }
 @media (max-width: 640px) { .tg-tgrid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; } .tg-tile b { font-size: 1.45rem; } .tg-lvhd { flex-wrap: wrap; } }
 .tg-mine { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
@@ -4106,7 +4109,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
         <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
         <h3 class="tg-h">This week on the Zone</h3>
         <div class="tg-zone" id="tgZone"></div>
-        <div class="tg-lvhd"><h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Every level is open. Go in order or jump to any chapter; a level counts as cleared at 6 of its 9 stars.</small></h3><button class="tg-b" id="tgDet" type="button" aria-pressed="false"><span>Details</span></button></div>
+        <div class="tg-lvhd"><h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Start at level 1. The next level opens at 6 stars per level so far: 6 of 9, 12 of 18, 24 of 36 …</small></h3><button class="tg-b" id="tgDet" type="button" aria-pressed="false"><span>Details</span></button></div>
         <div class="tg-tiles" id="tgTiles"></div>
         <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters" hidden></div>
         <p class="tg-chb" id="tgChB" hidden></p>
@@ -14116,7 +14119,7 @@ const TG = (() => {
   const lvKey = (lv, i) => 'L:' + LADDER[lv].id + ':' + i;
   const lvStars = lv => [0, 1, 2].reduce((a, i) => a + starsOf(lvKey(lv, i)), 0);
   // chapters (GAME_CHAPTERS): CHS[c] = level indexes in play order, POS[lv] = { c, p }, ORDER = every level in play order.
-  // Every level is open to everyone (no locks); stars, records and "Play n.n" are only there to show progress and suggest a next bar.
+  // Levels open in play order: one opens when the level before it has GAME.clear (6 of 9) stars (isOpen, 2026-11-19).
   const CHS = GAME_CHAPTERS.map(C => C.ids.map(id => LADDER.findIndex(V => V.id === id)).filter(lv => lv >= 0)), POS = [];
   CHS.forEach((a, c) => a.forEach((lv, p) => { POS[lv] = { c, p }; }));
   const cleared = c => CHS[c].filter(lv => lvStars(lv) >= GAME.clear).length;
@@ -14156,7 +14159,7 @@ const TG = (() => {
   async function board(ask) {
     const box = $('tgZone'), w = week(), V = LADDER[w.lv], b = V.bars[w.i], tok = ++zTok, top = h('div', 'tg-zw'), tx = h('div'), note = h('p', 'tg-note');
     tx.append(h('b', '', `Bar of the week: ${typeof b === 'string' ? b : b.t}`), h('span', '', `${V.name} · the same bar for everyone until Monday`));
-    const play = h('button', 'tg-b tg-pri', 'Play it'); play.type = 'button'; play.addEventListener('click', () => playLadder(w.lv, w.i));
+    const play = h('button', 'tg-b tg-pri', 'Play it'); play.type = 'button'; play.addEventListener('click', () => playLadder(w.lv, w.i, true));
     top.append(tx, play); box.replaceChildren(top, note);
     const goZone = () => { const z = h('button', 'tg-b', 'Go to the Zone'); z.type = 'button'; z.addEventListener('click', () => { dlg.close(); location.hash = '#zone'; }); return z; };
     note.textContent = 'Loading the board…';
@@ -14179,7 +14182,7 @@ const TG = (() => {
       const li = h('li', me && r.user_id === me.id ? 'tg-me' : ''), tier = h('span', 'tg-tier', r.tier), pts = h('span', 'tg-pts'), ra = h('span', 'tg-ra'); tier.dataset.t = r.tier; tier.title = 'Tier ' + r.tier;
       pts.append(h('b', '', String(r.points)), ` · ${r.bpm} BPM · ${r.acc}${r.bonus ? ' + ' + r.bonus : ''}`);
       const mk = (label, fn) => { const x = h('button', 'tg-b', label); x.type = 'button'; x.addEventListener('click', fn); ra.append(x); };
-      if (!me || r.user_id !== me.id) mk('Beat it', () => { playLadder(w.lv, w.i); setTempo(r.bpm); });
+      if (!me || r.user_id !== me.id) mk('Beat it', () => { playLadder(w.lv, w.i, true); setTempo(r.bpm); });
       if (me && r.user_id !== me.id && !admin) mk('Report', async () => { const why = prompt('What is wrong with this score?', ''); if (why == null) return; try { await api.gameReport(r.id, why.slice(0, 300)); toast('Reported. An admin will look at it.'); } catch (e) { toast(zHint(e)); } });
       if (admin) mk('Hide', async () => { try { await api.gameHide(r.id, true); toast(`Score of @${r.username} hidden.`, { undo: async () => { await api.gameHide(r.id, false); board(false); } }); board(false); } catch (e) { toast(zHint(e)); } });
       li.append(h('span', 'tg-pl', '#' + r.place), tier, h('span', 'tg-who', '@' + r.username), pts, ra); ol.append(li);
@@ -14212,15 +14215,16 @@ const TG = (() => {
   let DETAIL = store.get('metrobar.gameDetail', false) === true;
   const lvNext = lv => { for (let i = 0; i < 3; i++) if (starsOf(lvKey(lv, i)) < 3) return i; return 0; };
   function tiles() {
-    const box = $('tgTiles'), [nl] = nextUp(); box.replaceChildren();
+    const box = $('tgTiles'), [nl] = myLevel(); box.replaceChildren();
     CHS.forEach((a, c) => {
       const sec = h('section', 'tg-tch'), hd = h('div', 'tg-tchh'), grid = h('ol', 'tg-tgrid');
       hd.append(h('span', 'tg-chn', 'Chapter ' + (c + 1)), h('b', '', GAME_CHAPTERS[c].name), h('span', 'tg-chs-s', `${cleared(c)} / ${a.length} cleared`));
       a.forEach(lv => {
-        const n = lvStars(lv), li = h('li'), b = h('button', 'tg-tile' + (n >= GAME.clear ? ' tg-done' : '') + (lv === nl ? ' tg-up' : '')); b.type = 'button';
-        b.title = `Level ${lvNo(lv)}: ${LADDER[lv].name} · ${n} of 9 stars`;
-        b.append(h('span', 'tg-tl', 'Level'), h('b', '', lvNo(lv)), starEl(Math.floor(n / 3)));
-        b.addEventListener('click', () => playLadder(lv, lvNext(lv))); li.append(b); grid.append(li);
+        const n = lvStars(lv), op = isOpen(lv), li = h('li'), b = h('button', 'tg-tile' + (n >= GAME.clear ? ' tg-done' : '') + (lv === nl ? ' tg-up' : '') + (op ? '' : ' tg-lock')); b.type = 'button';
+        b.title = op ? `Level ${lvNo(lv)}: ${LADDER[lv].name} · ${n} of 9 stars` : lockMsg(lv); if (!op) b.setAttribute('aria-disabled', 'true');
+        const lk = sv('svg', { viewBox: '0 0 24 24', class: 'tg-lk', 'aria-hidden': 'true' }); lk.append(sv('path', { d: 'M7 10V7a5 5 0 0 1 10 0v3h1a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1zm2 0h6V7a3 3 0 0 0-6 0z' }));
+        b.append(h('span', 'tg-tl', 'Level'), h('b', '', lvNo(lv)), op ? starEl(Math.floor(n / 3)) : lk);
+        b.addEventListener('click', () => op ? playLadder(lv, lvNext(lv)) : toast(lockMsg(lv))); li.append(b); grid.append(li);
       });
       sec.append(hd, grid); box.append(sec);
     });
@@ -14245,19 +14249,24 @@ const TG = (() => {
       let L0 = null; try { L0 = ladderBar(lv, 0); mn.append(mini(L0)); } catch (e) {}
       const ls = h('span', 'tg-ls', L0 ? pocketCode(L0) : ''); ls.title = n + ' of 9 stars';
       t4.append('Level', h('span', 'tg-acc', lvNo(lv)), V.name); hd.append(t4, ls);
-      V.bars.forEach((b, i) => { const bt = barBtn(barText(b), lvKey(lv, i), '', `${lvNo(lv)}.${i + 1}`); bt.addEventListener('click', () => playLadder(lv, i)); bars.append(bt); });
+      V.bars.forEach((b, i) => { const bt = barBtn(barText(b), lvKey(lv, i), '', `${lvNo(lv)}.${i + 1}`); if (!isOpen(lv)) { bt.disabled = true; bt.title = lockMsg(lv); } bt.addEventListener('click', () => playLadder(lv, i)); bars.append(bt); });
       li.append(hd, h('p', 'tg-lt', V.tip), mn, bars); ol.append(li);
     });
   }
   // Bennie 2026-11-19: "if I press play, it should just start playing by the level that I'm at with that account": the furthest level
   // played in play order (the next one once it's cleared), at its first bar without 3 stars. Signed in, the account's Zone scores
   // (game_scores, own rows) top up the stars kept on this device first, so a new device starts where the account is.
-  function myLevel() {
-    let k = -1; ORDER.forEach((lv, i) => { if (lvStars(lv) > 0) k = i; });
-    if (k < 0) return [ORDER[0] || 0, 0];
-    let lv = ORDER[k]; if (lvStars(lv) >= GAME.clear && k + 1 < ORDER.length) lv = ORDER[k + 1];
-    return [lv, lvNext(lv)];
-  }
+  // Bennie 2026-11-19 "start at level 1, you only get to continue to the next level if you have at least 6 out of 9 stars",
+  // then "do 6/9 or 12 out of 18 or 24/36 etc": a running total. Level k + 1 (in play order) opens when levels 1..k together have
+  // at least 6 × k stars, and every level before it opened the same way; a strong level makes up for a weaker one.
+  // (Replaces 2026-11-17 "never locked".) The Zone's bar of the week stays playable for everyone.
+  const NEED = 6;
+  function frontier() { let sum = 0; for (let k = 1; k < ORDER.length; k++) { sum += lvStars(ORDER[k - 1]); if (sum < NEED * k) return k - 1; } return ORDER.length - 1; }
+  const isOpen = lv => { const k = ORDER.indexOf(lv); return k <= frontier(); };
+  const lockMsg = lv => { const F = frontier() + 1, have = ORDER.slice(0, F).reduce((a, l) => a + lvStars(l), 0);
+    return `Level ${lvNo(lv)} is locked. Level ${F + 1} opens at ${NEED * F} of ${9 * F} stars over levels 1–${F}; you have ${have}.`; };
+  // your level: the newest open one, at its first bar without 3 stars
+  function myLevel() { const lv = ORDER[frontier()] ?? 0; return [lv, lvNext(lv)]; }
   let accDone = false;
   // Bennie 2026-11-19 "sync the flow game stars to my account too": stars, BPM records and top scores (S.stars/best/top, per
   // mode) live in the account's user_state row 'flowGame' too; both sides merge to the highest value per bar. Pulled when the game
@@ -14349,12 +14358,14 @@ const TG = (() => {
     if (sg) { $('tgLnav').hidden = false; navSong(); return; }
     const on = !!cur && cur.lv != null && !cur.calib; $('tgLnav').hidden = !on; if (!on) return;
     const pv = step(cur.lv, -1), nx = step(cur.lv, 1), sel = $('tgJump');
-    [['tgPrevLv', pv, 'Previous level'], ['tgNextLv', nx, 'Next level']].forEach(([id, lv, t]) => { const b = $(id); b.disabled = lv < 0; b.title = lv < 0 ? '' : `${t}: ${lvNo(lv)} ${LADDER[lv].name}`; });
+    [['tgPrevLv', pv, 'Previous level'], ['tgNextLv', nx, 'Next level']].forEach(([id, lv, t]) => { const b = $(id); b.disabled = lv < 0 || !isOpen(lv); b.title = lv < 0 ? '' : isOpen(lv) ? `${t}: ${lvNo(lv)} ${LADDER[lv].name}` : lockMsg(lv); });
     sel.replaceChildren();
     CHS.forEach((a, c) => { const g = document.createElement('optgroup'); g.label = `${c + 1}. ${GAME_CHAPTERS[c].name}`;
-      a.forEach(lv => { const o = document.createElement('option'), n = lvStars(lv); o.value = String(lv); o.textContent = `${lvNo(lv)}  ${LADDER[lv].name}${n ? ` · ${n} ★` : ''}`; o.selected = lv === cur.lv; g.append(o); }); sel.append(g); });
+      a.forEach(lv => { const o = document.createElement('option'), n = lvStars(lv); o.value = String(lv); o.textContent = `${lvNo(lv)}  ${LADDER[lv].name}${n ? ` · ${n} ★` : ''}${isOpen(lv) ? '' : ' · locked'}`; o.disabled = !isOpen(lv); o.selected = lv === cur.lv; g.append(o); }); sel.append(g); });
   }
-  function playLadder(lv, i) { if (POS[lv]) chSel = POS[lv].c; const V = LADDER[lv], L = ladderBar(lv, i); setCur({ key: lvKey(lv, i), L, lv, bi: i, no: `${lvNo(lv)}.${i + 1}`, name: V.name, sub: `${POS[lv] ? GAME_CHAPTERS[POS[lv].c].name + ' · ' : ''}Level ${lvNo(lv)} · ${pocketCode(L)}`, tip: V.tip, base: V.bpm }); }
+  function playLadder(lv, i, any) {
+    if (!any && !isOpen(lv)) { toast(lockMsg(lv)); if (cur && cur.lv != null && !$('tgPlay').hidden) return; [lv, i] = myLevel(); }
+    if (POS[lv]) chSel = POS[lv].c; const V = LADDER[lv], L = ladderBar(lv, i); setCur({ key: lvKey(lv, i), L, lv, bi: i, no: `${lvNo(lv)}.${i + 1}`, name: V.name, sub: `${POS[lv] ? GAME_CHAPTERS[POS[lv].c].name + ' · ' : ''}Level ${lvNo(lv)} · ${pocketCode(L)}`, tip: V.tip, base: V.bpm }); }
   // the level's bars as lines under the grid card (the mock's lyric lines); the one on the grid is lit, a click plays another
   function lyricLines() {
     const box = $('tgLines'); box.replaceChildren(); let items = [];
@@ -15024,6 +15035,7 @@ const TG = (() => {
     if (cur.fit != null) { for (let i = cur.fit + 1; i < lines.length; i++) if (lines[i].N) return { label: 'Next bar', go: () => playFit(i) }; return null; }
     if (cur.bi < 2) return { label: 'Next bar', go: () => playLadder(cur.lv, cur.bi + 1) };
     const nx = step(cur.lv, 1); if (nx < 0) return null;
+    if (!isOpen(nx)) return null;   // locked: it takes more stars on this level first
     const newCh = POS[nx] && POS[cur.lv] && POS[nx].c !== POS[cur.lv].c;
     return { label: (newCh ? 'Next chapter: ' + GAME_CHAPTERS[POS[nx].c].name : 'Next level: ' + LADDER[nx].name), go: () => playLadder(nx, 0) };
     return null;
