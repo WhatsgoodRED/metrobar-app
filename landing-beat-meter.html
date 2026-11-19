@@ -8390,7 +8390,9 @@ function enterPractice() {
 }
 // Pronunciation dictionary on first need (load speed #1): Fit with words, Write, Bar Book or a Zone post, not every page load.
 // loadDict sits in a later script, so until that has run this only leaves a note for it.
-function needDict() { if (window.mbDictReady) { if (DICTUI.state === 'off' || (DICTUI.state === 'failed' && location.protocol !== 'file:' && Date.now() - (DICTUI.failAt || 0) > 15000)) (window.requestIdleCallback || (f => setTimeout(f, 50)))(loadDict); } else window.mbNeedDict = true; }
+// Bar Book paints stress/rhyme/vowels from the dictionary, so it loads it at once (an idle callback came ~2-3 s late there and the
+// page first painted the spelling-rule guess, then jumped; Bennie 2026-11-19: "super buggy when the page refreshes")
+function needDict() { if (window.mbDictReady) { if (DICTUI.state === 'off' || (DICTUI.state === 'failed' && location.protocol !== 'file:' && Date.now() - (DICTUI.failAt || 0) > 15000)) { if (window.BBAPP || location.hash === '#book') loadDict(); else (window.requestIdleCallback || (f => setTimeout(f, 50)))(loadDict); } } else window.mbNeedDict = true; }
 function runFit_if_needed() { if (!lines.length) { lines = analyseAll(); renderFit(); } }
 function exitPractice() {
   if (running) stop();
@@ -10526,9 +10528,11 @@ function rbSylMarks(text) {
   return out;
 }
 function rbPaint() {
-  const text = $('rbText').value, rows = bookHighlight(text, fix), syl = bookSyl(text, fix), ov = $('rbOv'), frag = document.createDocumentFragment();
-  const abc = schemeLetters(text); let bars = 0, sylT = 0, marks = null;
-  try { marks = rbSylMarks(text); } catch (e) { console.warn('Bar Book marks', e); marks = null; }
+  // while the dictionary is still coming in, show the words plain: no guessed colours, stresses or letters that jump a moment later
+  const wait = DICTUI.state === 'off' || DICTUI.state === 'loading'; if (wait) needDict();
+  const text = $('rbText').value, rows = wait ? text.split('\n').map(() => []) : bookHighlight(text, fix), syl = bookSyl(text, fix), ov = $('rbOv'), frag = document.createDocumentFragment();
+  const abc = wait ? [] : schemeLetters(text); let bars = 0, sylT = 0, marks = null;
+  if (!wait) try { marks = rbSylMarks(text); } catch (e) { console.warn('Bar Book marks', e); marks = null; }
   RB.marks = marks;   // the Bar for bar rows (BE paintMir) use the same marks
   text.split('\n').forEach((line, i) => {
     const ln = h('span', 'rb-ln' + (/^\s*\[[^\]]*\]\s*$/.test(line) ? ' rb-hd' : '')); let c = 0;
@@ -10722,7 +10726,7 @@ setInterval(() => { if (!document.hidden) rbSyncSoon(0); }, 60000);   // every v
 window.addEventListener('pagehide', rbFlush);
 window.addEventListener('resize', () => { if (location.hash === '#book') rbGrow(); });
 // repaint once the pronunciation dictionary is in (better vowels + the rhyme lists)
-(function waitDict() { if (DICTUI.state === 'on' || DICTUI.state === 'failed') { if (location.hash === '#book') { rbPaint(); rbSuggest(); } return; } setTimeout(waitDict, 700); })();
+(function waitDict() { if (DICTUI.state === 'on' || DICTUI.state === 'failed') { if (location.hash === '#book') { rbPaint(); rbSuggest(); try { rbZenWord(true); } catch (e) {} } return; } setTimeout(waitDict, 700); })();
 if (location.hash === '#book') setView();
 </script>
 <script>
