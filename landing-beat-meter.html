@@ -2237,6 +2237,26 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-chb { margin: -6px 0 0; font-size: .9rem; color: var(--muted); line-height: 1.45; }
 @media (max-width: 900px) { .tg-chs { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(158px, 46%); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; padding-bottom: 4px; scrollbar-width: thin; }
   .tg-ch { scroll-snap-align: start; } }
+/* level tiles (2026-11-19): Level 1, Level 2 ... per chapter; Details shows the full cards */
+.tg-lvhd { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.tg-lvhd .tg-h { flex: 1 1 auto; min-width: 0; }
+.tg-lvhd #tgDet { flex: none; }
+.tg-tiles { display: grid; gap: 22px; }
+.tg-tch { display: grid; gap: 10px; }
+.tg-tchh { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 10px; }
+.tg-tchh b { font-family: var(--tg-h); font-weight: 700; font-size: 1rem; text-transform: uppercase; line-height: 1.1; }
+.tg-tchh .tg-chs-s { margin-left: auto; }
+.tg-tgrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.tg-tile { width: 100%; display: grid; justify-items: center; gap: 2px; padding: 10px 6px 9px; border: 1px solid var(--line); border-radius: 12px; background: var(--tg-card); color: var(--fg); font: inherit; cursor: pointer; transition: border-color .15s, transform .12s ease-out, background .15s; }
+.tg-tile:hover { border-color: var(--accent); }
+.tg-tile:active { transform: scale(.97); }
+.tg-tile:focus-visible { outline: 2px solid var(--tg-at); outline-offset: 2px; }
+.tg-tl { font: 600 .62rem var(--body); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.tg-tile b { font-family: var(--tg-h); font-weight: 800; font-size: 1.7rem; line-height: 1; }
+.tg-tile .tg-stars svg { width: 11px; height: 11px; }
+.tg-tile.tg-done { border-color: color-mix(in srgb, var(--accent) 45%, var(--line)); }
+.tg-tile.tg-up { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--tg-card)); }
+@media (max-width: 640px) { .tg-tgrid { grid-template-columns: repeat(auto-fill, minmax(76px, 1fr)); gap: 6px; } .tg-tile b { font-size: 1.45rem; } .tg-lvhd { flex-wrap: wrap; } }
 .tg-mine { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 8px; }
 .tg-bar { display: grid; gap: 5px; align-content: start; justify-items: start; text-align: left; min-width: 0; padding: 12px 12px 10px; min-height: 84px; border: 1px solid var(--line); border-radius: 10px;
   background: var(--panel); color: var(--fg); font: inherit; cursor: pointer; transition: border-color .15s, transform .12s ease-out, background .15s; }
@@ -2287,6 +2307,13 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-row .bd svg { margin-inline: auto; display: block; }
 .tg-pass { position: absolute; top: 4px; left: 8px; font: 600 .66rem var(--body); color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
 .tg-row.tg-now .tg-pass { color: var(--tg-at); }
+/* Long track (2026-11-19): both passes side by side, one line 1-8; on phones each pass keeps a readable width and the line slides with the playhead */
+.tg-rows.tg-long { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 0; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.tg-rows.tg-long::-webkit-scrollbar { display: none; }
+.tg-rows.tg-long .tg-row:first-child { border-radius: 12px 0 0 12px; }
+.tg-rows.tg-long .tg-row + .tg-row { border-top: 0; border-left: 1px dashed var(--line); border-radius: 0 12px 12px 0; }
+.tg-rows.tg-long .tg-row .bd svg { max-width: none !important; width: 100% !important; height: auto; }
+@media (max-width: 640px) { .tg-rows.tg-long { grid-auto-columns: minmax(300px, 88%); } }
 .tg-mark { transform-box: fill-box; transform-origin: center; }
 .tg-mark.tg-pop { animation: tg-pop .22s ease-out; }
 /* tap numbers on the pills (Bennie 2026-11-17): blue count on, red landings count on their own, the next one is ringed */
@@ -2448,6 +2475,7 @@ dialog.tg.tg-full .tg-grid { border: 0; background: none; padding: 0; }
 dialog.tg.tg-full .tg-row { padding: 14px 0 0; }
 dialog.tg.tg-full .tg-row .bd svg { max-width: none !important; width: min(100%, calc((100dvh - 110px) / 2 * var(--ar, 3))) !important; height: auto; }
 dialog.tg.tg-full .tg-hud { min-height: 26px; margin-top: 0; }
+dialog.tg.tg-full .tg-rows.tg-long .tg-row .bd svg { width: 100% !important; }
 dialog.tg.tg-full #tgStop { position: fixed; z-index: 6; bottom: max(6px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%); padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--bg) 80%, transparent); }
 dialog.tg.tg-full .tg-beat:not(.tg-bmb) { position: fixed; z-index: 5; left: max(8px, env(safe-area-inset-left)); bottom: max(8px, env(safe-area-inset-bottom)); display: block; }
 dialog.tg.tg-full .tg-beat:not(.tg-bmb) .tg-binfo { display: none; }
@@ -4071,9 +4099,10 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
         <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
         <h3 class="tg-h">This week on the Zone</h3>
         <div class="tg-zone" id="tgZone"></div>
-        <h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Every level is open. Go in order or jump to any chapter; a level counts as cleared at 6 of its 9 stars.</small></h3>
-        <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters"></div>
-        <p class="tg-chb" id="tgChB"></p>
+        <div class="tg-lvhd"><h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Every level is open. Go in order or jump to any chapter; a level counts as cleared at 6 of its 9 stars.</small></h3><button class="tg-b" id="tgDet" type="button" aria-pressed="false"><span>Details</span></button></div>
+        <div class="tg-tiles" id="tgTiles"></div>
+        <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters" hidden></div>
+        <p class="tg-chb" id="tgChB" hidden></p>
         <ol class="tg-lvs" id="tgLvs" role="tabpanel"></ol>
         <h3 class="tg-h" id="tgSongsH" hidden>Song cards</h3>
         <div class="tg-songs" id="tgSongs" hidden></div>
@@ -4113,6 +4142,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
           </div>
           <div class="tg-opts">
             <label class="tg-sw"><input type="checkbox" id="tgGuide"><i aria-hidden="true"></i><b>Hear the dots</b><span>A soft tick on every dot while you play</span></label>
+            <label class="tg-sw"><input type="checkbox" id="tgLong"><i aria-hidden="true"></i><b>Long track</b><span>Both times through on one line: 1 to 8 in one go, no jump down</span></label>
             <div class="tg-lag"><b>Sound delay</b><div><input class="tg-range" type="range" id="tgLag" min="-50" max="300" step="5" aria-label="Sound delay in ms"><output id="tgLagOut"></output></div><span>Headphones late? Calibrate sets it for you.</span></div>
             <div class="tg-lag"><b>Calibrate</b><div><button class="tg-b" id="tgCal" type="button">Find my delay</button></div><span>Eight clicks, tap or say "ta" on each.</span></div>
           </div>
@@ -14078,9 +14108,12 @@ const TG = (() => {
   // Every level is open to everyone (no locks); stars, records and "Play n.n" are only there to show progress and suggest a next bar.
   const CHS = GAME_CHAPTERS.map(C => C.ids.map(id => LADDER.findIndex(V => V.id === id)).filter(lv => lv >= 0)), POS = [];
   CHS.forEach((a, c) => a.forEach((lv, p) => { POS[lv] = { c, p }; }));
-  const lvNo = lv => POS[lv] ? `${POS[lv].c + 1}-${POS[lv].p + 1}` : String(lv + 1);
   const cleared = c => CHS[c].filter(lv => lvStars(lv) >= GAME.clear).length;
-  const ORDER = CHS.flat(), step = (lv, d) => { const k = ORDER.indexOf(lv) + d; return k >= 0 && k < ORDER.length ? ORDER[k] : -1; };
+  const ORDER = CHS.flat(), NUM = [];
+  // Bennie 2026-11-19: "level 1, level 2, level 3, all the way down", in chapters: one running number in play order (levels outside the chapters come after)
+  ORDER.forEach((lv, k) => { NUM[lv] = k + 1; }); { let n = ORDER.length; LADDER.forEach((V, lv) => { if (!NUM[lv]) NUM[lv] = ++n; }); }
+  const lvNo = lv => String(NUM[lv] || lv + 1);
+  const step = (lv, d) => { const k = ORDER.indexOf(lv) + d; return k >= 0 && k < ORDER.length ? ORDER[k] : -1; };
   let chSel = null;
   const total = () => LADDER.reduce((a, V, lv) => a + lvStars(lv), 0);
   const hash = t => { let x = 5381; for (let i = 0; i < t.length; i++) x = ((x * 33) ^ t.charCodeAt(i)) >>> 0; return x.toString(36); };
@@ -14163,6 +14196,29 @@ const TG = (() => {
   function nextUp() { for (const lv of ORDER) for (let i = 0; i < 3; i++) if (starsOf(lvKey(lv, i)) < 3) return [lv, i]; return [ORDER[0] || 0, 0]; }
   function mini(L) { const pad = Math.min(3, L.pickup || 0), w = breakdownSvg(L, 0, pad, {}), g = w.firstChild; if (g && g.viewBox) g.style.maxWidth = Math.round(g.viewBox.baseVal.width * 1.4) + 'px'; return w; }   // Bennie 2026-11-18: keep the Breakdown bars (pills + yellow strip), also at night
   // the chapter strip and the cards of the chosen chapter (only that chapter is drawn: 135 mini breakdowns at once is too heavy on a phone)
+  // Bennie 2026-11-19: the level list starts as a game: every chapter with its levels as plain tiles (Level 1, Level 2 ...);
+  // Details (metrobar.gameDetail) brings back the full cards (name, tip, drawing, the 3 bars) with the chapter strip.
+  let DETAIL = store.get('metrobar.gameDetail', false) === true;
+  const lvNext = lv => { for (let i = 0; i < 3; i++) if (starsOf(lvKey(lv, i)) < 3) return i; return 0; };
+  function tiles() {
+    const box = $('tgTiles'), [nl] = nextUp(); box.replaceChildren();
+    CHS.forEach((a, c) => {
+      const sec = h('section', 'tg-tch'), hd = h('div', 'tg-tchh'), grid = h('ol', 'tg-tgrid');
+      hd.append(h('span', 'tg-chn', 'Chapter ' + (c + 1)), h('b', '', GAME_CHAPTERS[c].name), h('span', 'tg-chs-s', `${cleared(c)} / ${a.length} cleared`));
+      a.forEach(lv => {
+        const n = lvStars(lv), li = h('li'), b = h('button', 'tg-tile' + (n >= GAME.clear ? ' tg-done' : '') + (lv === nl ? ' tg-up' : '')); b.type = 'button';
+        b.title = `Level ${lvNo(lv)}: ${LADDER[lv].name} · ${n} of 9 stars`;
+        b.append(h('span', 'tg-tl', 'Level'), h('b', '', lvNo(lv)), starEl(Math.floor(n / 3)));
+        b.addEventListener('click', () => playLadder(lv, lvNext(lv))); li.append(b); grid.append(li);
+      });
+      sec.append(hd, grid); box.append(sec);
+    });
+  }
+  function levelsUi() {
+    $('tgDet').setAttribute('aria-pressed', String(DETAIL)); $('tgDet').lastChild.textContent = DETAIL ? 'Hide details' : 'Details';
+    $('tgTiles').hidden = DETAIL; $('tgChs').hidden = $('tgChB').hidden = $('tgLvs').hidden = !DETAIL;
+    if (DETAIL) chapters(); else { $('tgLvs').replaceChildren(); tiles(); }
+  }
   function chapters() {
     const strip = $('tgChs'), ol = $('tgLvs'), c = chSel, C = GAME_CHAPTERS[c]; strip.replaceChildren(); ol.replaceChildren();
     CHS.forEach((a, k) => {
@@ -14193,7 +14249,7 @@ const TG = (() => {
     $('tgHeroK').textContent = `${LADDER.length} levels · ${CHS.length} chapters`;
     $('tgLvH').firstChild.textContent = `${LADDER.length} levels in ${CHS.length} chapters `;
     if (chSel == null) chSel = POS[nl] ? POS[nl].c : 0;
-    chapters();
+    levelsUi();
     songCards(); entry(); board(false);
   }
   // the song cards made in Bar Book (Create card): one big card per song
@@ -14322,7 +14378,7 @@ const TG = (() => {
     $('tgSClear').hidden = !cur.picked; $('tgSHint').textContent = cur.picked ? (n > 1 ? `${n} bars picked` : `Bar ${a + 1} picked`) + (W[a] && W[a].L.section ? ` · ${W[a].L.section.name}` : '') : 'Hold a bar and drag to pick a part. Tap a bar to play from it.';
   }
   function drawRows() {
-    if (cur.whole) { const box = $('tgRows'); box.replaceChildren(); rows = []; cur.W = songBars(); let sec;
+    if (cur.whole) { const box = $('tgRows'); box.replaceChildren(); box.classList.remove('tg-long'); rows = []; cur.W = songBars(); let sec;
       cur.W.forEach((b, bi) => { if (b.L.section !== sec) { sec = b.L.section; box.append(h('div', 'tg-part', sec ? sec.name : 'Bars')); }
         const row = h('div', 'tg-row tg-srow'); row.dataset.bi = bi; box.append(row); rows.push(songRowDraw(row, bi, cur.W)); });
       selPaint(); lyricLines(); return; }
@@ -14331,6 +14387,7 @@ const TG = (() => {
     // On a touch screen you tap the pill's own spot: each target owns its stretch of the row, from its slot to the next target's
     // Bennie 2026-11-18: tap anywhere in the pill's own section (its bar/beat line up to the next pill), top to bottom of the row; the time of the tap is what scores
     const zs = tg.map((x, k) => [k ? x.slot : -99, k + 1 < tg.length ? tg[k + 1].slot : 99]);
+    box.classList.toggle('tg-long', LONG); box.scrollLeft = 0;
     for (let p = 0; p < 2; p++) { const row = h('div', 'tg-row'); box.append(row); rows.push(rowDraw(row, p, { L, pad, tg, zs })); }
     lyricLines();
   }
@@ -14351,11 +14408,19 @@ const TG = (() => {
       return { row, dots, head, x0: padL, w: L.grid * cw, svg, W, cw, zs, o, pass: p };
     }
   }
-  function resetRows() { if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
+  // Long track (Bennie 2026-11-19: "bars next to each other instead of under each other", one continuous motion): the two passes
+  // sit side by side, 1 2 3 4 5 6 7 8 on one line; where the line is wider than the screen (phones) it slides along with the playhead.
+  let LONG = store.get('metrobar.gameLong', true) !== false;
+  function follow(r, x) {
+    const box = $('tgRows'); if (!LONG || box.scrollWidth <= box.clientWidth + 2) return;
+    const b = r.svg.getBoundingClientRect(), px = b.left - box.getBoundingClientRect().left + box.scrollLeft + x * b.width / r.W;
+    box.scrollLeft = Math.max(0, px - box.clientWidth * 0.35);
+  }
+  function resetRows() { $('tgRows').scrollLeft = 0; if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } rows.forEach((r, i) => { if (r.pass !== i) rows[i] = r = rowDraw(r.row, i, r.o); r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
     for (let p = 0; p < rows.length; p++) {
-      const r = rows[p], b = r.svg.getBoundingClientRect(), rb = r.row.getBoundingClientRect(); if (e.clientY < rb.top || e.clientY > rb.bottom) continue;
+      const r = rows[p], b = r.svg.getBoundingClientRect(), rb = r.row.getBoundingClientRect(); if (e.clientY < rb.top || e.clientY > rb.bottom || e.clientX < rb.left || e.clientX > rb.right) continue;
       const s = ((e.clientX - b.left) * r.W / b.width - r.x0) / r.cw, k = r.zs.findIndex(z => s >= z[0] && s < z[1]);
       return { p, k };
     }
@@ -14718,7 +14783,7 @@ const TG = (() => {
       const p = (now - R.tPlay) / R.barDur, pass = Math.max(0, Math.floor(p)), over = R.passes > 2 && pass >= 2, b = over ? pass % 2 : Math.min(1, pass);
       if (over && R.ot) rowOf(pass);
       rows.forEach((r, i) => { const on = i === b && (over ? R.ot : p < 2); r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
-        if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - pass)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); } });
+        if (on) { const x = r.x0 + Math.min(1, Math.max(0, p - pass)) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); follow(r, x); } });
     }
     if (state === 'play') {
       if (R.hold && now >= R.hold.x.rel - GAME.tap.good / 1000) holdEnd(true);
@@ -14799,7 +14864,7 @@ const TG = (() => {
     const tick = () => { if (!LS) return; const now = a.currentTime - (a.outputLatency || 0), p = (now - tPlay) / barDur;
       if (p > 1.05) { listenStop(); return; }
       const on = p >= 0; r.row.classList.toggle('tg-now', on); r.head.setAttribute('opacity', on ? 0.9 : 0);
-      if (on) { const x = r.x0 + Math.min(1, p) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); }
+      if (on) { const x = r.x0 + Math.min(1, p) * r.w; r.head.setAttribute('x1', x); r.head.setAttribute('x2', x); follow(r, x); }
       LS.raf = requestAnimationFrame(tick); };
     LS.raf = requestAnimationFrame(tick);
   }
@@ -14954,6 +15019,7 @@ const TG = (() => {
   $('tgNextLv').addEventListener('click', () => { if (cur && cur.song) { const k = songNx(cur.fit, 1); if (k >= 0) playFit(k, true); return; } const lv = cur && cur.lv != null ? step(cur.lv, 1) : -1; if (lv >= 0) playLadder(lv, 0); });
   $('tgWhole').addEventListener('click', () => { if (!cur || !cur.song || playing()) return; if (cur.whole) playFit(cur.fit, true); else { const k = lines.findIndex(L => L.N); playWhole(k < 0 ? cur.fit : k); } });
   $('tgJump').addEventListener('change', e => { if (cur && cur.song) { const k = +e.target.value; if (lines[k] && lines[k].N) playFit(k, true); return; } const lv = +e.target.value; if (lv >= 0 && lv < LADDER.length) playLadder(lv, 0); });
+  $('tgDet').addEventListener('click', () => { DETAIL = !DETAIL; store.set('metrobar.gameDetail', DETAIL); levelsUi(); });
   $('tgPick').addEventListener('click', () => $('tgLvH').scrollIntoView({ block: 'start', behavior: calmQ.matches ? 'auto' : 'smooth' }));
   $('tgAll').addEventListener('click', home);
   $('tgBeatOn').addEventListener('change', () => { GBS.on = $('tgBeatOn').checked; gbKeep(); stopRound(); if (!GBS.on) gbPause(); else if (GB.yt || GB.sc) gbLoad(false); gbTempoSync(); });
@@ -14972,6 +15038,8 @@ const TG = (() => {
   $('tgCal').addEventListener('click', playCal);
   $('tgListen').addEventListener('click', listen);
   $('tgGuide').addEventListener('change', () => { S.guide = $('tgGuide').checked; keep(); });
+  $('tgLong').checked = LONG;
+  $('tgLong').addEventListener('change', () => { LONG = $('tgLong').checked; store.set('metrobar.gameLong', LONG); if (cur && !cur.whole && !playing()) drawRows(); });
   $('tgLag').addEventListener('input', () => { S.lag[S.mode] = +$('tgLag').value; lagShow(); keep(); });
   $('tgMain').addEventListener('click', primary);
   $('tgAlt').addEventListener('click', () => { if (!playing()) start(); });
