@@ -2090,6 +2090,13 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 .tg-hit button { border: 0; background: transparent; color: inherit; font: 600 .8rem var(--body); padding: 6px 10px; min-height: 30px; border-radius: 8px; cursor: pointer; opacity: .7; }
 .tg-hit button[aria-checked="true"] { background: var(--accent); color: var(--on-accent, #fff); opacity: 1; }
 .tg-hit button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+/* phone: Hit gets its own full-width row, Loop and Play share the next one */
+@media (max-width: 640px) {
+  .tg-sbar .tg-sp { display: none; }
+  .tg-sbar #tgSHint { flex: 1 0 100%; }
+  .tg-hit { flex: 1 0 100%; } .tg-hit button { flex: 1; }
+  .tg-sbar #tgSLoop, .tg-sbar #tgSFrom, .tg-sbar #tgSClear:not([hidden]) { flex: 1 1 0; min-width: 0; }
+}
 .tg-sbar #tgSHint { font-size: .84rem; color: var(--muted); }
 .tg-play.tg-going .tg-sbar { display: none; }
 dialog.tg-scard .tg-rows { display: grid; gap: 4px; }
