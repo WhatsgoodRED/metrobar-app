@@ -2058,6 +2058,17 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 #rbSide .pp-wt .wr-card { display: block; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; max-width: 100%; }
 #rbSide .pp-wt .wr-card > h3 { display: none; }
 #rbSide .pp-wt .wr-card .btn { min-height: 32px; }
+/* Phone strip fits (Bennie 2026-11-19, Dictate fell off the right edge): Upload a beat and Dictate go icon-only, smaller badge, tighter gaps */
+@media (max-width: 640px) {
+  html.bb .pp-strip { gap: 6px; padding-left: 8px; padding-right: 8px; }
+  html.bb .pp-sbadge { font-size: .6rem; padding: 5px 7px; }
+  html.bb .pp-sbeat:not(.pp-sex) .pp-sbn { display: none; }
+  html.bb .pp-sbeat:not(.pp-sex):not(.pp-sdict)::before { content: '♫'; }
+  html.bb .pp-sbeat:not(.pp-sex) { padding: 6px 10px; min-width: 36px; }
+  html.bb .pp-sdict { font-size: 0; gap: 0; } html.bb .pp-sdict svg { width: 16px; height: 16px; }
+  html.bb .pp-splay { padding: 8px 11px; font-size: 0; } html.bb .pp-splay::before { content: 'Card'; font-size: .8rem; }
+}
+@media (max-width: 350px) { html.bb .pp-sbadge { display: none; } }
 @media (max-width: 640px) { html.bb .pp-ssteps { order: 3; } html.bb .pp-ssteps button, html.bb .pp-shl button { padding: 5px 8px; } }
 /* ---- Bar Book (Bennie 2026-11-18): build your own song (structure, bars, highlight, beat) and play it in the Flow Game or keep it as a
    lyric sheet. Entry card = the Flow Game card's look; the dialog reuses dialog.tg. Classes pp-*. */
