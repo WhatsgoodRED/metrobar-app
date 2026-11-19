@@ -1898,6 +1898,16 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 #viewPractice > .tg-entry { display: grid; justify-items: center; min-width: 0; margin-top: 18px; }
 /* Advanced: the title sits on the right, next to the chevron (Bennie 2026-11-14) */
 #advTg .adv-s { order: 1; } #advTg .adv-t { order: 2; margin-left: auto; } #advTg .adv-c { order: 3; }
+/* Advanced toggle = the animated rack loop (media/advanced-rack.*, Bennie 2026-11-19); title and subtitle stay for screen readers only */
+#advTg.adv-rack { position: relative; display: block; width: min(100%, 760px); margin-inline: auto; padding: 0; min-height: 0; background: none; border: 0; border-radius: 14px; overflow: hidden; line-height: 0;
+  box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); transition: transform .2s, box-shadow .2s; }
+#advTg.adv-rack:hover { transform: translateY(-1px); box-shadow: 0 18px 32px -18px rgba(17, 20, 19, .65); }
+#advTg.adv-rack .adv-t, #advTg.adv-rack .adv-s { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#advTg.adv-rack .adv-v { display: block; width: 100%; height: auto; aspect-ratio: 1262 / 682; object-fit: cover; pointer-events: none; }
+#advTg.adv-rack .adv-c { position: absolute; right: calc(6% - 15px); top: 50%; margin-top: -15px; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
+#advTg.adv-rack[aria-expanded="true"] { border-radius: 14px; }
+@media (max-width: 560px) { #advTg.adv-rack { border-radius: 10px; } #advTg.adv-rack .adv-c { width: 22px; height: 22px; right: calc(6% - 11px); margin-top: -11px; } #advTg.adv-rack .adv-c::before { width: 5px; height: 5px; } }
+#advTg.adv-rack + .adv-body { margin-top: 12px; border-top: 1px solid var(--line); border-radius: 14px; }
 .tg-ebtn { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 12px; width: 100%; padding: 20px 16px 22px; text-align: center; cursor: pointer;
   color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
   transition: transform .14s var(--ease, ease-out), border-color .2s, box-shadow .2s; }
@@ -4074,7 +4084,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
   <div class="drop" id="drop" aria-live="polite" hidden></div>
 
   <section class="adv" id="adv">
-    <button class="adv-tg" id="advTg" aria-expanded="false" aria-controls="advBody"><span class="adv-t">Advanced</span><span class="adv-s">Fit, rhyme map, flows, polymeter, sound and meter options</span><span class="adv-c" aria-hidden="true"></span></button>
+    <button class="adv-tg adv-rack" id="advTg" aria-expanded="false" aria-controls="advBody"><span class="adv-t">Advanced</span><span class="adv-s">Fit, rhyme map, flows, polymeter, sound and meter options</span><video class="adv-v" autoplay muted loop playsinline preload="auto" poster="media/advanced-rack.jpg" aria-hidden="true" tabindex="-1"><source src="media/advanced-rack.webm" type="video/webm"><source src="media/advanced-rack.mp4" type="video/mp4"></video><span class="adv-c" aria-hidden="true"></span></button>
     <div class="adv-body" id="advBody" hidden><div class="adv-in">
 
   <div class="now">

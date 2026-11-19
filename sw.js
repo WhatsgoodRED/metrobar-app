@@ -1,5 +1,5 @@
 // Minimal offline cache for MetroBar: the one HTML file, manifest, icons; fonts (fonts/) are cached when first fetched.
-const CACHE = 'metrobar-v215';
+const CACHE = 'metrobar-v216';
 const FILES = ['./', './index.html', './landing-beat-meter.html', './barbook.html', './studio.html', './flow-advanced.html', './fonts/jost.css', './manifest.json', './app-shell.js', './icon-192.png', './icon-512.png', './cmudict.txt', './fonts/Panchang-Variable.woff2', './fonts/fonts.css', './zone-config.js',
   './fonts/g/instrument-sans-400-latin-e190a6.woff2', './fonts/g/ibm-plex-mono-400-latin-171e02.woff2', './fonts/g/big-shoulders-display-700-latin-48e1b4.woff2'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
@@ -10,6 +10,7 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const u = new URL(e.request.url);
   if (u.origin !== location.origin) return;   // fonts are self-hosted in fonts/ (no Google requests)
+  if (/\.(mp4|webm)$/.test(u.pathname)) return;   // videos go straight to the network: Safari asks with Range and needs a 206
   // Pages are stored under their address without ?query, so ?bpm=92, ?example … share one copy
   const key = e.request.mode === 'navigate' ? u.origin + u.pathname : e.request;
   const save = r => { if (r && (r.ok || r.type === 'opaque')) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(key, cp)); } return r; };
