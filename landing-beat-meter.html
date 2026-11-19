@@ -3417,8 +3417,36 @@ html.bb.bb-mb #beRecent button[aria-current="true"], html.bb.bb-mb .bs-lib #rbLi
 html.bb.bb-mb #beRecent button[aria-current="true"] *, html.bb.bb-mb .bs-lib #rbList button[aria-current="true"] * { color: inherit !important; }
 html.bb.bb-mb #beRecent button[aria-current="true"] small, html.bb.bb-mb #beRecent button[aria-current="true"] em { opacity: .82; }
 html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 2px #fff !important; }
-/* High-Light removed from view (Bennie 2026-11-19): Stress does the same and still drives it */
-html.bb #bsFlowB { display: none !important; }
+/* High-Light menu (Bennie 2026-11-19, after the liquid-morph floating menu he sent; rebuilt in plain CSS/JS in MetroBar red):
+   High-Light opens a red panel that grows out of the button, a darker red circle rises from the bottom, and Stress / Rhyme /
+   Vowel roll in letter by letter on hover. Each is an on/off switch (same state as the strip). Outside click or Esc closes. */
+.hlm { position: fixed; z-index: 120; width: 220px; padding: 14px 14px 12px; border-radius: 26px; overflow: hidden; color: #fff;
+  background: var(--accent); box-shadow: 0 18px 44px -12px color-mix(in srgb, var(--accent) 70%, #000), 0 0 0 1px #0002;
+  transform-origin: var(--hlm-ox, 50%) 0; clip-path: inset(0 calc(100% - var(--hlm-bw, 140px)) calc(100% - 40px) 0 round 99px);
+  opacity: 0; pointer-events: none; transition: clip-path .7s cubic-bezier(.22, 1, .36, 1), opacity .2s ease; }
+.hlm.right { clip-path: inset(0 0 calc(100% - 40px) calc(100% - var(--hlm-bw, 140px)) round 99px); }
+.hlm.open { opacity: 1; pointer-events: auto; clip-path: inset(0 0 0 0 round 26px); }
+.hlm::before { content: ''; position: absolute; left: 50%; width: 220%; aspect-ratio: 1; border-radius: 50%; translate: -50% 0; bottom: -230%;
+  background: color-mix(in srgb, var(--accent) 62%, #000); transition: bottom .8s cubic-bezier(.22, 1, .36, 1) .08s; }
+.hlm.open::before { bottom: -160%; }
+.hlm-h { position: relative; display: flex; align-items: center; justify-content: space-between; margin: 0 4px 10px; font: 600 12px/1 var(--mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
+.hlm-x { position: relative; width: 20px; height: 20px; border: 0; padding: 0; background: none; cursor: pointer; color: inherit; }
+.hlm-x::before, .hlm-x::after { content: ''; position: absolute; left: 2px; right: 2px; top: 9px; height: 2px; border-radius: 2px; background: currentColor; rotate: 45deg; } .hlm-x::after { rotate: -45deg; }
+.hlm-i { position: relative; display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 9px 8px; border: 0; border-radius: 14px; background: none; color: #fff; cursor: pointer;
+  font: 700 26px/1 'Big Shoulders Display', 'Bebas Neue', sans-serif; letter-spacing: -.01em; text-transform: uppercase; opacity: 0; translate: 0 8px;
+  transition: opacity .35s cubic-bezier(.22, 1, .36, 1), translate .35s cubic-bezier(.22, 1, .36, 1), background .2s; }
+.hlm.open .hlm-i { opacity: 1; translate: 0 0; transition-delay: calc(.25s + var(--i) * .07s), calc(.25s + var(--i) * .07s), 0s; }
+.hlm-i:hover, .hlm-i:focus-visible { background: #ffffff1a; outline: none; }
+.hlm-w { display: flex; height: 1em; overflow: hidden; }
+.hlm-c { display: inline-block; height: 1em; overflow: hidden; } .hlm-c > span { display: flex; flex-direction: column; transition: transform 0s; }
+.hlm-c > span > span { display: block; height: 1em; line-height: 1em; }
+.hlm-i:hover .hlm-c > span, .hlm-i:focus-visible .hlm-c > span { transform: translateY(-50%); transition: transform .8s cubic-bezier(.22, 1, .36, 1) calc(var(--c) * 30ms); }
+.hlm-i .hlm-d { flex: none; width: 34px; height: 18px; border-radius: 99px; background: #0003; box-shadow: inset 0 1px 2px #0005; position: relative; transition: background .3s; }
+.hlm-i .hlm-d::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #ffffff8c; transition: translate .4s cubic-bezier(.34, 1.4, .5, 1), background .3s; }
+.hlm-i[aria-checked="true"] .hlm-d { background: #fff3; } .hlm-i[aria-checked="true"] .hlm-d::after { translate: 16px 0; background: #fff; box-shadow: 0 0 8px #fff9; }
+.hlm-i[aria-checked="false"] .hlm-w { opacity: .62; }
+@media (prefers-reduced-motion: reduce) { .hlm, .hlm::before, .hlm-i, .hlm-c > span { transition: none !important; } }
+html.bb #bsFlowB[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); } html.bb #bsFlowB[aria-expanded="true"], html.bb #bsFlowB[aria-expanded="true"] * { color: var(--on-accent) !important; }
 /* High-Light switched on = solid accent with white text (every colour) */
 html.bb #bsFlowB[aria-pressed="true"], html.bb #bsFlowB[aria-pressed="true"] * { color: var(--on-accent) !important; }
 /* All songs icon in the colour you picked */
@@ -16778,8 +16806,40 @@ var PPZ = (() => {
     if (k === 'stress') v.st = !v.st; else if (k === 'vowel') v.vw = !v.vw; else v.rh = v.rh === 'book' ? '' : 'book';
     hlApply(v);
   }
+  // High-Light menu (Bennie 2026-11-19): a real click on High-Light opens the menu; hlApply's own .click() (not trusted) still
+  // switches the stress marks underneath
+  let hlm = null;
+  function hlmUi() { if (!hlm) return; const v = hlGet(); hlm.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book'))); }
+  function hlmOpen(on) {
+    const fb = $('bsFlowB'); if (!fb) return;
+    if (!hlm) {
+      hlm = h('div', 'hlm'); hlm.setAttribute('role', 'dialog'); hlm.setAttribute('aria-label', 'High-Light');
+      const roll = t => '<span class="hlm-w">' + [...t].map((c, i) => `<span class="hlm-c" style="--c:${i}"><span><span>${c}</span><span aria-hidden="true">${c}</span></span></span>`).join('') + '</span>';
+      hlm.innerHTML = '<div class="hlm-h"><span>High-Light</span><button type="button" class="hlm-x" aria-label="Close"></button></div>'
+        + [['stress', 'Stress', 'Underline the stressed syllables in every bar'], ['rhyme', 'Rhyme', 'Bar Book colours: words that really rhyme, one colour per rhyme sound'], ['vowel', 'Vowel', 'Colour the vowel letters when that sound comes back within 2 bars']]
+          .map(([k, l, t], i) => `<button type="button" class="hlm-i" role="switch" data-hl="${k}" style="--i:${i}" title="${t}" aria-label="${l}">${roll(l)}<i class="hlm-d" aria-hidden="true"></i></button>`).join('');
+      hlm.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => hlToggle(b.dataset.hl)));
+      hlm.querySelector('.hlm-x').addEventListener('click', () => hlmOpen(false));
+      document.body.append(hlm);
+      document.addEventListener('pointerdown', e => { if (hlm.classList.contains('open') && !hlm.contains(e.target) && !fb.contains(e.target)) hlmOpen(false); }, true);
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && hlm.classList.contains('open')) { hlmOpen(false); fb.focus(); } });
+      addEventListener('resize', () => hlmOpen(false)); addEventListener('hashchange', () => hlmOpen(false));
+    }
+    if (on) {
+      const r = fb.getBoundingClientRect(), w = 220, right = r.left + w > innerWidth - 12;
+      hlm.classList.toggle('right', right); hlm.style.top = (r.top) + 'px';
+      hlm.style.left = (right ? Math.max(12, r.right - w) : r.left) + 'px'; hlm.style.setProperty('--hlm-bw', r.width + 'px');
+      hlmUi();
+    }
+    hlm.classList.toggle('open', !!on); fb.setAttribute('aria-expanded', String(!!on));
+    if (on) setTimeout(() => { const f = hlm.querySelector('.hlm-i'); if (f) f.focus({ preventScroll: true }); }, 350);
+  }
+  { const hook = () => { const fb = $('bsFlowB'); if (!fb) { setTimeout(hook, 300); return; } if (fb.dataset.hlm) return; fb.dataset.hlm = '1';
+      fb.setAttribute('aria-haspopup', 'dialog'); fb.setAttribute('aria-expanded', 'false'); fb.title = 'High-Light: choose what lights up (Stress, Rhyme, Vowel)';
+      fb.addEventListener('click', e => { if (!e.isTrusted) return; e.stopImmediatePropagation(); e.preventDefault(); hlmOpen(!(hlm && hlm.classList.contains('open'))); }, true); };
+    hook(); }
   function stripUi() {
-    if (!strip) return; const v = hlGet();
+    hlmUi(); if (!strip) return; const v = hlGet();
     strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book')));
   }
   function buildStrip() {
