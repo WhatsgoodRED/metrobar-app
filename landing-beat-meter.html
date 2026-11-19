@@ -17003,10 +17003,10 @@ var BBP = (() => {
   function boot() {
     if (!BE.flowBtn.parentElement) { setTimeout(boot, 200); return; }
     tab(S.tab);
-    BE.flowBtn.after(rowsB); wireRf(); placePlay(); rows(S.rows); rhy(true);   // Bennie 2026-11-19: the Rhymes/Techniques panel is always open when you come in
+    BE.flowBtn.after(rowsB); wireRf(); placePlay(); rows(S.rows); rhy(false);   // Bennie 2026-11-19: the Rhymes/Techniques panel stays closed when you come in, until you click Rhymes
   }
   setTimeout(boot, 0);
-  addEventListener('hashchange', () => { if (location.hash === '#book') [300, 1200].forEach(ms => setTimeout(() => { wireRf(); placePlay(); if (ms === 300) rhy(true); else rhy(S.rhy); }, ms)); });
+  addEventListener('hashchange', () => { if (location.hash === '#book') [300, 1200].forEach(ms => setTimeout(() => { wireRf(); placePlay(); if (ms === 300) rhy(false); else rhy(S.rhy); }, ms)); });
   addEventListener('resize', () => { const rf = $('beRf'); if (rf) rf.setAttribute('aria-pressed', String(S.rhy && innerWidth > 1000)); });
   return { rows, rhy, tab, techSync, get state() { return S; } };
 })();
