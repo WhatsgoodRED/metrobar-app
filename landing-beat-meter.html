@@ -1008,6 +1008,15 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 :is(.rb-ov, .be-mir) .rb-s.rh { box-shadow: inset 0 -2px 0 var(--rc); }
 :is(.rb-ov, .be-mir) .rb-s.rh.st { box-shadow: inset 0 -2px 0 var(--rc), inset 0 -5px 0 var(--bd-syl); }
 :is(.rb-ov, .be-mir) .rb-s.mu { outline: 1px dashed var(--rc, var(--muted)); outline-offset: 0; border-radius: 3px; }
+/* Vowels switch (RB.hlVw, Bennie 2026-11-19): only the vowel letters of a stressed syllable whose vowel sound comes back within
+   2 bars, one fixed colour per vowel sound (--vh), a solid block with a bar on TOP, so it never reads as the rhyme tint (light
+   whole word + line under it) or the stress line (blue, under). All three stack. */
+:is(.rb-ov, .be-mir) .rb-s.vw { --vc: hsl(var(--vh, 0) 78% var(--rb-vl, 46%)); background: color-mix(in srgb, var(--vc) var(--rb-va, 34%), transparent); box-shadow: inset 0 3px 0 var(--vc); border-radius: 3px; }
+:is(.rb-ov, .be-mir) .rb-s.vw.st { box-shadow: inset 0 3px 0 var(--vc), inset 0 -3px 0 var(--bd-syl); }
+.rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-vl: 64%; --rb-va: 42%; }
+.vw-a { --vh: 2; } .vw-ar { --vh: 18; } .vw-eh { --vh: 34; } .vw-air { --vh: 48; } .vw-ih { --vh: 62; } .vw-eer { --vh: 80; }
+.vw-ee { --vh: 98; } .vw-er { --vh: 122; } .vw-ay { --vh: 146; } .vw-uh { --vh: 168; } .vw-u { --vh: 186; } .vw-oo { --vh: 204; }
+.vw-oh { --vh: 222; } .vw-or { --vh: 240; } .vw-aw { --vh: 258; } .vw-ow { --vh: 280; } .vw-eye { --vh: 304; } .vw-oy { --vh: 330; }
 .rb-ov.rb-foc .rb-w:not(.lit) { opacity: .3; }
 .rb-ov.rb-foc .rb-w.lit { --rb-ta: 36%; }
 .rb-ov.rb-foc .rb-k.on:not(.lit) { opacity: .35; }
@@ -2046,7 +2055,7 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 #rbSide .pp-wt .wr-card { display: block; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; max-width: 100%; }
 #rbSide .pp-wt .wr-card > h3 { display: none; }
 #rbSide .pp-wt .wr-card .btn { min-height: 32px; }
-@media (max-width: 640px) { html.bb .pp-shl, html.bb .pp-ssteps { order: 3; } html.bb .pp-ssteps button { padding: 5px 7px; } }
+@media (max-width: 640px) { html.bb .pp-ssteps { order: 3; } html.bb .pp-ssteps button, html.bb .pp-shl button { padding: 5px 8px; } }
 /* ---- Bar Book (Bennie 2026-11-18): build your own song (structure, bars, highlight, beat) and play it in the Flow Game or keep it as a
    lyric sheet. Entry card = the Flow Game card's look; the dialog reuses dialog.tg. Classes pp-*. */
 #viewPractice > .pp-entry { margin-top: 18px; }
@@ -10431,16 +10440,25 @@ function rbReveal() {
   const d = bot > hi ? bot - hi : top < lo ? top - lo : 0; if (Math.abs(d) < 1) return;
   if (sc) sc.scrollTop += d; else window.scrollBy(0, d);
 }
-// Syllable marks for the Bar Book page (Bennie 2026-11-18: "if I click stress, it doesn't highlight anything"; bring back the old
-// Write tab's colours): RB.hlSt = stressed syllables underlined (blue), RB.hlRh 'write' = Write's own colours (rhymeMap: every
-// rhyme sound by vowel, multis dashed); two separate switches. Per line an array of class names per character, same token and
-// syllable split as wrPaint, so the marks sit on the right letters. Neither on = no marks.
+// Syllable marks for the Bar Book page (Bennie 2026-11-18: "if I click stress, it doesn't highlight anything"; 2026-11-19: Write
+// became Vowels): RB.hlSt = stressed syllables underlined (blue), RB.hlVw = the vowel letters of every stressed syllable whose vowel
+// sound comes back within 2 bars, one colour per vowel sound (.vw.vw-<class>). Separate switches that stack with each other and
+// with Rhyme. Per line an array of class names per character, same token and syllable split as wrPaint, so the marks sit on the
+// right letters. Neither on = no marks.
+function rbVowelEcho(lines, win = 2) {   // [line][syllable] = vowel class when the same stressed vowel is used again nearby
+  const occ = lines.map(L => L.syl.map(x => x.v || null));
+  return occ.map((row, li) => row.map((v, si) => {
+    if (!v) return null;
+    for (let k = Math.max(0, li - win); k <= Math.min(lines.length - 1, li + win); k++) for (let j = 0; j < occ[k].length; j++) if (occ[k][j] === v && !(k === li && j === si)) return v;
+    return null;
+  }));
+}
 function rbSylMarks(text) {
-  const wst = !!RB.hlSt, mode = RB.hlRh === 'write' ? 'write' : ''; if (!wst && !mode) return null;
+  const wst = !!RB.hlSt, wvw = !!RB.hlVw; if (!wst && !wvw) return null;
   const rows = wrParse(text), bars = rows.filter(r => r.kind === 'bar'), out = [];
   bars.forEach(r => { try { r.L = wrLine(r.body, r.meter); } catch (e) { r.L = null; } });
   const ok = bars.filter(r => r.L);
-  let rh = null; if (mode === 'write' && ok.length) { try { rh = rhymeMap(ok.map(r => r.L)); } catch (e) { rh = null; } }
+  let ve = null; if (wvw && ok.length) { try { ve = rbVowelEcho(ok.map(r => r.L)); } catch (e) { ve = null; } }
   ok.forEach(r => {
     const L = r.L, li = ok.indexOf(r), arr = new Array(r.line.length).fill(''), re = /[^\s—–\/-]+/g; let m, wi = 0;
     while ((m = re.exec(r.body))) {
@@ -10450,9 +10468,10 @@ function rbSylMarks(text) {
       paintPieces(raw, sy.map(o => o.x.t || '')).forEach(pc => {
         const o = pc.k >= 0 ? sy[pc.k] : null;
         if (o) {
-          const gi = rh && rh.syl[li] ? rh.syl[li][o.si] : null, mu = rh && rh.multi[li] && rh.multi[li].includes(o.si);
-          const cls = [gi != null ? rhCls(gi) : '', mu ? 'mu' : '', wst && o.x.st ? 'st' : ''].filter(Boolean).join(' ');
-          for (let k = 0; k < pc.t.length; k++) arr[pos + k] = cls;
+          const cls = wst && o.x.st ? 'st' : '', vc = ve && ve[li] ? ve[li][o.si] : null;
+          // the vowel letters of the syllable (first a/e/i/o/u run, else a y: "my", "rhythm")
+          const vm = vc ? (/[aeiouàáâäèéêëìíîïòóôöùúûü]+/i.exec(pc.t) || /y/i.exec(pc.t)) : null;
+          for (let k = 0; k < pc.t.length; k++) arr[pos + k] = vm && k >= vm.index && k < vm.index + vm[0].length ? (cls ? cls + ' ' : '') + 'vw vw-' + vc : cls;
         }
         pos += pc.t.length;
       });
@@ -16695,30 +16714,31 @@ var PPZ = (() => {
   // Stress = underline the stressed syllables (also the red stresses in the Bar for bar meter, High-Light); Rhyme = Bar Book's
   // rhyme colours; Write = the old Write tab's colours. Rhyme and Write are two colour sets, so one of them at a time; Stress goes
   // with either, or alone, or everything off. Stored as { st, rh: '' | 'book' | 'write' } in metrobar.ppHl2 (old ppHl migrates).
+  // Bennie 2026-11-19: Write is now Vowels (only the vowel letters, own colours) and all three switches stack: { st, rh: '' | 'book', vw }.
   function hlGet() {
     let v = store.get('metrobar.ppHl2', null);
     if (!v || typeof v !== 'object') { const o = store.get('metrobar.ppHl', 'stress'); v = { st: true, rh: o === 'rhyme' ? 'book' : o === 'write' ? 'write' : '' }; }
-    return { st: !!v.st, rh: v.rh === 'book' || v.rh === 'write' ? v.rh : '' };
+    return { st: !!v.st, rh: v.rh === 'book' ? 'book' : '', vw: v.vw != null ? !!v.vw : v.rh === 'write' };
   }
   function hlApply(v) {
-    RB.hlSt = v.st; RB.hlRh = v.rh; store.set('metrobar.ppHl2', v);
+    RB.hlSt = v.st; RB.hlRh = v.rh; RB.hlVw = v.vw; store.set('metrobar.ppHl2', v);
     const fb = $('bsFlowB') || (BE && BE.flowBtn); if (fb && (fb.getAttribute('aria-pressed') === 'true') !== v.st) fb.click();
     if ((v.rh === 'book') !== !!RB.look.hi && $('rbHi')) $('rbHi').click();
     rbPaint(); stripUi();
   }
   function hlToggle(k) {
     const v = hlGet();
-    if (k === 'stress') v.st = !v.st; else v.rh = v.rh === (k === 'write' ? 'write' : 'book') ? '' : (k === 'write' ? 'write' : 'book');
+    if (k === 'stress') v.st = !v.st; else if (k === 'vowel') v.vw = !v.vw; else v.rh = v.rh === 'book' ? '' : 'book';
     hlApply(v);
   }
   function stripUi() {
     if (!strip) return; const v = hlGet();
-    strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'write' ? v.rh === 'write' : v.rh === 'book')));
+    strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book')));
   }
   function buildStrip() {
     strip = h('div', 'pp-strip'); strip.setAttribute('role', 'region'); strip.setAttribute('aria-label', 'Bar Book');
     strip.innerHTML = '<span class="pp-sbadge">Bar Book</span>'
-      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress" title="Stress on/off: underline the stressed syllables in every bar">Stress</button><button type="button" data-hl="rhyme" title="Rhyme on/off: Bar Book colours, only words that really rhyme, one colour per rhyme sound">Rhyme</button><button type="button" data-hl="write" title="Write on/off: the Write tab colours, every rhyme sound by vowel (slant rhymes too), multis dashed">Write</button></div>'
+      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress" title="Stress on/off: underline the stressed syllables in every bar">Stress</button><button type="button" data-hl="rhyme" title="Rhyme on/off: Bar Book colours, only words that really rhyme, one colour per rhyme sound">Rhyme</button><button type="button" data-hl="vowel" title="Vowels on/off: colours only the vowel letters, one colour per vowel sound, when that sound comes back within 2 bars (slant rhymes too). Works together with Stress and Rhyme">Vowels</button></div>'
       + '<button type="button" class="pp-sbeat" title="Upload the beat you rap on: the card plays your song on it"><span class="pp-sbn">Upload a beat</span></button><span class="pp-ssp"></span>'
       + '<button type="button" class="pp-sbeat pp-sex" title="Open the Bar Book example: a finished 64-bar song">Example</button>'
       + '<button type="button" class="pp-splay" title="Turn this song (done or half way) into one big card in the Flow Game">Create card</button><button type="button" class="pp-sx" aria-label="Leave Bar Book" title="Leave Bar Book">×</button>';
@@ -16737,7 +16757,7 @@ var PPZ = (() => {
     { const db = $('wrDictBar'); if (db && db.previousElementSibling !== strip) strip.after(db); }
     try { PP.seed(); const ex = strip && strip.querySelector('.pp-sex'); if (ex) ex.hidden = !PP.exampleSong(); } catch (e) {}
     tools(); stripUi(); beatUi(); wrSync(); if (window.BBP) BBP.techSync();
-    { const v = hlGet(), fb = $('bsFlowB'); if (RB.hlSt !== v.st || RB.hlRh !== v.rh || (v.rh === 'book') !== !!RB.look.hi || (fb && (fb.getAttribute('aria-pressed') === 'true') !== v.st)) hlApply(v); }
+    { const v = hlGet(), fb = $('bsFlowB'); if (RB.hlSt !== v.st || RB.hlRh !== v.rh || !!RB.hlVw !== v.vw || (v.rh === 'book') !== !!RB.look.hi || (fb && (fb.getAttribute('aria-pressed') === 'true') !== v.st)) hlApply(v); }
   }
   function blank() {   // a blank page: the empty one Bar Book made last time, else a new one (no pile of empty songs)
     let p = LIB.pages.find(x => x.ppBlank && !String(x.text || '').trim());
