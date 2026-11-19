@@ -3957,16 +3957,22 @@ dialog.tg.tg-full:modal { inset: 0; padding: 0; }
    line where the playhead stands, and two big buttons fill the bottom: blue Tap (every dot), red Land (the red box) */
 .tg-lanes { display: none; }
 dialog.tg.tg-full { overscroll-behavior: none; touch-action: none; }
-dialog.tg.tg-full .tg-body { padding-bottom: calc(min(30dvh, 260px) + max(10px, env(safe-area-inset-bottom))) !important; align-content: center; }
-dialog.tg.tg-full .tg-row.tg-lrow { width: calc(min(21dvh, 190px) * var(--ar, 6)); flex: none; }
+/* Bennie 2026-11-19 "so much white on top and on the bottom, why not just fill the whole thing": the track sits right under the
+   score and is a third of the screen tall (--trk), the buttons take everything below it (--lane) */
+.tg-hp { display: none; }
+dialog.tg.tg-full .tg-hp { display: inline; fill: color-mix(in srgb, #1f66c9 14%, transparent); stroke: #1f66c9; stroke-width: 2.5; }
+dialog.tg.tg-full .tg-hp.tg-hpl { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: var(--accent); }
+dialog.tg.tg-full { --trk: min(36dvh, 360px); --lane: max(120px, calc(100dvh - var(--trk) - 190px)); }
+dialog.tg.tg-full .tg-body { padding-top: max(44px, env(safe-area-inset-top)) !important; padding-bottom: calc(var(--lane) + max(10px, env(safe-area-inset-bottom))) !important; align-content: space-evenly !important; }
+dialog.tg.tg-full .tg-row.tg-lrow { width: calc(var(--trk) * var(--ar, 6)); flex: none; }
 dialog.tg.tg-full .tg-rows.tg-long { display: flex; padding-inline: 35% 65%; }
-@media (max-height: 500px) { dialog.tg.tg-full .tg-top { display: none; } dialog.tg.tg-full .tg-row.tg-lrow { width: calc(min(34dvh, 150px) * var(--ar, 6)); } }
+@media (max-height: 500px) { dialog.tg.tg-full { --trk: 38dvh; --lane: max(96px, calc(100dvh - var(--trk) - 110px)); } dialog.tg.tg-full .tg-top { display: none; } dialog.tg.tg-full .tg-body { padding-top: 8px !important; } }
 dialog.tg.tg-full .tg-top { justify-content: center; margin-bottom: 14px; } dialog.tg.tg-full .tg-sc dd { font-size: 1.6rem; }
 dialog.tg.tg-full .tg-rows.tg-long { position: relative; }
 dialog.tg.tg-full .tg-grid { position: relative; }
 dialog.tg.tg-full .tg-grid:has(.tg-long)::after { content: ''; position: absolute; top: 0; bottom: 26px; left: 35%; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 14px var(--accent); pointer-events: none; opacity: .85; }
 dialog.tg.tg-full .tg-verdict { font-size: 1.6rem; }
-dialog.tg.tg-full .tg-lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; z-index: 7; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); height: min(30dvh, 260px); }
+dialog.tg.tg-full .tg-lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; z-index: 7; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); height: var(--lane); }
 dialog.tg.tg-full.tg-scard .tg-lanes { display: none; }
 .tg-lane { display: grid; place-content: center; justify-items: center; gap: 4px; border: 2px solid #1f66c9; border-radius: 22px; background: color-mix(in srgb, #1f66c9 16%, var(--bg)); color: var(--fg); font: inherit; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: transform .06s, background .12s, box-shadow .12s; }
 .tg-lane i { width: 34px; height: 34px; border-radius: 50%; background: #1f66c9; }
@@ -14496,7 +14502,9 @@ const TG = (() => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
         const hb = x.hold ? sv('line', { x1: cx, x2: cx + x.hold * cw, y1: cy, y2: cy, 'stroke-width': 7, 'stroke-linecap': 'round', opacity: 0, class: 'tg-hb' }) : null;
-        if (hb) g.append(hb); g.append(c, tick); svg.append(g); return { c, tick, g, cx, cy, r, cw, hb };
+        // Bennie 2026-11-19 "make the hit points more obvious": a big ring on every dot to hit (phone game screen only, CSS .tg-hp)
+        const hp = sv('circle', { class: 'tg-hp' + (x.land ? ' tg-hpl' : ''), cx, cy, r: 12 });
+        if (hb) g.append(hb); g.append(hp, c, tick); svg.append(g); return { c, tick, g, cx, cy, r, cw, hb };
       });
       const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
       row.replaceChildren(h('span', 'tg-pass', p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`), wrap); row.classList.toggle('tg-ot', p > 1);
@@ -15231,6 +15239,8 @@ const TG = (() => {
     b.addEventListener('pointerdown', e => { e.preventDefault(); if (!playing() || S.mode !== 'tap') return; b.classList.remove('tg-hitl'); void b.offsetWidth; b.classList.add('tg-hitl'); laneHit(heard(e.timeStamp), lane, 'p' + e.pointerId); });
     b.addEventListener('contextmenu', e => e.preventDefault());
   });
+  // Bennie 2026-11-19 "why not click the image": tapping the track when nothing runs starts the round (song cards keep their bar picking)
+  $('tgRows').addEventListener('click', () => { if (!playing() && cur && !cur.whole && !tapIn) start(); });
   $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false, spotAt(e) || { p: -1, k: -1 }, 'p' + e.pointerId); } });
   ['pointerup', 'pointercancel'].forEach(ev => window.addEventListener(ev, e => { if (R && R.hold) release(heard(e.timeStamp), 'p' + e.pointerId); }));
   document.addEventListener('keyup', e => { const k = e.key.toLowerCase(); if (R && R.hold && (k === ' ' || k === 'f' || k === 'j')) release(heard(e.timeStamp), 'k' + k); });
