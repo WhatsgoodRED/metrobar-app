@@ -3426,9 +3426,16 @@ html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 
   opacity: 0; pointer-events: none; transition: clip-path .7s cubic-bezier(.22, 1, .36, 1), opacity .2s ease; }
 .hlm.right { clip-path: inset(0 0 calc(100% - 40px) calc(100% - var(--hlm-bw, 140px)) round 99px); }
 .hlm.open { opacity: 1; pointer-events: auto; clip-path: inset(0 0 0 0 round 26px); }
-.hlm::before { content: ''; position: absolute; left: 50%; width: 220%; aspect-ratio: 1; border-radius: 50%; translate: -50% 0; bottom: -230%;
-  background: color-mix(in srgb, var(--accent) 62%, #000); transition: bottom .8s cubic-bezier(.22, 1, .36, 1) .08s; }
-.hlm.open::before { bottom: -160%; }
+.hlm { background: color-mix(in srgb, var(--accent) 55%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6);
+  box-shadow: inset 0 1px 0 #ffffff59, inset 0 0 0 1px #ffffff2e, inset 0 -10px 24px -14px #0006, 0 18px 44px -12px color-mix(in srgb, var(--accent) 60%, #000); }
+.hlm-gl, .hlm-pool { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: inherit; }
+.hlm-pool { background: radial-gradient(60% 45% at 30% 20%, #ffffff40, transparent 70%), radial-gradient(70% 60% at 80% 90%, color-mix(in srgb, var(--accent) 60%, #000) 0%, transparent 70%),
+  radial-gradient(50% 40% at 70% 40%, #ffffff26, transparent 70%); background-size: 160% 160%; animation: hlmPool 9s ease-in-out infinite alternate; }
+.hlm.hlm-has-gl .hlm-pool { display: none; }
+@keyframes hlmPool { to { background-position: 100% 60%, 0 30%, 40% 100%; } }
+.hlm::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(170deg, #ffffff40 0%, #ffffff0d 28%, transparent 45%); }
+.hlm > :not(.hlm-gl):not(.hlm-pool) { position: relative; z-index: 1; }
+.hlm-i, .hlm-h { text-shadow: 0 1px 2px #0005; }
 .hlm-h { position: relative; display: flex; align-items: center; justify-content: space-between; margin: 0 4px 10px; font: 600 12px/1 var(--mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 .hlm-x { position: relative; width: 20px; height: 20px; border: 0; padding: 0; background: none; cursor: pointer; color: inherit; }
 .hlm-x::before, .hlm-x::after { content: ''; position: absolute; left: 2px; right: 2px; top: 9px; height: 2px; border-radius: 2px; background: currentColor; rotate: 45deg; } .hlm-x::after { rotate: -45deg; }
@@ -3445,10 +3452,11 @@ html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 
 .hlm-i .hlm-d::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #ffffff8c; transition: translate .4s cubic-bezier(.34, 1.4, .5, 1), background .3s; }
 .hlm-i[aria-checked="true"] .hlm-d { background: #fff3; } .hlm-i[aria-checked="true"] .hlm-d::after { translate: 16px 0; background: #fff; box-shadow: 0 0 8px #fff9; }
 .hlm-i[aria-checked="false"] .hlm-w { opacity: .62; }
-@media (prefers-reduced-motion: reduce) { .hlm, .hlm::before, .hlm-i, .hlm-c > span { transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { .hlm, .hlm-i, .hlm-c > span { transition: none !important; } .hlm-pool { animation: none; } }
 html.bb #bsFlowB[aria-expanded="true"] { background: var(--accent); border-color: var(--accent); } html.bb #bsFlowB[aria-expanded="true"], html.bb #bsFlowB[aria-expanded="true"] * { color: var(--on-accent) !important; }
 /* High-Light switched on = solid accent with white text (every colour) */
-html.bb #bsFlowB[aria-pressed="true"], html.bb #bsFlowB[aria-pressed="true"] * { color: var(--on-accent) !important; }
+html.bb #bsFlowB:not(.hl-any) { background: transparent !important; } html.bb #bsFlowB:not(.hl-any), html.bb #bsFlowB:not(.hl-any) * { color: inherit !important; }
+html.bb #bsFlowB.hl-any { background: var(--accent) !important; border-color: var(--accent) !important; } html.bb #bsFlowB.hl-any, html.bb #bsFlowB.hl-any * { color: var(--on-accent, #fff) !important; }
 /* All songs icon in the colour you picked */
 html.bb .bs-all .a > span { color: var(--accent); }
 html.bb.bb-mb .bs-all .a > span { background: color-mix(in srgb, var(--accent) 12%, var(--panel)); }
@@ -5823,7 +5831,7 @@ function detectKey(chs, sr) {
    deeper or higher. speed 0.8 = 80% tempo (the result is 1/0.8 as long). chs = Float32Array per channel. */
 function timeStretch(chs, sr, speed) {
   if (Math.abs(speed - 1) < 1e-3) return chs.map(c => c.slice());
-  const N = 2048, Hs = 512, tol = Math.round(sr * 0.006), L = 512, n = chs[0].length, outLen = Math.floor(n / speed);
+  const N = 2048, Hs = 512, tol = Math.round(sr * 0.005), L = 512, n = chs[0].length, outLen = Math.floor(n / speed);
   const win = new Float32Array(N); for (let i = 0; i < N; i++) win[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / N);
   const mono = new Float32Array(n); for (const c of chs) for (let i = 0; i < n; i++) mono[i] += c[i] / chs.length;
   const out = chs.map(() => new Float32Array(outLen + N)), norm = new Float32Array(outLen + N);
@@ -16809,7 +16817,42 @@ var PPZ = (() => {
   // High-Light menu (Bennie 2026-11-19): a real click on High-Light opens the menu; hlApply's own .click() (not trusted) still
   // switches the stress marks underneath
   let hlm = null;
-  function hlmUi() { if (!hlm) return; const v = hlGet(); hlm.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book'))); }
+  // Liquid glass (Bennie 2026-11-19, after the LiquidAccordion he sent): a WebGL water-caustics shader in the accent colour behind
+  // the High-Light menu, with a frosted backdrop; no WebGL = the CSS pool (.hlm-pool) stays. Renders only while the menu is open.
+  const hlGlass = (() => {
+    let cv, gl, uR, uT, uC, raf = 0, t0 = 0;
+    function init(box) {
+      try {
+        cv = document.createElement('canvas'); cv.className = 'hlm-gl'; cv.setAttribute('aria-hidden', 'true');
+        gl = cv.getContext('webgl', { premultipliedAlpha: false, alpha: true }); if (!gl) { cv = null; return; }
+        const sh = (ty, src) => { const o = gl.createShader(ty); gl.shaderSource(o, src); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw 0; return o; };
+        const pr = gl.createProgram();
+        gl.attachShader(pr, sh(gl.VERTEX_SHADER, 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}'));
+        gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, 'precision mediump float;uniform vec2 r;uniform float t;uniform vec3 c;'
+          + 'void main(){vec2 uv=gl_FragCoord.xy/r;vec2 p=mod(gl_FragCoord.xy/r.y*7.5,6.28318)-250.;vec2 i=p;float k=1.;'
+          + 'for(int n=0;n<5;n++){float tt=t*(1.-3.5/float(n+1));i=p+vec2(cos(tt-i.x)+sin(tt+i.y),sin(tt-i.y)+cos(tt+i.x));'
+          + 'k+=1./length(vec2(p.x/(sin(i.x+tt)/.005),p.y/(cos(i.y+tt)/.005)));}'
+          + 'k/=5.;k=1.17-pow(k,1.4);float w=clamp(pow(abs(k),8.),0.,1.);'
+          + 'vec3 deep=c*mix(.42,.78,uv.y);vec3 col=mix(deep,vec3(1.,.9,.88),w*.75);'
+          + 'gl_FragColor=vec4(col,.74+w*.18);}'));
+        gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw 0; gl.useProgram(pr);
+        const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+        const a = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
+        uR = gl.getUniformLocation(pr, 'r'); uT = gl.getUniformLocation(pr, 't'); uC = gl.getUniformLocation(pr, 'c');
+        box.prepend(cv); box.classList.add('hlm-has-gl');
+      } catch (e) { if (cv) cv.remove(); cv = gl = null; }
+    }
+    function accent() { const m = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim().match(/^#?([0-9a-f]{6})$/i); const n = parseInt(m ? m[1] : 'af0000', 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255]; }
+    function frame(now) {
+      if (!gl) return; const d = Math.min(2, devicePixelRatio || 1), w = Math.round(cv.clientWidth * d), hh = Math.round(cv.clientHeight * d);
+      if (cv.width !== w || cv.height !== hh) { cv.width = w; cv.height = hh; gl.viewport(0, 0, w, hh); }
+      const c = accent(); gl.uniform2f(uR, w, hh); gl.uniform1f(uT, (now - t0) / 1000 * .32 + 7); gl.uniform3f(uC, c[0], c[1], c[2]); gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!matchMedia('(prefers-reduced-motion: reduce)').matches) raf = requestAnimationFrame(frame);
+    }
+    function run(on) { cancelAnimationFrame(raf); raf = 0; if (on && gl) { if (!t0) t0 = performance.now(); raf = requestAnimationFrame(frame); } }
+    return { init, run };
+  })();
+  function hlmUi() { const v = hlGet(), fb = $('bsFlowB'); if (fb) fb.classList.toggle('hl-any', !!(v.st || v.vw || v.rh)); if (!hlm) return; hlm.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book'))); }
   function hlmOpen(on) {
     const fb = $('bsFlowB'); if (!fb) return;
     if (!hlm) {
@@ -16820,9 +16863,10 @@ var PPZ = (() => {
           .map(([k, l, t], i) => `<button type="button" class="hlm-i" role="switch" data-hl="${k}" style="--i:${i}" title="${t}" aria-label="${l}">${roll(l)}<i class="hlm-d" aria-hidden="true"></i></button>`).join('');
       hlm.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => hlToggle(b.dataset.hl)));
       hlm.querySelector('.hlm-x').addEventListener('click', () => hlmOpen(false));
+      hlm.prepend(h('i', 'hlm-pool')); hlGlass.init(hlm);
       document.body.append(hlm);
       document.addEventListener('pointerdown', e => { if (hlm.classList.contains('open') && !hlm.contains(e.target) && !fb.contains(e.target)) hlmOpen(false); }, true);
-      document.addEventListener('keydown', e => { if (e.key === 'Escape' && hlm.classList.contains('open')) { hlmOpen(false); fb.focus(); } });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape' && hlm.classList.contains('open')) { e.stopPropagation(); hlmOpen(false); fb.focus(); } }, true);
       addEventListener('resize', () => hlmOpen(false)); addEventListener('hashchange', () => hlmOpen(false));
     }
     if (on) {
@@ -16831,7 +16875,7 @@ var PPZ = (() => {
       hlm.style.left = (right ? Math.max(12, r.right - w) : r.left) + 'px'; hlm.style.setProperty('--hlm-bw', r.width + 'px');
       hlmUi();
     }
-    hlm.classList.toggle('open', !!on); fb.setAttribute('aria-expanded', String(!!on));
+    hlm.classList.toggle('open', !!on); fb.setAttribute('aria-expanded', String(!!on)); hlGlass.run(!!on);
     if (on) setTimeout(() => { const f = hlm.querySelector('.hlm-i'); if (f) f.focus({ preventScroll: true }); }, 350);
   }
   { const hook = () => { const fb = $('bsFlowB'); if (!fb) { setTimeout(hook, 300); return; } if (fb.dataset.hlm) return; fb.dataset.hlm = '1';
@@ -16845,7 +16889,6 @@ var PPZ = (() => {
   function buildStrip() {
     strip = h('div', 'pp-strip'); strip.setAttribute('role', 'region'); strip.setAttribute('aria-label', 'Bar Book');
     strip.innerHTML = '<span class="pp-sbadge">Bar Book</span>'
-      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress" title="Stress on/off: underline the stressed syllables in every bar">Stress</button><button type="button" data-hl="rhyme" title="Rhyme on/off: Bar Book colours, only words that really rhyme, one colour per rhyme sound">Rhyme</button><button type="button" data-hl="vowel" title="Vowel on/off: colours only the vowel letters, one colour per vowel sound, when that sound comes back within 2 bars (slant rhymes too). Works together with Stress and Rhyme">Vowel</button></div>'
       + '<button type="button" class="pp-sbeat" title="Upload the beat you rap on: the card plays your song on it"><span class="pp-sbn">Upload a beat</span></button><span class="pp-ssp"></span>'
       + '<button type="button" class="pp-sbeat pp-sex" title="Open the Bar Book example: a finished 64-bar song">Example</button>'
       + '<button type="button" class="pp-splay" title="Turn this song (done or half way) into one big card in the Flow Game">Create card</button><button type="button" class="pp-sx" aria-label="Leave Bar Book" title="Leave Bar Book">×</button>';
@@ -16863,6 +16906,7 @@ var PPZ = (() => {
     if (!strip) buildStrip(); if (strip.parentElement !== head.parentElement || (strip.nextElementSibling !== head && strip.nextElementSibling !== $('wrDictBar'))) head.before(strip);
     { const db = $('wrDictBar'); if (db && db.previousElementSibling !== strip) strip.after(db); }
     try { PP.seed(); const ex = strip && strip.querySelector('.pp-sex'); if (ex) ex.hidden = !PP.exampleSong(); } catch (e) {}
+    { const tp = document.querySelector('.be-tplb'), bd = strip.querySelector('.pp-sbadge'); if (tp && bd && tp.previousElementSibling !== bd) bd.after(tp); }   // Bennie 2026-11-19: Templates one row up, in the strip
     tools(); stripUi(); beatUi(); wrSync(); if (window.BBP) BBP.techSync();
     { const v = hlGet(), fb = $('bsFlowB'); if (RB.hlSt !== v.st || RB.hlRh !== v.rh || !!RB.hlVw !== v.vw || (v.rh === 'book') !== !!RB.look.hi || (fb && (fb.getAttribute('aria-pressed') === 'true') !== v.st)) hlApply(v); }
   }
