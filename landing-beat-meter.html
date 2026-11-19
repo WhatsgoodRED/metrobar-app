@@ -3948,6 +3948,11 @@ dialog.tg { height: min(980px, calc(100dvh - 24px - env(safe-area-inset-top, 0px
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
 }
 dialog.tg.tg-full:modal { inset: 0; padding: 0; }
+.tg-otend { position: absolute; z-index: 5; left: 50%; top: 50%; transform: translate(-50%, -50%); display: grid; justify-items: center; gap: 2px; padding: 12px 22px; border-radius: 16px; background: color-mix(in srgb, var(--bg) 88%, transparent); border: 2px solid var(--accent); box-shadow: 0 10px 30px -12px #0007; text-align: center; pointer-events: none; max-width: 90%; }
+.tg-otend small { font: 600 .7rem var(--body); text-transform: uppercase; letter-spacing: .12em; color: var(--muted); }
+.tg-otend b { font-family: var(--tg-h); font-weight: 800; font-size: clamp(1.6rem, 6vw, 2.4rem); text-transform: uppercase; line-height: 1.05; color: var(--accent); }
+.tg-otend span { font-size: .85rem; color: var(--muted); }
+.tg-grid { position: relative; }
 /* phone round = a game screen (Bennie 2026-11-19): nothing scrolls, the track is big (a third of the screen tall) with a bright hit
    line where the playhead stands, and two big buttons fill the bottom: blue Tap (every dot), red Land (the red box) */
 .tg-lanes { display: none; }
@@ -4163,6 +4168,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
         <div class="tg-card tg-grid">
           <div class="tg-sbar" id="tgSBar" hidden><span id="tgSHint"></span><span class="tg-sp"></span><span class="tg-hit" id="tgHit" role="radiogroup" aria-label="What to hit"><span class="tg-hitl">Hit</span><button type="button" role="radio" data-hit="all" title="Every syllable is a dot to tap">All</button><button type="button" role="radio" data-hit="st" title="Only the stressed syllables; rap the rest">Stress</button><button type="button" role="radio" data-hit="rh" title="Only the rhyme words (Bar Book colours) and the last word of each bar">Rhymes</button></span><button class="tg-b" type="button" id="tgSClear" hidden>Clear</button><button class="tg-b" type="button" id="tgSLoop" disabled>Loop</button><button class="tg-b tg-pri" type="button" id="tgSFrom">Play from bar 1</button></div>
           <div class="tg-rows" id="tgRows"></div>
+          <div class="tg-otend" id="tgOtEnd" role="status" hidden></div>
           <div class="tg-hud"><span class="tg-verdict" id="tgVerdict" aria-live="polite">Ready</span></div>
         </div>
         <div class="tg-lanes" id="tgLanes"><button class="tg-lane" id="tgLaneDot" type="button" aria-label="Tap: every dot"><i></i><b>Tap</b><span>every dot</span></button><button class="tg-lane tg-lred" id="tgLaneLand" type="button" aria-label="Land: the red box"><i></i><b>Land</b><span>red box</span></button></div>
@@ -14359,7 +14365,7 @@ const TG = (() => {
 
   // ---- one bar on screen: the Breakdown drawing twice (first and second time through), with marks laid over the dots
   function setCur(o) {
-    stopRound(); cur = o; fails = 0; const rec = o.key ? S.best[S.mode][o.key] || 0 : 0;
+    stopRound(); $('tgOtEnd').hidden = true; cur = o; fails = 0; const rec = o.key ? S.best[S.mode][o.key] || 0 : 0;
     tempo = o.song ? o.base : o.fit != null ? rec || o.base : Math.max(o.base, rec);
     $('tgHome').hidden = true; $('tgPlay').hidden = false; $('tgBack').hidden = false; $('tgRes').hidden = true; $('tgPad').hidden = false;
     $('tgTitle').textContent = o.calib ? 'Calibrate' : o.song ? 'Your song' : o.fit != null ? 'Your bars' : 'Level ' + lvNo(o.lv);
@@ -14540,7 +14546,7 @@ const TG = (() => {
     longPlace(rows); box.scrollLeft = Math.max(0, box.scrollLeft - px);
   }
   function relabel(r, p) { r.pass = p; r.row.querySelector('.tg-pass').textContent = p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`; r.row.classList.toggle('tg-ot', p > 1); }
-  function resetRows() { $('tgRows').scrollLeft = 0; if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } if (rows[0] && rows[0].long) { LT.base = 0; rows.forEach((r, i) => { if (r.pass !== i) relabel(r, i); }); longPlace(rows); }
+  function resetRows() { $('tgRows').scrollLeft = 0; $('tgOtEnd').hidden = true; if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } if (rows[0] && rows[0].long) { LT.base = 0; rows.forEach((r, i) => { if (r.pass !== i) relabel(r, i); }); longPlace(rows); }
     rows.forEach((r, i) => { if (r.pass !== i) { if (r.long) relabel(r, i); else rows[i] = r = rowDraw(r.row, i, r.o); } r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
   // where a touch landed on the rows: which pass and which target's stretch (null = between the rows or outside the bar)
   function spotAt(e) {
@@ -14950,6 +14956,8 @@ const TG = (() => {
   function otOver(why) {
     if (!R || !R.ot) return; R.ot = false; R.otEnd = why;
     say(R.bonus ? `${why} · overtime +${R.bonus}` : why, 'miss'); hud();
+    // Bennie 2026-11-19 "the word goes by too fast": the reason stays up, big, over the track until the next round
+    const b = $('tgOtEnd'); b.replaceChildren(h('small', '', 'Loop over'), h('b', '', why === 'Stopped' ? 'You stopped' : why), h('span', '', R.bonus ? `+${R.bonus} from the loop` : 'no loop points')); b.hidden = false;
   }
   function mark(x, grade, off) {
     const rr = x.bar != null ? rows.find(r => r.bar === x.bar) : x.pass >= 2 ? rowOf(x.pass) : rows[x.p], d = rr && rr.dots[x.k]; if (!d) return; const col = grade === 'miss' ? 'var(--muted)' : `var(--tg-${grade})`;
