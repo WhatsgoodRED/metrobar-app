@@ -2317,7 +2317,10 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 .tg-half.tg-now { background: color-mix(in srgb, var(--accent) 7%, transparent); }
 .tg-half.tg-now .tg-pass { color: var(--tg-at); }
 .tg-rows.tg-long .tg-row .bd svg { max-width: none !important; width: 100% !important; height: auto; }
-@media (max-width: 640px) { .tg-row.tg-lrow { width: max(600px, 176%); } }
+/* Bennie 2026-11-19 "they need to be larger, it's near impossible to tap": each pass is almost the card's width (desktop) or
+   wider than the screen (phones), so the dots and pill boxes are big; the line slides with the playhead (follow) */
+.tg-row.tg-lrow { width: 176%; }
+@media (max-width: 640px) { .tg-row.tg-lrow { width: max(840px, 260%); } }
 .tg-mark { transform-box: fill-box; transform-origin: center; }
 .tg-mark.tg-pop { animation: tg-pop .22s ease-out; }
 /* tap numbers on the pills (Bennie 2026-11-17): blue count on, red landings count on their own, the next one is ringed */
