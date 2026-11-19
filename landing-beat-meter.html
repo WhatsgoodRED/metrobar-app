@@ -3417,6 +3417,21 @@ html.bb.bb-mb #beRecent button[aria-current="true"], html.bb.bb-mb .bs-lib #rbLi
 html.bb.bb-mb #beRecent button[aria-current="true"] *, html.bb.bb-mb .bs-lib #rbList button[aria-current="true"] * { color: inherit !important; }
 html.bb.bb-mb #beRecent button[aria-current="true"] small, html.bb.bb-mb #beRecent button[aria-current="true"] em { opacity: .82; }
 html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 2px #fff !important; }
+/* Bar Book highlight switches (Bennie 2026-11-19): High-Light is gone (Stress does the same); Stress / Rhyme / Vowel are toggle
+   switches stacked above the floating day/night switch, same grey pill + red glossy knob as #hdDay / #hdRack */
+html.bb #bsFlowB { display: none !important; }
+.hl-sws { display: none; } html.pp-mode body.book .hl-sws { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; position: fixed; z-index: 56; right: calc(max(20px, env(safe-area-inset-right, 0px)) - 4px); bottom: calc(max(20px, env(safe-area-inset-bottom, 0px)) + 116px); }
+.hl-sw { display: flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: var(--fg); font: 600 11px/1 var(--mono, ui-monospace, monospace); letter-spacing: .08em; text-transform: uppercase; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.hl-l { padding: 4px 7px; border-radius: 6px; background: var(--card, #fff); box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 12%, transparent); opacity: .75; transition: opacity .2s; } .hl-sw[aria-checked="true"] .hl-l { opacity: 1; }
+.hl-t { position: relative; display: block; width: 52px; height: 26px; border-radius: 99px; background: linear-gradient(180deg, #8f9893 0%, #bcc3be 55%, #d3d8d1 100%); box-shadow: inset 0 1px 3px #0005, 0 0 0 1px #0002, 0 6px 16px #0004; transition: background .4s ease; }
+.hl-sw[aria-checked="true"] .hl-t { background: linear-gradient(180deg, #2a2b2b, #111 60%, #1d1e1e); }
+.hl-k { position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: radial-gradient(circle at 40% 38%, #4a504d, #1c201f 70%); box-shadow: inset -1px -2px 3px #0008, 0 1px 2px #0006; transition: translate .45s cubic-bezier(.34, 1.4, .5, 1), background .3s ease, box-shadow .3s ease; }
+.hl-sw[aria-checked="true"] .hl-k { translate: 26px 0; background: radial-gradient(circle at 36% 34%, #e2392e 0%, #af0000 58%, #7a0000 100%); box-shadow: 0 0 8px 1px rgb(175 0 0 / .55), inset -1px -2px 3px rgb(80 0 0 / .45); }
+.hl-sw:active .hl-k { scale: .92; } .hl-sw:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 99px; }
+@media (max-width: 1000px) { html.pp-mode body.book .hl-sws { bottom: calc(max(20px, env(safe-area-inset-bottom, 0px)) + 110px); } }
+@media (max-width: 640px) { html.pp-mode body.book .hl-sws { bottom: calc(max(20px, env(safe-area-inset-bottom, 0px)) + 64px); } }
+@media (prefers-reduced-motion: reduce) { .hl-t, .hl-k { transition: none; } }
+html.kb-open .hl-sws { opacity: 0 !important; pointer-events: none !important; }
 /* High-Light switched on = solid accent with white text (every colour) */
 html.bb #bsFlowB[aria-pressed="true"], html.bb #bsFlowB[aria-pressed="true"] * { color: var(--on-accent) !important; }
 /* All songs icon in the colour you picked */
@@ -16777,17 +16792,22 @@ var PPZ = (() => {
     hlApply(v);
   }
   function stripUi() {
-    if (!strip) return; const v = hlGet();
-    strip.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book')));
+    const v = hlGet();
+    if (hlBox) hlBox.querySelectorAll('[data-hl]').forEach(b => b.setAttribute('aria-checked', String(b.dataset.hl === 'stress' ? v.st : b.dataset.hl === 'vowel' ? v.vw : v.rh === 'book')));
   }
+  let hlBox = null;
   function buildStrip() {
     strip = h('div', 'pp-strip'); strip.setAttribute('role', 'region'); strip.setAttribute('aria-label', 'Bar Book');
     strip.innerHTML = '<span class="pp-sbadge">Bar Book</span>'
-      + '<div class="pp-shl" role="group" aria-label="Highlight"><button type="button" data-hl="stress" title="Stress on/off: underline the stressed syllables in every bar">Stress</button><button type="button" data-hl="rhyme" title="Rhyme on/off: Bar Book colours, only words that really rhyme, one colour per rhyme sound">Rhyme</button><button type="button" data-hl="vowel" title="Vowel on/off: colours only the vowel letters, one colour per vowel sound, when that sound comes back within 2 bars (slant rhymes too). Works together with Stress and Rhyme">Vowel</button></div>'
       + '<button type="button" class="pp-sbeat" title="Upload the beat you rap on: the card plays your song on it"><span class="pp-sbn">Upload a beat</span></button><span class="pp-ssp"></span>'
       + '<button type="button" class="pp-sbeat pp-sex" title="Open the Bar Book example: a finished 64-bar song">Example</button>'
       + '<button type="button" class="pp-splay" title="Turn this song (done or half way) into one big card in the Flow Game">Create card</button><button type="button" class="pp-sx" aria-label="Leave Bar Book" title="Leave Bar Book">×</button>';
-    strip.querySelectorAll('[data-hl]').forEach(b => b.addEventListener('click', () => hlToggle(b.dataset.hl)));
+    // Bennie 2026-11-19: Stress / Rhyme / Vowel left the strip; they are three toggle switches stacked above the day/night switch
+    if (!hlBox) { hlBox = h('div', 'hl-sws'); hlBox.setAttribute('role', 'group'); hlBox.setAttribute('aria-label', 'Highlight');
+      [['stress', 'Stress', 'Stress on/off: underline the stressed syllables in every bar'], ['rhyme', 'Rhyme', 'Rhyme on/off: Bar Book colours, only words that really rhyme, one colour per rhyme sound'], ['vowel', 'Vowel', 'Vowel on/off: colours only the vowel letters, one colour per vowel sound, when that sound comes back within 2 bars (slant rhymes too)']].forEach(([k, l, t]) => {
+        const b = h('button', 'hl-sw'); b.type = 'button'; b.dataset.hl = k; b.setAttribute('role', 'switch'); b.title = t; b.innerHTML = '<span class="hl-l">' + l + '</span><i class="hl-t"><i class="hl-k"></i></i>';
+        b.addEventListener('click', () => hlToggle(k)); hlBox.append(b); });
+      document.body.append(hlBox); }
     strip.querySelector('.pp-sbeat').addEventListener('click', () => $('beatFile').click());
     { const d = $('wrDict'); if (d) { d.className = 'pp-sbeat pp-sdict'; strip.querySelector('.pp-sbeat').after(d); } }
     strip.querySelector('.pp-splay').addEventListener('click', () => PP.card());
