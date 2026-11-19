@@ -3426,7 +3426,7 @@ html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 
   opacity: 0; pointer-events: none; transition: clip-path .7s cubic-bezier(.22, 1, .36, 1), opacity .2s ease; }
 .hlm.right { clip-path: inset(0 0 calc(100% - 40px) calc(100% - var(--hlm-bw, 140px)) round 99px); }
 .hlm.open { opacity: 1; pointer-events: auto; clip-path: inset(0 0 0 0 round 26px); }
-.hlm { background: color-mix(in srgb, var(--accent) 55%, transparent); -webkit-backdrop-filter: blur(18px) saturate(1.6); backdrop-filter: blur(18px) saturate(1.6);
+.hlm { background: color-mix(in srgb, var(--accent) 14%, transparent); -webkit-backdrop-filter: blur(10px) saturate(1.8) brightness(1.04); backdrop-filter: blur(10px) saturate(1.8) brightness(1.04);
   box-shadow: inset 0 1px 0 #ffffff59, inset 0 0 0 1px #ffffff2e, inset 0 -10px 24px -14px #0006, 0 18px 44px -12px color-mix(in srgb, var(--accent) 60%, #000); }
 .hlm-gl, .hlm-pool { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: inherit; }
 .hlm-pool { background: radial-gradient(60% 45% at 30% 20%, #ffffff40, transparent 70%), radial-gradient(70% 60% at 80% 90%, color-mix(in srgb, var(--accent) 60%, #000) 0%, transparent 70%),
@@ -3435,7 +3435,7 @@ html.bb.bb-mb #beRecent button[aria-current="true"] .be-cov { box-shadow: 0 0 0 
 @keyframes hlmPool { to { background-position: 100% 60%, 0 30%, 40% 100%; } }
 .hlm::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(170deg, #ffffff40 0%, #ffffff0d 28%, transparent 45%); }
 .hlm > :not(.hlm-gl):not(.hlm-pool) { position: relative; z-index: 1; }
-.hlm-i, .hlm-h { text-shadow: 0 1px 2px #0005; }
+.hlm-i, .hlm-h { text-shadow: 0 1px 2px #0008, 0 0 12px color-mix(in srgb, var(--accent) 70%, #000); }
 .hlm-h { position: relative; display: flex; align-items: center; justify-content: space-between; margin: 0 4px 10px; font: 600 12px/1 var(--mono, ui-monospace, monospace); letter-spacing: .1em; text-transform: uppercase; opacity: .8; }
 .hlm-x { position: relative; width: 20px; height: 20px; border: 0; padding: 0; background: none; cursor: pointer; color: inherit; }
 .hlm-x::before, .hlm-x::after { content: ''; position: absolute; left: 2px; right: 2px; top: 9px; height: 2px; border-radius: 2px; background: currentColor; rotate: 45deg; } .hlm-x::after { rotate: -45deg; }
@@ -16816,7 +16816,7 @@ var PPZ = (() => {
   }
   // High-Light menu (Bennie 2026-11-19): a real click on High-Light opens the menu; hlApply's own .click() (not trusted) still
   // switches the stress marks underneath
-  let hlm = null;
+  let hlm = null, hlFresh = true;   // Bennie 2026-11-19: every time Bar Book opens, Rhyme and Vowel start on (Stress keeps its last setting)
   // Liquid glass (Bennie 2026-11-19, after the LiquidAccordion he sent): a WebGL water-caustics shader in the accent colour behind
   // the High-Light menu, with a frosted backdrop; no WebGL = the CSS pool (.hlm-pool) stays. Renders only while the menu is open.
   const hlGlass = (() => {
@@ -16834,7 +16834,7 @@ var PPZ = (() => {
           + 'k+=1./length(vec2(p.x/(sin(i.x+tt)/.005),p.y/(cos(i.y+tt)/.005)));}'
           + 'k/=5.;k=1.17-pow(k,1.4);float w=clamp(pow(abs(k),8.),0.,1.);'
           + 'vec3 deep=c*mix(.42,.78,uv.y);vec3 col=mix(deep,vec3(1.,.9,.88),w*.75);'
-          + 'gl_FragColor=vec4(col,.74+w*.18);}'));
+          + 'gl_FragColor=vec4(col,.24+w*.5);}'));
         gl.linkProgram(pr); if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw 0; gl.useProgram(pr);
         const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
         const a = gl.getAttribLocation(pr, 'a'); gl.enableVertexAttribArray(a); gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
@@ -16908,6 +16908,7 @@ var PPZ = (() => {
     try { PP.seed(); const ex = strip && strip.querySelector('.pp-sex'); if (ex) ex.hidden = !PP.exampleSong(); } catch (e) {}
     { const tp = document.querySelector('.be-tplb'), bd = strip.querySelector('.pp-sbadge'); if (tp && bd && tp.previousElementSibling !== bd) bd.after(tp); }   // Bennie 2026-11-19: Templates one row up, in the strip
     tools(); stripUi(); beatUi(); wrSync(); if (window.BBP) BBP.techSync();
+    if (hlFresh) { hlFresh = false; const v0 = hlGet(); if (v0.rh !== 'book' || !v0.vw) { v0.rh = 'book'; v0.vw = true; store.set('metrobar.ppHl2', v0); } }
     { const v = hlGet(), fb = $('bsFlowB'); if (RB.hlSt !== v.st || RB.hlRh !== v.rh || !!RB.hlVw !== v.vw || (v.rh === 'book') !== !!RB.look.hi || (fb && (fb.getAttribute('aria-pressed') === 'true') !== v.st)) hlApply(v); }
   }
   function blank() {   // a blank page: the empty one Bar Book made last time, else a new one (no pile of empty songs)
@@ -16916,12 +16917,12 @@ var PPZ = (() => {
     return p.id;
   }
   function enter(id) {
-    LIB.setCur(id || blank(), 'pp'); on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {}
+    if (!on) hlFresh = true; LIB.setCur(id || blank(), 'pp'); on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {}
     if (location.hash === '#book') { try { bookOpen(); } catch (e) {} place(); } else mwGo('#book');
   }
   function exit() { if (!on) return; on = false; html.classList.remove('pp-mode'); try { sessionStorage.removeItem('metrobar.ppMode'); } catch (e) {} toolsBack(); if (strip) strip.remove(); }
   // Bennie 2026-11-18: Write and Rhyme are merged into Bar Book: the page at #book is always Bar Book (strip, Write's tools, dictation)
-  function on1() { on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {} }
+  function on1() { if (!on) hlFresh = true; on = true; html.classList.add('pp-mode'); try { sessionStorage.setItem('metrobar.ppMode', '1'); } catch (e) {} }
   addEventListener('hashchange', () => { const bk = location.hash === '#book'; if (on) { if (bk) setTimeout(place, 0); else exit(); } else if (bk) { on1(); setTimeout(place, 0); } else toolsBack(); });
   // Bennie 2026-11-18 ("it took the techniques away, in Bar Book"): Write's tools (Techniques first) are in the editor every time
   // it shows, not only when it was opened through the Bar Book card
@@ -17002,10 +17003,10 @@ var BBP = (() => {
   function boot() {
     if (!BE.flowBtn.parentElement) { setTimeout(boot, 200); return; }
     tab(S.tab);
-    BE.flowBtn.after(rowsB); wireRf(); placePlay(); rows(S.rows); rhy(S.rhy);
+    BE.flowBtn.after(rowsB); wireRf(); placePlay(); rows(S.rows); rhy(true);   // Bennie 2026-11-19: the Rhymes/Techniques panel is always open when you come in
   }
   setTimeout(boot, 0);
-  addEventListener('hashchange', () => { if (location.hash === '#book') [300, 1200].forEach(ms => setTimeout(() => { wireRf(); placePlay(); rhy(S.rhy); }, ms)); });
+  addEventListener('hashchange', () => { if (location.hash === '#book') [300, 1200].forEach(ms => setTimeout(() => { wireRf(); placePlay(); if (ms === 300) rhy(true); else rhy(S.rhy); }, ms)); });
   addEventListener('resize', () => { const rf = $('beRf'); if (rf) rf.setAttribute('aria-pressed', String(S.rhy && innerWidth > 1000)); });
   return { rows, rhy, tab, techSync, get state() { return S; } };
 })();
