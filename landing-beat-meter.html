@@ -11920,6 +11920,9 @@ function znSupabase(cfg) {
       const q = () => sb.from('game_board').select('id,user_id,username,badge,bpm,acc,bonus,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100);
       const r = await q(); if (!r.error || !/bonus/.test(r.error.message || '')) return chk(r);
       return chk(await sb.from('game_board').select('id,user_id,username,badge,bpm,acc,stars,points,place,tier').eq('mode', mode).eq('bar', bar).eq('week', week).order('place').limit(100)); },
+    // Pocket Aim's best scores per account (zone/user-state-2026-11-19.sql): one jsonb row per user and key
+    async stateGet(k) { const r = await sb.from('user_state').select('value,updated').eq('key', k).maybeSingle(); if (r.error) throw r.error; return r.data; },
+    async statePut(k, v) { const id = await meId(); if (!id) return; const r = await sb.from('user_state').upsert({ user_id: id, key: k, value: v, updated: Date.now() }); if (r.error) throw r.error; },
     async gameMine(id) { const r = await sb.from('game_scores').select('mode,bar,stars').eq('user_id', id).limit(5000); return r.error ? [] : r.data || []; },
     async gameOf(id) { const r = await sb.from('profiles').select('game_stars,game_level').eq('id', id).maybeSingle(); return r.error ? null : r.data; },
     async gameHide(id, on) { chk(await sb.rpc('zone_game_hide', { p: id, on_: on })); },
@@ -15006,6 +15009,32 @@ const TG = (() => {
     if (!accDone) accSync().then(ch => { accDone = true; if (ch && dlg.open && cur === auto && !playing()) { const [l2, i2] = myLevel(); if (l2 !== lv || i2 !== i) playLadder(l2, i2); } }); }
   // ADVANCED tab: flow-advanced.html (Lovable's In The Pocket, built by tools/flow-advanced) in an iframe, loaded on first use
   function advPause() { const f = $('tgAdvP').querySelector('iframe'); try { if (f && f.contentWindow) f.contentWindow.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' })); } catch (e) {} }
+  // Bennie 2026-11-19 "make pocket aim scores sync to my account too": Pocket Aim keeps its bests in localStorage (itp-best-v1 tap,
+  // itp-best-voice-v1 voice; same origin as this page). Signed in, they merge with the account's user_state row 'pocketAim'
+  // (per level the better accuracy, the most stars) before Pocket Aim loads, and go up a few seconds after Pocket Aim saves one
+  // (the iframe's localStorage write fires 'storage' here). Without the table or signed out nothing happens.
+  const AIM_KEYS = ['itp-best-v1', 'itp-best-voice-v1'];
+  const aimRead = k => { try { return JSON.parse(localStorage.getItem(k) || '{}') || {}; } catch (e) { return {}; } };
+  function aimMerge(a, b) {
+    const o = Object.assign({}, a);
+    for (const id in b || {}) { const x = b[id], y = o[id]; if (!x) continue;
+      if (!y) { o[id] = x; continue; }
+      const top = (x.acc || 0) > (y.acc || 0) ? x : y; o[id] = Object.assign({}, top, { stars: Math.max(x.stars || 0, y.stars || 0) }); }
+    return o;
+  }
+  let aimT = 0;
+  async function aimSync() {
+    try {
+      const api = await zApi(false); if (!api || !api.stateGet) return; if (!(await api.session())) return;
+      const row = await api.stateGet('pocketAim'), srv = (row && row.value) || {}, out = {}; let up = false;
+      AIM_KEYS.forEach(k => { const loc = aimRead(k); out[k] = aimMerge(loc, srv[k]);
+        if (JSON.stringify(out[k]) !== JSON.stringify(loc)) localStorage.setItem(k, JSON.stringify(out[k]));
+        if (JSON.stringify(out[k]) !== JSON.stringify(srv[k] || {})) up = true; });
+      if (up) await api.statePut('pocketAim', out);
+    } catch (e) {}
+  }
+  addEventListener('storage', e => { if (AIM_KEYS.includes(e.key)) { clearTimeout(aimT); aimT = setTimeout(aimSync, 3000); } });
+  setTimeout(aimSync, 5000);
   function advTab(on) {
     dlg.classList.toggle('tg-adv', on);
     $('tgTabGame').setAttribute('aria-selected', String(!on)); $('tgTabAdv').setAttribute('aria-selected', String(on));
@@ -15013,7 +15042,8 @@ const TG = (() => {
     if (!on) { advPause(); return; }
     stopRound(); try { gbPause(); } catch (e) {}   // the Flow Game's beat stops: Pocket Aim plays its own
     let f = $('tgAdvP').querySelector('iframe');
-    if (!f) { f = document.createElement('iframe'); f.src = 'flow-advanced.html'; f.title = 'Pocket Aim'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f); }
+    if (!f) { f = document.createElement('iframe'); f.title = 'Pocket Aim'; f.allow = 'autoplay; microphone'; $('tgAdvP').appendChild(f);
+      const fr = f; Promise.race([aimSync(), new Promise(r => setTimeout(r, 2500))]).then(() => { fr.src = 'flow-advanced.html'; }); }
     setTimeout(() => { try { f.focus(); } catch (e) {} }, 0);
   }
   $('tgTabGame').addEventListener('click', () => advTab(false));
