@@ -27,6 +27,7 @@ window.bbLook = function () {
   r.classList.toggle('bb-day', window.mbDay ? window.mbDay() : true);
   try { var ac = JSON.parse(localStorage.getItem('metrobar.bookAccent') || '"#af0000"'); r.classList.toggle('bb-mb', ac === '#af0000' || ac === '#ff3b4e'); } catch (e) { r.classList.add('bb-mb'); }
   try { r.dataset.paper = JSON.parse(localStorage.getItem('metrobar.bookPaper') || '"plain"'); } catch (e) {}
+  try { r.dataset.sheet = JSON.parse(localStorage.getItem('metrobar.bookSheet') || '"theme"'); } catch (e) {}
 };
 /* Day/night for every page (Bennie 2026-11-14: "go to dark mode on every page"). One setting, metrobar.bookDay (true = day),
    shared with Bar Book. mbTheme() sets data-theme (light/dark) + bb-day before paint and syncs every .smt switch. */
@@ -3424,6 +3425,33 @@ html.bb.bb-day .be-goal text { fill: var(--fg); }
 /* Writing area (Settings): plain = the page, card = a soft panel behind the bars, lined = a ruled line under each bar */
 html.bb[data-paper="card"] .be-rows { background: var(--panel); border: 1px solid var(--line); border-radius: 18px; padding: 6px 10px; }
 html.bb[data-paper="lined"] .be-row:not(.hd) .be-cell { background: linear-gradient(var(--line), var(--line)) 0 100% / 100% 1px no-repeat; padding-bottom: 7px; }
+/* Lined paper colours (Bennie 2026-11-19, overrules "paper always in the theme's colours"): Theme = as before; any other sheet
+   sets its own paper, ink and ruled lines (metrobar.bookSheet -> html[data-sheet]); dark sheets get the night rhyme tints */
+html.bb[data-sheet="black"] { --sh-bg: #0b0b0c; --sh-ink: #f2f2f2; --sh-rule: #34343a; --sh-dark: 1; }
+html.bb[data-sheet="pink"] { --sh-bg: #ffd9ea; --sh-ink: #3a0a22; --sh-rule: #f2a0c6; }
+html.bb[data-sheet="blue"] { --sh-bg: #d9e9ff; --sh-ink: #0b2447; --sh-rule: #93bbec; }
+html.bb[data-sheet="navy"] { --sh-bg: #0f1b35; --sh-ink: #e6eeff; --sh-rule: #2c4170; --sh-dark: 1; }
+html.bb[data-sheet="notebook"] { --sh-bg: #fbf7ec; --sh-ink: #1f1a12; --sh-rule: #b4cbea; }
+html.bb[data-sheet="legal"] { --sh-bg: #fff5b5; --sh-ink: #1c1a08; --sh-rule: #8fbfe4; }
+html.bb[data-sheet="mint"] { --sh-bg: #d9f5e6; --sh-ink: #0d2e1f; --sh-rule: #8fd0ae; }
+html.bb[data-sheet="lilac"] { --sh-bg: #ebe1fd; --sh-ink: #24124a; --sh-rule: #bba6ec; }
+html.bb[data-sheet="blood"] { --sh-bg: #3a0606; --sh-ink: #ffeaea; --sh-rule: #772020; --sh-dark: 1; }
+html.bb[data-sheet="neon"] { --sh-bg: #101012; --sh-ink: #ffffff; --sh-rule: #ff2d95; --sh-dark: 1; }
+html.bb[data-paper="lined"]:not([data-sheet="theme"]) .be-rows { --rb-bg: var(--sh-bg); --rb-fg: var(--sh-ink); --rb-rule: var(--sh-rule); --line: var(--sh-rule);
+  --fg: var(--sh-ink); --muted: color-mix(in srgb, var(--sh-ink) 58%, var(--sh-bg)); background: var(--sh-bg); color: var(--sh-ink); border-radius: 18px; padding: 6px 10px;
+  --rb-cs: 82%; --rb-cl: 43%; --rb-cdl: -6%; --rb-ta: 17%; }
+html.bb[data-paper="lined"]:is([data-sheet="black"], [data-sheet="navy"], [data-sheet="blood"], [data-sheet="neon"]) .be-rows { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 24%; }
+/* the lines template you get with Bar for bar off (#rbEd without .be-on): always takes the sheet */
+html.bb:not([data-sheet="theme"]) #rbEd:not(.be-on) { --rb-bg: var(--sh-bg); --rb-fg: var(--sh-ink); --rb-rule: var(--sh-rule); background-color: var(--sh-bg);
+  --rb-cs: 82%; --rb-cl: 43%; --rb-cdl: -6%; --rb-ta: 17%; }
+html.bb:is([data-sheet="black"], [data-sheet="navy"], [data-sheet="blood"], [data-sheet="neon"]) #rbEd:not(.be-on) { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 24%; }
+html.bb[data-paper="lined"]:not([data-sheet="theme"]) .be-row.cur { background: color-mix(in srgb, var(--sh-ink) 7%, var(--sh-bg)); }
+html.bb[data-paper="lined"]:not([data-sheet="theme"]) .be-row:not(.hd) .be-cell { background-size: 100% 2px; }
+.bs-sheet { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.bs-sheet[hidden] { display: none; }
+.bs-sheet button { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px 0 8px; border: 1px solid var(--line); border-radius: 10px; background: var(--card2); color: var(--fg); font: 500 .85rem var(--body); cursor: pointer; }
+.bs-sheet button i { width: 20px; height: 20px; border-radius: 6px; background: linear-gradient(var(--r) 0 0) 0 70% / 100% 2px no-repeat, var(--b); box-shadow: inset 0 0 0 1px #8885; }
+.bs-sheet button[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 /* Settings: the Page / Song / Help block gets the same inner margin as the rest of the dialog */
 .bs-dlg .be-more { padding: 4px 18px 18px; }
 /* font picker: every name shown in its own font */
@@ -15285,10 +15313,18 @@ function bsBoot() { if (BS.settings) return; BS = (() => {
   { const hs = BE.more.querySelectorAll('h6'); hs.forEach(x => { const n = h('h4', '', x.textContent); x.replaceWith(n); }); }
   // Writing area (Bennie 2026-11-13): the background behind the bars, always in the theme's own colours
   const PAPER = [['plain', 'Plain'], ['card', 'Card'], ['lined', 'Lined']], paper = h('div', 'bs-paper'); paper.setAttribute('role', 'group'); paper.setAttribute('aria-label', 'Writing area');
+  // Lined paper colours (Bennie 2026-11-19): Theme = the page's own colours, the rest bring their own paper, ink and lines
+  const SHEET = [['theme', 'Theme', 'var(--bg)', 'var(--line)'], ['black', 'Black', '#0b0b0c', '#34343a'], ['pink', 'Pink', '#ffd9ea', '#f2a0c6'], ['blue', 'Blue', '#d9e9ff', '#93bbec'],
+    ['navy', 'Navy', '#0f1b35', '#2c4170'], ['notebook', 'Notebook', '#fbf7ec', '#b4cbea'], ['legal', 'Legal pad', '#fff5b5', '#8fbfe4'], ['mint', 'Mint', '#d9f5e6', '#8fd0ae'],
+    ['lilac', 'Lilac', '#ebe1fd', '#bba6ec'], ['blood', 'Blood', '#3a0606', '#772020'], ['neon', 'Neon', '#101012', '#ff2d95']];
+  const sheet = h('div', 'bs-sheet'); sheet.setAttribute('role', 'group'); sheet.setAttribute('aria-label', 'Paper colour');
+  const setSheet = v => { root.dataset.sheet = v; store.set('metrobar.bookSheet', v); sheet.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); };
+  SHEET.forEach(([v, n, bg, rule]) => { const b = h('button', ''), i = h('i', ''); i.style.setProperty('--b', bg); i.style.setProperty('--r', rule); b.append(i, n); b.type = 'button'; b.dataset.v = v; b.addEventListener('click', () => setSheet(v)); sheet.append(b); });
+  setSheet(store.get('metrobar.bookSheet', 'theme'));
   const setPaper = v => { root.dataset.paper = v; store.set('metrobar.bookPaper', v); paper.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === v))); };
   PAPER.forEach(([v, n]) => { const b = h('button', '', n); b.type = 'button'; b.dataset.v = v; b.addEventListener('click', () => setPaper(v)); paper.append(b); });
   setPaper(store.get('metrobar.bookPaper', 'plain'));
-  ST.body.append(h('h4', '', 'Colour'), sw, h('h4', '', 'Writing area'), paper, h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme.'), (() => { const n = h('p', 'bs-note'); n.innerHTML = IC.info + '<span>Rhyme colours are built for English.</span>'; return n; })(), oR.box,
+  ST.body.append(h('h4', '', 'Colour'), sw, h('h4', '', 'Writing area'), paper, h('h4', '', 'Lined paper colour'), h('p', '', 'The lines page (Bar for bar off), and Lined above.'), sheet, h('h4', '', 'Rhyme detection'), h('p', '', 'How loosely two words count as a rhyme.'), (() => { const n = h('p', 'bs-note'); n.innerHTML = IC.info + '<span>Rhyme colours are built for English.</span>'; return n; })(), oR.box,
     h('h4', '', 'AI writing vibe'), h('p', '', 'The style Write with AI and Rewrite aim for. Uses your own key, set under Actions > Write with AI.'), oV.box, BE.more);
   function settings() { oR.draw(); oV.draw(); BE.drawerOpen(false); actOpen(false); if (!ST.d.open) ST.d.showModal(); }
   // Font picker (Bennie 2026-11-13): every font name drawn in its own font. The Google ones load only the letters of their names,
