@@ -999,10 +999,10 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 /* 12 hues x 3 shades (--d 0-2 from BOOK_PAL): shade steps darker on light pages, lighter on dark ones.
    A rhyme word = a light wash of its colour with a solid line of the full colour under it; the letters stay ink (drawn by the
    textarea), so a full page of rhymes still reads as text. Idea from how RhymeFlux marks a rhyme family; own code and colours. */
-.rb-w { --c: hsl(var(--h) var(--rb-cs, 82%) calc(var(--rb-cl, 43%) + var(--d, 0) * var(--rb-cdl, -6%))); --t: color-mix(in srgb, var(--c) var(--rb-ta, 17%), transparent); }
-.rb-ov .rb-w, .zn-lyr .rb-w { background: var(--t); border-radius: 4px 4px 1px 1px; box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -2px 0 var(--c); transition: opacity .18s ease-out; }
-.rb-ed[data-rbtheme="night"], .rb-ed[data-rbtheme="studio"], .rb-ed[data-rbtheme="chalk"], .rb-ed[data-rbtheme="dark"], #viewBook.rb-dark .rb-fams { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 24%; }
-.rb-ed[data-rbtheme="night"] .rb-w, .rb-ed[data-rbtheme="studio"] .rb-w, .rb-ed[data-rbtheme="chalk"] .rb-w, .rb-ed[data-rbtheme="dark"] .rb-w { box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -2px 0 var(--c), 0 6px 12px -6px color-mix(in srgb, var(--c) 70%, transparent); }
+.rb-w { --c: hsl(var(--h) var(--rb-cs, 88%) calc(var(--rb-cl, 43%) + var(--d, 0) * var(--rb-cdl, -6%))); --t: color-mix(in srgb, var(--c) var(--rb-ta, 34%), transparent); }
+.rb-ov .rb-w, .zn-lyr .rb-w { background: var(--t); border-radius: 4px 4px 1px 1px; box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -3px 0 var(--c); transition: opacity .18s ease-out; }
+.rb-ed[data-rbtheme="night"], .rb-ed[data-rbtheme="studio"], .rb-ed[data-rbtheme="chalk"], .rb-ed[data-rbtheme="dark"], #viewBook.rb-dark .rb-fams { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 42%; }
+.rb-ed[data-rbtheme="night"] .rb-w, .rb-ed[data-rbtheme="studio"] .rb-w, .rb-ed[data-rbtheme="chalk"] .rb-w, .rb-ed[data-rbtheme="dark"] .rb-w { box-shadow: -2px 0 0 var(--t), 2px 0 0 var(--t), inset 0 -3px 0 var(--c), 0 6px 12px -6px color-mix(in srgb, var(--c) 70%, transparent); }
 /* spotlight: one rhyme sound lit (caret in it, or pinned in the Rhyme map), the rest step back */
 /* Bar Book highlight switches (RB.hlSt / RB.hlRh, rbSylMarks): paint only, nothing that changes the size of the letters */
 /* Stress (Bennie 2026-11-19): a black line with a small gap under the letters (dark page themes: the page ink) */
@@ -1014,14 +1014,14 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 /* Vowels switch (RB.hlVw, Bennie 2026-11-19): only the vowel letters of a stressed syllable whose vowel sound comes back within
    2 bars, one fixed colour per vowel sound (--vh), a solid block with a bar on TOP, so it never reads as the rhyme tint (light
    whole word + line under it) or the stress line (blue, under). All three stack. */
-:is(.rb-ov, .be-mir) .rb-s.vw { --vc: hsl(var(--vh, 0) 90% var(--rb-vl, 50%)); background: color-mix(in srgb, var(--vc) var(--rb-va, 58%), transparent); box-shadow: inset 0 4px 0 var(--vc); border-radius: 3px; }
+:is(.rb-ov, .be-mir) .rb-s.vw { --vc: hsl(var(--vh, 0) 90% var(--rb-vl, 50%)); background: color-mix(in srgb, var(--vc) var(--rb-va, 38%), transparent); box-shadow: inset 0 4px 0 var(--vc); border-radius: 3px; }
 :is(.rb-ov, .be-mir) .rb-s.vw.st { box-shadow: inset 0 4px 0 var(--vc); }
-.rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-vl: 62%; --rb-va: 64%; }
+.rb-ed:is([data-rbtheme="night"], [data-rbtheme="studio"], [data-rbtheme="chalk"], [data-rbtheme="dark"]) { --rb-vl: 62%; --rb-va: 44%; }
 .vw-a { --vh: 2; } .vw-ar { --vh: 18; } .vw-eh { --vh: 34; } .vw-air { --vh: 48; } .vw-ih { --vh: 62; } .vw-eer { --vh: 80; }
 .vw-ee { --vh: 98; } .vw-er { --vh: 122; } .vw-ay { --vh: 146; } .vw-uh { --vh: 168; } .vw-u { --vh: 186; } .vw-oo { --vh: 204; }
 .vw-oh { --vh: 222; } .vw-or { --vh: 240; } .vw-aw { --vh: 258; } .vw-ow { --vh: 280; } .vw-eye { --vh: 304; } .vw-oy { --vh: 330; }
 .rb-ov.rb-foc .rb-w:not(.lit) { opacity: .3; }
-.rb-ov.rb-foc .rb-w.lit { --rb-ta: 36%; }
+.rb-ov.rb-foc .rb-w.lit { --rb-ta: 52%; }
 .rb-ov.rb-foc .rb-k.on:not(.lit) { opacity: .35; }
 .rb-ed.nohi .rb-w { background: none; box-shadow: none; opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .rb-ov .rb-w { transition: none; } }
@@ -1062,7 +1062,7 @@ li.on .tx { color: var(--muted); background-size: 100% 1.5px; }
 .rb-famstat { margin: 0 0 4px; font-size: .78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rb-fam { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; width: 100%; padding: 6px 8px; border: 1px solid transparent; border-radius: 8px; background: none; color: var(--fg); font: inherit; font-size: .88rem; text-align: left; cursor: pointer; transition: background-color .14s ease-out, border-color .14s ease-out; }
 .rb-fam .ws { display: flex; flex-wrap: wrap; gap: 5px 8px; min-width: 0; }
-.rb-fam .rb-w { background: var(--t); box-shadow: inset 0 -2px 0 var(--c); border-radius: 4px 4px 1px 1px; padding: 1px 5px 3px; }
+.rb-fam .rb-w { background: var(--t); box-shadow: inset 0 -3px 0 var(--c); border-radius: 4px 4px 1px 1px; padding: 1px 5px 3px; }
 .rb-fam .more, .rb-fam .n { color: var(--muted); font-size: .76rem; font-variant-numeric: tabular-nums; }
 .rb-fam:hover { background: color-mix(in srgb, var(--fg) 5%, transparent); }
 .rb-fam[aria-pressed="true"] { border-color: var(--line); background: color-mix(in srgb, var(--fg) 7%, transparent); }
@@ -1784,10 +1784,10 @@ body.book .be-meta .rb-stat { margin: 0; font: inherit; color: inherit; }
 .be-in::placeholder { color: color-mix(in srgb, var(--rb-fg) 36%, transparent); -webkit-text-fill-color: color-mix(in srgb, var(--rb-fg) 36%, transparent); }
 .be-in::selection { background: color-mix(in srgb, var(--accent) 24%, transparent); }
 .be-in[readonly] { cursor: default; }
-.be-mir .rb-w { background: var(--t); border-radius: 6px; box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -2px 0 var(--c); transition: opacity .18s ease-out; }
-.rb-ed[data-rbtheme="night"] .be-mir .rb-w, .rb-ed[data-rbtheme="studio"] .be-mir .rb-w, .rb-ed[data-rbtheme="chalk"] .be-mir .rb-w, .rb-ed[data-rbtheme="dark"] .be-mir .rb-w { box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -2px 0 var(--c), 0 6px 14px -6px color-mix(in srgb, var(--c) 75%, transparent); }
+.be-mir .rb-w { background: var(--t); border-radius: 6px; box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -3px 0 var(--c); transition: opacity .18s ease-out; }
+.rb-ed[data-rbtheme="night"] .be-mir .rb-w, .rb-ed[data-rbtheme="studio"] .be-mir .rb-w, .rb-ed[data-rbtheme="chalk"] .be-mir .rb-w, .rb-ed[data-rbtheme="dark"] .be-mir .rb-w { box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -3px 0 var(--c), 0 6px 14px -6px color-mix(in srgb, var(--c) 75%, transparent); }
 .be-rows.be-foc .be-mir .rb-w:not(.lit) { opacity: .3; }
-.be-rows.be-foc .be-mir .rb-w.lit { --rb-ta: 36%; }
+.be-rows.be-foc .be-mir .rb-w.lit { --rb-ta: 52%; }
 .rb-ed.nohi .be-mir .rb-w { background: none; box-shadow: none; opacity: 1; }
 .be-mir .be-ad { color: color-mix(in srgb, var(--rb-fg) 52%, transparent); font-style: italic; }
 .be-side { grid-column: 2; grid-row: 1 / span 2; display: grid; justify-items: center; align-content: start; gap: 2px; padding-top: 3px; }
@@ -2704,7 +2704,7 @@ html.bb .be-in::placeholder { color: #5d646b; -webkit-text-fill-color: #5d646b; 
 html.bb .be-row.gh .be-in::placeholder { color: transparent; -webkit-text-fill-color: transparent; }
 html.bb .be-gt { position: absolute; left: 4px; top: 0; padding: 0; border: 0; background: none; color: #6fb7e6; font: italic 400 1em/1.55 Georgia, "Iowan Old Style", serif; cursor: pointer; white-space: nowrap; }
 html.bb .be-gt:hover { color: #a5d6f5; }
-html.bb .be-mir .rb-w { border-radius: 5px; box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -2px 0 var(--c); }
+html.bb .be-mir .rb-w { border-radius: 5px; box-shadow: -3px 0 0 var(--t), 3px 0 0 var(--t), inset 0 -3px 0 var(--c); }
 html.bb .be-meter { grid-column: 2; grid-row: 2; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; margin: 12px 4px 0; max-width: 100%; }
 html.bb .be-meter i { width: auto; height: 6px; border-radius: 3px; background: #17191c; }
 html.bb .be-meter i.on { background: #4b5158; }
@@ -3441,12 +3441,12 @@ html.bb[data-sheet="blood"] { --sh-bg: #3a0606; --sh-ink: #ffeaea; --sh-rule: #7
 html.bb[data-sheet="neon"] { --sh-bg: #101012; --sh-ink: #ffffff; --sh-rule: #ff2d95; --sh-dark: 1; }
 html.bb[data-paper="lined"]:not([data-sheet="theme"]) .be-rows { --rb-bg: var(--sh-bg); --rb-fg: var(--sh-ink); --rb-rule: var(--sh-rule); --line: var(--sh-rule);
   --fg: var(--sh-ink); --muted: color-mix(in srgb, var(--sh-ink) 58%, var(--sh-bg)); background: var(--sh-bg); color: var(--sh-ink); border-radius: 18px; padding: 6px 10px;
-  --rb-cs: 82%; --rb-cl: 43%; --rb-cdl: -6%; --rb-ta: 17%; }
-html.bb[data-paper="lined"]:is([data-sheet="black"], [data-sheet="navy"], [data-sheet="blood"], [data-sheet="neon"]) .be-rows { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 24%; }
+  --rb-cs: 88%; --rb-cl: 43%; --rb-cdl: -6%; --rb-ta: 34%; }
+html.bb[data-paper="lined"]:is([data-sheet="black"], [data-sheet="navy"], [data-sheet="blood"], [data-sheet="neon"]) .be-rows { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 42%; }
 /* the lines template you get with Bar for bar off (#rbEd without .be-on): always takes the sheet */
 html.bb:not([data-sheet="theme"]) #rbEd:not(.be-on) { --rb-bg: var(--sh-bg); --rb-fg: var(--sh-ink); --rb-rule: var(--sh-rule); background-color: var(--sh-bg);
-  --rb-cs: 82%; --rb-cl: 43%; --rb-cdl: -6%; --rb-ta: 17%; }
-html.bb:is([data-sheet="black"], [data-sheet="navy"], [data-sheet="blood"], [data-sheet="neon"]) #rbEd:not(.be-on) { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 24%; }
+  --rb-cs: 88%; --rb-cl: 43%; --rb-cdl: -6%; --rb-ta: 34%; }
+html.bb:is([data-sheet="black"], [data-sheet="navy"], [data-sheet="blood"], [data-sheet="neon"]) #rbEd:not(.be-on) { --rb-cs: 88%; --rb-cl: 62%; --rb-cdl: 6%; --rb-ta: 42%; }
 html.bb[data-paper="lined"]:not([data-sheet="theme"]) .be-row.cur { background: color-mix(in srgb, var(--sh-ink) 7%, var(--sh-bg)); }
 html.bb[data-paper="lined"]:not([data-sheet="theme"]) .be-row:not(.hd) .be-cell { background-size: 100% 2px; }
 .bs-sheet { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
