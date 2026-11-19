@@ -14467,15 +14467,19 @@ const TG = (() => {
   // Bennie 2026-11-19 ("it has a jump or lag in between, like another image is loading; make one image out of it"): in Long track both
   // passes are ONE svg (the 2nd drawing moved right by its width), each half a see-through box (.tg-half) for the highlight and label.
   // Overtime never redraws it: the halves are cleared and relabelled, so nothing reloads mid-round.
+  // Bennie 2026-11-19 "it has a glitch in the middle, it's supposed to run smoothly": the 2nd drawing starts exactly where the
+  // 1st one's grid ends (no margin or pickup gap between them), so the playhead and the sliding line run on without a jump.
   function longDraw(row, o) {
     const [A, B] = [0, 1].map(p => rowDraw(document.createElement('div'), p, o)), W = A.W, svg = A.svg, H = svg.viewBox.baseVal.height;
-    svg.setAttribute('viewBox', `0 0 ${2 * W} ${H}`); svg.setAttribute('width', 2 * W); svg.style.setProperty('--ar', (2 * W / H).toFixed(3));
+    const t = A.x0 + A.w - B.x0, tot = t + W, cut = A.x0 + A.w;
+    svg.setAttribute('viewBox', `0 0 ${tot} ${H}`); svg.setAttribute('width', tot); svg.style.setProperty('--ar', (tot / H).toFixed(3));
     svg.setAttribute('aria-label', `First and second time: ${o.L.text}`);
-    const g = sv('g', { transform: `translate(${W} 0)` }); g.append(...B.svg.childNodes); svg.append(g); svg.append(B.head);   // the playheads stay on top, in whole-image units
-    const halves = [0, 1].map(i => { const el = h('div', 'tg-half'); el.style.left = (50 * i) + '%'; el.append(h('span', 'tg-pass', i ? '2nd time' : '1st time')); return el; });
+    const g = sv('g', { transform: `translate(${t} 0)` }); g.append(...B.svg.childNodes); svg.append(g); svg.append(B.head);
+    const halves = [0, 1].map(i => { const el = h('div', 'tg-half'); el.style.left = i ? (100 * cut / tot).toFixed(3) + '%' : '0';
+      el.style.width = (100 * (i ? tot - cut : cut) / tot).toFixed(3) + '%'; el.append(h('span', 'tg-pass', i ? '2nd time' : '1st time')); return el; });
     row.replaceChildren(svg.parentNode, ...halves);
     A.head.remove(); svg.append(A.head);
-    return [A, B].map((r, i) => Object.assign(r, { row: halves[i], svg, W: 2 * W, x0: r.x0 + i * W, long: true }));
+    return [A, B].map((r, i) => Object.assign(r, { row: halves[i], svg, W: tot, x0: r.x0 + i * t, long: true }));
   }
   function relabel(r, p) { r.pass = p; r.row.querySelector('.tg-pass').textContent = p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`; r.row.classList.toggle('tg-ot', p > 1); }
   function resetRows() { $('tgRows').scrollLeft = 0; if (cur && cur.whole) { rows.forEach(r => { rowClear(r); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); }); return; } rows.forEach((r, i) => { if (r.pass !== i) { if (r.long) relabel(r, i); else rows[i] = r = rowDraw(r.row, i, r.o); } r.row.classList.remove('tg-ot'); r.row.classList.remove('tg-now'); r.head.setAttribute('opacity', 0); r.dots.forEach(d => { d.c.setAttribute('opacity', 0); d.c.classList.remove('tg-pop'); d.tick.setAttribute('opacity', 0); if (d.hb) { d.hb.setAttribute('opacity', 0); d.hb.removeAttribute('stroke-dasharray'); } d.g.querySelectorAll('.tg-ring').forEach(e => e.remove()); }); }); }
