@@ -17024,6 +17024,8 @@ var PP = (() => {
     const KEY = 'metrobar.rack';
     let S = { text: V1, range: 1, stress: 4, on: true, cols: [true, true, true, true] }, savedId = null, stT = 0;
     try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && typeof o.text === 'string') S = Object.assign(S, o); } catch (e) {}
+    // a state saved on the old example text (never written in) moves to the new version once: his verses with the rhymes and all four colours on
+    if (S.text === OLD) { S.on = true; S.cols = [true, true, true, true]; }
     // an untouched display (one of his verses, the old example, or nothing at all) shows the verse of the knob
     const stock = t => !t.trim() || t === OLD || REF.has(t);
     if (stock(S.text)) S.text = VERSES[S.range] || V1;
