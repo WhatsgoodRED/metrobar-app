@@ -2062,7 +2062,11 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 @media (max-width: 640px) { html.bb .pp-ssteps { order: 3; } html.bb .pp-ssteps button, html.bb .pp-shl button { padding: 5px 8px; } }
 /* ---- Bar Book (Bennie 2026-11-18): build your own song (structure, bars, highlight, beat) and play it in the Flow Game or keep it as a
    lyric sheet. Entry card = the Flow Game card's look; the dialog reuses dialog.tg. Classes pp-*. */
-#viewPractice > .pp-entry { margin-top: 18px; }
+/* Bennie 2026-11-22 "place metrobar under it as well": the Bar Book rack hangs right under the Advanced bar (or its open drawer),
+   so tiles, Advanced and the rack read as one stack */
+#viewPractice > .pp-entry { margin-top: -20px; }
+#viewPractice > .adv > #advTg[aria-expanded="false"], #viewPractice > .adv > .adv-body { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+#viewPractice > .pp-entry .bbr { border-radius: 0 0 6px 6px; }
 .pp-echips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 40rem; }
 .pp-echips i { font-style: normal; font: 600 .72rem var(--body); letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .pp-echips i.on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--fg); }
