@@ -2,8 +2,8 @@
  {
   "file": "jc/10close-my-doors.mp3",
   "name": "Close my doors",
-  "bpm": 127.12,
-  "down": 0.266,
+  "bpm": 127.048,
+  "down": 0.738,
   "dur": 60,
   "src": "10Close my doors.mp3"
  },
@@ -26,32 +26,32 @@
  {
   "file": "jc/3widow.mp3",
   "name": "3widow",
-  "bpm": 136.026,
-  "down": 1.575,
+  "bpm": 136.001,
+  "down": 1.15,
   "dur": 60,
   "src": "3widow.mp3"
  },
  {
   "file": "jc/445-target.mp3",
   "name": "445 - Target",
-  "bpm": 170.003,
-  "down": 0.036,
+  "bpm": 169.958,
+  "down": 0.041,
   "dur": 60,
   "src": "445 - Target.mp3"
  },
  {
   "file": "jc/4feel-u.mp3",
   "name": "Feel U",
-  "bpm": 109.016,
-  "down": 0.51,
+  "bpm": 109.001,
+  "down": 0.523,
   "dur": 60,
   "src": "4Feel U.mp3"
  },
  {
   "file": "jc/5kommas.mp3",
   "name": "Kommas",
-  "bpm": 153.955,
-  "down": 1.463,
+  "bpm": 154.001,
+  "down": 1.476,
   "dur": 60,
   "src": "5Kommas.mp3"
  },
@@ -67,7 +67,7 @@
   "file": "jc/9french-bankroll.mp3",
   "name": "French Bankroll",
   "bpm": 153.108,
-  "down": 0.644,
+  "down": 1.428,
   "dur": 60,
   "src": "9French Bankroll.mp3"
  },
@@ -90,8 +90,8 @@
  {
   "file": "jc/art-of-war.mp3",
   "name": "Art Of War",
-  "bpm": 134.999,
-  "down": 0.668,
+  "bpm": 135.004,
+  "down": 0.693,
   "dur": 60,
   "src": "Art Of War.wav"
  },
@@ -107,7 +107,7 @@
   "file": "jc/ben-jordan-dark-days.mp3",
   "name": "Ben Jordan - Dark Days",
   "bpm": 140.03,
-  "down": 1.669,
+  "down": 0.384,
   "dur": 60,
   "src": "Ben Jordan - Dark Days.wav"
  },
@@ -115,7 +115,7 @@
   "file": "jc/ben-jordan-first-sunny-day.mp3",
   "name": "Ben Jordan - First Sunny Day",
   "bpm": 131.971,
-  "down": 1.277,
+  "down": 1.732,
   "dur": 60,
   "src": "Ben Jordan - First Sunny Day.mp3"
  },
@@ -146,24 +146,24 @@
  {
   "file": "jc/ctuchlu.mp3",
   "name": "CtUCHLU",
-  "bpm": 110.077,
-  "down": 0.663,
+  "bpm": 109.986,
+  "down": 0.573,
   "dur": 60,
   "src": "CtUCHLU.mp3"
  },
  {
   "file": "jc/draco-drill.mp3",
   "name": "DRACO drill",
-  "bpm": 143.993,
-  "down": 0.024,
+  "bpm": 143.983,
+  "down": 0.045,
   "dur": 60,
   "src": "DRACO drill.mp3"
  },
  {
   "file": "jc/devilish.mp3",
   "name": "Devilish",
-  "bpm": 120,
-  "down": 0,
+  "bpm": 120.0,
+  "down": 1.527,
   "dur": 60,
   "src": "Devilish.wav"
  },
@@ -186,8 +186,8 @@
  {
   "file": "jc/ebi-asal-instrumental.mp3",
   "name": "Ebi Asal ( instrumental )",
-  "bpm": 132.634,
-  "down": 0.796,
+  "bpm": 134.244,
+  "down": 0.131,
   "dur": 60,
   "src": "Ebi Asal ( instrumental ).wav"
  },
@@ -210,8 +210,8 @@
  {
   "file": "jc/glitch-drill.mp3",
   "name": "GLITCH DRILL",
-  "bpm": 136.003,
-  "down": 0.026,
+  "bpm": 135.993,
+  "down": 0.49,
   "dur": 60,
   "src": "GLITCH DRILL.mp3"
  },
@@ -242,24 +242,24 @@
  {
   "file": "jc/hardhitter.mp3",
   "name": "Hardhitter",
-  "bpm": 117.037,
-  "down": 0.276,
+  "bpm": 117.001,
+  "down": 0.284,
   "dur": 60,
   "src": "Hardhitter.wav"
  },
  {
   "file": "jc/he-spazzed-drum-loop-142.mp3",
   "name": "He Spazzed Drum Loop 142",
-  "bpm": 142.012,
-  "down": 0.004,
+  "bpm": 141.967,
+  "down": 0.019,
   "dur": 13.52,
   "src": "He Spazzed Drum Loop 142.wav"
  },
  {
   "file": "jc/heisenburg.mp3",
   "name": "Heisenburg",
-  "bpm": 150.065,
-  "down": 1.032,
+  "bpm": 149.999,
+  "down": 1.386,
   "dur": 60,
   "src": "Heisenburg.wav"
  },
@@ -290,8 +290,8 @@
  {
   "file": "jc/jamcity-bennie-banger.mp3",
   "name": "Jamcity - Bennie Banger",
-  "bpm": 130.607,
-  "down": 1.75,
+  "bpm": 130.633,
+  "down": 1.777,
   "dur": 60,
   "src": "Jamcity - Bennie Banger.wav"
  },
@@ -299,23 +299,23 @@
   "file": "jc/jamcity-bennie-bass.mp3",
   "name": "Jamcity - Bennie Bass",
   "bpm": 149.998,
-  "down": 1.262,
+  "down": 1.283,
   "dur": 60,
   "src": "Jamcity - Bennie Bass.mp3"
  },
  {
   "file": "jc/jamcity-bennie-beam-2.mp3",
   "name": "Jamcity - Bennie Beam 2",
-  "bpm": 123.006,
-  "down": 0.256,
+  "bpm": 123.001,
+  "down": 0.279,
   "dur": 60,
   "src": "Jamcity - Bennie Beam 2.wav"
  },
  {
   "file": "jc/jamcity-bennie-beam.mp3",
   "name": "Jamcity - Bennie Beam",
-  "bpm": 150,
-  "down": 1.21,
+  "bpm": 150.0,
+  "down": 1.232,
   "dur": 60,
   "src": "Jamcity - Bennie Beam.wav"
  },
@@ -330,16 +330,16 @@
  {
   "file": "jc/jamcity-bennie-boogie.mp3",
   "name": "Jamcity - Bennie Boogie",
-  "bpm": 120.082,
-  "down": 1.189,
+  "bpm": 120.001,
+  "down": 0.077,
   "dur": 60,
   "src": "Jamcity - Bennie Boogie.mp3"
  },
  {
   "file": "jc/jamcity-bennie-boom-1.mp3",
   "name": "Jamcity - Bennie Boom 1",
-  "bpm": 100.136,
-  "down": 0.164,
+  "bpm": 100.024,
+  "down": 1.276,
   "dur": 60,
   "src": "Jamcity - Bennie Boom 1.mp3"
  },
@@ -354,16 +354,16 @@
  {
   "file": "jc/jamcity-bennie-boos.mp3",
   "name": "Jamcity - Bennie Boos",
-  "bpm": 151.713,
-  "down": 1.378,
+  "bpm": 151.997,
+  "down": 1.21,
   "dur": 60,
   "src": "Jamcity - Bennie Boos.wav"
  },
  {
   "file": "jc/jamcity-bennie-booty.mp3",
   "name": "Jamcity - Bennie Booty",
-  "bpm": 140.165,
-  "down": 1.136,
+  "bpm": 140.008,
+  "down": 1.527,
   "dur": 60,
   "src": "Jamcity - Bennie Booty.mp3"
  },
@@ -378,16 +378,16 @@
  {
   "file": "jc/jamcity-bennie-bounce.mp3",
   "name": "Jamcity - Bennie Bounce",
-  "bpm": 140.165,
-  "down": 1.136,
+  "bpm": 140.008,
+  "down": 1.527,
   "dur": 60,
   "src": "Jamcity - Bennie Bounce.mp3"
  },
  {
   "file": "jc/jamcity-bennie-brommer.mp3",
   "name": "Jamcity - Bennie Brommer",
-  "bpm": 151.254,
-  "down": 1.418,
+  "bpm": 152.0,
+  "down": 1.262,
   "dur": 60,
   "src": "Jamcity - Bennie Brommer.mp3"
  },
@@ -411,7 +411,7 @@
   "file": "jc/jamcity-benny-brommer-mastered.mp3",
   "name": "Jamcity - Benny Brommer Mastered",
   "bpm": 151.995,
-  "down": 0.21,
+  "down": 0.421,
   "dur": 60,
   "src": "Jamcity - Benny Brommer Mastered.wav"
  },
@@ -458,8 +458,8 @@
  {
   "file": "jc/memories.mp3",
   "name": "Memories",
-  "bpm": 116.039,
-  "down": 1.168,
+  "bpm": 115.998,
+  "down": 1.628,
   "dur": 60,
   "src": "Memories.mp3"
  },
@@ -546,16 +546,16 @@
  {
   "file": "jc/silencer.mp3",
   "name": "Silencer",
-  "bpm": 156.975,
-  "down": 1.453,
+  "bpm": 156.995,
+  "down": 1.477,
   "dur": 60,
   "src": "Silencer.wav"
  },
  {
   "file": "jc/sirens.mp3",
   "name": "Sirens",
-  "bpm": 103.986,
-  "down": 0.577,
+  "bpm": 104.001,
+  "down": 0.605,
   "dur": 60,
   "src": "Sirens.wav"
  },
@@ -594,8 +594,8 @@
  {
   "file": "jc/drum-loop-for-practice-swing-120-bpm-446.mp3",
   "name": "drum loop for practice swing 120 bpm -4462240585048480220",
-  "bpm": 120,
-  "down": 0.11,
+  "bpm": 119.995,
+  "down": 0.123,
   "dur": 60,
   "src": "drum loop for practice swing 120 bpm -4462240585048480220.mp3"
  },
@@ -603,7 +603,7 @@
   "file": "jc/jazz-drum-metronome-for-all-instruments-.mp3",
   "name": "jazz drum metronome for all instruments 135 bpm medium swing famous jazz standards 8776609663899707728",
   "bpm": 134.999,
-  "down": 1.111,
+  "down": 1.137,
   "dur": 60,
   "src": "jazz drum metronome for all instruments 135 bpm medium swing famous jazz standards 8776609663899707728.mp3"
  },
@@ -618,8 +618,8 @@
  {
   "file": "jc/wolfe-horror.mp3",
   "name": "wolfe horror",
-  "bpm": 130.607,
-  "down": 1.75,
+  "bpm": 130.633,
+  "down": 1.777,
   "dur": 60,
   "src": "wolfe horror.wav"
  }
