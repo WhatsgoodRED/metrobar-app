@@ -178,7 +178,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     <div class="opts">
       <label><input type="checkbox" id="guide" checked> Hear the words</label>
       <label for="lag">Headphone delay <input type="range" id="lag" min="0" max="300" step="10" value="0"> <output id="lagOut">0 ms</output></label>
-      <span class="beatsel"><label for="beatSel">Beat</label><select id="beatSel"><option value="auto">Jam City beats (auto)</option><optgroup label="Pick a beat" id="beatList"></optgroup><option value="own">Your own beat file…</option><option value="none">Clicks only</option></select><span class="own" id="ownBox" hidden><input type="file" id="ownFile" accept="audio/*" hidden><button class="ob tab" id="ownPick">Choose file</button><label>BPM <input type="number" id="ownBpm" min="40" max="220" step="0.1" value="90"></label><label>first beat at <input type="number" id="ownDown" min="0" max="60" step="0.01" value="0"> s</label></span><small id="beatName"></small></span>
+      <span class="beatsel"><label for="beatSel" hidden>Beat</label><select id="beatSel" hidden><option value="auto">Jam City beats (auto)</option><optgroup label="Pick a beat" id="beatList"></optgroup><option value="own">Your own beat file…</option><option value="none">Clicks only</option></select><span class="own" id="ownBox" hidden><input type="file" id="ownFile" accept="audio/*" hidden><button class="ob tab" id="ownPick">Choose file</button><label>BPM <input type="number" id="ownBpm" min="40" max="220" step="0.1" value="90"></label><label>first beat at <input type="number" id="ownDown" min="0" max="60" step="0.01" value="0"> s</label></span><small id="beatName"></small></span>
       <div class="beats" id="beats"></div>
     </div>
   </div>
@@ -486,7 +486,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   // ---- the beat under the level: one of Bennie's Jam City beats (jc/index.json: measured tempo + first bar line) or a file from the player.
   // Real tempo (Bennie 2026-11-22): the beat always plays at playback rate 1 and the level takes the beat's measured tempo, never half or double time;
   // - / + and Go faster move to the next slower or faster beat. Each circle's ring is cut from the beat at that word's moment.
-  let LIB = [], beat = null, decodeCtx = null, curLib = null, stepped = null, wantStart = false; const bufs = {};   // curLib: the library beat this level runs on; stepped: the beat - / + moved to
+  let LIB = [], libReady = false, beat = null, decodeCtx = null, curLib = null, stepped = null, wantStart = false; const bufs = {};   // curLib: the library beat this level runs on; stepped: the beat - / + moved to
   const decode = ab => { decodeCtx = decodeCtx || new (window.AudioContext || window.webkitAudioContext)(); return new Promise((ok, no) => decodeCtx.decodeAudioData(ab, ok, no)); };
   const nextBeat = dir => { if (!curLib) return null; const l = LIB.filter(b => (b.bpm - curLib.bpm) * dir >= 1); return dir > 0 ? l[0] : l[l.length - 1]; };   // the next beat at least 1 BPM slower or faster (LIB is sorted by tempo)
   // - / + / Go faster / Ease off: on a library beat the level moves to the next beat, with click only it moves 5 BPM
@@ -502,7 +502,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   fetch('jc/index.json').then(r => r.ok ? r.json() : []).then(j => {
     LIB = (Array.isArray(j) ? j : []).sort((a, b) => a.bpm - b.bpm);
     const g = $('beatList'); LIB.forEach(b => { const o = document.createElement('option'); o.value = 'b:' + b.file; o.textContent = `${b.name} · ${Math.round(b.bpm)}`; g.append(o); });
-    if (save.beat && [...$('beatSel').options].some(o => o.value === save.beat) && save.beat !== 'own') $('beatSel').value = save.beat;
+    libReady = true;   // no picker (Bennie 2026-11-22 "do not make me choose the beats"): the select stays hidden on auto
     LPS.forEach(f => { const b = LIB.find(b => b.file === f.song.file); if (!b || (b.bpm === f.bpm && b.down === f.song.start)) return; f.bpm = f.song.bpm = b.bpm; f.song.start = b.down; if (flow === f) pick(f); });   // jc/index.json is the one source of an LP's tempo and first bar line
     chooseBeat(); }).catch(() => {});
   function levelIndex() { return CHAPTERS[0].l.indexOf(flow); }
@@ -512,6 +512,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     const mode = $('beatSel').value; $('ownBox').hidden = mode !== 'own';
     if (flow.song && (flow.lp || (mode !== 'none' && mode !== 'own'))) {   // a song level plays its own record (clip from clip0 s), whatever beat is picked; an LP always plays its own beat
       const S = flow.song, f = flow, label = flow.n + ' · ' + +S.bpm.toFixed(1); $('beatName').textContent = label + (flow.lp ? ' BPM, real tempo' : ' (your record)');
+      if (flow.lp && !LIB.some(b => b.file === S.file)) { beat = null; $('beatName').textContent = libReady ? label + ' BPM · click only, its beat is on the way' : ''; paintWaves(); startIfAsked(); return; }   // every song has its own beat; this one's is not in yet
       if (!bufs[S.file]) { beat = null; loading = true; paintWaves(); }
       try { if (!bufs[S.file]) bufs[S.file] = { buf: await fetch(S.file).then(r => r.arrayBuffer()).then(decode) }; } catch { bufs[S.file] = null; }
       if (req !== beatReq) return; loading = false;
@@ -664,7 +665,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     fails = stars === 0 ? fails + 1 : 0;
     const was = save.best[flow.id] || 0; if (stars === 3 && bpm > was) { save.best[flow.id] = bpm; keep(); }
     if (flow.lp) { const had = save.lp[flow.id] || 0, nx = LPS[flow.lp]; if (stars > had) { save.lp[flow.id] = stars; keep(); }   // an LP cleared with LP_NEED stars opens the next one on the shelf
-      if (nx && had < LP_NEED && stars >= LP_NEED) { near.hidden = false; near.textContent = `New LP unlocked: LP ${nx.lp} · ${nx.n}. Press Next.`; }
+      if (LP_SHELF && nx && had < LP_NEED && stars >= LP_NEED) { near.hidden = false; near.textContent = `New LP unlocked: LP ${nx.lp} · ${nx.n}. Press Next.`; }
       showLps(); }
     const main = $('actMain'), alt = $('actAlt'); alt.hidden = true;
     const own = $('beatSel').value === 'own', up = curLib ? nextBeat(1) : null, dn = curLib ? nextBeat(-1) : null, show = v => +v.toFixed(1);   // on a library beat faster / slower = the next beat, at its own tempo
@@ -679,8 +680,9 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   function showBest(isNew) { const b = save.best[flow.id], e = $('best'); e.replaceChildren(); if (!b) { e.textContent = `No record on ${flow.n} yet. Three stars sets one.`; return; } const s = document.createElement('b'); s.textContent = +(+b).toFixed(1) + ' BPM'; e.append(isNew ? 'New record on ' : 'Your record on ', flow.n, ': ', s); }
 
   // ---- practice along: famous instrumentals near this tempo and feel (YouTube search links; tempos are approximate)
+  const PRACTICE_LINKS = false;   // paused (Bennie 2026-11-22): no beats to choose from anywhere; every song gets its own beat
   function showBeats(f) {
-    const e = $('beats'); e.replaceChildren(); if (f.song) return;
+    const e = $('beats'); e.replaceChildren(); if (!PRACTICE_LINKS || f.song) return;
     const odd = !/^(4\/4|12\/8)/.test(f.m), feel = odd ? 'odd' : f.sub === 3 || f.sub === 6 || f.m.startsWith('12/8') ? 'shuffle' : 'straight', meter = f.m.split(':')[0];
     let pool = BEATS.filter(b => b.feel === feel && (!odd || b.meter === meter)); if (odd && !pool.length) pool = BEATS.filter(b => b.feel === 'odd');
     const dist = b => odd ? 0 : Math.abs((b.halfTime ? b.bpm / 2 : b.bpm) - f.bpm);
@@ -691,9 +693,11 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   }
 
   // ---- the LP shelf: pick a song; an LP is open when the one before it has LP_NEED stars
-  const lpOpen = f => f.lp === 1 || (save.lp[LPS[f.lp - 2].id] || 0) >= LP_NEED;
+  // Paused (Bennie 2026-11-22): no shelf and no locks for now; later one LP shows up as "unlocked" at the end of a round, then the next song. Set LP_SHELF to true to bring the shelf back.
+  const LP_SHELF = false;
+  const lpOpen = f => !LP_SHELF || f.lp === 1 || (save.lp[LPS[f.lp - 2].id] || 0) >= LP_NEED;
   function showLps() {
-    const e = $('lps'); e.hidden = !CHAPTERS[chIx].lp;
+    const e = $('lps'); e.hidden = !LP_SHELF || !CHAPTERS[chIx].lp;
     [...$('lvSel').options].forEach(o => { const l = LPS.find(l => l.id === o.value); if (l) { o.disabled = !lpOpen(l); o.textContent = `LP ${l.lp} · ${l.n}${lpOpen(l) ? '' : ' (locked)'}`; } });
     if (e.hidden) return; e.replaceChildren();
     LPS.forEach(f => { const open = lpOpen(f), st = save.lp[f.id] || 0, b = document.createElement('button'); b.type = 'button'; b.disabled = !open;
