@@ -1912,7 +1912,8 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 #advTg .adv-s { order: 1; } #advTg .adv-t { order: 2; margin-left: auto; } #advTg .adv-c { order: 3; }
 /* Bar Book rack (Bennie 2026-11-22: "change it with this beautiful interactive model", from his Barbook rack mock; own vanilla code,
    no Lovable code). A 1280x444 stage (media/barbook-rack-surface.jpg) scaled to fit; live hotspots sit on the panel's controls. */
-.bbr { position: relative; width: 100%; aspect-ratio: 1280 / 444; overflow: hidden; border-radius: 12px; background: #050505; box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); }
+/* Bennie 2026-11-22 "it has a black background, I don't want that": the stage shows only the panel (x 6-1273, y 34-401 of the art), no black bands */
+.bbr { position: relative; width: 100%; aspect-ratio: 1268 / 368; overflow: hidden; border-radius: 6px; background: transparent; box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); }
 .bbr-in { position: absolute; top: 0; left: 0; width: 1280px; height: 444px; transform-origin: 0 0; --hl-1: #9fbde6; --hl-2: #f2c38a; --hl-3: #d6d79a; --hl-4: #eaa0c6;
   --led-1: #2f5be0; --led-2: #d8322e; --led-3: #e0a531; --led-4: #e03ca0; --lcd: #5f5f58; --kn-d: #1a1a1a; --kn-m: #2e2e2e; --glint: #f1f1f1; }
 .bbr-sf { position: absolute; inset: 0; width: 1280px; height: 444px; pointer-events: none; user-select: none; }
@@ -1949,7 +1950,6 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 .bbr-ta::selection { background: rgba(47, 91, 224, .25); }
 .bbr-st { position: absolute; right: 0; bottom: 0; padding: 2px 6px; font: 600 13px/1.4 var(--mono); background: #f1efe6; color: var(--lcd); }
 .bbr-st:empty { display: none; }
-@media (max-width: 560px) { .bbr { border-radius: 8px; } }
 
 .tg-ebtn { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 12px; width: 100%; padding: 20px 16px 22px; text-align: center; cursor: pointer;
   color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
@@ -17008,7 +17008,7 @@ var PP = (() => {
     let S = { text: DEF, range: 1, stress: 4, on: true, cols: [true, true, true, true] }, savedId = null, stT = 0;
     try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && typeof o.text === 'string') S = Object.assign(S, o); } catch (e) {}
     const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
-    new ResizeObserver(([e]) => { if (e) inn.style.transform = `scale(${e.contentRect.width / 1280})`; }).observe(R);
+    new ResizeObserver(([e]) => { if (e) inn.style.transform = `scale(${e.contentRect.width / 1268}) translate(-6px, -34px)`; }).observe(R);
     const SKIP = new Set('a an the and i in on my it of to is at me we you he she they till after with for but or so up'.split(' '));
     const syl = w => { w = w.toLowerCase().replace(/[^a-z]/g, ''); if (!w) return 0; if (w.length <= 3) return 1;
       w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, ''); const m = w.match(/[aeiouy]{1,2}/g); return Math.max(1, m ? m.length : 1); };
