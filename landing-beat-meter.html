@@ -1912,9 +1912,8 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 #advTg .adv-s { order: 1; } #advTg .adv-t { order: 2; margin-left: auto; } #advTg .adv-c { order: 3; }
 /* Bar Book rack (Bennie 2026-11-22: "change it with this beautiful interactive model", from his Barbook rack mock; own vanilla code,
    no Lovable code). A 1280x444 stage (media/barbook-rack-surface.jpg) scaled to fit; live hotspots sit on the panel's controls. */
-/* Bennie 2026-11-22 "it has a black background, I don't want that": the stage shows only the panel (x 6-1273, y 41-401 of the art), no black bands.
-   It starts at y 41, just under the panel's rounded top corners (y 34-40), so its top edge is straight and joins the Advanced bar above it without black specks */
-.bbr { position: relative; width: 100%; aspect-ratio: 1268 / 361; overflow: hidden; border-radius: 6px; background: transparent; box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); }
+/* Bennie 2026-11-22 "it has a black background, I don't want that": the stage shows only the panel (x 6-1273, y 34-401 of the art), no black bands */
+.bbr { position: relative; width: 100%; aspect-ratio: 1268 / 368; overflow: hidden; border-radius: 6px; background: transparent; box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); }
 .bbr-in { position: absolute; top: 0; left: 0; width: 1280px; height: 444px; transform-origin: 0 0; --hl-1: #92B9E4; --hl-2: #EACB9F; --hl-3: #D6D3AF; --hl-4: #EBAECF;   /* his four highlight colours: blue, amber, yellow, pink */
   --led-1: #2f5be0; --led-2: #d8322e; --led-3: #e0a531; --led-4: #e03ca0; --lcd: #50504d; --kn-d: #1a1a1a; --kn-m: #2e2e2e; --glint: #f1f1f1; }
 .bbr-sf { position: absolute; inset: 0; width: 1280px; height: 444px; pointer-events: none; user-select: none; }
@@ -2064,11 +2063,9 @@ html.bb .be-head > #rbTitle { min-width: 4rem; flex: 0 1 auto; overflow: hidden;
 @media (max-width: 640px) { html.bb .pp-ssteps { order: 3; } html.bb .pp-ssteps button, html.bb .pp-shl button { padding: 5px 8px; } }
 /* ---- Bar Book (Bennie 2026-11-18): build your own song (structure, bars, highlight, beat) and play it in the Flow Game or keep it as a
    lyric sheet. Entry card = the Flow Game card's look; the dialog reuses dialog.tg. Classes pp-*. */
-/* Bennie 2026-11-22 "move the new bar book under advanced": the Bar Book rack hangs right under the Advanced bar (or its open drawer),
-   so tiles, Advanced and the rack read as one stack; Flow Game and Studio follow as their own cards */
-#viewPractice > .pp-entry { margin-top: -20px; }
-#viewPractice > .adv > #advTg[aria-expanded="false"], #viewPractice > .adv > .adv-body { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
-#viewPractice > .pp-entry .bbr { border-radius: 0 0 6px 6px; }
+/* Bennie 2026-11-22 "move the new bar book under advanced", then "bar book and advanced should have a gap": the Bar Book rack is the first
+   card under the Advanced bar (or its open drawer), its own card with the same gap as the cards after it (Flow Game, Studio) */
+#viewPractice > .pp-entry { margin-top: 18px; }
 .pp-echips { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 40rem; }
 .pp-echips i { font-style: normal; font: 600 .72rem var(--body); letter-spacing: .06em; text-transform: uppercase; padding: 6px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
 .pp-echips i.on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); color: var(--fg); }
@@ -17030,7 +17027,7 @@ var PP = (() => {
     const stock = t => !t.trim() || t === OLD || REF.has(t);
     if (stock(S.text)) S.text = VERSES[S.range] || V1;
     const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
-    new ResizeObserver(([e]) => { if (e) inn.style.transform = `scale(${e.contentRect.width / 1268}) translate(-6px, -41px)`; }).observe(R);
+    new ResizeObserver(([e]) => { if (e) inn.style.transform = `scale(${e.contentRect.width / 1268}) translate(-6px, -34px)`; }).observe(R);
     const SKIP = new Set('a an the and i in on my it of to is at me we you he she they till after with for but or so up'.split(' '));
     const syl = w => { w = w.toLowerCase().replace(/[^a-z]/g, ''); if (!w) return 0; if (w.length <= 3) return 1;
       w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, ''); const m = w.match(/[aeiouy]{1,2}/g); return Math.max(1, m ? m.length : 1); };
