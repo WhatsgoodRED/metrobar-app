@@ -3461,6 +3461,11 @@ html.mo-off .ic, html.mo-off .ic * { translate: none !important; rotate: none !i
 /* Flow game and Advanced sit in the page column like every other box (Bennie 2026-11-13: same size as the 1 2 3 4 box,
    not the whole window); this undoes the old full-window break-out of #viewPractice > .adv / .tg-entry */
 #viewPractice > .adv, #viewPractice > .tg-entry { margin-inline: 0; }
+/* Bennie 2026-11-22 "this bar needs to be attached to the top part if it has to do with the top part": the Advanced bar
+   (options for the tiles above) hangs flush under the tile box, one card with a hairline between, no gap */
+#viewPractice > .deck:has(+ .controls) .deck-box, #viewPractice > .deck .deck-box { border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+#viewPractice > .adv { margin-top: -20px; }
+#viewPractice > .adv > #advTg { border-top: 0; border-top-left-radius: 0; border-top-right-radius: 0; box-shadow: inset 0 1px 0 var(--line); }
 /* Bar Book DAY palette (hand-picked; the generated rules below map every other dark colour) */
 html.bb.bb-day[data-theme], html.bb.bb-day #viewBook, html.bb.bb-day #viewBook.rb-dark { --bg: #ffffff; --panel: #f7f8f9; --card2: #f1f2f4; --cell: #f1f2f4; --line: #e3e6e9; --fg: #15171a; --muted: #6b7178; --side: #fafafa; color-scheme: light; }
 html.bb.bb-day { --t-rec: #6b7178; --t-ad: #6b7178; --t-add: #8a9097; --t-rw: #0b97bd; --t-rhy: #c98a00; }
