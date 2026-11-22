@@ -1910,67 +1910,46 @@ body.rb-zen .be-head, body.rb-zen .be-title, body.rb-zen .be-tip, body.rb-zen .b
 #viewPractice > .tg-entry { display: grid; justify-items: center; min-width: 0; margin-top: 18px; }
 /* Advanced: the title sits on the right, next to the chevron (Bennie 2026-11-14) */
 #advTg .adv-s { order: 1; } #advTg .adv-t { order: 2; margin-left: auto; } #advTg .adv-c { order: 3; }
-/* Advanced toggle = the animated rack loop (media/advanced-rack.*, Bennie 2026-11-19); title and subtitle stay for screen readers only */
-#advTg.adv-rack { position: relative; display: block; width: min(100%, 760px); margin-inline: auto; padding: 0; min-height: 0; background: none; border: 0; border-radius: 14px; overflow: hidden; line-height: 0;
-  box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); transition: transform .2s, box-shadow .2s; }
-#advTg.adv-rack:hover { transform: translateY(-1px); box-shadow: 0 18px 32px -18px rgba(17, 20, 19, .65); }
-#advTg.adv-rack .adv-t, #advTg.adv-rack .adv-s { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-#advTg.adv-rack .adv-v { display: block; width: 100%; height: auto; aspect-ratio: 1262 / 682; object-fit: cover; pointer-events: none; }
-#advTg.adv-rack .adv-c { position: absolute; right: calc(6% - 15px); top: 50%; margin-top: -15px; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
-#advTg.adv-rack[aria-expanded="true"] { border-radius: 14px; }
-@media (max-width: 560px) { #advTg.adv-rack { border-radius: 10px; } #advTg.adv-rack .adv-c { width: 22px; height: 22px; right: calc(6% - 11px); margin-top: -11px; } #advTg.adv-rack .adv-c::before { width: 5px; height: 5px; } }
-#advTg.adv-rack + .adv-body { margin-top: 12px; border-top: 1px solid var(--line); border-radius: 14px; }
-/* Animated rack loops (Bennie 2026-11-19, "do it for the rest too"): the Bar Book, Flow Game and Studio cards and the Sound,
-   Polymeter, Fit and Practice rack headers are each their own rack video (media/*-rack.*, black edges cropped); the old text
-   stays for screen readers only. Same look as #advTg.adv-rack. */
-.vr-v { display: block; width: 100%; height: auto; pointer-events: none; }
-.tg-ebtn.vr { display: block; width: min(100%, 760px); margin-inline: auto; padding: 0; background: none; border: 0; border-radius: 14px; line-height: 0;
-  box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); }
-.tg-ebtn.vr:hover { border-color: transparent; box-shadow: 0 18px 32px -18px rgba(17, 20, 19, .65); transform: translateY(-1px); }
-.tg-ebtn.vr:active { transform: scale(.985); }
-.tg-ebtn.vr > :not(.vr-v), .rk-tg.vr > h2, .rk-tg.vr > .rk-sub { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.rackbar:has(> .rk-tg.vr) { justify-content: center; padding: 12px; background: none; }
-.rk-tg.vr { position: relative; display: block; flex: 0 1 760px; border-radius: 12px; overflow: hidden; line-height: 0; box-shadow: 0 12px 24px -18px rgba(17, 20, 19, .55); transition: transform .2s, box-shadow .2s; }
-.rk-tg.vr:hover { transform: translateY(-1px); }
-.rk-tg.vr .rk-c { position: absolute; right: calc(4.4% - 13px); top: 50%; margin: -13px 0 0; box-shadow: 0 2px 8px rgba(0, 0, 0, .4); }
-@media (max-width: 560px) { .tg-ebtn.vr, .rk-tg.vr { border-radius: 10px; } .rk-tg.vr .rk-c { width: 20px; height: 20px; right: calc(4.4% - 10px); margin-top: -10px; } .rk-tg.vr .rk-c::before { width: 5px; height: 5px; } }
-/* Rack holder (Bennie 2026-11-19: "a rack holder around all of them so it looks like they are connected", as wide as the
-   1-2-3-4 tile box): Advanced, Bar Book, Flow Game and Studio stack flush between two rack rails (::before/::after of each
-   rack button, so they run on as one rail), a cap on top of Advanced and a foot under Studio. Open Advanced = a drawer
-   pulled out between the rails. */
-#viewPractice { --rail: 26px; --rk-gap: 20px; }
-html:not(.rk-off) #viewPractice > .adv, #viewPractice > .tg-entry:has(> .tg-ebtn.vr) { position: relative; margin-top: 0; }
-/* Bennie 2026-11-19: an equal gap between Advanced, Bar Book, Flow Game and Studio, but the rack sides run on through it and the
-   gap between the rails is black (empty rack space): the section pulls up over the .vp grid gap and pads it back in, the rails reach up into it */
-#viewPractice > .tg-entry:has(> .tg-ebtn.vr) { margin-top: calc(-1 * var(--rk-gap, 0px)); padding-top: var(--rk-gap); }
-#viewPractice > .tg-entry:has(> .tg-ebtn.vr)::before { content: ""; position: absolute; top: 0; height: var(--rk-gap); left: var(--rail); right: var(--rail); background: #050505; pointer-events: none; }
-#viewPractice > .tg-entry .tg-ebtn.vr::before, #viewPractice > .tg-entry .tg-ebtn.vr::after { top: calc(-1 * var(--rk-gap)); }
-#advTg.adv-rack, #viewPractice .tg-ebtn.vr { position: relative; width: calc(100% - 2 * var(--rail)); margin-inline: auto; border-radius: 0; box-shadow: none; overflow: visible; transform: none; }
-#advTg.adv-rack:hover, #viewPractice .tg-ebtn.vr:hover { transform: none; box-shadow: none; filter: brightness(1.03); }
-#advTg.adv-rack .adv-v, #viewPractice .tg-ebtn.vr .vr-v { border-radius: 0; }
-/* Flow Game rack art has ~89px black bands top and bottom baked in (1024x1536): crop them so it sits flush like Bar Book (2026-11-19) */
-#tgOpen .vr-v { aspect-ratio: 1024 / 1358; object-fit: cover; object-position: 50% 50%; }
-#advTg.adv-rack::before, #advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::before, #viewPractice .tg-ebtn.vr::after {
-  content: ""; position: absolute; top: 0; bottom: 0; width: calc(var(--rail) + 8px); z-index: -1; pointer-events: none;
-  /* black 19" rack: outer side panel + inner rail with square cage-nut holes; the rack ears overlap the rail by 8px */
-  background:
-    linear-gradient(180deg, #000 0 7px, transparent 7px) var(--hole-x) 0 / 7px 22px repeat-y,
-    linear-gradient(180deg, transparent 0 7px, rgba(255,255,255,.06) 7px 8px, transparent 8px) var(--hole-x) 0 / 7px 22px repeat-y,
-    linear-gradient(90deg, var(--rk-l)); background-size: 7px 22px, 7px 22px, auto; }
-#advTg.adv-rack::before, #viewPractice .tg-ebtn.vr::before { left: calc(-1 * var(--rail)); --hole-x: calc(var(--rail) - 15px);
-  --rk-l: #050505, #1d1e1e 18%, #2a2b2b 40%, #111 46%, #2f3030 52%, #222 100%; }
-#advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::after { right: calc(-1 * var(--rail)); --hole-x: 12px;
-  --rk-l: #222, #2f3030 48%, #111 54%, #2a2b2b 60%, #1d1e1e 82%, #050505; }
-#advTg.adv-rack .adv-v, #viewPractice .tg-ebtn.vr .vr-v { position: relative; z-index: 1; }
-#advTg.adv-rack .adv-c { z-index: 2; }
-#advTg.adv-rack, #viewPractice .tg-ebtn.vr { isolation: isolate; }
-html:not(.rk-off) #viewPractice > .adv::before, html:not(.rk-off) #viewPractice > .st-entry::after { content: ""; position: absolute; left: 0; right: 0; height: 16px; pointer-events: none; z-index: 1;
-  background: linear-gradient(180deg, #3a3b3b, #1a1b1b 40%, #0b0b0b); border-radius: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,.12); }
-html:not(.rk-off) #viewPractice > .adv::before { top: -16px; }
-html:not(.rk-off) #viewPractice > .st-entry::after { bottom: -16px; box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 14px 24px -12px rgba(0,0,0,.6); }
-html:not(.rk-off) #viewPractice > .adv { margin-top: 16px; }
-html:not(.rk-off) #viewPractice > .st-entry { margin-bottom: 16px; }
-@media (max-width: 560px) { #viewPractice { --rail: 12px; } #advTg.adv-rack::before, #viewPractice .tg-ebtn.vr::before { --hole-x: 3px; } #advTg.adv-rack::after, #viewPractice .tg-ebtn.vr::after { --hole-x: 10px; } }
+/* Bar Book rack (Bennie 2026-11-22: "change it with this beautiful interactive model", from his Barbook rack mock; own vanilla code,
+   no Lovable code). A 1280x444 stage (media/barbook-rack-surface.jpg) scaled to fit; live hotspots sit on the panel's controls. */
+.bbr { position: relative; width: 100%; aspect-ratio: 1280 / 444; overflow: hidden; border-radius: 12px; background: #050505; box-shadow: 0 14px 28px -18px rgba(17, 20, 19, .55); }
+.bbr-in { position: absolute; top: 0; left: 0; width: 1280px; height: 444px; transform-origin: 0 0; --hl-1: #9fbde6; --hl-2: #f2c38a; --hl-3: #d6d79a; --hl-4: #eaa0c6;
+  --led-1: #2f5be0; --led-2: #d8322e; --led-3: #e0a531; --led-4: #e03ca0; --lcd: #5f5f58; --kn-d: #1a1a1a; --kn-m: #2e2e2e; --glint: #f1f1f1; }
+.bbr-sf { position: absolute; inset: 0; width: 1280px; height: 444px; pointer-events: none; user-select: none; }
+.bbr-name { position: absolute; top: 46px; left: 127px; margin: 0; font: 800 25px/1 var(--display); letter-spacing: .01em; color: #232320; pointer-events: none; }
+.bbr-hs { position: absolute; padding: 0; margin: 0; border: 0; background: transparent; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.bbr-hs:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.bbr-knob { width: 77px; height: 77px; border-radius: 50%; cursor: ns-resize; touch-action: none; }
+.bbr-range { top: 109px; left: 151px; } .bbr-stress { top: 86px; left: 1044px; }
+.bbr-face { position: absolute; inset: 2px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--kn-m), var(--kn-d));
+  box-shadow: 0 4px 7px rgba(0, 0, 0, .7), inset 0 0 0 2px #444; transition: transform .12s ease-out; }
+.bbr-face i { position: absolute; top: 4px; left: calc(50% - 1px); width: 2px; height: 30px; background: var(--glint); border-radius: 1px; }
+.bbr-sw { top: 286px; left: 161px; width: 53px; height: 53px; border-radius: 50%; }
+.bbr-sw[aria-pressed="false"]::after { content: ""; position: absolute; left: 19px; top: 10px; width: 14px; height: 33px; border-radius: 7px;
+  background: linear-gradient(90deg, var(--kn-d), var(--glint), var(--kn-m)); transform: translateY(12px) rotate(-20deg); }
+.bbr-leds { position: absolute; top: 230px; left: 987px; display: flex; gap: 19px; }
+.bbr-led { position: relative; width: 33px; height: 33px; border-radius: 50%; }
+.bbr-led:nth-child(1) { --c: var(--led-1); } .bbr-led:nth-child(2) { --c: var(--led-2); } .bbr-led:nth-child(3) { --c: var(--led-3); } .bbr-led:nth-child(4) { --c: var(--led-4); }
+.bbr-led[aria-pressed="true"] { box-shadow: inset 0 0 10px var(--c), 0 0 7px var(--c); }
+.bbr-led[aria-pressed="false"] { background: rgba(20, 20, 20, .86); }
+.bbr-save { top: 291px; left: 1000px; width: 60px; height: 59px; border-radius: 50%; }
+.bbr-save:active { background: rgba(0, 0, 0, .25); } .bbr-save.ok { box-shadow: 0 0 14px var(--led-3); }
+.bbr-book { top: 303px; left: 1096px; width: 97px; height: 44px; border-radius: 4px; }
+.bbr-book:hover { background: rgba(255, 255, 255, .06); }
+.bbr-disp { position: absolute; top: 113px; left: 369px; width: 536px; height: 213px; color: var(--lcd); }
+.bbr-scroll { height: 100%; overflow: auto; scrollbar-width: thin; }
+.bbr-sheet { position: relative; width: max-content; min-width: 100%; }
+.bbr-hl, .bbr-ta { font: 500 18px/52px var(--mono); letter-spacing: 0; white-space: pre; tab-size: 4; }
+.bbr-hl { padding: 0 52px 0 5px; pointer-events: none; }
+.bbr-ln { position: relative; height: 52px; }
+.bbr-ln mark { color: inherit; border-radius: 2px; padding-block: 2px; background: color-mix(in srgb, var(--hl) var(--hs, 65%), transparent); }
+.bbr-ln b { position: absolute; right: -45px; width: 32px; text-align: right; font: 500 16px/52px var(--mono); opacity: .8; }
+.bbr-ta { position: absolute; inset: 0; width: calc(100% - 47px); height: 100%; margin: 0; padding: 0 0 0 5px; border: 0; outline: 0; resize: none; overflow: hidden;
+  background: transparent; color: transparent; caret-color: var(--lcd); }
+.bbr-ta::selection { background: rgba(47, 91, 224, .25); }
+.bbr-st { position: absolute; right: 0; bottom: 0; padding: 2px 6px; font: 600 13px/1.4 var(--mono); background: #f1efe6; color: var(--lcd); }
+.bbr-st:empty { display: none; }
+@media (max-width: 560px) { .bbr { border-radius: 8px; } }
 
 .tg-ebtn { position: relative; display: grid; grid-template-columns: minmax(0, 1fr); justify-items: center; gap: 12px; width: 100%; padding: 20px 16px 22px; text-align: center; cursor: pointer;
   color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
@@ -3390,7 +3369,6 @@ body:not(.book) header > .views { margin-top: -6px; }
 .rkt[aria-checked="true"] .rkt-k { translate: 34px 0; background: radial-gradient(circle at 36% 34%, #e2392e 0%, #af0000 58%, #7a0000 100%); box-shadow: 0 0 8px 1px rgb(175 0 0 / .55), inset -1px -2px 3px rgb(80 0 0 / .45); }
 .rkt:active .rkt-k { scale: .92; } .rkt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .rkt, .rkt i { transition: none; } }
-html.rk-off video.vr-v, html.rk-off video.adv-v { display: none; }
 #hdDay .smt-k { top: 4px; left: 4px; width: 22px; height: 22px; } #hdDay[aria-checked="true"] .smt-k { translate: 34px 0; }
 #hdDay .smt-k::before { width: 7px; height: 7px; left: 4px; top: 5px; } #hdDay .smt-k::after { width: 4px; height: 4px; left: 12px; top: 13px; }
 #hdDay .smt-cl { right: 6px; bottom: -6px; width: 15px; height: 14px; box-shadow: -9px 4px 0 1px #fff, 7px 5px 0 0 #fff; }
@@ -4106,21 +4084,11 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
     <nav class="views" aria-label="Tools"><a href="#practice" aria-current="page"><span>MetroBar</span></a><a href="#book" title="Bar Book: write your songs, rhymes light up, then play them in the Game"><span>Bar Book</span></a><a href="#game" title="The Flow Game and Pocket Aim"><span>Game</span></a><a href="studio-lemon/" title="MetroBar Studio: record, edit and make beats"><span>Studio</span></a></nav>
     <div class="hright">
       <div class="readout"><span class="ro-k">bar <b id="barNo">1</b>/<b id="barTot">4</b></span> · <span class="ro-k ro-bpm" id="roBpm" role="button" tabindex="0" title="Change the tempo"><b id="bpmOut">145</b> BPM</span> · <span id="state">stopped</span></div>
-      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg class="ic ic-find" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg class="ic ic-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg class="ic ic-ppl" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button><button type="button" class="rkt" id="hdRack" role="switch" aria-label="Rack look" aria-checked="true" title="Rack look on/off"><i class="rkt-r"></i><i class="rkt-k"></i></button></div>
+      <div class="hbtns"><button class="ibtn hd-k" id="cmdkBtn" aria-haspopup="dialog" aria-label="Search MetroBar (Ctrl+K)" title="Search: jump to any tool, song, technique or tempo (Ctrl+K / ⌘K)"><svg class="ic ic-find" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg></button><button class="ibtn hd-i" id="infoBtn" aria-haspopup="dialog" aria-label="How MetroBar works" title="How MetroBar works"><svg class="ic ic-info" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5"/><path d="M12 7.6v.1"/></svg></button><a class="ibtn hd-k" id="zoneBtn" href="#zone" aria-label="The Zone" title="The Zone: posts, Props! and profiles"><svg class="ic ic-ppl" viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8.5" r="3.2"/><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.8" cy="9.5" r="2.5"/><path d="M15.6 14.2c2.6-.3 4.5 1.2 5 4.3"/></svg></a><button type="button" class="smt smt-hd" id="hdDay" data-dn role="switch" aria-label="Night mode" aria-checked="false" title="Night mode"><i class="smt-st"></i><i class="smt-cl"></i><i class="smt-k"></i></button></div>
     </div>
   </header>
   <script>document.getElementById('hdDay').addEventListener('click', function () { mbDayToggle(); }); mbTheme();
-  // Rack look on/off (Bennie 2026-11-19): off = the page exactly as before the rack loops (classes come off, videos hide)
-  window.mbRk = function () { try { return localStorage.getItem('metrobar.racks') !== 'off'; } catch (e) { return true; } };
-  window.mbRkApply = function () {
-    var on = mbRk(); document.documentElement.classList.toggle('rk-off', !on);
-    var b = document.getElementById('hdRack'); if (b) b.setAttribute('aria-checked', String(on));
-    var a = document.getElementById('advTg'); if (a) a.classList.toggle('adv-rack', on);
-    document.querySelectorAll('.tg-ebtn, .rk-tg').forEach(function (el) { if (el.querySelector(':scope > video')) el.classList.toggle('vr', on); });
-    document.querySelectorAll('video.vr-v, video.adv-v').forEach(function (v) { if (!on) { v.pause(); v.currentTime = 0; } });
-  };
-  document.documentElement.classList.toggle('rk-off', !mbRk()); document.getElementById('hdRack').setAttribute('aria-checked', String(mbRk()));
-  document.getElementById('hdRack').addEventListener('click', function () { try { localStorage.setItem('metrobar.racks', mbRk() ? 'off' : 'on'); } catch (e) {} mbRkApply(); });</script>
+</script>
   <dialog class="tg" id="tgDlg" aria-labelledby="tgTitle">
     <div class="tg-hd">
       <button class="tg-ib" id="tgBack" type="button" aria-label="Back to the levels" hidden><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 6l-6 6 6 6"/></svg><span>All levels</span></button>
@@ -4149,7 +4117,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
         <div class="tg-rank"><span class="tg-lab" id="tgRankL">Tap rank</span><b id="tgRank">Rookie</b><span id="tgRankS"></span><div class="tg-prog" aria-hidden="true"><i id="tgProg"></i></div></div>
         <h3 class="tg-h">This week on the Zone</h3>
         <div class="tg-zone" id="tgZone"></div>
-        <div class="tg-lvhd"><h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Start at level 1. The next level opens at 6 stars per level so far: 6 of 9, 12 of 18, 24 of 36 …</small></h3><button class="tg-b" id="tgDet" type="button" aria-pressed="false"><span>Details</span></button></div>
+        <div class="tg-lvhd"><h3 class="tg-h" id="tgLvH">135 levels in 8 chapters <span class="tg-acc">×</span> 3 bars<small>Every level is open. Play plays from the level you're at.</small></h3><button class="tg-b" id="tgDet" type="button" aria-pressed="false"><span>Details</span></button></div>
         <div class="tg-tiles" id="tgTiles"></div>
         <div class="tg-chs" id="tgChs" role="tablist" aria-label="Chapters" hidden></div>
         <p class="tg-chb" id="tgChB" hidden></p>
@@ -4363,7 +4331,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
   <div class="drop" id="drop" aria-live="polite" hidden></div>
 
   <section class="adv" id="adv">
-    <button class="adv-tg adv-rack" id="advTg" aria-expanded="false" aria-controls="advBody"><span class="adv-t">Advanced</span><span class="adv-s">Fit, rhyme map, flows, polymeter, sound and meter options</span><video class="adv-v" muted loop playsinline preload="auto" poster="media/advanced-rack.jpg" aria-hidden="true" tabindex="-1"><source src="media/advanced-rack.webm" type="video/webm"><source src="media/advanced-rack.mp4" type="video/mp4"></video><span class="adv-c" aria-hidden="true"></span></button>
+    <button class="adv-tg" id="advTg" aria-expanded="false" aria-controls="advBody"><span class="adv-t">Advanced</span><span class="adv-s">Fit, rhyme map, flows, polymeter, sound and meter options</span><span class="adv-c" aria-hidden="true"></span></button>
     <div class="adv-body" id="advBody" hidden><div class="adv-in">
 
   <div class="now">
@@ -4575,12 +4543,20 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
     </div></div>
   </section>
 
-  <section class="tg-entry pp-entry"><button class="tg-ebtn vr" id="ppOpen" type="button"><video class="vr-v" muted loop playsinline preload="auto" poster="media/barbook-rack.jpg" width="1266" height="366" aria-hidden="true" tabindex="-1"><source src="media/barbook-rack.webm" type="video/webm"><source src="media/barbook-rack.mp4" type="video/mp4"></video><span class="tg-ebk"><span class="tg-etag">Bar Book</span><span class="tg-ebs" id="ppOpenS">A blank page to write your song. Pick a template or just freestyle, then turn it into a card and play it in the Flow Game.</span></span><span class="pp-echips" aria-hidden="true"><i>Intro</i><i class="on">Verse</i><i class="on">Chorus</i><i>Verse</i><i class="on">Chorus</i><i>Outro</i></span></button></section>
+  <section class="tg-entry pp-entry"><div class="bbr" id="bbRack" role="group" aria-label="Bar Book rack: write here, rhymes light up"><div class="bbr-in">
+    <img class="bbr-sf" src="media/barbook-rack-surface.jpg" alt="" width="1280" height="444" draggable="false"><p class="bbr-name" aria-hidden="true">METROBAR</p>
+    <button type="button" class="bbr-hs bbr-knob bbr-range" role="slider" aria-label="Rhyme range" aria-valuemin="1" aria-valuemax="2" data-k="range"><span class="bbr-face"><i></i></span></button>
+    <button type="button" class="bbr-hs bbr-knob bbr-stress" role="slider" aria-label="Stress" aria-valuemin="1" aria-valuemax="10" data-k="stress"><span class="bbr-face"><i></i></span></button>
+    <button type="button" class="bbr-hs bbr-sw" aria-pressed="true" aria-label="Rhymes on/off" title="Rhymes on/off"></button>
+    <div class="bbr-leds"><button type="button" class="bbr-hs bbr-led" aria-pressed="true" aria-label="Rhyme colour 1"></button><button type="button" class="bbr-hs bbr-led" aria-pressed="true" aria-label="Rhyme colour 2"></button><button type="button" class="bbr-hs bbr-led" aria-pressed="true" aria-label="Rhyme colour 3"></button><button type="button" class="bbr-hs bbr-led" aria-pressed="true" aria-label="Rhyme colour 4"></button></div>
+    <button type="button" class="bbr-hs bbr-save" id="bbrSave" aria-label="Save draft to Bar Book" title="Save draft to Bar Book"></button>
+    <button type="button" class="bbr-hs bbr-book" id="ppOpen" aria-label="Open Bar Book" title="Open Bar Book"></button>
+    <div class="bbr-disp"><div class="bbr-scroll"><div class="bbr-sheet"><div class="bbr-hl" aria-hidden="true"></div><textarea class="bbr-ta" aria-label="Bars" spellcheck="false" wrap="off" autocomplete="off"></textarea></div></div><div class="bbr-st" role="status"></div></div>
+  </div></div></section>
 
-  <section class="tg-entry"><button class="tg-ebtn vr vr-tall" id="tgOpen" type="button"><video class="vr-v" muted loop playsinline preload="auto" poster="media/flowgame-rack-v2.jpg" width="1024" height="1536" aria-hidden="true" tabindex="-1"><source src="media/flowgame-rack-v2.webm" type="video/webm"><source src="media/flowgame-rack-v2.mp4" type="video/mp4"></video><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots into your pocket. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
+  <section class="tg-entry"><button class="tg-ebtn" id="tgOpen" type="button"><span class="tg-ebk"><span class="tg-etag">Flow Game</span><span class="tg-ebs" id="tgOpenS">Tap or rap the dots into your pocket. 18 levels.</span></span><span class="tg-edots" aria-hidden="true"><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i><i class="on"></i><i></i></span></button></section>
 
-  <section class="tg-entry st-entry"><a class="tg-ebtn vr" id="stOpen" href="studio-lemon/" aria-label="Open MetroBar Studio"><video class="vr-v" muted loop playsinline preload="auto" poster="media/studio-rack-v3.jpg" width="1582" height="900" aria-hidden="true" tabindex="-1"><source src="media/studio-rack-v3.webm" type="video/webm"><source src="media/studio-rack-v3.mp4" type="video/mp4"></video><span class="st-ewm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="62.5 -12.8 11704.5 707.5" aria-hidden="true" focusable="false"><path class="ink" fill="currentColor" d="M 224.6 682 L 62.5 682 L 62.5 0 L 260.1 0 L 702 548.2 L 1143.5 0 L 1337.8 0 L 1337.8 682 L 1175.7 682 L 1175.7 192.9 L 782.1 682 L 618.2 682 L 224.6 192.4 Z M 2359 682 L 1462.5 682 L 1462.5 0 L 2359 0 L 2359 128.2 L 1624.6 128.2 L 1624.6 282.9 L 2339.5 282.9 L 2339.5 389 L 1624.6 389 L 1624.6 553.8 L 2359 553.8 Z M 2847 139.2 L 2439 139.2 L 2439 0 L 3416.5 0 L 3416.5 139.2 L 3009.1 139.2 L 3009.1 682 L 2847 682 Z M 3669.6 682 L 3507.5 682 L 3507.5 0 L 4176.6 0 Q 4239.2 0 4290 12.4 Q 4340.7 24.9 4376.4 51.8 Q 4412 78.7 4431.1 122.9 Q 4450.1 167.1 4450.1 230.8 Q 4450.1 303.7 4422.5 352.8 Q 4395 401.8 4341.6 427.5 Q 4288.3 453.3 4211.3 457.7 L 4151.1 458.8 L 4208.5 496.8 L 4439.8 682 L 4234.9 682 L 3972.2 467.1 L 3669.6 467.1 Z M 3669.6 139.2 L 3669.6 344.4 L 4162.3 344.4 Q 4226.4 344.4 4254.4 320.5 Q 4282.4 296.7 4282.4 242.3 Q 4282.4 185.3 4254.4 162.3 Q 4226.4 139.2 4162.3 139.2 Z M 5075.3 694.8 Q 4885.6 694.8 4764.2 657.2 Q 4642.8 619.6 4584.6 541.2 Q 4526.5 462.9 4526.5 341 Q 4526.5 218.1 4584.6 140.3 Q 4642.8 62.4 4764.2 24.8 Q 4885.6 -12.8 5075.3 -12.8 Q 5265.4 -12.8 5386.6 24.8 Q 5507.7 62.4 5565.9 140.3 Q 5624 218.1 5624 341 Q 5624 462.9 5565.9 541.2 Q 5507.7 619.6 5386.6 657.2 Q 5265.4 694.8 5075.3 694.8 Z M 5075.3 555.1 Q 5184.7 555.1 5258.5 542.8 Q 5332.3 530.5 5376.6 504.6 Q 5420.9 478.7 5440 438.2 Q 5459.2 397.8 5459.2 341 Q 5459.2 283.7 5440 243.2 Q 5420.9 202.8 5376.6 176.9 Q 5332.3 150.9 5258.5 138.9 Q 5184.7 126.9 5075.3 126.9 Q 4929.5 126.9 4845 148.7 Q 4760.5 170.4 4724.6 217.7 Q 4688.6 264.9 4688.6 341 Q 4688.6 417.1 4724.6 464.3 Q 4760.5 511.6 4845 533.3 Q 4929.5 555.1 5075.3 555.1 Z M 6463.7 682 L 5729.5 682 L 5729.5 0 L 6461 0 Q 6534.3 0 6581.1 18.8 Q 6627.9 37.6 6650.4 75 Q 6672.9 112.3 6672.9 168.5 Q 6672.5 238.6 6634.1 280.4 Q 6595.7 322.2 6519 331.1 L 6519 317.5 Q 6608.4 326.8 6653.4 371.2 Q 6698.4 415.6 6698.4 500.4 Q 6698.4 563.4 6673.1 603.6 Q 6647.8 643.9 6595.7 662.9 Q 6543.6 682 6463.7 682 Z M 6439.5 399 L 5889.4 399 L 5889.4 567.6 L 6432.3 567.6 Q 6492.8 567.6 6520 549.4 Q 6547.2 531.2 6547.2 483.5 Q 6547.2 435.4 6518.9 417.2 Q 6490.5 399 6439.5 399 Z M 6418.1 123.8 L 5889.4 123.8 L 5889.4 283.4 L 6426.2 283.4 Q 6454.1 283.4 6475.6 275 Q 6497.2 266.6 6509.5 248.9 Q 6521.8 231.3 6521.8 203.3 Q 6521.8 162.3 6497.5 143.1 Q 6473.1 123.8 6418.1 123.8 Z M 7645.1 538 L 6922.6 538 L 6922.6 423.5 L 7645.1 423.5 Z M 7336.3 0 L 7334.6 28.3 L 6906.5 682 L 6711.5 682 L 7170.9 0 Z M 7649 682 L 7220.9 28.3 L 7220.9 0 L 7386.3 0 L 7845.8 682 Z M 8063.6 682 L 7901.5 682 L 7901.5 0 L 8570.6 0 Q 8633.2 0 8684 12.4 Q 8734.7 24.9 8770.4 51.8 Q 8806 78.7 8825.1 122.9 Q 8844.1 167.1 8844.1 230.8 Q 8844.1 303.7 8816.5 352.8 Q 8789 401.8 8735.6 427.5 Q 8682.3 453.3 8605.3 457.7 L 8545.1 458.8 L 8602.5 496.8 L 8833.8 682 L 8628.9 682 L 8366.2 467.1 L 8063.6 467.1 Z M 8063.6 139.2 L 8063.6 344.4 L 8556.3 344.4 Q 8620.4 344.4 8648.4 320.5 Q 8676.4 296.7 8676.4 242.3 Q 8676.4 185.3 8648.4 162.3 Q 8620.4 139.2 8556.3 139.2 Z"/><path fill="#af0000" d="M 9533.5 689.1 Q 9479 689.1 9441.1 670.4 Q 9403.1 651.8 9376.5 622.1 L 9435.7 562.3 Q 9477.8 609.7 9539.4 609.7 Q 9572.6 609.7 9588.6 596.1 Q 9604.6 582.4 9604.6 559.9 Q 9604.6 542.7 9595.1 531.2 Q 9585.7 519.6 9556.6 515.5 L 9515.7 510.1 Q 9450 501.9 9419.4 470.4 Q 9388.9 439 9388.9 386.9 Q 9388.9 359 9399.6 335.9 Q 9410.3 312.8 9430.1 296.2 Q 9450 279.6 9478.7 270.4 Q 9507.4 261.3 9544.2 261.3 Q 9591 261.3 9626.6 276.1 Q 9662.1 290.9 9687.6 319.3 L 9627.7 379.8 Q 9612.9 362.6 9591.9 351.6 Q 9570.9 340.7 9538.9 340.7 Q 9508.6 340.7 9493.8 351.3 Q 9479 362 9479 381 Q 9479 402.3 9490.6 411.8 Q 9502.1 421.3 9528.2 425.4 L 9569.1 431.9 Q 9633.1 442 9663.9 471.3 Q 9694.7 500.7 9694.7 554.6 Q 9694.7 584.2 9684 609.1 Q 9673.4 634 9652.9 651.8 Q 9632.5 669.6 9602.3 679.3 Q 9572 689.1 9533.5 689.1 Z M 9975.6 348.4 L 9975.6 682 L 9885.5 682 L 9885.5 348.4 L 9773.5 348.4 L 9773.5 268.4 L 10087.6 268.4 L 10087.6 348.4 Z M 10282 268.4 L 10282 522 Q 10282 565.9 10299.1 587.5 Q 10316.3 609.1 10356.6 609.1 Q 10396.9 609.1 10414.1 587.5 Q 10431.3 565.9 10431.3 522 L 10431.3 268.4 L 10519 268.4 L 10519 512.5 Q 10519 558.1 10510.4 591.6 Q 10501.8 625.1 10482.3 646.7 Q 10462.7 668.4 10431.9 678.7 Q 10401.1 689.1 10356.6 689.1 Q 10312.2 689.1 10281.4 678.7 Q 10250.6 668.4 10231 646.7 Q 10211.4 625.1 10202.9 591.6 Q 10194.3 558.1 10194.3 512.5 L 10194.3 268.4 Z M 10655.3 268.4 L 10811.1 268.4 Q 10852 268.4 10885.8 281.4 Q 10919.6 294.4 10943.3 320.2 Q 10967 346 10980 384.8 Q 10993.1 423.6 10993.1 475.2 Q 10993.1 526.7 10980 565.6 Q 10967 604.4 10943.3 630.1 Q 10919.6 655.9 10885.8 669 Q 10852 682 10811.1 682 L 10655.3 682 Z M 10811.1 602 Q 10851.4 602 10874.6 579.5 Q 10897.7 557 10897.7 507.2 L 10897.7 443.2 Q 10897.7 393.4 10874.6 370.9 Q 10851.4 348.4 10811.1 348.4 L 10745.4 348.4 L 10745.4 602 Z M 11099.7 682 L 11099.7 610.3 L 11153.1 610.3 L 11153.1 340.1 L 11099.7 340.1 L 11099.7 268.4 L 11296.5 268.4 L 11296.5 340.1 L 11243.1 340.1 L 11243.1 610.3 L 11296.5 610.3 L 11296.5 682 Z M 11585.1 689.1 Q 11544.2 689.1 11510.4 675.5 Q 11476.6 661.9 11452.9 634.9 Q 11429.2 607.9 11416.2 567.9 Q 11403.1 527.9 11403.1 475.2 Q 11403.1 422.4 11416.2 382.4 Q 11429.2 342.4 11452.9 315.5 Q 11476.6 288.5 11510.4 274.9 Q 11544.2 261.3 11585.1 261.3 Q 11626 261.3 11659.7 274.9 Q 11693.5 288.5 11717.2 315.5 Q 11740.9 342.4 11754 382.4 Q 11767 422.4 11767 475.2 Q 11767 527.9 11754 567.9 Q 11740.9 607.9 11717.2 634.9 Q 11693.5 661.9 11659.7 675.5 Q 11626 689.1 11585.1 689.1 Z M 11585.1 609.1 Q 11626 609.1 11648.8 582.4 Q 11671.6 555.8 11671.6 506 L 11671.6 444.4 Q 11671.6 394.6 11648.8 367.9 Q 11626 341.3 11585.1 341.3 Q 11544.2 341.3 11521.4 367.9 Q 11498.6 394.6 11498.6 444.4 L 11498.6 506 Q 11498.6 555.8 11521.4 582.4 Q 11544.2 609.1 11585.1 609.1 Z"/></svg></span><span class="st-et" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="tg-ebs">Record your vocals over the beat, edit your takes and make beats.</span></a></section>
-  <script>mbRkApply();</script>
+  <section class="tg-entry st-entry"><a class="tg-ebtn" id="stOpen" href="studio-lemon/" aria-label="Open MetroBar Studio"><span class="st-ewm"><svg xmlns="http://www.w3.org/2000/svg" viewBox="62.5 -12.8 11704.5 707.5" aria-hidden="true" focusable="false"><path class="ink" fill="currentColor" d="M 224.6 682 L 62.5 682 L 62.5 0 L 260.1 0 L 702 548.2 L 1143.5 0 L 1337.8 0 L 1337.8 682 L 1175.7 682 L 1175.7 192.9 L 782.1 682 L 618.2 682 L 224.6 192.4 Z M 2359 682 L 1462.5 682 L 1462.5 0 L 2359 0 L 2359 128.2 L 1624.6 128.2 L 1624.6 282.9 L 2339.5 282.9 L 2339.5 389 L 1624.6 389 L 1624.6 553.8 L 2359 553.8 Z M 2847 139.2 L 2439 139.2 L 2439 0 L 3416.5 0 L 3416.5 139.2 L 3009.1 139.2 L 3009.1 682 L 2847 682 Z M 3669.6 682 L 3507.5 682 L 3507.5 0 L 4176.6 0 Q 4239.2 0 4290 12.4 Q 4340.7 24.9 4376.4 51.8 Q 4412 78.7 4431.1 122.9 Q 4450.1 167.1 4450.1 230.8 Q 4450.1 303.7 4422.5 352.8 Q 4395 401.8 4341.6 427.5 Q 4288.3 453.3 4211.3 457.7 L 4151.1 458.8 L 4208.5 496.8 L 4439.8 682 L 4234.9 682 L 3972.2 467.1 L 3669.6 467.1 Z M 3669.6 139.2 L 3669.6 344.4 L 4162.3 344.4 Q 4226.4 344.4 4254.4 320.5 Q 4282.4 296.7 4282.4 242.3 Q 4282.4 185.3 4254.4 162.3 Q 4226.4 139.2 4162.3 139.2 Z M 5075.3 694.8 Q 4885.6 694.8 4764.2 657.2 Q 4642.8 619.6 4584.6 541.2 Q 4526.5 462.9 4526.5 341 Q 4526.5 218.1 4584.6 140.3 Q 4642.8 62.4 4764.2 24.8 Q 4885.6 -12.8 5075.3 -12.8 Q 5265.4 -12.8 5386.6 24.8 Q 5507.7 62.4 5565.9 140.3 Q 5624 218.1 5624 341 Q 5624 462.9 5565.9 541.2 Q 5507.7 619.6 5386.6 657.2 Q 5265.4 694.8 5075.3 694.8 Z M 5075.3 555.1 Q 5184.7 555.1 5258.5 542.8 Q 5332.3 530.5 5376.6 504.6 Q 5420.9 478.7 5440 438.2 Q 5459.2 397.8 5459.2 341 Q 5459.2 283.7 5440 243.2 Q 5420.9 202.8 5376.6 176.9 Q 5332.3 150.9 5258.5 138.9 Q 5184.7 126.9 5075.3 126.9 Q 4929.5 126.9 4845 148.7 Q 4760.5 170.4 4724.6 217.7 Q 4688.6 264.9 4688.6 341 Q 4688.6 417.1 4724.6 464.3 Q 4760.5 511.6 4845 533.3 Q 4929.5 555.1 5075.3 555.1 Z M 6463.7 682 L 5729.5 682 L 5729.5 0 L 6461 0 Q 6534.3 0 6581.1 18.8 Q 6627.9 37.6 6650.4 75 Q 6672.9 112.3 6672.9 168.5 Q 6672.5 238.6 6634.1 280.4 Q 6595.7 322.2 6519 331.1 L 6519 317.5 Q 6608.4 326.8 6653.4 371.2 Q 6698.4 415.6 6698.4 500.4 Q 6698.4 563.4 6673.1 603.6 Q 6647.8 643.9 6595.7 662.9 Q 6543.6 682 6463.7 682 Z M 6439.5 399 L 5889.4 399 L 5889.4 567.6 L 6432.3 567.6 Q 6492.8 567.6 6520 549.4 Q 6547.2 531.2 6547.2 483.5 Q 6547.2 435.4 6518.9 417.2 Q 6490.5 399 6439.5 399 Z M 6418.1 123.8 L 5889.4 123.8 L 5889.4 283.4 L 6426.2 283.4 Q 6454.1 283.4 6475.6 275 Q 6497.2 266.6 6509.5 248.9 Q 6521.8 231.3 6521.8 203.3 Q 6521.8 162.3 6497.5 143.1 Q 6473.1 123.8 6418.1 123.8 Z M 7645.1 538 L 6922.6 538 L 6922.6 423.5 L 7645.1 423.5 Z M 7336.3 0 L 7334.6 28.3 L 6906.5 682 L 6711.5 682 L 7170.9 0 Z M 7649 682 L 7220.9 28.3 L 7220.9 0 L 7386.3 0 L 7845.8 682 Z M 8063.6 682 L 7901.5 682 L 7901.5 0 L 8570.6 0 Q 8633.2 0 8684 12.4 Q 8734.7 24.9 8770.4 51.8 Q 8806 78.7 8825.1 122.9 Q 8844.1 167.1 8844.1 230.8 Q 8844.1 303.7 8816.5 352.8 Q 8789 401.8 8735.6 427.5 Q 8682.3 453.3 8605.3 457.7 L 8545.1 458.8 L 8602.5 496.8 L 8833.8 682 L 8628.9 682 L 8366.2 467.1 L 8063.6 467.1 Z M 8063.6 139.2 L 8063.6 344.4 L 8556.3 344.4 Q 8620.4 344.4 8648.4 320.5 Q 8676.4 296.7 8676.4 242.3 Q 8676.4 185.3 8648.4 162.3 Q 8620.4 139.2 8556.3 139.2 Z"/><path fill="#af0000" d="M 9533.5 689.1 Q 9479 689.1 9441.1 670.4 Q 9403.1 651.8 9376.5 622.1 L 9435.7 562.3 Q 9477.8 609.7 9539.4 609.7 Q 9572.6 609.7 9588.6 596.1 Q 9604.6 582.4 9604.6 559.9 Q 9604.6 542.7 9595.1 531.2 Q 9585.7 519.6 9556.6 515.5 L 9515.7 510.1 Q 9450 501.9 9419.4 470.4 Q 9388.9 439 9388.9 386.9 Q 9388.9 359 9399.6 335.9 Q 9410.3 312.8 9430.1 296.2 Q 9450 279.6 9478.7 270.4 Q 9507.4 261.3 9544.2 261.3 Q 9591 261.3 9626.6 276.1 Q 9662.1 290.9 9687.6 319.3 L 9627.7 379.8 Q 9612.9 362.6 9591.9 351.6 Q 9570.9 340.7 9538.9 340.7 Q 9508.6 340.7 9493.8 351.3 Q 9479 362 9479 381 Q 9479 402.3 9490.6 411.8 Q 9502.1 421.3 9528.2 425.4 L 9569.1 431.9 Q 9633.1 442 9663.9 471.3 Q 9694.7 500.7 9694.7 554.6 Q 9694.7 584.2 9684 609.1 Q 9673.4 634 9652.9 651.8 Q 9632.5 669.6 9602.3 679.3 Q 9572 689.1 9533.5 689.1 Z M 9975.6 348.4 L 9975.6 682 L 9885.5 682 L 9885.5 348.4 L 9773.5 348.4 L 9773.5 268.4 L 10087.6 268.4 L 10087.6 348.4 Z M 10282 268.4 L 10282 522 Q 10282 565.9 10299.1 587.5 Q 10316.3 609.1 10356.6 609.1 Q 10396.9 609.1 10414.1 587.5 Q 10431.3 565.9 10431.3 522 L 10431.3 268.4 L 10519 268.4 L 10519 512.5 Q 10519 558.1 10510.4 591.6 Q 10501.8 625.1 10482.3 646.7 Q 10462.7 668.4 10431.9 678.7 Q 10401.1 689.1 10356.6 689.1 Q 10312.2 689.1 10281.4 678.7 Q 10250.6 668.4 10231 646.7 Q 10211.4 625.1 10202.9 591.6 Q 10194.3 558.1 10194.3 512.5 L 10194.3 268.4 Z M 10655.3 268.4 L 10811.1 268.4 Q 10852 268.4 10885.8 281.4 Q 10919.6 294.4 10943.3 320.2 Q 10967 346 10980 384.8 Q 10993.1 423.6 10993.1 475.2 Q 10993.1 526.7 10980 565.6 Q 10967 604.4 10943.3 630.1 Q 10919.6 655.9 10885.8 669 Q 10852 682 10811.1 682 L 10655.3 682 Z M 10811.1 602 Q 10851.4 602 10874.6 579.5 Q 10897.7 557 10897.7 507.2 L 10897.7 443.2 Q 10897.7 393.4 10874.6 370.9 Q 10851.4 348.4 10811.1 348.4 L 10745.4 348.4 L 10745.4 602 Z M 11099.7 682 L 11099.7 610.3 L 11153.1 610.3 L 11153.1 340.1 L 11099.7 340.1 L 11099.7 268.4 L 11296.5 268.4 L 11296.5 340.1 L 11243.1 340.1 L 11243.1 610.3 L 11296.5 610.3 L 11296.5 682 Z M 11585.1 689.1 Q 11544.2 689.1 11510.4 675.5 Q 11476.6 661.9 11452.9 634.9 Q 11429.2 607.9 11416.2 567.9 Q 11403.1 527.9 11403.1 475.2 Q 11403.1 422.4 11416.2 382.4 Q 11429.2 342.4 11452.9 315.5 Q 11476.6 288.5 11510.4 274.9 Q 11544.2 261.3 11585.1 261.3 Q 11626 261.3 11659.7 274.9 Q 11693.5 288.5 11717.2 315.5 Q 11740.9 342.4 11754 382.4 Q 11767 422.4 11767 475.2 Q 11767 527.9 11754 567.9 Q 11740.9 607.9 11717.2 634.9 Q 11693.5 661.9 11659.7 675.5 Q 11626 689.1 11585.1 689.1 Z M 11585.1 609.1 Q 11626 609.1 11648.8 582.4 Q 11671.6 555.8 11671.6 506 L 11671.6 444.4 Q 11671.6 394.6 11648.8 367.9 Q 11626 341.3 11585.1 341.3 Q 11544.2 341.3 11521.4 367.9 Q 11498.6 394.6 11498.6 444.4 L 11498.6 506 Q 11498.6 555.8 11521.4 582.4 Q 11544.2 609.1 11585.1 609.1 Z"/></svg></span><span class="st-et" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="tg-ebs">Record your vocals over the beat, edit your takes and make beats.</span></a></section>
 
 </div>
   <div id="viewWrite" class="wr" hidden>
@@ -9884,24 +9860,12 @@ function rackClose(r) {
   const a = body.animate([{ height: H + 'px', opacity: 1 }, { height: '0px', opacity: .3 }], { duration: Math.min(320, 160 + Math.sqrt(H) * 3), easing: 'cubic-bezier(.6, 0, .9, .5)' });
   a.onfinish = () => { body.hidden = true; body.style.overflow = ''; };
 }
-// Rack loops play only while you hover (or keyboard-focus) their rack, then go back to the first frame (Bennie 2026-11-19)
-(() => {
-  const RK = '#advTg, .tg-ebtn.vr, .rk-tg.vr', vid = el => el && el.querySelector('video');
-  const on = el => { const v = vid(el); if (v) { v.muted = true; v.loop = true; v.play().catch(() => {}); } };
-  const off = el => { const v = vid(el); if (v) { v.pause(); try { v.currentTime = 0; } catch {} } };
-  const pair = (ev, fn) => document.addEventListener(ev, e => { const a = e.target.closest?.(RK), b = e.relatedTarget?.closest?.(RK); if (a && a !== b) fn(a); });
-  pair('pointerover', on); pair('pointerout', off); pair('focusin', on); pair('focusout', off);
-})();
-// Animated rack loops as the rack headers (Bennie 2026-11-19): media/<name>.webm/.mp4/.jpg, keyed by the rack's aria-label
-const RK_VID = { 'Sound and meter': ['sound-rack', 1264, 424], Polymeter: ['polymeter-rack', 1264, 424], Fit: ['fit-rack', 1264, 428], Practice: ['practice-rack', 1264, 426] };
 document.querySelectorAll('.adv-in > .rack').forEach((r, i) => {
   const bar = r.querySelector('.rackbar'), body = document.createElement('div'), tg = document.createElement('button');
   body.className = 'rk-body'; body.id = 'rkBody' + i;
   [...r.children].filter(c => c !== bar).forEach(c => body.append(c)); r.append(body);
   tg.type = 'button'; tg.className = 'rk-tg'; tg.setAttribute('aria-controls', body.id);
   [...bar.querySelectorAll(':scope > h2, :scope > .rk-sub')].forEach(c => tg.append(c));
-  const vn = RK_VID[r.getAttribute('aria-label')];
-  if (vn) { if (mbRk()) tg.classList.add('vr'); tg.insertAdjacentHTML('afterbegin', `<video class="vr-v" muted loop playsinline preload="auto" poster="media/${vn[0]}.jpg" width="${vn[1]}" height="${vn[2]}" aria-hidden="true" tabindex="-1"><source src="media/${vn[0]}.webm" type="video/webm"><source src="media/${vn[0]}.mp4" type="video/mp4"></video>`); tg.firstChild.muted = true; }
   const ch = document.createElement('span'); ch.className = 'rk-c'; ch.setAttribute('aria-hidden', 'true'); tg.append(ch);
   bar.prepend(tg); r.classList.add('fold'); bar.addEventListener('click', e => { if (e.target === bar) tg.click(); });
   const open = i === 0; tg.setAttribute('aria-expanded', String(open)); body.hidden = !open;
@@ -14308,7 +14272,8 @@ const TG = (() => {
   // (Replaces 2026-11-17 "never locked".) The Zone's bar of the week stays playable for everyone.
   const NEED = 6;
   function frontier() { let sum = 0; for (let k = 1; k < ORDER.length; k++) { sum += lvStars(ORDER[k - 1]); if (sum < NEED * k) return k - 1; } return ORDER.length - 1; }
-  const isOpen = lv => { const k = ORDER.indexOf(lv); return k <= frontier(); };
+  // Bennie 2026-11-22 "make all levels available to everyone": nothing is locked again; frontier() only says which level you're at.
+  const isOpen = () => true;
   const lockMsg = lv => { const F = frontier() + 1, have = ORDER.slice(0, F).reduce((a, l) => a + lvStars(l), 0);
     return `Level ${lvNo(lv)} is locked. Level ${F + 1} opens at ${NEED * F} of ${9 * F} stars over levels 1–${F}; you have ${have}.`; };
   // your level: the newest open one, at its first bar without 3 stars
@@ -17063,7 +17028,68 @@ var PP = (() => {
     const cs = store.get('metrobar.gameSongs', []).filter(id => id !== p.id); cs.unshift(p.id); store.set('metrobar.gameSongs', cs.slice(0, 50));
     TG.songCard(p.id);
   }
-  $('ppOpen').addEventListener('click', () => PPZ.enter());
+  // Bar Book rack (Bennie 2026-11-22): knobs, rhyme switch, colour LEDs and a live display with rhyme marks and syllable counts.
+  // SAVE DRAFT makes a Bar Book page from the display; the BAR BOOK plate opens that page (or a blank one, as the old card did).
+  (() => {
+    const R = $('bbRack'); if (!R) return;
+    const inn = R.querySelector('.bbr-in'), ta = R.querySelector('.bbr-ta'), hl = R.querySelector('.bbr-hl'), st = R.querySelector('.bbr-st');
+    const sheet = R.querySelector('.bbr-sheet'), sw = R.querySelector('.bbr-sw'), leds = [...R.querySelectorAll('.bbr-led')];
+    const DEF = 'Mic in my hand and I ride in the pocket\nEvery word on the beat and I lock it\nKick on the one and the snare on the two\nBar after bar till the verse coming through';
+    const KEY = 'metrobar.rack';
+    let S = { text: DEF, range: 1, stress: 4, on: true, cols: [true, true, true, true] }, savedId = null, stT = 0;
+    try { const o = JSON.parse(localStorage.getItem(KEY) || 'null'); if (o && typeof o.text === 'string') S = Object.assign(S, o); } catch (e) {}
+    const keep = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} };
+    new ResizeObserver(([e]) => { if (e) inn.style.transform = `scale(${e.contentRect.width / 1280})`; }).observe(R);
+    const SKIP = new Set('a an the and i in on my it of to is at me we you he she they till after with for but or so up'.split(' '));
+    const syl = w => { w = w.toLowerCase().replace(/[^a-z]/g, ''); if (!w) return 0; if (w.length <= 3) return 1;
+      w = w.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '').replace(/^y/, ''); const m = w.match(/[aeiouy]{1,2}/g); return Math.max(1, m ? m.length : 1); };
+    // rhyme key from MetroBar's own rhymeTail (dictionary sounds, spelling rules as fallback): range 1 = the stressed vowel sound
+    // (assonance, the most colour), range 2 = the first two vowel sounds of the tail (multis; one-vowel words add their end consonants)
+    const rk = (w, n) => { const c = w.toLowerCase().replace(/[^a-z']/g, ''); if (c.replace(/'/g, '').length < 2 || SKIP.has(c)) return null;
+      let t = null; try { t = rhymeTail(c); } catch (e) {} if (!t) return null;
+      const v = t.seg.filter(x => x.v != null && !x.soft).map(x => x.v); if (!v.length) return null;
+      return n === 1 ? v[0] : v.length > 1 ? v.slice(0, 2).join('|') : v[0] + '|' + (t.seg[t.seg.length - 1].c || ''); };
+    const esc = t => t.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+    function draw() {
+      const lines = S.text.split('\n'), toks = lines.map(l => l.split(/(\s+)/).filter(Boolean)), n = new Map(), K = new Map();
+      toks.flat().forEach(t => { if (!K.has(t)) K.set(t, rk(t, S.range)); const k = K.get(t); if (k) n.set(k, (n.get(k) || 0) + 1); });
+      // four LEDs = four colours: the four most used sounds win
+      const grp = new Map([...n.entries()].filter(e => e[1] > 1).sort((a, b) => b[1] - a[1]).slice(0, 4).map((e, i) => [e[0], i]));
+      hl.innerHTML = toks.map((ws, i) => '<div class="bbr-ln">' + ws.map(t => {
+        const k = K.get(t); if (!S.on || !k || !grp.has(k)) return esc(t);
+        const g = grp.get(k); if (!S.cols[g]) return esc(t);
+        return `<mark style="--hl:var(--hl-${g + 1})">${esc(t)}</mark>`;
+      }).join('') + '​<b>' + ((lines[i].match(/[A-Za-z']+/g) || []).reduce((a, w) => a + syl(w), 0) || '') + '</b></div>').join('');
+      inn.style.setProperty('--hs', (45 + S.stress * 5) + '%'); sheet.style.minHeight = Math.max(4, lines.length) * 52 + 'px';
+      R.querySelectorAll('.bbr-knob').forEach(b => { const k = b.dataset.k, lo = +b.getAttribute('aria-valuemin'), hi = +b.getAttribute('aria-valuemax'), v = S[k];
+        b.setAttribute('aria-valuenow', v); b.title = `${b.getAttribute('aria-label')}: ${v}`; b.firstChild.style.transform = `rotate(${-135 + (v - lo) / (hi - lo) * 270}deg)`; });
+      sw.setAttribute('aria-pressed', String(S.on)); leds.forEach((b, i) => b.setAttribute('aria-pressed', String(S.cols[i])));
+    }
+    ta.value = S.text; draw();
+    ta.addEventListener('input', () => { S.text = ta.value; draw(); keep(); });
+    R.querySelectorAll('.bbr-knob').forEach(b => {
+      const k = b.dataset.k, lo = +b.getAttribute('aria-valuemin'), hi = +b.getAttribute('aria-valuemax'); let drag = null;
+      const set = v => { v = Math.max(lo, Math.min(hi, Math.round(v))); if (v !== S[k]) { S[k] = v; draw(); keep(); } };
+      b.addEventListener('pointerdown', e => { b.setPointerCapture(e.pointerId); drag = { y: e.clientY, v: S[k], moved: false }; });
+      b.addEventListener('pointermove', e => { if (!drag) return; if (Math.abs(drag.y - e.clientY) > 3) drag.moved = true; set(drag.v + (drag.y - e.clientY) * (hi - lo) / 80); });
+      // a plain tap (no drag) steps the knob one notch, round the clock
+      b.addEventListener('pointerup', () => { if (drag && !drag.moved) set(S[k] >= hi ? lo : S[k] + 1); drag = null; });
+      b.addEventListener('pointercancel', () => { drag = null; });
+      b.addEventListener('wheel', e => { e.preventDefault(); set(S[k] - Math.sign(e.deltaY)); }, { passive: false });
+      b.addEventListener('keydown', e => { const d = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
+        if (d) { e.preventDefault(); set(S[k] + d); } else if (e.key === 'Home') { e.preventDefault(); set(lo); } else if (e.key === 'End') { e.preventDefault(); set(hi); } });
+    });
+    sw.addEventListener('click', () => { S.on = !S.on; draw(); keep(); });
+    leds.forEach((b, i) => b.addEventListener('click', () => { S.cols[i] = !S.cols[i]; draw(); keep(); }));
+    const say = (t, ms) => { st.textContent = t; clearTimeout(stT); stT = setTimeout(() => { st.textContent = ''; }, ms || 1600); };
+    $('bbrSave').addEventListener('click', () => {
+      const t = ta.value.replace(/\s+$/, ''); if (!t.trim()) { say('WRITE A BAR FIRST'); return; }
+      try { const p = LIB.create(t, (t.split('\n').find(l => l.trim()) || '').trim().slice(0, 40), 'pp'); LIB.saveNow(); savedId = p && p.id; }
+      catch (e) { say('COULD NOT SAVE'); return; }
+      const b = $('bbrSave'); b.classList.add('ok'); setTimeout(() => b.classList.remove('ok'), 1200); say('SAVED TO BAR BOOK ✓');
+    });
+    $('ppOpen').addEventListener('click', () => PPZ.enter(savedId && LIB.song(savedId) ? savedId : undefined));
+  })();
   // The Bar Book example (Bennie 2026-11-18): one finished song for everyone, on the hook-first artist structure ('ab50': Intro 4, Hook 8,
   // Verse 16, Hook 8, Verse 16, Hook 8, Outro 4 = 64 bars). Original words, no artist's lyrics or names. It is an ordinary LIB song
   // (flag ppExample): open it, change it, make a card of it; deleted = made again next time.
