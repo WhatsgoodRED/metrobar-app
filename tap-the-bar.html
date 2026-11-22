@@ -367,7 +367,7 @@ body.playing .tabs { opacity: 0; pointer-events: none; }   /* chapter tabs only 
     let pickB;
     if (mode.startsWith('b:')) pickB = LIB.find(b => 'b:' + b.file === mode);
     if (!pickB) {   // auto: beats within 6% of the level's tempo (half / double time counts), a different one per level
-      const near = LIB.map(b => ({ b, d: Math.abs(effOf(b, flow.bpm) - flow.bpm) / flow.bpm })).sort((x, y) => x.d - y.d), close = near.filter(x => x.d <= .06);
+      const near = LIB.map(b => ({ b, d: Math.abs(effOf(b, bpm) - bpm) / bpm }))   // near the tempo the level starts at (practice tempo), so the beat is barely stretched.sort((x, y) => x.d - y.d), close = near.filter(x => x.d <= .06);
       pickB = (close.length ? close[Math.max(0, levelIndex()) % close.length] : near[0]).b;
     }
     const label = `${pickB.name} · ${Math.round(pickB.bpm)}`; $('beatName').textContent = mode === 'auto' ? label : '';
