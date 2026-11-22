@@ -133,17 +133,31 @@ body.playing .zone small { opacity: 0; }
 .pulse.warm.go { animation: pulseW .95s ease-out; }
 @keyframes pulseA { from { opacity: 1; } to { opacity: 0; } }
 @keyframes pulseW { 0% { opacity: 0; } 8% { opacity: 1; } 30%, 70% { opacity: .6; } 100% { opacity: 0; } }
-.fire { position: absolute; z-index: 5; pointer-events: none; transform-origin: 36.76% 58.88%; will-change: transform, opacity; }
-.fire svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.fire.go { animation: fireIn .95s cubic-bezier(.2, 1.4, .4, 1) both; }
-@keyframes fireIn { 0% { transform: scale(0); opacity: 1; } 24% { transform: scale(1.14); } 32%, 76% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.2); opacity: 0; } }
-.fire .flames { transform-origin: 148.88px 213.15px; animation: sway .45s infinite alternate ease-in-out; }
-@keyframes sway { from { transform: skewX(-2.5deg); } to { transform: skewX(3deg); } }
-.fire .lick { transform-origin: 148.88px 213.15px; animation: lick .22s infinite alternate ease-in-out; }
-.fire .lick.l1 { animation-duration: .31s; } .fire .lick.l2 { animation-duration: .26s; animation-direction: alternate-reverse; } .fire .lick.l3 { animation-duration: .37s; }
-@keyframes lick { from { transform: rotate(-3.5deg) scale(1); } to { transform: rotate(3.5deg) scale(1.08); } }
-.fire .core { transform-origin: 148.88px 213.15px; animation: corep .3s infinite alternate ease-in-out; }
-@keyframes corep { from { transform: scale(1); } to { transform: scale(1.045); } }
+/* FIRE! moves like Bennie's template (2026-11-22): a comet streaks in from the top right, hits the ball (white flash + two shock rings + shake),
+   the fireball ignites with a spin and an overshoot, its tongues flicker, embers drift off up-right, then it fades. Sizes are in em: 1em = a tenth of the fireball. */
+.fire { position: absolute; z-index: 5; pointer-events: none; will-change: transform; }
+.fire svg { display: block; width: 100%; height: 100%; overflow: visible; transform-origin: 36.76% 58.88%; opacity: 0; filter: drop-shadow(0 0 1.4em rgba(255, 106, 0, .85)); }
+.fire.go svg { animation: ignite .9s both; }
+@keyframes ignite { 0% { transform: scale(.3) rotate(-20deg); opacity: 0; animation-timing-function: cubic-bezier(.2, 1.6, .4, 1); } 26% { transform: scale(1.25) rotate(4deg); opacity: 1; } 46% { transform: scale(1) rotate(0); } 82% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.12); opacity: 0; } }
+.fire .flames, .fire .lick { transform-origin: 148.88px 213.15px; animation: tongue .3s infinite ease-in-out; }
+.fire .lick.l1 { animation-duration: .27s; animation-delay: -.1s; } .fire .lick.l2 { animation-duration: .36s; animation-delay: -.2s; } .fire .lick.l3 { animation-duration: .32s; animation-delay: -.05s; }
+@keyframes tongue { 0%, 100% { transform: scale(1) skewX(0); } 33% { transform: scale(1.08, .94) skewX(-4deg); } 66% { transform: scale(.95, 1.07) skewX(3deg); } }
+.fire .core { transform-origin: 148.88px 213.15px; animation: corep .4s infinite ease-in-out; }
+@keyframes corep { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+.fire .comet, .fire .flash, .fire .ring { position: absolute; left: 36.76%; top: 58.88%; border-radius: 50%; opacity: 0; }
+.fire .comet { width: 2.4em; height: 2.4em; margin: -1.2em 0 0 -1.2em; }
+.fire .comet::before { content: ""; position: absolute; left: 1.1em; top: .4em; width: 17em; height: 1.6em; border-radius: 99px; background: linear-gradient(90deg, #ffe98a, #ff8a00 30%, rgba(210, 30, 0, .6) 65%, transparent); filter: blur(3px); }
+.fire .comet::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle, #fff 0 25%, #ffe98a 45%, #ff8a00 75%, transparent 100%); box-shadow: 0 0 1.6em .5em #ff8a00, 0 0 3.6em 1.2em rgba(220, 40, 0, .6); }
+.fire.in .comet { animation: comet .22s cubic-bezier(.55, 0, 1, .45) both; }
+@keyframes comet { 0% { transform: translate(12em, -12em) rotate(-45deg) scale(.6); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(0, 0) rotate(-45deg) scale(1); opacity: 1; } }
+.fire .flash { width: 8em; height: 8em; margin: -4em 0 0 -4em; background: radial-gradient(circle, #fff 0 15%, #ffe98a 30%, rgba(255, 106, 0, .7) 50%, transparent 70%); }
+.fire.go .flash { animation: flashA .5s ease-out both; } .fire.soft .flash { display: none; }
+@keyframes flashA { 0% { opacity: .95; transform: scale(.4); } 100% { opacity: 0; transform: scale(2.4); } }
+.fire .ring { width: 5em; height: 5em; margin: -2.5em 0 0 -2.5em; box-sizing: border-box; border: 1.8em solid #ffe98a; }
+.fire.go .ring { animation: ringA .7s ease-out both; } .fire.go .ring.r2 { animation-delay: .1s; border-color: #ff8a00; }
+@keyframes ringA { 0% { opacity: 1; transform: scale(.5); border-width: 1.8em; } 100% { opacity: 0; transform: scale(3); border-width: .1em; } }
+.fire .em { position: absolute; width: .45em; height: .45em; border-radius: 50%; background: #ffe98a; box-shadow: 0 0 .6em .2em #ff8a00; animation: emberA .9s ease-out infinite both; }
+@keyframes emberA { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) scale(.1); opacity: 0; } }
 .slam, .cpop { position: absolute; z-index: 6; pointer-events: none; white-space: nowrap; font-family: var(--display); font-weight: 900; line-height: 1; }
 .slam { left: 50%; top: 5%; font-size: clamp(3.4rem, 13vw, 9.5rem); color: #ff6a00; -webkit-text-stroke: 2px #ffd23a; text-shadow: 0 0 22px rgba(255, 106, 0, .75); transform: translateX(-50%) rotate(-4deg); }
 .slam small { font-size: .5em; color: #ffd23a; -webkit-text-stroke: 0; text-shadow: 0 0 0 #000, 3px 3px 0 #000; margin-left: .25em; }
@@ -154,10 +168,10 @@ body.playing .zone small { opacity: 0; }
 @keyframes cpop { 0% { transform: rotate(-6deg) scale(2); opacity: 0; } 22% { transform: rotate(-6deg) scale(.94); opacity: 1; } 36%, 72% { transform: rotate(-6deg) scale(1); opacity: 1; } 100% { transform: rotate(-6deg) scale(1.05) translateY(-10px); opacity: 0; } }
 .track.shake { animation: shake .4s linear; }
 @keyframes shake { 0% { transform: none; } 14% { transform: translate(-9px, 5px) rotate(-.5deg); } 34% { transform: translate(7px, -4px) rotate(.4deg); } 56% { transform: translate(-5px, 3px) rotate(-.25deg); } 78% { transform: translate(3px, -2px); } 100% { transform: none; } }
-/* 3 tries, then endless practice (mock docs/preview/ttb-tries-mock.html) */
-.res .tries { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font: 600 .76rem var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
-.res .tries i { width: 30px; height: 9px; border-radius: 99px; background: #2b2f2d; } .res .tries i.used { background: var(--syl); } .res .tries i.now { background: var(--fg); }
-.res .tries b { color: var(--fg); }
+/* Extra round (Bennie 2026-11-22, like the flow game's overtime): after the last tap the stars lock, the beat and the taps go on, +10 a clean hit, 3 mistakes ends it */
+.ot { position: absolute; left: 12px; top: 4px; z-index: 6; display: flex; align-items: center; gap: 6px; font: 600 .78rem var(--mono); text-transform: uppercase; letter-spacing: .05em; color: var(--fg); pointer-events: none; }
+.ot svg { width: 18px; height: 18px; fill: #0000AF; stroke: #f2f3ef; stroke-width: 1.8; stroke-linejoin: round; transition: opacity .2s; } .ot svg.lost { fill: none; stroke: #4a4f4c; }
+.ot b { color: #03FF64; font-variant-numeric: tabular-nums; } .ot.hit b { animation: bump .22s cubic-bezier(.2, 1.6, .4, 1); }
 @media (max-height: 480px) { .opts label { min-height: 26px; } .beatsel { display: none; } }   /* a phone on its side: keep the footer to one row so the track keeps its height */
 @media (max-width: 640px) { .tapflag { width: 72px; height: 34px; margin-left: -36px; font-size: 24px; } .tapring { width: 34px; height: 34px; margin: -17px 0 0 -17px; } .streak svg { width: 17px; height: 17px; } }
 
@@ -232,6 +246,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   </div>
   <div class="track" id="track" aria-label="Lyric track. Read the words and tap anywhere when a circled word reaches the line.">
     <div class="pulse" id="pulse"></div>
+    <div class="ot" id="ot" hidden aria-live="polite">Extra round <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg> <b>+0</b></div>
     <div class="streak" id="streak" role="img" aria-label="Fire streak 0 of 3">fire <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg><span class="n">0/3</span></div>
     <div class="zone" id="zone"><i></i><small>PERFECT<b>GOOD</b></small></div>
     <div class="tapring" id="tapRing"></div>
@@ -239,7 +254,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     <div class="tapflag" id="tapFlag" hidden><span>TAP</span><i></i></div>
     <div class="fx" id="fx"></div>
     <!-- fireball: freesvg.org "Fireball icon" (CC0), split into flames + core so it can flicker -->
-    <div class="fire" id="fire" hidden><svg viewBox="0 0 405.014 362.026" aria-hidden="true"><defs><linearGradient id="fbSVGID_1_" y2="103.22" gradientUnits="userSpaceOnUse" x2="255.71" y1="11.248" x1="324.47"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_2_" y2="168.38" gradientUnits="userSpaceOnUse" x2="289.97" y1="50.903" x1="398.12"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_3_" y2="195.19" gradientUnits="userSpaceOnUse" x2="240.97" y1="160.16" x1="328.17"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_4_" y2="177.97" gradientUnits="userSpaceOnUse" x2="159.05" y1="70.478" x1="317.96"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_5_" y2="119.16" gradientUnits="userSpaceOnUse" x2="78.827" y1="64.575" x1="164.73"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_6_" y2="278.98" gradientUnits="userSpaceOnUse" x2="75.407" y1="104.02" x1="286.48"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_7_" y2="89.773" gradientUnits="userSpaceOnUse" x2="309.33" y1="2.2056" x1="374.8"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient></defs><g class="a flames"><g class="a lick l1"><path d="m167.89 65.402l-101.29 38.538c8.056-24.973 14.53-54.606 111.44-51.509l-10.15 12.971z" fill="#ED1C24"/></g><g class="a lick l2"><path d="m261.79 100.67c-0.431 0-0.864-0.036-1.301-0.107-3.824-0.633-6.628-3.94-6.628-7.817l-0.006-2.782c-0.057-20.52 0.943-31.101 24.139-47.269 1.675-1.17 3.539-2.417 5.529-3.699 2.652-1.709 5.129-3.279 7.429-4.741 11.188-7.102 19.274-12.233 19.274-15.439 0-3.783 2.673-7.037 6.383-7.771 0.518-0.103 1.033-0.153 1.545-0.153 3.156 0 6.079 1.894 7.318 4.905 13.216 32.061-12.701 47.428-31.622 58.65-10.762 6.38-21.887 12.979-24.566 20.853-1.09 3.251-4.14 5.373-7.48 5.373z" fill="url(#fbSVGID_1_)"/></g><g class="a lick l3"><path d="m318.15 18.813c17.417 42.253-47.102 46.725-56.363 73.928 0-19.93-1.135-28.301 20.741-43.55 1.627-1.138 3.386-2.314 5.285-3.537 20.46-13.18 30.33-18.16 30.33-26.841m0.01-15.847c-1.021 0-2.053 0.099-3.086 0.303-6.744 1.335-11.775 6.835-12.637 13.505-2.46 2.37-9.472 6.82-15.731 10.792-2.313 1.468-4.802 3.048-7.469 4.765-2.059 1.325-4.008 2.629-5.788 3.874-12.681 8.839-19.778 16.589-23.714 25.9-3.85 9.108-3.825 17.804-3.797 27.874 0.003 0.895 0.005 1.815 0.005 2.761 0 7.752 5.609 14.366 13.258 15.632 0.871 0.144 1.739 0.214 2.599 0.214 6.681 0 12.775-4.237 14.989-10.74 1.737-5.104 12.478-11.473 21.107-16.59 10.733-6.365 21.832-12.947 29.66-22.797 10.371-13.052 12.185-28.851 5.245-45.687-2.48-6.012-8.33-9.8-14.64-9.8z" fill="#ED1C24"/></g><g class="a lick l0"><path d="m265.68 24.307c-41.155 14.246-25.271 32.286-31.076 63.1-5.938 31.534-26.327 56.042-36.582 61.943 34.823-13.777 105.52-24.796 126.1-74.391-7.465 40.625-23.214 75.976-73.688 102.2-20.125 10.458-30.654 25.477-30.654 41.473 3.014-17.945 17.367-25.519 54.146-30.313 0.806-0.105 1.631-0.151 2.474-0.151 2.992 0 6.21 0.582 9.598 1.164s6.947 1.164 10.623 1.164c6.552 0 13.475-1.849 20.467-8.841 0 32.93-52.002 27.446-66.256 75.699-12.868 43.534-49.14 69.797-92.788 69.797-4.727 0-9.533-0.308-14.413-0.935-24.525 0-75.863-13.52-96.143-62.028-28.431-68.007 3.338-110.99 37.311-135.7 30.9-22.475 66.045-17.008 78.897-25.588 18.04-12.04 14.92-78.593 101.98-78.593m0-24.307c-33.617 0-60.717 8.943-80.547 26.582-17.035 15.152-25.2 33.258-31.162 46.478-1.438 3.187-3.292 7.298-4.619 9.669-2.939 0.741-8.115 1.532-12.107 2.142-17.034 2.603-42.775 6.537-66.743 23.969-24.247 17.635-41.214 38.665-50.431 62.503-12.034 31.125-10.354 65.519 4.991 102.22 11.083 26.509 31.078 47.763 57.824 61.463 18.417 9.435 40.397 15.173 59.151 15.483 5.354 0.629 10.731 0.948 16.006 0.948 26.846 0 51.898-8.085 72.449-23.382 20.784-15.47 35.878-37.542 43.648-63.832 4.527-15.326 14.206-21.688 29.624-30.8 7.898-4.668 16.065-9.494 22.956-16.448 9.736-9.828 14.673-21.718 14.673-35.341 0-9.831-5.922-18.694-15.005-22.457-3.007-1.245-6.165-1.851-9.296-1.851-0.904 0-1.807 0.051-2.702 0.151 3.379-4.091 6.508-8.354 9.395-12.794 11.636-17.895 19.339-38.663 24.244-65.357 2.246-12.226-5.094-24.176-17.014-27.701-2.292-0.678-4.612-1.002-6.896-1.002-9.601-0.001-18.599 5.721-22.446 14.995-7.35 17.711-25.505 29.377-46.015 38.122 1.095-3.782 2.057-7.742 2.832-11.861 2.04-10.829 1.976-20.062 1.925-27.48-0.027-3.881-0.064-9.156 0.474-10.827 0.468-0.495 3.189-3.014 12.741-6.32 11.216-3.882 17.988-15.296 16.02-27-1.95-11.701-12.08-20.272-23.95-20.272z" fill="#ED1C24"/></g><g class="a lick l1"><path stroke-linejoin="round" d="m284.81 163.63c24.676 0 66.033-9.299 85.399-39.972 17.119-27.114 5.335-61.353 28.343-72.357-44.013 0-62.408 10.635-74.416 51.313-11.99 40.67-16.64 56.34-39.32 61.01z" stroke="#ED1C24" stroke-linecap="square" stroke-width="12.914" fill="url(#fbSVGID_2_)"/></g><g class="a lick l2"><path d="m242.22 192.82c8.139-12.623 17.268-20.911 42.596-21.732 24.771-0.801 34.024-2.593 42.15-13.936-11.343 24.511-25.538 26.72-41.902 27.096-16.38 0.37-36.23-1.7-42.85 8.57z" fill="url(#fbSVGID_3_)"/></g><g class="a lick l3"><path d="m220.66 138.44c0-13.181 11.752-25.865 26.538-32.497 17.718-7.946 25.274-6.167 37.909-21.682-2.89 26.195-15.344 33.235-25.634 38.292-14.71 7.22-25.67 4.15-38.82 15.89z" fill="url(#fbSVGID_4_)"/></g><g class="a lick l0"><path d="m82.134 120.21c2.901-11.927-4.088-44.65 65.769-48.681 7.414 0 19.987-1.935 19.987-6.125 1.98 28.26-24.978 34.495-41.742 36.429-16.77 1.94-34.835 9.2-44.016 18.38z" fill="url(#fbSVGID_5_)"/></g><g class="a lick l1"><path stroke-linejoin="round" d="m295.1 74.25c20.691 2.156 48.968-9.051 59.311-26.726 10.344-17.673 30.692-31.468 35.866-31.468-30.605 0-49.013 11.929-55.521 19.409-8.62 9.917-22.15 30.868-39.66 38.785z" stroke="#ED1C24" stroke-linecap="square" stroke-width="9.9031" fill="url(#fbSVGID_7_)"/></g></g><g class="a core"><circle r="136.72" cy="213.15" stroke="#ED1C24" cx="148.88" stroke-width="24.306" fill="none"/><path d="m158.05 339.31c-5.006 0-10.115-0.316-15.201-0.938-27.391-0.278-83.81-15.048-106.57-69.49-14.094-33.714-15.732-65.056-4.867-93.155 8.359-21.623 23.918-40.819 46.245-57.059 21.576-15.692 44.61-19.213 61.429-21.783 7.144-1.091 15.239-2.329 17.868-4.082 2.077-1.388 5.56-9.108 8.102-14.746 11.116-24.649 29.723-65.904 100.63-65.904 5.935 0 11 4.286 11.985 10.138 0.983 5.853-2.403 11.56-8.01 13.5-10.635 3.681-16.972 7.552-19.375 11.836-2.11 3.766-2.07 9.553-2.02 16.88 0.048 6.895 0.109 15.475-1.715 25.152-2.428 12.891-7.027 24.773-12.533 35.023 31.95-10.46 66.57-24.73 78.87-54.37 1.926-4.635 6.424-7.498 11.224-7.498 1.142 0 2.302 0.163 3.447 0.501 5.96 1.763 9.631 7.738 8.509 13.852-6.082 33.088-18.274 69.933-60.13 98.868 0.151-0.002 0.304-0.004 0.455-0.004 3.877 0 7.567 0.636 11.137 1.251l0.514 0.088c3.15 0.539 5.967 0.988 8.567 0.988 3.425 0 7.232-0.641 11.874-5.28 2.325-2.323 5.434-3.56 8.595-3.56 1.567 0 3.146 0.303 4.65 0.927 4.54 1.881 7.502 6.312 7.502 11.228 0 22.616-16.819 32.555-31.658 41.324-14.252 8.422-28.985 17.131-35.098 37.818-7.02 23.75-20.593 43.642-39.25 57.528-18.42 13.72-40.96 20.97-65.17 20.97z" fill="#FFFFFF"/><path d="m87.551 140.33c-54.352 37.503-54.965 116.15-4.046 155.44 45.443 35.065 92.03 20.15 107.31 13.602 11.76-5.037 45.907-29.585 57.304-72.879 4.199-15.959 30.233-28.558 36.118-28.558-14.279 0-62.156 10.079-68.87 28.558 0-22.678 0-41.155 18.474-59.633s49.509-27.463 53.753-53.751c-3.278 10.117-42.831 28.555-83.148 38.635-40.315 10.079-54.172 23.937-54.172 23.937 7.137-22.256 32.263-30.44 48.365-46.542 17.729-17.727 20.933-49.626 20.933-66.424s2.279-36.115 11.025-36.115c-16.129 7.387-45.441 36.192-48.117 53.625-4.78 31.134-64.73 29.264-94.929 50.104z" fill="url(#fbSVGID_6_)"/></g></svg></div>
+    <div class="fire" id="fire" hidden><i class="flash"></i><i class="ring"></i><i class="ring r2"></i><i class="comet"></i><svg viewBox="0 0 405.014 362.026" aria-hidden="true"><defs><linearGradient id="fbSVGID_1_" y2="103.22" gradientUnits="userSpaceOnUse" x2="255.71" y1="11.248" x1="324.47"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_2_" y2="168.38" gradientUnits="userSpaceOnUse" x2="289.97" y1="50.903" x1="398.12"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_3_" y2="195.19" gradientUnits="userSpaceOnUse" x2="240.97" y1="160.16" x1="328.17"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_4_" y2="177.97" gradientUnits="userSpaceOnUse" x2="159.05" y1="70.478" x1="317.96"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_5_" y2="119.16" gradientUnits="userSpaceOnUse" x2="78.827" y1="64.575" x1="164.73"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_6_" y2="278.98" gradientUnits="userSpaceOnUse" x2="75.407" y1="104.02" x1="286.48"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient><linearGradient id="fbSVGID_7_" y2="89.773" gradientUnits="userSpaceOnUse" x2="309.33" y1="2.2056" x1="374.8"><stop style="stop-color:#FFFFFF" offset="0"/><stop style="stop-color:#FFF200" offset=".4835"/><stop style="stop-color:#ED1C24" offset="1"/></linearGradient></defs><g class="a flames"><g class="a lick l1"><path d="m167.89 65.402l-101.29 38.538c8.056-24.973 14.53-54.606 111.44-51.509l-10.15 12.971z" fill="#ED1C24"/></g><g class="a lick l2"><path d="m261.79 100.67c-0.431 0-0.864-0.036-1.301-0.107-3.824-0.633-6.628-3.94-6.628-7.817l-0.006-2.782c-0.057-20.52 0.943-31.101 24.139-47.269 1.675-1.17 3.539-2.417 5.529-3.699 2.652-1.709 5.129-3.279 7.429-4.741 11.188-7.102 19.274-12.233 19.274-15.439 0-3.783 2.673-7.037 6.383-7.771 0.518-0.103 1.033-0.153 1.545-0.153 3.156 0 6.079 1.894 7.318 4.905 13.216 32.061-12.701 47.428-31.622 58.65-10.762 6.38-21.887 12.979-24.566 20.853-1.09 3.251-4.14 5.373-7.48 5.373z" fill="url(#fbSVGID_1_)"/></g><g class="a lick l3"><path d="m318.15 18.813c17.417 42.253-47.102 46.725-56.363 73.928 0-19.93-1.135-28.301 20.741-43.55 1.627-1.138 3.386-2.314 5.285-3.537 20.46-13.18 30.33-18.16 30.33-26.841m0.01-15.847c-1.021 0-2.053 0.099-3.086 0.303-6.744 1.335-11.775 6.835-12.637 13.505-2.46 2.37-9.472 6.82-15.731 10.792-2.313 1.468-4.802 3.048-7.469 4.765-2.059 1.325-4.008 2.629-5.788 3.874-12.681 8.839-19.778 16.589-23.714 25.9-3.85 9.108-3.825 17.804-3.797 27.874 0.003 0.895 0.005 1.815 0.005 2.761 0 7.752 5.609 14.366 13.258 15.632 0.871 0.144 1.739 0.214 2.599 0.214 6.681 0 12.775-4.237 14.989-10.74 1.737-5.104 12.478-11.473 21.107-16.59 10.733-6.365 21.832-12.947 29.66-22.797 10.371-13.052 12.185-28.851 5.245-45.687-2.48-6.012-8.33-9.8-14.64-9.8z" fill="#ED1C24"/></g><g class="a lick l0"><path d="m265.68 24.307c-41.155 14.246-25.271 32.286-31.076 63.1-5.938 31.534-26.327 56.042-36.582 61.943 34.823-13.777 105.52-24.796 126.1-74.391-7.465 40.625-23.214 75.976-73.688 102.2-20.125 10.458-30.654 25.477-30.654 41.473 3.014-17.945 17.367-25.519 54.146-30.313 0.806-0.105 1.631-0.151 2.474-0.151 2.992 0 6.21 0.582 9.598 1.164s6.947 1.164 10.623 1.164c6.552 0 13.475-1.849 20.467-8.841 0 32.93-52.002 27.446-66.256 75.699-12.868 43.534-49.14 69.797-92.788 69.797-4.727 0-9.533-0.308-14.413-0.935-24.525 0-75.863-13.52-96.143-62.028-28.431-68.007 3.338-110.99 37.311-135.7 30.9-22.475 66.045-17.008 78.897-25.588 18.04-12.04 14.92-78.593 101.98-78.593m0-24.307c-33.617 0-60.717 8.943-80.547 26.582-17.035 15.152-25.2 33.258-31.162 46.478-1.438 3.187-3.292 7.298-4.619 9.669-2.939 0.741-8.115 1.532-12.107 2.142-17.034 2.603-42.775 6.537-66.743 23.969-24.247 17.635-41.214 38.665-50.431 62.503-12.034 31.125-10.354 65.519 4.991 102.22 11.083 26.509 31.078 47.763 57.824 61.463 18.417 9.435 40.397 15.173 59.151 15.483 5.354 0.629 10.731 0.948 16.006 0.948 26.846 0 51.898-8.085 72.449-23.382 20.784-15.47 35.878-37.542 43.648-63.832 4.527-15.326 14.206-21.688 29.624-30.8 7.898-4.668 16.065-9.494 22.956-16.448 9.736-9.828 14.673-21.718 14.673-35.341 0-9.831-5.922-18.694-15.005-22.457-3.007-1.245-6.165-1.851-9.296-1.851-0.904 0-1.807 0.051-2.702 0.151 3.379-4.091 6.508-8.354 9.395-12.794 11.636-17.895 19.339-38.663 24.244-65.357 2.246-12.226-5.094-24.176-17.014-27.701-2.292-0.678-4.612-1.002-6.896-1.002-9.601-0.001-18.599 5.721-22.446 14.995-7.35 17.711-25.505 29.377-46.015 38.122 1.095-3.782 2.057-7.742 2.832-11.861 2.04-10.829 1.976-20.062 1.925-27.48-0.027-3.881-0.064-9.156 0.474-10.827 0.468-0.495 3.189-3.014 12.741-6.32 11.216-3.882 17.988-15.296 16.02-27-1.95-11.701-12.08-20.272-23.95-20.272z" fill="#ED1C24"/></g><g class="a lick l1"><path stroke-linejoin="round" d="m284.81 163.63c24.676 0 66.033-9.299 85.399-39.972 17.119-27.114 5.335-61.353 28.343-72.357-44.013 0-62.408 10.635-74.416 51.313-11.99 40.67-16.64 56.34-39.32 61.01z" stroke="#ED1C24" stroke-linecap="square" stroke-width="12.914" fill="url(#fbSVGID_2_)"/></g><g class="a lick l2"><path d="m242.22 192.82c8.139-12.623 17.268-20.911 42.596-21.732 24.771-0.801 34.024-2.593 42.15-13.936-11.343 24.511-25.538 26.72-41.902 27.096-16.38 0.37-36.23-1.7-42.85 8.57z" fill="url(#fbSVGID_3_)"/></g><g class="a lick l3"><path d="m220.66 138.44c0-13.181 11.752-25.865 26.538-32.497 17.718-7.946 25.274-6.167 37.909-21.682-2.89 26.195-15.344 33.235-25.634 38.292-14.71 7.22-25.67 4.15-38.82 15.89z" fill="url(#fbSVGID_4_)"/></g><g class="a lick l0"><path d="m82.134 120.21c2.901-11.927-4.088-44.65 65.769-48.681 7.414 0 19.987-1.935 19.987-6.125 1.98 28.26-24.978 34.495-41.742 36.429-16.77 1.94-34.835 9.2-44.016 18.38z" fill="url(#fbSVGID_5_)"/></g><g class="a lick l1"><path stroke-linejoin="round" d="m295.1 74.25c20.691 2.156 48.968-9.051 59.311-26.726 10.344-17.673 30.692-31.468 35.866-31.468-30.605 0-49.013 11.929-55.521 19.409-8.62 9.917-22.15 30.868-39.66 38.785z" stroke="#ED1C24" stroke-linecap="square" stroke-width="9.9031" fill="url(#fbSVGID_7_)"/></g></g><g class="a core"><circle r="136.72" cy="213.15" stroke="#ED1C24" cx="148.88" stroke-width="24.306" fill="none"/><path d="m158.05 339.31c-5.006 0-10.115-0.316-15.201-0.938-27.391-0.278-83.81-15.048-106.57-69.49-14.094-33.714-15.732-65.056-4.867-93.155 8.359-21.623 23.918-40.819 46.245-57.059 21.576-15.692 44.61-19.213 61.429-21.783 7.144-1.091 15.239-2.329 17.868-4.082 2.077-1.388 5.56-9.108 8.102-14.746 11.116-24.649 29.723-65.904 100.63-65.904 5.935 0 11 4.286 11.985 10.138 0.983 5.853-2.403 11.56-8.01 13.5-10.635 3.681-16.972 7.552-19.375 11.836-2.11 3.766-2.07 9.553-2.02 16.88 0.048 6.895 0.109 15.475-1.715 25.152-2.428 12.891-7.027 24.773-12.533 35.023 31.95-10.46 66.57-24.73 78.87-54.37 1.926-4.635 6.424-7.498 11.224-7.498 1.142 0 2.302 0.163 3.447 0.501 5.96 1.763 9.631 7.738 8.509 13.852-6.082 33.088-18.274 69.933-60.13 98.868 0.151-0.002 0.304-0.004 0.455-0.004 3.877 0 7.567 0.636 11.137 1.251l0.514 0.088c3.15 0.539 5.967 0.988 8.567 0.988 3.425 0 7.232-0.641 11.874-5.28 2.325-2.323 5.434-3.56 8.595-3.56 1.567 0 3.146 0.303 4.65 0.927 4.54 1.881 7.502 6.312 7.502 11.228 0 22.616-16.819 32.555-31.658 41.324-14.252 8.422-28.985 17.131-35.098 37.818-7.02 23.75-20.593 43.642-39.25 57.528-18.42 13.72-40.96 20.97-65.17 20.97z" fill="#FFFFFF"/><path d="m87.551 140.33c-54.352 37.503-54.965 116.15-4.046 155.44 45.443 35.065 92.03 20.15 107.31 13.602 11.76-5.037 45.907-29.585 57.304-72.879 4.199-15.959 30.233-28.558 36.118-28.558-14.279 0-62.156 10.079-68.87 28.558 0-22.678 0-41.155 18.474-59.633s49.509-27.463 53.753-53.751c-3.278 10.117-42.831 28.555-83.148 38.635-40.315 10.079-54.172 23.937-54.172 23.937 7.137-22.256 32.263-30.44 48.365-46.542 17.729-17.727 20.933-49.626 20.933-66.424s2.279-36.115 11.025-36.115c-16.129 7.387-45.441 36.192-48.117 53.625-4.78 31.134-64.73 29.264-94.929 50.104z" fill="url(#fbSVGID_6_)"/></g></svg></div>
     <div class="slam" id="slam" hidden>FIRE!<small>3×</small></div>
     <div class="cpop" id="cpop" hidden></div>
     <div class="hint" id="hint">Tap to start<small>Read the words. Tap only the circles, each one as it reaches the line. Space, F or J work too.</small></div>
@@ -258,7 +273,6 @@ body.playing .lps { opacity: 0; pointer-events: none; }
 </div>
 <section class="res" id="result" hidden aria-live="polite">
   <div class="res-top"><h2 id="resTitle">Locked in</h2><div class="stars" id="stars" role="img" aria-label="0 of 3 stars"></div><button class="x" id="resX" type="button" aria-label="Close">×</button></div>
-  <p class="tries" id="tries"></p>
   <dl class="stats">
     <div><dt>Accuracy</dt><dd id="sAcc">0%</dd></div>
     <div><dt>Score</dt><dd id="sScore">0</dd></div>
@@ -266,9 +280,9 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     <div><dt>Longest combo</dt><dd id="sCombo">0</dd></div>
     <div><dt>Landing words</dt><dd id="sLand">0</dd></div>
     <div><dt>Average timing</dt><dd id="sAvg">0 ms</dd></div>
+    <div><dt>Extra round</dt><dd id="sOt">–</dd></div>
   </dl>
   <p class="near" id="near" hidden></p>
-  <p id="triesNote" hidden></p>
   <div class="acts"><button class="ob big red" id="actMain">Again</button><button class="ob big" id="actAlt">Again</button><button class="ob big blue" id="actNext">Next ›</button></div>
   <p id="best"></p>
 </section>
@@ -286,7 +300,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   // A bar is 16 slots split by spaces: "-" is an empty slot, a word starts on its slot, "word*a" is a tap in rhyme group a, "_" inside a word is a space.
   const MIN_GAP = 1;   // seconds between two taps, on every level ("maximum 1 tap a second")
   const LP_NEED = 1;   // stars on an LP that unlock the next one
-  const TRIES = 3;     // rounds that count toward a song's stars each time it is opened; after that it is practice
+  const LIVES = 3, OT_PTS = 10;   // extra round: mistakes allowed, points per clean hit
   const LPS = [
     { id: 'lp1', n: 'End rhyme', scheme: 'AABB', file: 'jc/6different-flavours.mp3', bpm: 84.675, down: 2.154,
       tip: "The rhyme is the last word of the bar and it lands on beat 4. Read the line and tap only that word. Two bars share a rhyme, then the next two take a new one.",
@@ -413,7 +427,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   const keep = () => { try { localStorage.setItem('ttb.v1', JSON.stringify(save)); } catch {} };
 
   let chIx = 0, flow = CHAPTERS[1].l[0], bpm = flow.bpm, state = 'idle';   // idle | count | play | done
-  let ctx = null, round = null, raf = 0, fails = 0, tries = 0, triesBest = 0, T = null;   // T = the laid-out track
+  let ctx = null, round = null, raf = 0, fails = 0, T = null;   // T = the laid-out track
 
   // ---- origin buttons
   const cover = (w, h, x, y) => Math.ceil(2 * Math.max(Math.hypot(x, y), Math.hypot(w - x, y), Math.hypot(x, h - y), Math.hypot(w - x, h - y)));
@@ -521,7 +535,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     lane.append(svg);
     T.notes.forEach((n, k) => {
       const x = X(n.s), dk = dn[k], hold = X(n.e) - x - dk - ring * .5, top = yC + rows[k] * off + (d - dk) / 2;
-      if (hold > 14 && (k + 1 >= rows.length || rows[k + 1] === rows[k])) { const h = document.createElement('div'); h.className = 'hold'; Object.assign(h.style, { left: x + dk + ring * .4 + 'px', top: top + dk / 2 - 2 + 'px', width: hold - 6 + 'px' }); if (n.land) h.style.background = 'var(--land)'; lane.append(h); }
+      if (hold > 14 && (k + 1 >= rows.length || rows[k + 1] === rows[k])) { const h = document.createElement('div'); h.className = 'hold'; Object.assign(h.style, { left: x + dk + ring * .4 + 'px', top: top + dk / 2 - 2 + 'px', width: hold - 6 + 'px' }); if (n.land) h.style.background = 'var(--land)'; lane.append(h); n.h = h; }
       const c = document.createElement('div'); c.className = 'card' + (n.land ? ' land' : n.st ? '' : ' soft') + (n.r != null ? ' r' + n.r % 4 : '');
       Object.assign(c.style, { left: (x - dk * .04) + 'px', top: top + 'px', width: dk + 'px', height: dk + 'px' });   // inner ring's left edge = the tap moment
       const w = document.createElement('span'); w.className = 'w'; const big = n.st || n.land, word = n.w || '';
@@ -533,7 +547,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
       c.append(bg, w, dot); if (n.r != null) { const g = document.createElement('b'); g.className = 'rg'; g.textContent = String.fromCharCode(65 + n.r); c.append(g); }   // rhyme group letter
       const tick = document.createElement('i'); tick.className = 'tick'; tick.style.top = (top - ring * .6 - 8) + 'px'; tick.hidden = true;
       lane.append(c, tick);
-      Object.assign(n, { c, dot, tick, x, sq: dk, wave, pie });
+      Object.assign(n, { c, dot, tick, x, sq: dk, wave, pie, off: 0, pass: 0 }); if (!n.h) n.h = null;
     });
     if (T.lyr) T.notes.forEach(n => svg.append(sv('line', { x1: n.x, x2: n.x, y1: yC - ring, y2: yD + 10, stroke: '#fff', 'stroke-width': 2 })));   // the line the word's first letter sits on
     if (T.lyr) { const fs = phone ? 15 : 18, gapW = fs * .35, cw = fs * .56; let lastEnd = -1e9, row = 0;   // read-along: the record's other words at the moment they are sung, between the circles
@@ -543,7 +557,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
         svg.append(sv('text', { x, y, 'font-family': 'IBM Plex Sans', 'font-weight': 600, 'font-size': fs, fill: '#d7dbd6' }, l.w)); lastEnd = end; }); }
     const laneTop = Math.max(0, (H - (yN + 30)) / 2); lane.style.top = laneTop + 'px';
     box.prepend(lane);
-    T.lane = lane; T.u = u; T.headX = Math.round(W * (phone ? .18 : .24)); T.W = W; T.sq = d;
+    T.lane = lane; T.svg = svg; T.copies = null; T.u = u; T.headX = Math.round(W * (phone ? .18 : .24)); T.W = W; T.sq = d;
     $('head').style.left = T.headX + 'px';
     T.laneTop = laneTop; T.cy = laneTop + yW; T.flagH = phone ? 34 : 42;
     { const pps = u * flow.sub * bpm / 60, g = Math.max(6, .085 * pps), pw = Math.max(6, .08 * pps), z = $('zone');   // the tap zone, to scale: good = within 85 ms of the line, perfect = within 40 ms
@@ -560,8 +574,10 @@ body.playing .lps { opacity: 0; pointer-events: none; }
       if (flow.dr && flow.dr[n.bar] && flow.dr[n.bar][n.k] != null) t += flow.dr[n.bar][n.k] * q16;
       return t; });
   }
+  // extra round: a circle that has gone off the left edge moves one whole track length on, so the song loops without a jump
+  function shift(n, pass) { n.pass = pass; n.off = pass * T.total * T.u; const tr = n.off ? n.off + 'px 0' : ''; n.c.style.translate = tr; n.tick.style.translate = tr; if (n.h) n.h.style.translate = tr; }
   function place(pos) { if (T) T.lane.style.transform = `translate3d(${T.headX - pos * T.u}px,0,0)`; }
-  function resetTiles() { if (!T) return; T.notes.forEach(n => { n.c.classList.remove('flash', 'g2', 'g3', 'missed', 'next', 'pass', 'passed'); n.dot.style.background = 'transparent'; n.tick.hidden = true; if (n.pie) n.pie.setAttribute('d', ''); }); place(0); $('prog').style.width = '0'; }
+  function resetTiles() { if (!T) return; if (T.copies) T.copies.forEach((c, i) => { c.style.translate = i * T.total * T.u + 'px 0'; }); $('ot').hidden = true; T.notes.forEach(n => { shift(n, 0); n.c.classList.remove('flash', 'g2', 'g3', 'missed', 'next', 'pass', 'passed'); n.dot.style.background = 'transparent'; n.tick.hidden = true; if (n.pie) n.pie.setAttribute('d', ''); }); place(0); $('prog').style.width = '0'; }
 
   // ---- the beat under the level: one of Bennie's Jam City beats (jc/index.json: measured tempo + first bar line) or a file from the player.
   // Real tempo (Bennie 2026-11-22): the beat always plays at playback rate 1 and the level takes the beat's measured tempo, never half or double time;
@@ -649,7 +665,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     const dur = 60 / bpm / flow.sub, q16 = 60 / bpm / 4, t0 = ctx.currentTime + .15, first = T.bars[0];
     const count = []; let gx = 0;
     first.groups.forEach(n => { count.push(t0 + gx * dur); click(t0 + gx * dur, 600, beat ? .3 : .5, .06); gx += n; });
-    let src = null; if (beat) { src = ctx.createBufferSource(); src.buffer = beat.buf; src.playbackRate.value = 1; src.loop = true; src.loopStart = beat.down; src.loopEnd = beat.lib ? beat.down + Math.max(1, Math.floor((beat.buf.duration - beat.down) * beat.bpm / 240)) * 240 / beat.bpm : beat.buf.duration;   /* real tempo; a library beat loops on a whole number of bars, so the grid holds after the loop */ const g = ctx.createGain(); g.gain.value = .85; src.connect(g).connect(ctx.destination); src.start(t0, beat.down); }
+    let src = null; if (beat) { src = ctx.createBufferSource(); src.buffer = beat.buf; src.playbackRate.value = 1; src.loop = true; src.loopStart = beat.down; src.loopEnd = beat.bpm ? beat.down + Math.max(1, Math.floor((beat.buf.duration - beat.down) * beat.bpm / 240)) * 240 / beat.bpm : beat.buf.duration;   /* real tempo; a library beat loops on a whole number of bars, so the grid holds after the loop */ const g = ctx.createGain(); g.gain.value = .85; src.connect(g).connect(ctx.destination); src.start(t0, beat.down); }
     const tPlay = t0 + first.N * dur, targets = [];
     if (!beat) T.bars.forEach(b => { let x = 0; b.groups.forEach((n, gi) => { click(tPlay + (b.s0 + x) * dur, gi ? 800 : 1000, gi ? .28 : .5, .06); x += n; }); });
     T.notes.forEach(n => {
@@ -660,10 +676,12 @@ body.playing .lps { opacity: 0; pointer-events: none; }
       n.t = t; targets.push({ t, n, done: false });
     });
     targets.sort((a, b) => a.t - b.t);
-    targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = Math.min(.14, Math.max(.03, gap * .5)); });
+    targets.forEach((x, i) => { const gap = Math.min(i ? x.t - targets[i - 1].t : 9, i + 1 < targets.length ? targets[i + 1].t - x.t : 9); x.win = x.n.win = Math.min(.14, Math.max(.03, gap * .5)); });
     if ($('guide').checked) targets.forEach(x => click(x.t, x.n.land ? 1600 : 2400, x.n.land ? .22 : .1, .03));
     T.lane.style.setProperty('--sd', Math.min(.6, Math.max(.22, 60 / bpm * .9)) + 's');
-    round = { t0, tPlay, count, dur, targets, src, end: tPlay + T.total * dur + .3, perf0: performance.now(), ctx0: ctx.currentTime, lat: (ctx.outputLatency || ctx.baseLatency || 0) + save.lag / 1000,
+    targets.forEach(x => { x.pass = 0; });
+    if (!T.copies) { T.copies = [T.svg]; for (let i = 1; i < 3; i++) { const c = T.svg.cloneNode(true); c.style.translate = i * T.total * T.u + 'px 0'; T.lane.insertBefore(c, T.svg.nextSibling); T.copies.push(c); } }   // the drawing three times over: the one you are in, the next, the last
+    round = { t0, tPlay, count, dur, targets, src, end: tPlay + T.total * dur + .3, P: T.total * dur, n0: targets.length, ot: false, lives: LIVES, bonus: 0, otHits: 0, pass: 0, sched: 1, perf0: performance.now(), ctx0: ctx.currentTime, lat: (ctx.outputLatency || ctx.baseLatency || 0) + save.lag / 1000,
       combo: 0, maxCombo: 0, fire: 0, beatI: -99, strays: 0, score: 0, pts: 0, offs: [], perfect: 0, judged: 0, crowd: 50, landDead: 0, lands: targets.filter(x => x.n.land).length };
     state = 'count'; document.body.classList.add('playing'); fxOff(); setFire(0); hud(); say('Listen', '');
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
@@ -694,7 +712,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   // the TAP flag follows the next circle's front edge (the tap line of that word) across the screen
   function cue(nx, now) {
     const fl = $('tapFlag'), R = round; if (!nx) { fl.hidden = true; return; }
-    const sx = nx.n.x + T.headX - (now - R.tPlay) / R.dur * T.u;
+    const sx = nx.n.x + nx.n.off + T.headX - (now - R.tPlay) / R.dur * T.u;
     if (sx > T.W + 60) { fl.hidden = true; return; }
     if (R.cueOn !== nx) { R.cueOn = nx; const cTop = T.laneTop + nx.n.c.offsetTop; R.cueTop = Math.max(2, cTop - T.flagH - 16); fl.style.setProperty('--stem', Math.max(0, cTop + nx.n.sq / 2 - R.cueTop - T.flagH - 10) + 'px'); }
     fl.hidden = false; fl.style.transform = `translate3d(${sx.toFixed(1)}px,${R.cueTop}px,0)`;
@@ -713,17 +731,63 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     if (!save.lessFlash) { const p = $('pulse'); p.style.setProperty('--px', T.headX + 'px'); p.className = 'pulse'; again(p, 'go'); }
     if (f >= 2) { const cp = $('cpop'); cp.textContent = f + '×'; Object.assign(cp.style, { left: T.headX + n.sq * 1.05 + 'px', top: Math.max(4, m.y - n.sq * .98) + 'px' }); cp.hidden = false; again(cp, 'go'); clearTimeout(cpopT); cpopT = setTimeout(() => { cp.hidden = true; }, 620); }
   }
-  function fireUp(n) {   // the third green hit in a row
-    const m = centre(n.c), fb = $('fire'), w = Math.max(190, n.sq * 1.92), h = w * 362.026 / 405.014;
-    n.c.classList.remove('pass'); again(n.c, 'burn'); setTimeout(() => n.c.classList.remove('burn'), 920);
-    Object.assign(fb.style, { width: w + 'px', height: h + 'px', left: m.x - w * .3676 + 'px', top: m.y - h * .5888 + 'px' }); fb.style.translate = '0px 0px'; fb.hidden = false; again(fb, 'go'); clearTimeout(fireT); fireT = setTimeout(() => { fb.hidden = true; if (round) round.fireX = null; }, 960);
-    round.fireX = T.headX - (heard() - round.tPlay) / round.dur * T.u;   // the fireball rides along with the word-ball it covers
-    const sl = $('slam'); sl.hidden = false; again(sl, 'go'); clearTimeout(slamT); slamT = setTimeout(() => { sl.hidden = true; }, 960);
-    if (!save.lessFlash) { const p = $('pulse'); p.style.setProperty('--px', m.x + 'px'); p.className = 'pulse warm'; again(p, 'go'); }
-    if (fxOn()) { spray(m.x, m.y, 18, n.sq * .75, n.sq * 1.35, ['#ffd23a', '#ff6a00', '#fff', '#ff4d00'], Math.max(12, n.sq * .12), 700); if (!save.lessShake) again($('track'), 'shake'); }
+  function fireUp(n) {   // the third green hit in a row: comet in, impact, fireball (moves like Bennie's template, 2026-11-22)
+    const m = centre(n.c), fb = $('fire'), w = Math.max(190, n.sq * 1.92), h = w * 362.026 / 405.014, R = round, move = fxOn(), fly = move ? 220 : 0;
+    Object.assign(fb.style, { width: w + 'px', height: h + 'px', left: m.x - w * .3676 + 'px', top: m.y - h * .5888 + 'px', fontSize: w / 10 + 'px' }); fb.style.translate = '0px 0px';
+    fb.querySelectorAll('.em').forEach(e => e.remove()); fb.classList.toggle('soft', !!save.lessFlash);
+    fb.classList.remove('go', 'in'); fb.hidden = false; void fb.offsetWidth; if (move) fb.classList.add('in');
+    R.fireX = T.headX - (heard() - R.tPlay) / R.dur * T.u;   // the fireball (and the comet flying into it) rides along with the word-ball it covers
+    clearTimeout(fireT); clearTimeout(slamT);
+    fireT = setTimeout(() => {   // impact
+      if (round !== R) return;
+      fb.classList.remove('in'); fb.classList.add('go');
+      n.c.classList.remove('pass'); again(n.c, 'burn'); setTimeout(() => n.c.classList.remove('burn'), 920);
+      const sl = $('slam'); sl.hidden = false; again(sl, 'go'); slamT = setTimeout(() => { sl.hidden = true; }, 960);
+      const mm = centre(n.c);
+      if (!save.lessFlash) { const p = $('pulse'); p.style.setProperty('--px', mm.x + 'px'); p.className = 'pulse warm'; again(p, 'go'); }
+      if (move) {
+        spray(mm.x, mm.y, 18, n.sq * .75, n.sq * 1.35, ['#ffd23a', '#ff6a00', '#fff', '#ff4d00'], Math.max(12, n.sq * .12), 700); if (!save.lessShake) again($('track'), 'shake');
+        const fr = document.createDocumentFragment();
+        for (let i = 0; i < 12; i++) { const e = document.createElement('i'); e.className = 'em';   // embers trail off up-right while it burns
+          e.style.cssText = `left:${(40 + (i * 29) % 35).toFixed(0)}%;top:${(22 + (i * 17) % 38).toFixed(0)}%;animation-delay:${((i * 0.37) % 0.9).toFixed(2)}s;--dx:${(3.5 + (i * 7) % 6).toFixed(1)}em;--dy:${(-3.5 - (i * 5) % 6).toFixed(1)}em`; fr.append(e); }
+        fb.append(fr); }
+      fireT = setTimeout(() => { fb.hidden = true; fb.classList.remove('go'); fb.querySelectorAll('.em').forEach(e => e.remove()); if (round) round.fireX = null; }, 920);
+    }, fly);
     say('Fire!', 'fire');
   }
   function fxOff() { clearTimeout(fireT); clearTimeout(slamT); clearTimeout(cpopT); ['fire', 'slam', 'cpop', 'tapFlag'].forEach(id => { $(id).hidden = true; }); $('fx').replaceChildren(); $('track').classList.remove('shake'); }
+  // ---- extra round (Bennie 2026-11-22: "like the flow game: once the mission is done you go on, but 3 mistakes instead of 1; the beat and the tapping go on, 10 points a hit")
+  // The song's stars lock on its last word. The music keeps playing, the circles come round again (a circle that left the screen moves one track length on),
+  // every clean hit (green or amber) is +OT_PTS, and a miss, a far-off hit or a tap with no word each cost one of LIVES. The last one ends the round. Unlimited passes.
+  function extra(now) {
+    const R = round, pos = (now - R.tPlay) / R.dur, gone = T.headX / T.u;
+    R.pass = Math.max(0, Math.floor((now - R.tPlay) / R.P));
+    for (const n of T.notes) {
+      if (n.s + n.pass * T.total > pos - gone - (n.sq + 40) / T.u) continue;   // still on screen (or still to come)
+      const cur = R.targets.find(x => x.n === n && x.pass === n.pass); if (cur && !cur.done) continue;
+      if (cur) R.targets.splice(R.targets.indexOf(cur), 1);
+      shift(n, n.pass + 1); n.c.classList.remove('flash', 'g2', 'g3', 'missed', 'next', 'pass', 'passed', 'burn'); n.dot.style.background = 'transparent'; n.tick.hidden = true; if (n.pie) n.pie.setAttribute('d', '');
+      const t = n.t + n.pass * R.P, i0 = R.targets.findIndex(x => x.t > t), nx = { t, n, done: false, win: n.win, pass: n.pass };
+      if (i0 < 0) R.targets.push(nx); else R.targets.splice(i0, 0, nx);
+    }
+    { const k = Math.floor(pos / T.total); T.copies.forEach(c => { const j = [k - 1, k, k + 1].find(v => ((v % 3) + 3) % 3 === T.copies.indexOf(c)); c.style.translate = (j < 0 ? 2 : j) * T.total * T.u + 'px 0'; }); }
+    if (R.sched <= R.pass + 1 && now > R.tPlay + R.sched * R.P - 2 && (!R.ot || R.lives > 0)) {   // clicks (no beat) and word ticks for the next pass, 2 s ahead
+      const t0 = R.tPlay + R.sched * R.P;
+      if (!R.src) T.bars.forEach(b => { let x = 0; b.groups.forEach((g, gi) => { click(t0 + (b.s0 + x) * R.dur, gi ? 800 : 1000, gi ? .28 : .5, .06); x += g; }); });
+      if ($('guide').checked) T.notes.forEach(n => click(n.t - R.tPlay + t0, n.land ? 1600 : 2400, n.land ? .22 : .1, .03));
+      R.sched++;
+    }
+  }
+  function otShow(hit) {
+    const R = round, e = $('ot'); e.hidden = !R || !R.ot; if (e.hidden) return;
+    e.querySelectorAll('svg').forEach((h, i) => h.classList.toggle('lost', i >= R.lives)); e.querySelector('b').textContent = '+' + R.bonus; e.setAttribute('aria-label', `Extra round, ${R.lives} of ${LIVES} tries left, +${R.bonus}`);
+    if (hit) again(e, 'hit');
+  }
+  function oops(why) {   // a mistake in the extra round; true when it was the last try
+    const R = round; R.lives--; otShow(); click(ctx.currentTime, 170, .25, .07, 'triangle');
+    if (R.lives > 0) { say(`${why} · ${R.lives} ${R.lives === 1 ? 'try' : 'tries'} left`, 'miss'); return false; }
+    say(why + ' · extra round over', 'miss'); R.otEnd = why; finish(); return true;
+  }
   function frame() {
     if (!round) return;
     const now = heard(), R = round;
@@ -736,7 +800,8 @@ body.playing .lps { opacity: 0; pointer-events: none; }
       else if (q > 0) { const v = $('verdict'); if (v.textContent !== String(q)) say(String(q), 'miss'); }
     }
     if (state === 'play') {
-      $('prog').style.width = Math.min(100, 100 * (now - R.tPlay) / (R.end - .3 - R.tPlay)) + '%';
+      { const q = (now - R.tPlay) / R.P; $('prog').style.width = Math.min(100, 100 * (R.ot ? q - Math.floor(q) : q)) + '%'; }
+      extra(now);
       { let cur = null, ci = -1; R.targets.forEach((x, i) => { if (x.t <= now) { cur = x; ci = i; } });
         if (R.pieOn && R.pieOn !== cur) { R.pieOn.n.pie.setAttribute('d', ''); R.pieOn = null; }
         if (cur) { const t1 = ci + 1 < R.targets.length ? R.targets[ci + 1].t : cur.t + 60 / bpm, f = Math.min(1, (now - cur.t) / Math.max(.05, t1 - cur.t));
@@ -744,9 +809,11 @@ body.playing .lps { opacity: 0; pointer-events: none; }
           else { const a = f * Math.PI * 2; cur.n.pie.setAttribute('d', `M0 0L0 -46A46 46 0 ${a > Math.PI ? 1 : 0} 1 ${(Math.sin(a) * 46).toFixed(2)} ${(-Math.cos(a) * 46).toFixed(2)}Z`); }
           R.pieOn = cur; } }
       const nx = R.targets.find(x => !x.done); R.targets.forEach(x => { x.n.c.classList.toggle('next', x === nx); if (!x.passed && now >= x.t) { x.passed = true; x.n.c.classList.add('pass', 'passed'); } });
-      for (const x of R.targets) if (!x.done && now > x.t + x.win) { x.done = true; R.judged++; R.combo = 0; crowd(-6);
-        x.n.c.classList.add('missed'); x.n.c.classList.remove('next'); setFire(0); say('Missed', 'miss'); hud(); }
-      if (now >= R.end) return finish();
+      for (const x of R.targets) if (!x.done && now > x.t + x.win) { x.done = true; R.combo = 0; x.n.c.classList.add('missed'); x.n.c.classList.remove('next'); setFire(0);
+        if (x.pass) { if (oops('Missed')) return; continue; }
+        R.judged++; crowd(-6); say('Missed', 'miss'); hud(); }
+      if (!R.ot && R.targets.every(x => x.pass || x.done)) {   // the last word of the song is judged: the stars lock, the extra round begins
+        R.ot = true; R.lock = accNow(); otShow(); say(R.lock + '% · keep going', 'good'); }
     }
     raf = requestAnimationFrame(frame);
   }
@@ -755,7 +822,21 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     const R = round, t = heard(ms);
     if (state === 'count' && t < R.tPlay - .14) return;   // tapping along with the count-in is free
     let best = null; for (const x of R.targets) if (!x.done && Math.abs(x.t - t) <= x.win && (!best || Math.abs(x.t - t) < Math.abs(best.t - t))) best = x;
-    if (!best) { R.strays++; R.combo = 0; setFire(0); crowd(-4); click(ctx.currentTime, 170, .25, .07, 'triangle'); say('No word there', 'miss'); hud(); return; }
+    if (!best) { R.combo = 0; setFire(0); if (R.ot) { oops('No word there'); return; } R.strays++; crowd(-4); click(ctx.currentTime, 170, .25, .07, 'triangle'); say('No word there', 'miss'); hud(); return; }
+    if (best.pass) {   // extra round: a clean hit is +OT_PTS, a far-off one costs a try
+      const off = (t - best.t) * 1000, a = Math.abs(off), grade = a <= 40 ? 'perfect' : a <= 85 ? 'good' : 'ok', n = best.n; best.done = true;
+      const col = grade === 'perfect' ? 'var(--hit)' : `var(--${grade})`; n.dot.style.background = col; best.passed = true; n.c.classList.add('pass', 'passed'); n.c.classList.remove('next');
+      const dx = Math.max(-.45, Math.min(.45, off / 1000 / R.dur)) * T.u; n.tick.style.left = (n.x + dx) + 'px'; n.tick.style.background = col; n.tick.hidden = false;
+      if (grade === 'ok') { n.c.classList.add('g3'); setTimeout(() => n.c.classList.remove('g3'), 140); R.combo = 0; setFire(0); oops(Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early')); return; }
+      R.bonus += OT_PTS; R.otHits++; R.combo++; R.maxCombo = Math.max(R.maxCombo, R.combo); otShow(true);
+      click(ctx.currentTime, grade === 'perfect' ? (n.land ? 1760 : 1320) : 990, grade === 'perfect' ? .3 : .22, .07, 'triangle');
+      const fire = grade === 'perfect' && R.fire + 1 >= FIRE_AT;
+      if (!fire) { n.c.classList.add('flash'); if (grade === 'good') n.c.classList.add('g2'); void n.c.offsetWidth; setTimeout(() => n.c.classList.remove('flash', 'g2'), 140); }
+      say('+' + OT_PTS + ' · ' + (grade === 'perfect' ? 'Perfect' : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early')), grade); hud();
+      if (fire) { setFire(FIRE_AT); R.fire = 0; fireUp(n); setTimeout(() => { if (round === R && R.fire === 0) setFire(0); }, 1170); }
+      else if (grade === 'perfect') { setFire(R.fire + 1); hitFx(n, R.fire); } else setFire(0);
+      return;
+    }
     const off = (t - best.t) * 1000, a = Math.abs(off), grade = a <= 40 ? 'perfect' : a <= 85 ? 'good' : 'ok', n = best.n;
     best.done = true; R.judged++; R.offs.push(off); R.score += grade === 'perfect' ? 1 : grade === 'good' ? .6 : .25; if (grade === 'perfect') R.perfect++;
     R.combo = grade === 'ok' ? 0 : R.combo + 1; R.maxCombo = Math.max(R.maxCombo, R.combo);
@@ -772,47 +853,44 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     const dx = Math.max(-.45, Math.min(.45, off / 1000 / R.dur)) * T.u; n.tick.style.left = (n.x + dx) + 'px'; n.tick.style.background = col; n.tick.hidden = false;
     click(ctx.currentTime, grade === 'perfect' ? (n.land ? 1760 : 1320) : grade === 'good' ? 990 : 620, grade === 'perfect' ? .3 : .22, n.land && grade === 'perfect' ? .16 : .07, 'triangle');
     say(grade === 'perfect' ? (n.land ? 'Landed' : 'Perfect') : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early'), n.land && grade === 'perfect' ? 'land' : grade); hud();
-    if (fire) { setFire(FIRE_AT); R.fire = 0; fireUp(n); setTimeout(() => { if (round === R && R.fire === 0) setFire(0); }, 950); }   // 3/3 shows while it burns, then the count starts over
+    if (fire) { setFire(FIRE_AT); R.fire = 0; fireUp(n); setTimeout(() => { if (round === R && R.fire === 0) setFire(0); }, 1170); }   // 3/3 shows while it burns, then the count starts over
     else if (grade === 'perfect') { setFire(R.fire + 1); hitFx(n, R.fire); } else setFire(0);
   }
+  function R_stop() { round.otEnd = 'Stopped'; say('Stopped · +' + round.bonus, ''); finish(); }
   function stopRound() { cancelAnimationFrame(raf); if (ctx && (state === 'count' || state === 'play')) { ctx.close(); ctx = null; } round = null; state = 'idle'; document.body.classList.remove('playing'); fxOff(); setFire(0); resetTiles(); say('Ready', ''); hud(); $('hint').hidden = false; }
   const STAR = 'M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.2 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8z';
   function finish() {
-    const R = round; cancelAnimationFrame(raf); state = 'done'; document.body.classList.remove('playing'); $('tapFlag').hidden = true; setFire(0);
+    const R = round; cancelAnimationFrame(raf); state = 'done'; $('ot').hidden = true; document.body.classList.remove('playing'); $('tapFlag').hidden = true; setFire(0);
     if (R.src) { try { R.src.stop(ctx.currentTime + 1.2); } catch {} }
     R.targets.forEach(x => { x.n.c.classList.remove('next'); x.n.pie.setAttribute('d', ''); }); $('prog').style.width = '100%';
-    T.lane.style.transition = 'transform .6s cubic-bezier(.16,1,.3,1)'; place(Math.max(0, T.total - (T.W - T.headX) / T.u * .9)); setTimeout(() => { if (T) T.lane.style.transition = ''; }, 700);
-    const acc = Math.max(0, Math.round(100 * (R.score - .25 * R.strays) / R.targets.length)), stars = acc >= 90 ? 3 : acc >= 75 ? 2 : acc >= 50 ? 1 : 0;
+    if (!R.ot || R.pass < 1) T.lane.style.transition = 'transform .6s cubic-bezier(.16,1,.3,1)'; if (!R.ot || R.pass < 1) place(Math.max(0, T.total - (T.W - T.headX) / T.u * .9)); setTimeout(() => { if (T) T.lane.style.transition = ''; }, 700);
+    const acc = Math.max(0, Math.round(100 * (R.score - .25 * R.strays) / R.n0)), stars = acc >= 90 ? 3 : acc >= 75 ? 2 : acc >= 50 ? 1 : 0;
     const avg = R.offs.length ? Math.round(R.offs.reduce((a, b) => a + b, 0) / R.offs.length) : 0;
-    // 3 tries (Bennie 2026-11-22: "infinite, but with 3 tries instead of 1"): the first TRIES rounds after a song is opened count toward its stars and record;
-    // after that every round is practice, without limit. Opening the song again gives 3 new tries.
-    tries++; const counted = tries <= TRIES; if (counted) triesBest = Math.max(triesBest, stars); const shown = counted ? stars : triesBest;
+    const shown = stars;
     const feel = R.offs.length < 4 ? 'Keep tapping' : avg > 25 ? 'Laid back' : avg < -25 ? 'Pushing' : 'Locked in';
-    $('resTitle').textContent = !counted ? 'Practice round' : stars === 3 ? feel === 'Locked in' ? 'Locked in' : feel + ', and clean' : feel;
+    $('resTitle').textContent = stars === 3 ? feel === 'Locked in' ? 'Locked in' : feel + ', and clean' : feel;
     const st = $('stars'); st.replaceChildren(); st.setAttribute('aria-label', shown + ' of 3 stars');
     for (let i = 0; i < 3; i++) { const s = sv('svg', { viewBox: '0 0 24 24', 'aria-hidden': 'true' }); if (i < shown) s.setAttribute('class', 'on'); s.append(sv('path', { d: STAR })); st.append(s); }
-    $('sAcc').textContent = acc + '%'; $('sScore').textContent = R.pts.toLocaleString('en'); $('sPerf').textContent = R.perfect + ' of ' + R.targets.length; $('sCombo').textContent = R.maxCombo;
+    $('sAcc').textContent = acc + '%'; $('sScore').textContent = (R.pts + R.bonus).toLocaleString('en'); $('sPerf').textContent = R.perfect + ' of ' + R.targets.length; $('sCombo').textContent = R.maxCombo;
     $('sLand').textContent = R.landDead + ' of ' + R.lands + ' dead on';
     $('sAvg').textContent = R.offs.length ? avg === 0 ? 'on time' : Math.abs(avg) + ' ms ' + (avg > 0 ? 'late' : 'early') : 'no hits';
     const next = [50, 75, 90].find(v => v > acc), near = $('near');
     near.hidden = !(next && next - acc <= 6 && R.offs.length); if (!near.hidden) near.textContent = `${next - acc} ${next - acc === 1 ? 'point' : 'points'} from ${[50, 75, 90].indexOf(next) + 1} ${next === 50 ? 'star' : 'stars'}. One more?`;
     fails = stars === 0 ? fails + 1 : 0;
-    { const tr = $('tries'), b = document.createElement('b'); tr.replaceChildren(); for (let i = 1; i <= TRIES; i++) { const e = document.createElement('i'); if (i < tries || !counted) e.className = 'used'; else if (i === tries) e.className = 'now'; tr.append(e); }
-      b.textContent = counted ? `Try ${tries} of ${TRIES}` : `${TRIES} tries used`; tr.append(b, counted ? (tries < TRIES ? ` · ${TRIES - tries} ${TRIES - tries === 1 ? 'try' : 'tries'} left that count` : ' · after this it is practice') : ` · practice, round ${tries}`);
-      const tn = $('triesNote'); tn.hidden = counted; if (!counted) tn.textContent = `Your stars on this song stay at ${triesBest}: the best of your ${TRIES} tries.` + (stars > triesBest ? ` This round would have been ${stars}.` : ''); }
-    const was = save.best[flow.id] || 0; if (counted && stars === 3 && bpm > was) { save.best[flow.id] = bpm; keep(); }
-    if (flow.lp) { const had = save.lp[flow.id] || 0, nx = LPS[flow.lp]; if (counted && stars > had) { save.lp[flow.id] = stars; keep(); }   // an LP cleared with LP_NEED stars opens the next one on the shelf
+    $('sOt').textContent = R.ot ? `+${R.bonus} · ${R.otHits} ${R.otHits === 1 ? 'hit' : 'hits'}` : '–';
+    const was = save.best[flow.id] || 0; if (stars === 3 && bpm > was) { save.best[flow.id] = bpm; keep(); }
+    if (flow.lp) { const had = save.lp[flow.id] || 0, nx = LPS[flow.lp]; if (stars > had) { save.lp[flow.id] = stars; keep(); }   // an LP cleared with LP_NEED stars opens the next one on the shelf
       if (LP_SHELF && nx && had < LP_NEED && stars >= LP_NEED) { near.hidden = false; near.textContent = `New LP unlocked: LP ${nx.lp} · ${nx.n}. Press Next.`; }
       showLps(); }
     const main = $('actMain'), alt = $('actAlt'); alt.hidden = true;
     const own = $('beatSel').value === 'own', up = curLib ? nextBeat(1) : null, dn = curLib ? nextBeat(-1) : null, show = v => +v.toFixed(1);   // on a library beat faster / slower = the next beat, at its own tempo
     if (stars === 3 && !flow.song && !own && (curLib ? up : bpm < 220)) { setLabel(main, `Go faster: ${up ? show(up.bpm) : bpm + 5} BPM`); main.dataset.d = 1; alt.hidden = false; setLabel(alt, 'Again at ' + show(bpm)); }
     else if (fails >= 2 && !flow.song && !own && (curLib ? dn : bpm > 40)) { setLabel(main, `Ease off: ${dn ? show(dn.bpm) : bpm - 5} BPM`); main.dataset.d = -1; alt.hidden = false; setLabel(alt, 'Again at ' + show(bpm)); }
-    else { setLabel(main, tries < TRIES ? `Again · try ${tries + 1} of ${TRIES}` : 'Again · practice'); main.dataset.d = 0; }
-    showBest(counted && stars === 3 && bpm > was);
+    else { setLabel(main, 'Again'); main.dataset.d = 0; }
+    showBest(stars === 3 && bpm > was);
     say(stars === 3 ? 'Clean' : stars ? 'Done' : 'Again?', stars === 3 ? 'perfect' : ''); hud();
     $('result').hidden = false;
-    window.__ttbLast = { acc, stars, avg, perfect: R.perfect, strays: R.strays, maxCombo: R.maxCombo, pts: R.pts, land: R.landDead + '/' + R.lands, crowd: R.crowd };
+    window.__ttbLast = { acc, stars, bonus: R.bonus, otHits: R.otHits, passes: R.pass, avg, perfect: R.perfect, strays: R.strays, maxCombo: R.maxCombo, pts: R.pts, land: R.landDead + '/' + R.lands, crowd: R.crowd };
   }
   function showBest(isNew) { const b = save.best[flow.id], e = $('best'); e.replaceChildren(); if (!b) { e.textContent = `No record on ${flow.n} yet. Three stars sets one.`; return; } const s = document.createElement('b'); s.textContent = +(+b).toFixed(1) + ' BPM'; e.append(isNew ? 'New record on ' : 'Your record on ', flow.n, ': ', s); }
 
@@ -866,7 +944,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   }
   function pick(f) {
     let locked = false; if (f.lp && !lpOpen(f)) { locked = true; f = [...LPS].reverse().find(lpOpen); }   // a locked LP falls back to the last open one
-    if (state === 'count' || state === 'play') stopRound(); flow = f; fails = 0; tries = 0; triesBest = 0; state = 'idle'; round = null; stepped = null; wantStart = false;
+    if (state === 'count' || state === 'play') stopRound(); flow = f; fails = 0; state = 'idle'; round = null; stepped = null; wantStart = false;
     $('lvSel').value = f.id; const pr = practiceBpm(f); setBpm(pr, true);
     const tip = $('tip'), b = document.createElement('b'); b.textContent = f.lp ? `LP ${f.lp} · ${f.n} · ${f.scheme} · real tempo ${+f.bpm.toFixed(1)} BPM` : f.song ? `your record · ${f.song.words.filter(w => w.star).length} starred words` : `${f.m} · ${GRID[f.sub] || f.sub} · ${f.p.length} bars${f.sw ? ' · swing' : ''}${f.late ? ' · ' + f.late + ' ms behind' : ''}${f.dr ? ' · microtimed' : ''}`;
     tip.replaceChildren(b, f.tip + ' '); if (f.f) tip.append(Object.assign(document.createElement('span'), { textContent: '(' + f.f + ')' }));
@@ -907,7 +985,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   document.addEventListener('keydown', e => {
     if (e.repeat || e.metaKey || e.ctrlKey || e.altKey) return;
     if (e.key === 'Escape' && !$('result').hidden) { $('result').hidden = true; return; }
-    if (e.key === 'Escape' && (state === 'count' || state === 'play')) { stopRound(); return; }
+    if (e.key === 'Escape' && (state === 'count' || state === 'play')) { if (round && round.ot) { R_stop(); return; } stopRound(); return; }
     const k = e.key.toLowerCase(), playing = state === 'count' || state === 'play', tag = e.target.tagName;
     if (k === ' ' && (tag === 'INPUT' || tag === 'SELECT')) return;
     if (playing && (k === ' ' || k === 'f' || k === 'j')) { e.preventDefault(); tap(e.timeStamp); }
@@ -926,7 +1004,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   const lagShow = () => { $('lagOut').textContent = save.lag + ' ms'; };
   $('lag').value = save.lag; lagShow(); $('lag').addEventListener('input', () => { save.lag = +$('lag').value; lagShow(); keep(); });
   let rz = 0; new ResizeObserver(() => { clearTimeout(rz); rz = setTimeout(() => { if (state === 'idle' || state === 'done') { const d = state === 'done'; drawTrack(); if (!d) resetTiles(); } }, 120); }).observe($('track'));
-  window.__ttb = { fire: () => round ? round.fire : 0, tries: () => ({ tries, best: triesBest }), loading: () => loading, lps: () => LPS.map(f => ({ id: f.id, open: lpOpen(f), stars: save.lp[f.id] || 0 })), rate: () => beat ? bpm / beat.bpm : null, lib: () => curLib && curLib.file, nudge: d => nudge(d), all: () => CHAPTERS[0].l.map(l => l.id).concat(LPS.map(l => l.id)), taps: () => T ? T.notes.map(n => n.s * 60 / bpm / flow.sub) : [], bpm: () => bpm, layout: () => T && { beatPx: T.u * flow.sub, d: T.sq, bpm: flow.bpm }, beat: () => beat && { name: beat.name, bpm: beat.bpm }, pick: id => CHAPTERS.forEach((c, i) => { if (i && c.l.some(l => l.id === id)) pickCh(i, id); }), targets: () => round ? round.targets.map(x => x.t) : [], heard: () => round ? heard() : 0, state: () => state, start: () => { if (state === 'idle' || state === 'done') start(); }, tap: off => tap(round.perf0 + (off - round.ctx0 + round.lat) * 1000) };
+  window.__ttb = { fire: () => round ? round.fire : 0, ot: () => round ? { on: round.ot, lives: round.lives, bonus: round.bonus, hits: round.otHits, pass: round.pass } : null, loading: () => loading, lps: () => LPS.map(f => ({ id: f.id, open: lpOpen(f), stars: save.lp[f.id] || 0 })), rate: () => beat ? bpm / beat.bpm : null, lib: () => curLib && curLib.file, nudge: d => nudge(d), all: () => CHAPTERS[0].l.map(l => l.id).concat(LPS.map(l => l.id)), taps: () => T ? T.notes.map(n => n.s * 60 / bpm / flow.sub) : [], bpm: () => bpm, layout: () => T && { beatPx: T.u * flow.sub, d: T.sq, bpm: flow.bpm }, beat: () => beat && { name: beat.name, bpm: beat.bpm }, pick: id => CHAPTERS.forEach((c, i) => { if (i && c.l.some(l => l.id === id)) pickCh(i, id); }), targets: () => round ? round.targets.map(x => x.t) : [], due: () => round ? round.targets.filter(x => !x.done).map(x => x.t) : [], heard: () => round ? heard() : 0, state: () => state, start: () => { if (state === 'idle' || state === 'done') start(); }, tap: off => tap(round.perf0 + (off - round.ctx0 + round.lat) * 1000) };
   if (!save.lps1) { save.lps1 = save.songs1 = 1; save.ch2 = 1; save.lv = LPS[0].id; }   // first visit after the LPs arrived: open the shelf on LP 1
   { const ci = CHAPTERS.findIndex((c, i) => i && c.l.some(l => l.id === save.lv)); pickCh(ci > 0 && !CHAPTERS[Math.min(CHAPTERS.length - 1, save.ch2 || 0)].l.some(l => l.id === save.lv) ? ci : Math.min(CHAPTERS.length - 1, save.ch2 || 0), save.lv); }
 })();
