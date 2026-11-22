@@ -2456,7 +2456,7 @@ dialog.tg.tg-adv .tg-seg, dialog.tg.tg-adv #tgBack { display: none; }
 html.mo-off dialog.tg[open], html.mo-off .tg-mark.tg-pop, html.mo-off .tg-verdict.tg-bump, html.mo-off .tg-pad.tg-hit { animation: none; }
 /* phone round (Bennie 2026-11-18): only the bars, full screen; both rows always fit, portrait or tilted */
 dialog.tg.tg-full { width: 100vw; height: 100dvh; max-width: none; max-height: none; border: 0; border-radius: 0; }
-dialog.tg.tg-full .tg-crumb, dialog.tg.tg-full .tg-deck > :not(.tg-go):not(.tg-beat), dialog.tg.tg-full #tgPad, dialog.tg.tg-full .tg-listen, dialog.tg.tg-full .tg-hint, dialog.tg.tg-full .tg-beat.tg-bmb { display: none !important; }
+dialog.tg.tg-full .tg-crumb, dialog.tg.tg-full .tg-deck > :not(.tg-go):not(.tg-beat), dialog.tg.tg-full .tg-listen, dialog.tg.tg-full .tg-hint, dialog.tg.tg-full .tg-beat.tg-bmb { display: none !important; }
 dialog.tg.tg-full .tg-body { padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(44px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left)); overflow: hidden; height: 100dvh; display: grid; align-content: center; }
 dialog.tg.tg-full .tg-play { max-width: none; width: 100%; gap: 0; }
 dialog.tg.tg-full .tg-deck { padding: 0; border: 0; background: none; }
@@ -3933,13 +3933,9 @@ dialog.tg.tg-full:modal { inset: 0; padding: 0; }
 .tg-grid { position: relative; }
 /* phone round = a game screen (Bennie 2026-11-19): nothing scrolls, the track is big (a third of the screen tall) with a bright hit
    line where the playhead stands, and two big buttons fill the bottom: blue Tap (every dot), red Land (the red box) */
-.tg-lanes { display: none; }
 dialog.tg.tg-full { overscroll-behavior: none; touch-action: none; }
 /* Bennie 2026-11-19 "so much white on top and on the bottom, why not just fill the whole thing": the track sits right under the
    score and is a third of the screen tall (--trk), the buttons take everything below it (--lane) */
-.tg-hp { display: none; }
-dialog.tg.tg-full .tg-hp { display: inline; fill: color-mix(in srgb, #1f66c9 14%, transparent); stroke: #1f66c9; stroke-width: 2.5; }
-dialog.tg.tg-full .tg-hp.tg-hpl { fill: color-mix(in srgb, var(--accent) 14%, transparent); stroke: var(--accent); }
 dialog.tg.tg-full { --trk: min(36dvh, 360px); --lane: max(120px, calc(100dvh - var(--trk) - 190px)); }
 dialog.tg.tg-full .tg-body { padding-top: max(44px, env(safe-area-inset-top)) !important; padding-bottom: calc(var(--lane) + max(10px, env(safe-area-inset-bottom))) !important; align-content: space-evenly !important; }
 dialog.tg.tg-full .tg-row.tg-lrow { width: calc(var(--trk) * var(--ar, 6)); flex: none; }
@@ -3950,22 +3946,10 @@ dialog.tg.tg-full .tg-rows.tg-long { position: relative; }
 dialog.tg.tg-full .tg-grid { position: relative; }
 dialog.tg.tg-full .tg-grid:has(.tg-long)::after { content: ''; position: absolute; top: 0; bottom: 26px; left: 35%; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--accent); box-shadow: 0 0 14px var(--accent); pointer-events: none; opacity: .85; }
 dialog.tg.tg-full .tg-verdict { font-size: 1.6rem; }
-dialog.tg.tg-full .tg-lanes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; position: fixed; z-index: 7; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); height: var(--lane); }
-dialog.tg.tg-full.tg-scard .tg-lanes { display: none; }
-.tg-lane { display: grid; place-content: center; justify-items: center; gap: 4px; border: 2px solid #1f66c9; border-radius: 22px; background: color-mix(in srgb, #1f66c9 16%, var(--bg)); color: var(--fg); font: inherit; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; transition: transform .06s, background .12s, box-shadow .12s; }
-.tg-lane i { width: 34px; height: 34px; border-radius: 50%; background: #1f66c9; }
-.tg-lane b { font-family: var(--tg-h); font-weight: 800; font-size: 1.7rem; text-transform: uppercase; line-height: 1; }
-.tg-lane span { font-size: .78rem; color: var(--muted); }
-.tg-lane.tg-lred { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, var(--bg)); }
-.tg-lane.tg-lred i { background: var(--accent); border-radius: 6px; }
-.tg-lane.tg-next { box-shadow: 0 0 0 3px var(--bg), 0 0 0 6px currentColor; }
-.tg-lane.tg-next { color: #1f66c9; } .tg-lane.tg-lred.tg-next { color: var(--accent); }
-.tg-lane.tg-next b { color: var(--fg); }
-.tg-lane:active { transform: scale(.97); background: color-mix(in srgb, #1f66c9 34%, var(--bg)); }
-.tg-lane.tg-lred:active { background: color-mix(in srgb, var(--accent) 32%, var(--bg)); }
+/* Bennie 2026-11-22 "put this guitar type things away": no Tap/Land lanes and no big rings; the phone round has the game's one TAP pad
+   (start, then tap) in the room under the track */
+dialog.tg.tg-full #tgPad { display: grid !important; position: fixed; z-index: 7; left: max(10px, env(safe-area-inset-left)); right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); width: auto; height: var(--lane); min-height: 0; touch-action: none; user-select: none; -webkit-user-select: none; }
 dialog.tg.tg-full #tgStop { top: max(8px, env(safe-area-inset-top)); bottom: auto !important; left: auto !important; right: max(8px, env(safe-area-inset-right)); transform: none !important; z-index: 8; }
-.tg-lane.tg-hitl i { animation: tg-lanep .18s ease-out; }
-@keyframes tg-lanep { 0% { transform: scale(1.6); } 100% { transform: scale(1); } }
 .sheet { padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
 /* Bar Book fills the screen inside the safe area (its columns scroll on their own) */
 html.bb #viewBook, html.bb #viewBook.rb-dark { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
@@ -4145,7 +4129,7 @@ html.kb-open .bk-fab, html.kb-open .smt-lg, html.kb-open .rb-sidetg, html.kb-ope
           <div class="tg-otend" id="tgOtEnd" role="status" hidden></div>
           <div class="tg-hud"><span class="tg-verdict" id="tgVerdict" aria-live="polite">Ready</span></div>
         </div>
-        <div class="tg-lanes" id="tgLanes"><button class="tg-lane" id="tgLaneDot" type="button" aria-label="Tap: every dot"><i></i><b>Tap</b><span>every dot</span></button><button class="tg-lane tg-lred" id="tgLaneLand" type="button" aria-label="Land: the red box"><i></i><b>Land</b><span>red box</span></button></div>
+        
         <div class="tg-lines" id="tgLines" hidden></div>
         <div class="tg-res" id="tgRes" hidden>
           <div class="tg-score"><span class="tg-stars" id="tgResStars"></span><span class="tg-pct" id="tgAcc"></span><span class="tg-new" id="tgNew"></span></div>
@@ -14510,9 +14494,7 @@ const TG = (() => {
         const cx = padL + (x.slot + 0.5) * cw, r = (x.st ? 6 : 4.5) + 1, g = sv('g', {});
         const c = sv('circle', { class: 'tg-mark', cx, cy, r, opacity: 0 }), tick = sv('line', { x1: cx, x2: cx, y1: 22, y2: 28, 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 });
         const hb = x.hold ? sv('line', { x1: cx, x2: cx + x.hold * cw, y1: cy, y2: cy, 'stroke-width': 7, 'stroke-linecap': 'round', opacity: 0, class: 'tg-hb' }) : null;
-        // Bennie 2026-11-19 "make the hit points more obvious": a big ring on every dot to hit (phone game screen only, CSS .tg-hp)
-        const hp = sv('circle', { class: 'tg-hp' + (x.land ? ' tg-hpl' : ''), cx, cy, r: 12 });
-        if (hb) g.append(hb); g.append(hp, c, tick); svg.append(g); return { c, tick, g, cx, cy, r, cw, hb };
+        if (hb) g.append(hb); g.append(c, tick); svg.append(g); return { c, tick, g, cx, cy, r, cw, hb };
       });
       const head = sv('line', { x1: 0, x2: 0, y1: 20, y2: 100, stroke: 'var(--fg)', 'stroke-width': 2, 'stroke-linecap': 'round', opacity: 0 }); svg.append(head);
       row.replaceChildren(h('span', 'tg-pass', p === 0 ? '1st time' : p === 1 ? '2nd time' : `Overtime · ${p - 1}`), wrap); row.classList.toggle('tg-ot', p > 1);
@@ -14918,23 +14900,9 @@ const TG = (() => {
     cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
   }
   const heard = ms => R.ctx0 + ((ms == null ? performance.now() : ms) - R.perf0) / 1000 - R.lat;   // the moment the ear is at, on the audio clock
-  // Bennie 2026-11-19 "on the phone it's hard to tap; buttons like guitar hero, our own version": in the phone round two big
-  // buttons under the track, blue = every dot, red = the landing (red box). The press scores on its timing; the wrong button
-  // for the dot that's due counts as a wrong spot. The button for the next dot lights up.
-  function laneHit(t, lane, src) {
-    let best = null; for (const x of R.targets) if (!x.done && Math.abs(x.t - t) <= x.win && (!best || Math.abs(x.t - t) < Math.abs(best.t - t))) best = x;
-    hit(t, false, best && !!best.land !== (lane === 'land') ? { p: -9, k: -9, lane: true } : undefined, src);
-  }
-  let laneNext = '';
-  function laneGlow(now) {
-    let nx = null; for (const x of R.targets) if (!x.done && x.t + (x.win || 0) >= now && (!nx || x.t < nx.t)) nx = x;
-    const k = nx ? (nx.land ? 'land' : 'dot') : ''; if (k === laneNext) return; laneNext = k;
-    $('tgLaneDot').classList.toggle('tg-next', k === 'dot'); $('tgLaneLand').classList.toggle('tg-next', k === 'land');
-  }
   function frame() {
     if (!R) return;
     const now = heard();
-    if (dlg.classList.contains('tg-full')) laneGlow(now);
     if (mic && S.mode === 'voice') $('tgMeter').style.transform = `scaleX(${Math.min(1, Math.max(0, (mic.level + 60) / 50)).toFixed(2)})`;
     if (state === 'count') {
       if (now >= R.tPlay - 0.02) { state = 'play'; say('Go', ''); }
@@ -15252,11 +15220,7 @@ const TG = (() => {
   $('tgPad').addEventListener('pointerup', e => holdStop('p' + e.pointerId, true));   // a click starts at once, a long press starts on its own
   $('tgPad').addEventListener('pointercancel', e => holdStop('p' + e.pointerId, false));
   $('tgPad').addEventListener('click', e => { if (e.detail === 0 && !playing()) primary(); });   // Enter on the pad, or a screen reader's press
-  [['tgLaneDot', 'dot'], ['tgLaneLand', 'land']].forEach(([id, lane]) => {
-    const b = $(id);
-    b.addEventListener('pointerdown', e => { e.preventDefault(); if (!playing() || S.mode !== 'tap') return; b.classList.remove('tg-hitl'); void b.offsetWidth; b.classList.add('tg-hitl'); laneHit(heard(e.timeStamp), lane, 'p' + e.pointerId); });
-    b.addEventListener('contextmenu', e => e.preventDefault());
-  });
+
   // Bennie 2026-11-19 "why not click the image": tapping the track when nothing runs starts the round (song cards keep their bar picking)
   $('tgRows').addEventListener('click', () => { if (!playing() && cur && !cur.whole && !tapIn) start(); });
   $('tgRows').addEventListener('pointerdown', e => { if (playing() && S.mode === 'tap') { e.preventDefault(); hit(heard(e.timeStamp), false, spotAt(e) || { p: -1, k: -1 }, 'p' + e.pointerId); } });
@@ -15274,7 +15238,7 @@ const TG = (() => {
   dlg.addEventListener('close', () => { if (tapIn && tapIn._done) tapIn._done(false); fullOff(); stopRound(); gbPause(); micOff(); if (ac) { ac.close(); ac = null; } state = 'idle'; cur = null; });
   entry();
   // _t: for the automated tests (a tapping bot and sound fed into the mic input)
-  return { open, openFit, playSong, songCard, playLevel: (lv, i) => { open(); playLadder(lv, i || 0); }, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], lanes: () => R ? R.targets.map(x => [x.t, !!x.land]) : [], lane: (t, l) => laneHit(t, l, 'test'), state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
+  return { open, openFit, playSong, songCard, playLevel: (lv, i) => { open(); playLadder(lv, i || 0); }, finder: () => { open(); advTab(true); }, get last() { return last; }, _t: { targets: () => R ? R.targets.map(x => x.t) : [], state: () => state, save: () => S, ac: () => ac, out: () => R ? R.out : 0,
     week, tap: (t, src) => hit(t, false, undefined, src), rel: (t, src) => release(t, src), tapAt: (t, x, y) => hit(t, false, spotAt({ clientX: x, clientY: y }) || { p: -1, k: -1 }), spot: (p, k) => { const r = rows[p], b = r.svg.getBoundingClientRect(), d = r.dots[k]; return { x: b.left + d.cx * b.width / r.W, y: b.top + b.height * 0.3 }; }, heard: () => R ? heard() : 0, beat: () => ({ off: gbNow(), lock: gbLock(), src: GB.src, t0: R ? R.t0 : null, perf0: R ? R.perf0 : null, ctx0: R ? R.ctx0 : null }), ladder: playLadder, cal: playCal, mode: setMode, start } };
 })();
 </script>
