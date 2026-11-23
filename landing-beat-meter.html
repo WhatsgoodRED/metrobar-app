@@ -7562,7 +7562,7 @@ function renderTiles(barIdx) {
   beatEls.forEach((e, b) => {
     e.beat.hidden = b >= lay.nb; if (b >= lay.nb) return;
     e.sub.style.gridTemplateColumns = `repeat(${lay.lens[b]}, minmax(0, 1fr))`;
-    if (!L) { e.num.textContent = lay.den === 8 ? `${b + 1}·${lay.groups[b]}` : b + 1; e.num.title = lay.den === 8 ? `Group ${b + 1}: ${lay.groups[b]} eighths` : ''; } else {
+    if (!L) { e.num.textContent = b + 1;   // always count 1 2 3 4; the group size stays in the tooltip e.num.title = lay.den === 8 ? `Group ${b + 1}: ${lay.groups[b]} eighths` : ''; } else {
       e.num.replaceChildren();
       let any = false;
       for (let s = lay.starts[b]; s < lay.starts[b] + lay.lens[b]; s++) if (L.slots[s] >= 0) { if (any) e.num.append(' '); e.num.append(syllSpan(L, L.slots[s])); any = true; }
