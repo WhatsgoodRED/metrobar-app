@@ -698,7 +698,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   const crowd = d => { round.crowd = Math.max(0, Math.min(100, round.crowd + d)); };
   // ---- TAP cue + FIRE! (Bennie 2026-11-22, mock docs/preview/ttb-tap-fire-mock.html v5)
   // Cue: the next circle carries a TAP flag on its front edge; it fills up during the last beat and pops when the edge is on the line.
-  // Streak: green (perfect) hits in a row light the three flames; the third one is FIRE! and the count starts over. Early, late, a miss or a stray tap puts it back to 0.
+  // Streak: green (perfect) hits in a row light the three flames; the third one is FIRE!, and every green after it is FIRE! again (4×, 5×, ...) until the streak breaks. Early, late, a miss or a stray tap puts it back to 0.
   // Feedback sizes: early / late = the old flash only; green = flash + squash + 12 shards + pulse; FIRE! = fireball + 18 embers + shake + glow. Never a freeze.
   const FIRE_AT = 3, HEAT = ['#f2f3ef', '#ffd23a', '#ff8a00'];
   const fxOn = () => !calm.matches;   // prefers-reduced-motion: no particles, no shake
@@ -706,7 +706,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
   let fireT = 0, slamT = 0, cpopT = 0;
   function setFire(n) {
     if (round) round.fire = n;
-    const s = $('streak'); s.querySelectorAll('svg').forEach((e, i) => e.classList.toggle('on', i < n)); s.lastElementChild.textContent = n + '/' + FIRE_AT; s.classList.toggle('lit', n > 0); s.setAttribute('aria-label', `Fire streak ${n} of ${FIRE_AT}`);
+    const s = $('streak'); s.querySelectorAll('svg').forEach((e, i) => e.classList.toggle('on', i < n)); s.lastElementChild.textContent = n > FIRE_AT ? n + '×' : n + '/' + FIRE_AT; s.classList.toggle('lit', n > 0); s.setAttribute('aria-label', `Fire streak ${n} of ${FIRE_AT}`);
     const tr = $('track'); if (n) tr.style.setProperty('--heat', HEAT[Math.min(n, 2)]); else tr.style.removeProperty('--heat'); $('head').classList.toggle('hot', n > 0);
   }
   // the TAP flag follows the next circle's front edge (the tap line of that word) across the screen
@@ -731,7 +731,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     if (!save.lessFlash) { const p = $('pulse'); p.style.setProperty('--px', T.headX + 'px'); p.className = 'pulse'; again(p, 'go'); }
     if (f >= 2) { const cp = $('cpop'); cp.textContent = f + '×'; Object.assign(cp.style, { left: T.headX + n.sq * 1.05 + 'px', top: Math.max(4, m.y - n.sq * .98) + 'px' }); cp.hidden = false; again(cp, 'go'); clearTimeout(cpopT); cpopT = setTimeout(() => { cp.hidden = true; }, 620); }
   }
-  function fireUp(n) {   // the third green hit in a row: comet in, impact, fireball (moves like Bennie's template, 2026-11-22)
+  function fireUp(n, k) {   // the third green hit in a row: comet in, impact, fireball (moves like Bennie's template, 2026-11-22)
     const m = centre(n.c), fb = $('fire'), w = Math.max(190, n.sq * 1.92), h = w * 362.026 / 405.014, R = round, move = fxOn(), fly = move ? 220 : 0;
     Object.assign(fb.style, { width: w + 'px', height: h + 'px', left: m.x - w * .3676 + 'px', top: m.y - h * .5888 + 'px', fontSize: w / 10 + 'px' }); fb.style.translate = '0px 0px';
     fb.querySelectorAll('.em').forEach(e => e.remove()); fb.classList.toggle('soft', !!save.lessFlash);
@@ -742,7 +742,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
       if (round !== R) return;
       fb.classList.remove('in'); fb.classList.add('go');
       n.c.classList.remove('pass'); again(n.c, 'burn'); setTimeout(() => n.c.classList.remove('burn'), 920);
-      const sl = $('slam'); sl.hidden = false; again(sl, 'go'); slamT = setTimeout(() => { sl.hidden = true; }, 960);
+      const sl = $('slam'); sl.querySelector('small').textContent = (k || FIRE_AT) + '×'; sl.hidden = false; again(sl, 'go'); slamT = setTimeout(() => { sl.hidden = true; }, 960);
       const mm = centre(n.c);
       if (!save.lessFlash) { const p = $('pulse'); p.style.setProperty('--px', mm.x + 'px'); p.className = 'pulse warm'; again(p, 'go'); }
       if (move) {
@@ -833,7 +833,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
       const fire = grade === 'perfect' && R.fire + 1 >= FIRE_AT;
       if (!fire) { n.c.classList.add('flash'); if (grade === 'good') n.c.classList.add('g2'); void n.c.offsetWidth; setTimeout(() => n.c.classList.remove('flash', 'g2'), 140); }
       say('+' + OT_PTS + ' · ' + (grade === 'perfect' ? 'Perfect' : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early')), grade); hud();
-      if (fire) { setFire(FIRE_AT); R.fire = 0; fireUp(n); setTimeout(() => { if (round === R && R.fire === 0) setFire(0); }, 1170); }
+      if (fire) { setFire(R.fire + 1); fireUp(n, R.fire); }
       else if (grade === 'perfect') { setFire(R.fire + 1); hitFx(n, R.fire); } else setFire(0);
       return;
     }
@@ -853,7 +853,7 @@ body.playing .lps { opacity: 0; pointer-events: none; }
     const dx = Math.max(-.45, Math.min(.45, off / 1000 / R.dur)) * T.u; n.tick.style.left = (n.x + dx) + 'px'; n.tick.style.background = col; n.tick.hidden = false;
     click(ctx.currentTime, grade === 'perfect' ? (n.land ? 1760 : 1320) : grade === 'good' ? 990 : 620, grade === 'perfect' ? .3 : .22, n.land && grade === 'perfect' ? .16 : .07, 'triangle');
     say(grade === 'perfect' ? (n.land ? 'Landed' : 'Perfect') : Math.round(a) + ' ms ' + (off > 0 ? 'late' : 'early'), n.land && grade === 'perfect' ? 'land' : grade); hud();
-    if (fire) { setFire(FIRE_AT); R.fire = 0; fireUp(n); setTimeout(() => { if (round === R && R.fire === 0) setFire(0); }, 1170); }   // 3/3 shows while it burns, then the count starts over
+    if (fire) { setFire(R.fire + 1); fireUp(n, R.fire); }   // from the third green on, every green in a row is FIRE! until the streak breaks (Bennie 2026-11-26)
     else if (grade === 'perfect') { setFire(R.fire + 1); hitFx(n, R.fire); } else setFire(0);
   }
   function R_stop() { round.otEnd = 'Stopped'; say('Stopped · +' + round.bonus, ''); finish(); }
